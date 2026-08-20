@@ -1,0 +1,244 @@
+/* A4 Paper Setup */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+@media screen {
+  .global-print-container {
+    display: none;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .global-print-container, .global-print-container * {
+    visibility: visible;
+  }
+  .global-print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+.receipt-wrapper {
+  position: relative;
+  width: 210mm;
+  height: 296mm; /* slightly less than 297 to avoid overflow page */
+  font-family: Arial, Helvetica, sans-serif !important;
+  color: #000;
+  direction: rtl;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: white;
+}
+
+/* Force Arial on all child elements as well */
+.receipt-wrapper * {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.receipt-bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.receipt-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  /* Padding to keep everything strictly inside the template header and footer */
+  padding: 30mm 15mm 20mm 15mm; 
+  box-sizing: border-box;
+}
+
+/* For debugging on screen */
+.receipt-wrapper.preview-mode {
+  display: block;
+  margin: 20px auto;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+/* Main Title Box */
+.receipt-main-title {
+  background-color: transparent;
+  color: #F97316; /* Theme Orange */
+  text-align: center;
+  padding: 0;
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+
+/* Top details (Receipt No & Date) */
+.top-details {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #000;
+  margin-bottom: 5px;
+  background-color: transparent;
+}
+.top-details > div {
+  padding: 3px 6px;
+  font-weight: bold;
+  font-size: 15px;
+}
+.top-details > div:first-child {
+  border-left: 1px solid #000;
+  flex: 1;
+}
+
+/* Section Titles */
+.section-title {
+  text-align: center;
+  color: #F97316; /* Theme Orange */
+  font-weight: 800;
+  font-size: 17px;
+  margin: 4px 0 2px 0;
+}
+
+/* Common Table Styles */
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2px;
+  background-color: transparent;
+}
+.receipt-table th, .receipt-table td {
+  border: 1px solid #000;
+  padding: 2px 4px;
+  font-size: 14px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.receipt-table th {
+  background-color: #f9fafb;
+}
+
+.col-30 { width: 30%; }
+.col-20 { width: 20%; }
+.col-50 { width: 50%; }
+
+/* Checkboxes list */
+.check-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.check-grid.row-mode {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.check-box {
+  width: 12px;
+  height: 12px;
+  border: 1px solid #000;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.check-box.checked::after {
+  content: '✓';
+  font-size: 13px;
+  line-height: 1;
+  font-weight: bold;
+}
+
+/* Text lines */
+.text-line {
+  margin-bottom: 2px;
+  line-height: 1.4;
+  font-weight: bold;
+  font-size: 14px;
+}
+.dotted-line {
+  border-bottom: 1px dotted #000;
+  display: inline-block;
+  min-width: 100px;
+}
+
+.declaration-text {
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 3px;
+  text-align: justify;
+}
+
+.black-box {
+  background-color: #000;
+  color: white;
+  padding: 4px;
+  margin: 3px 0;
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.4;
+  font-size: 14px;
+}
+
+/* Signature Table */
+.signature-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 2px;
+  background-color: transparent;
+}
+.signature-table th, .signature-table td {
+  border: 1px solid #000;
+  text-align: center;
+}
+.signature-table th {
+  padding: 3px;
+  font-size: 14px;
+}
+.signature-table td {
+  height: 50px;
+  vertical-align: top;
+  padding: 3px;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 15px;
+  border-top: 4px solid #ea580c;
+  padding-top: 10px;
+  font-weight: 900;
+  font-size: 1.3rem;
+  color: #ea580c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}

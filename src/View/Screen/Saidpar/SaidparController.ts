@@ -1,0 +1,177 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Home, Users, Banknote, Wallet, FileText } from 'lucide-react';
+import { Approutes } from '../../../core/constant/routes';
+import { useAuth } from '../../../core/context/AuthContext';
+
+export interface SubMenuItem {
+  name: string;
+  label: string;
+  route: string;
+}
+
+export interface MenuItem {
+  name: string;
+  icon: any; // Using any for icon as LucideIcon might require more specific imports
+  isDropdown: boolean;
+  label: string;
+  route?: string;
+  subItems?: SubMenuItem[];
+}
+
+export interface MenuSection {
+  title: string;
+  items: MenuItem[];
+}
+
+export const useSaidparController = (onLogout?: () => void) => {
+  const [isOpen, setIsOpen] = useState(true);
+  const [activeItem, setActiveItem] = useState('Home');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const toggleDropdown = (dropdownName: string) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [dropdownName]: !prev[dropdownName],
+    }));
+  };
+
+  const toggleMobileSidebar = () => {
+    setIsMobileOpen(!isMobileOpen);
+  };
+
+  // Load initial theme from local storage or system preference if desired
+  useEffect(() => {
+    // For now, let's just sync it with a basic body class to show the effect
+    if (isDarkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [isDarkMode]);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const handleItemClick = (itemName: string, route?: string) => {
+    setActiveItem(itemName);
+    if (isMobileOpen) {
+      setIsMobileOpen(false); // Close mobile sidebar on item select
+    }
+    if (!isOpen) {
+      setOpenDropdowns({}); // Close floating menus after selection
+    }
+    if (route) {
+      navigate(route);
+    }
+  };
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  const { permissions, isFullAccess } = useAuth();
+  
+  const hasAccess = (check: boolean) => isFullAccess || check;
+
+  const menuSections: MenuSection[] = [
+    {
+     title: "",
+      items: [
+        ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
+          name: 'Home',
+          icon: Home,
+          isDropdown: false,
+          label: 'sidebar.home',
+          route: '/',
+        }] : []),
+        ...(hasAccess(permissions.members.view) ? [{
+          name: 'Members',
+          icon: Users,
+          isDropdown: false,
+          label: 'sidebar.members',
+          route: Approutes.Members,
+        }] : []),
+        ...(hasAccess(permissions.teams.view) ? [{
+          name: 'Teams',
+          icon: Users,
+          isDropdown: false,
+          label: 'فئات الفرق',
+          route: Approutes.Teams,
+        }] : []),
+        ...(hasAccess(permissions.contracts.view) ? [{
+          name: 'Contracts',
+          icon: FileText,
+          isDropdown: false,
+          label: 'sidebar.contracts',
+          route: Approutes.Contracts,
+        }] : []),
+        ...(hasAccess(permissions.payments.view) ? [{
+          name: 'Payments',
+          icon: Banknote,
+          isDropdown: false,
+          label: 'sidebar.payments',
+          route: Approutes.Payments,
+        }] : []),
+        ...(hasAccess(permissions.funds.view) ? [{
+          name: 'Funds',
+          icon: Wallet,
+          isDropdown: false,
+          label: 'sidebar.funds',
+          route: Approutes.Funds,
+        }] : []),
+        ...(hasAccess(permissions.reports.view) ? [{
+          name: 'Reports',
+          icon: FileText,
+          isDropdown: false,
+          label: 'sidebar.reports',
+          route: Approutes.Reports,
+        }] : []),
+        ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
+          name: 'UsersManagement',
+          icon: Users,
+          isDropdown: true,
+          label: 'sidebar.users_management',
+          subItems: [
+            ...(hasAccess(permissions.usersAndRoles.viewRoles) ? [{
+              name: 'Roles',
+              label: 'sidebar.roles',
+              route: Approutes.Roles,
+            }] : []),
+            ...(hasAccess(permissions.usersAndRoles.viewUsers) ? [{
+              name: 'Users',
+              label: 'sidebar.users',
+              route: Approutes.Users,
+            }] : [])
+          ]
+        }] : []),
+      ]
+    },
+  ];
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+  };
+
+  return {
+    isOpen,
+    activeItem,
+    searchQuery,
+    setSearchQuery,
+    isDarkMode,
+    toggleTheme,
+    toggleSidebar,
+    handleItemClick,
+    menuSections,
+    openDropdowns,
+    toggleDropdown,
+    isMobileOpen,
+    toggleMobileSidebar,
+    handleLogout,
+  };
+};

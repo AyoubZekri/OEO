@@ -1,0 +1,557 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { usePaymentsController, type PaymentRecord } from './PaymentsController';
+import { Plus, Search, Filter, Edit, Trash2, X, Wallet, Users, ShoppingBag } from 'lucide-react';
+import { CustomDropdown } from '../../widget/CustomDropdown';
+import { CurrencyInput } from '../../widget/CurrencyInput';
+import { useAuth } from '../../../core/context/AuthContext';
+import { Printer } from 'lucide-react';
+import { PrintableReceipt } from './PrintableReceipt/PrintableReceipt';
+import './Payments.css';
+
+const PrintReceiptButton = ({ payment, member, contract, onPrint }: any) => {
+  return (
+    <button className="btn-icon" style={{color: '#ea580c'}} onClick={() => onPrint(payment, member, contract)} title="طباعة الوصل">
+      <Printer size={18} />
+    </button>
+  );
+};
+
+export const Payments: React.FC = () => {
+  const { t } = useTranslation();
+  const { permissions, isFullAccess } = useAuth();
+  const hasAccess = (check: boolean) => isFullAccess || check;
+  const controller = usePaymentsController();
+  
+  const [printData, setPrintData] = useState<any>(null);
+
+  const handleNativePrint = (payment: any, member: any, contract: any) => {
+    setPrintData({ payment, member, contract });
+    setTimeout(() => {
+      window.print();
+    }, 200); // Wait for the component to render before printing
+  };
+  const {
+    payments,
+    members,
+    funds,
+    contracts,
+    isDialogOpen,
+    editingPayment,
+    isLoading,
+    openDialog,
+    closeDialog,
+    deletePayment,
+    savePayment,
+    formatCurrency,
+    getMemberDetails,
+    searchQuery,
+    setSearchQuery,
+    filterNature,
+    setFilterNature,
+  } = controller;
+
+  // Form State
+  const [transactionType, setTransactionType] = useState<'دفع' | 'مصروف'>('دفع');
+  const [memberId, setMemberId] = useState('');
+  const [fundId, setFundId] = useState('');
+  const [amount, setAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('نقدا');
+  const [paymentDate, setPaymentDate] = useState('');
+  const [checkNumber, setCheckNumber] = useState('');
+  const [amountNature, setAmountNature] = useState('راتب شهري');
+  const [installmentNumber, setInstallmentNumber] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [month, setMonth] = useState('');
+  const [year, setYear] = useState('');
+  const [occasion, setOccasion] = useState('');
+  const [numberOfGoals, setNumberOfGoals] = useState('');
+  const [notes, setNotes] = useState('');
+
+  // Auto-calculate amount based on contract and amountNature
+  useEffect(() => {
+    if (transactionType === 'دفع' && memberId && amountNature && contracts.length > 0 && !editingPayment) {
+      const contract = contracts.find(c => c.individuals_id === memberId);
+      if (contract) {
+        if (amountNature === 'راتب شهري') {
+          setAmount(contract.monthlySalary.toString());
+        } else if (amountNature === 'تسجيل أهداف') {
+          const goals = parseInt(numberOfGoals) || 0;
+          setAmount((contract.goalsBonus * goals).toString());
+        } else if (amountNature === 'منحة فوز') {
+          setAmount(contract.winBonus.toString());
+        } else if (amountNature === 'رقم دفعة') {
+          setAmount(contract.paymentValue.toString());
+        }
+      }
+    }
+  }, [memberId, amountNature, numberOfGoals, contracts, editingPayment]);
+
+  // Handle open modal for Edit or Add
+  const handleOpenDialog = (payment?: PaymentRecord) => {
+    if (payment) {
+      setTransactionType(payment.transactionType || 'دفع');
+      setMemberId(payment.memberId || '');
+      setFundId(payment.fundId || '');
+      setAmount(payment.amount.toString());
+      setPaymentMethod(payment.paymentMethod);
+      setPaymentDate(payment.paymentDate);
+      setCheckNumber(payment.checkNumber || '');
+      setAmountNature(payment.amountNature);
+      setInstallmentNumber(payment.installmentNumber || '');
+      setDateFrom(payment.dateFrom || '');
+      setDateTo(payment.dateTo || '');
+      setMonth(payment.month || '');
+      setYear(payment.year || '');
+      setOccasion(payment.occasion || '');
+      setNumberOfGoals(payment.numberOfGoals?.toString() || '');
+      setNotes(payment.notes || '');
+    } else {
+      setTransactionType('دفع');
+      setMemberId('');
+      setFundId('');
+      setAmount('');
+      setPaymentMethod('نقدا');
+      setPaymentDate(new Date().toISOString().split('T')[0]);
+      setCheckNumber('');
+      setAmountNature('راتب شهري');
+      setInstallmentNumber('');
+      setDateFrom('');
+      setDateTo('');
+      setMonth('');
+      setYear(new Date().getFullYear().toString());
+      setOccasion('');
+      setNumberOfGoals('');
+      setNotes('');
+    }
+    openDialog(payment);
+  };
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (transactionType === 'دفع' && !memberId) return;
+
+    savePayment({
+      transactionType,
+      memberId: transactionType === 'دفع' ? memberId : undefined,
+      fundId: fundId || undefined,
+      amount: parseFloat(amount) || 0,
+      paymentMethod,
+      paymentDate,
+      checkNumber: paymentMethod === 'صك' ? checkNumber : undefined,
+      amountNature,
+      installmentNumber: amountNature === 'رقم دفعة' ? installmentNumber : undefined,
+      dateFrom: amountNature === 'رقم دفعة' ? dateFrom : undefined,
+      dateTo: amountNature === 'رقم دفعة' ? dateTo : undefined,
+      month: amountNature === 'راتب شهري' ? month : undefined,
+      year: amountNature === 'راتب شهري' ? year : undefined,
+      occasion: !['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة فوز'].includes(amountNature) ? occasion : undefined,
+      numberOfGoals: amountNature === 'تسجيل أهداف' ? (parseInt(numberOfGoals) || 0) : undefined,
+      notes
+    });
+  };
+
+  const selectedMemberDetails = memberId ? getMemberDetails(memberId) : null;
+
+  return (
+    <div className="payments-container">
+      <div className="payments-header">
+        <h1 className="page-title">{t('payments.title', 'المدفوعات والمصاريف')}</h1>
+        
+        <div className="payments-actions">
+          <div className="search-box">
+            <Search size={18} />
+            <input 
+              type="text" 
+              placeholder={t('payments.search_placeholder', 'ابحث...')} 
+              className="search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <CustomDropdown
+            options={[
+              { value: 'all', label: t('payments.filter_all', 'الكل') },
+              { value: 'راتب شهري', label: 'راتب شهري' },
+              { value: 'رقم دفعة', label: 'رقم دفعة' },
+              { value: 'منحة فوز', label: 'منحة فوز' },
+              { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
+              { value: 'نتيجة', label: 'نتيجة' },
+              { value: 'تحفيز', label: 'تحفيز' },
+              { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
+              { value: 'باقي المستحقات', label: 'باقي المستحقات' },
+              { value: 'تسوية جزئية', label: 'تسوية جزئية' },
+              { value: 'تسوية نهائية', label: 'تسوية نهائية' },
+              { value: 'سلفة', label: 'سلفة' },
+              { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
+              { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
+              { value: 'تنقل', label: 'تنقل' },
+              { value: 'اقامة', label: 'اقامة' },
+              { value: 'إطعام', label: 'إطعام' },
+              { value: 'تجهيزات', label: 'تجهيزات' },
+              { value: 'صيانة', label: 'صيانة' },
+              { value: 'فواتير', label: 'فواتير' },
+              { value: 'كراء', label: 'كراء' },
+              { value: 'اخرى', label: 'اخرى' }
+            ]}
+            value={filterNature}
+            onChange={(val) => setFilterNature(val)}
+          />
+          {hasAccess(permissions.payments.add) && (
+            <button className="btn-primary" onClick={() => handleOpenDialog()}>
+              <Plus size={18} />
+              {t('payments.add_payment', 'إضافة دفعة/مصروف')}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="members-table-wrapper">
+        <table className="custom-table members-table">
+          <thead>
+            <tr>
+              <th>{t('payments.col_date', 'التاريخ')}</th>
+              <th>{t('payments.col_member', 'المستفيد')}</th>
+              <th>{t('payments.col_nature', 'طبيعة المبلغ')}</th>
+              <th>{t('payments.col_amount', 'المبلغ')}</th>
+              <th>{t('payments.col_method', 'طريقة الدفع')}</th>
+              <th>{t('payments.col_actions', 'إجراءات')}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {payments.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="text-center py-4 text-muted">
+                  {t('payments.no_data', 'لا توجد بيانات')}
+                </td>
+              </tr>
+            ) : (
+              payments.map(payment => {
+                const member = getMemberDetails(payment.memberId);
+                return (
+                  <tr key={payment.id}>
+                    <td className="text-muted" data-label={t('payments.col_date', 'التاريخ')}>{payment.paymentDate}</td>
+                    <td className="font-weight-bold" data-label={t('payments.col_member', 'المستفيد')}>{member ? `${member.firstName} ${member.lastName}` : '-'}</td>
+                    <td data-label={t('payments.col_nature', 'طبيعة المبلغ')}>{payment.amountNature} {payment.amountNature === 'رقم دفعة' && payment.installmentNumber ? `(${payment.installmentNumber})` : ''}</td>
+                    <td className="amount-cell text-success" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(payment.amount)}</td>
+                    <td data-label={t('payments.col_method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                    <td data-label={t('payments.col_actions', 'إجراءات')}>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <PrintReceiptButton 
+                          payment={payment} 
+                          member={member} 
+                          contract={contracts.find(c => c.individuals_id === payment.memberId)} 
+                          onPrint={handleNativePrint}
+                        />
+                        {hasAccess(permissions.payments.edit) && (
+                          <button className="btn-icon edit" onClick={() => handleOpenDialog(payment)}>
+                            <Edit size={18} />
+                          </button>
+                        )}
+                        {hasAccess(permissions.payments.delete) && (
+                          <button className="btn-icon delete" onClick={() => deletePayment(payment.id)}>
+                            <Trash2 size={18} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add/Edit Modal */}
+      {isDialogOpen && (
+        <div className="dialog-overlay" onClick={closeDialog}>
+          <div className="dialog-content payment-dialog" onClick={e => e.stopPropagation()}>
+            <div className="dialog-header">
+              <div className="dialog-title">
+                <Wallet size={24} />
+                <h2>{editingPayment ? t('payments.edit_title', 'تعديل دفعة') : t('payments.add_title', 'إضافة دفعة/مصروف جديد')}</h2>
+              </div>
+              <button className="close-btn" onClick={closeDialog}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="dialog-body">
+              <form onSubmit={handleSave}>
+                {/* Transaction Type Selection */}
+                <div className="form-group mb-4">
+                  <label>{t('payments.form_transaction_type', 'نوع العملية')}</label>
+                  <div className="transaction-type-selector">
+                    <label className="transaction-type-option">
+                      <input 
+                        type="radio" 
+                        name="transactionType" 
+                        value="دفع" 
+                        checked={transactionType === 'دفع'} 
+                        onChange={() => { setTransactionType('دفع'); setAmountNature('راتب شهري'); }} 
+                      />
+                      <div className="transaction-type-card">
+                        <div className="transaction-type-icon">
+                          <Users size={24} />
+                        </div>
+                        <span>دفع مستحقات (مرتبط بعضو)</span>
+                      </div>
+                    </label>
+
+                    <label className="transaction-type-option">
+                      <input 
+                        type="radio" 
+                        name="transactionType" 
+                        value="مصروف" 
+                        checked={transactionType === 'مصروف'} 
+                        onChange={() => { setTransactionType('مصروف'); setAmountNature('تعويض مصاريف'); }} 
+                      />
+                      <div className="transaction-type-card">
+                        <div className="transaction-type-icon">
+                          <ShoppingBag size={24} />
+                        </div>
+                        <span>مصروف عام</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Member Selection */}
+                {transactionType === 'دفع' && (
+                  <div className="form-group mb-3">
+                    <label>{t('payments.form_select_member', 'تحديد العضو / المستفيد')}</label>
+                  <CustomDropdown
+                    value={memberId}
+                    onChange={setMemberId}
+                    options={[
+                      { value: '', label: t('payments.form_select_member_placeholder', '-- اختر العضو --') },
+                      ...members.map(m => ({
+                        value: m.id,
+                        label: `${m.firstName} ${m.lastName} (${m.memberRole})`
+                      }))
+                    ]}
+                  />
+                  </div>
+                )}
+
+                {/* Fund Selection */}
+                <div className="form-group mb-3">
+                  <label>{t('payments.form_select_fund', 'تحديد صندوق الدفع')}</label>
+                  <CustomDropdown
+                    value={fundId}
+                    onChange={setFundId}
+                    options={[
+                      { value: '', label: t('payments.form_select_fund_placeholder', '-- اختر الصندوق --') },
+                      ...funds.map(f => ({
+                        value: f.id,
+                        label: f.name
+                      }))
+                    ]}
+                  />
+                </div>
+
+                {/* Auto Populated Member Details */}
+                {transactionType === 'دفع' && selectedMemberDetails && (
+                  <div className="member-details-card">
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_name', 'الاسم واللقب')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.firstName} {selectedMemberDetails.lastName}</span>
+                    </div>
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_role', 'صفة العضو')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.memberRole}</span>
+                    </div>
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_contract_type', 'نوع العقد')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.contractType}</span>
+                    </div>
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_contract_number', 'رقم العقد')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.contractNumber}</span>
+                    </div>
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_id', 'رقم الهوية')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.nationalId}</span>
+                    </div>
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_birth', 'تاريخ ومكان الميلاد')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.dateOfBirth} - {selectedMemberDetails.placeOfBirth}</span>
+                    </div>
+                    <div className="member-detail-item">
+                      <span className="member-detail-label">{t('payments.detail_phone', 'رقم الهاتف')}</span>
+                      <span className="member-detail-value">{selectedMemberDetails.phoneNumber}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>{t('payments.form_payment_date', 'تاريخ الدفع')}</label>
+                  <input type="date" className="form-control" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required />
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>{t('payments.form_method', 'طريقة الدفع')}</label>
+                    <CustomDropdown
+                      value={paymentMethod}
+                      onChange={setPaymentMethod}
+                      options={[
+                        { value: 'نقدا', label: 'نقدا' },
+                        { value: 'تحويل بنكي', label: 'تحويل بنكي' },
+                        { value: 'صك', label: 'صك' },
+                        { value: 'حوالة', label: 'حوالة' },
+                        { value: 'دفع إلكتروني', label: 'دفع إلكتروني' },
+                        { value: 'أخرى', label: 'أخرى' }
+                      ]}
+                    />
+                  </div>
+                  {paymentMethod === 'صك' && (
+                    <div className="form-group">
+                      <label>{t('payments.form_check_number', 'رقم الصك')}</label>
+                      <input type="text" className="form-control" value={checkNumber} onChange={e => setCheckNumber(e.target.value)} required />
+                    </div>
+                  )}
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group" style={{ width: '100%' }}>
+                    <label>{t('payments.form_amount_nature', 'طبيعة المبلغ')}</label>
+                    <CustomDropdown
+                      value={amountNature}
+                      onChange={setAmountNature}
+                      options={transactionType === 'دفع' ? [
+                        { value: 'راتب شهري', label: 'راتب شهري' },
+                        { value: 'رقم دفعة', label: 'رقم دفعة' },
+                        { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
+                        { value: 'منحة فوز', label: 'منحة فوز' },
+                        { value: 'نتيجة', label: 'نتيجة' },
+                        { value: 'تحفيز', label: 'تحفيز' },
+                        { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
+                        { value: 'باقي المستحقات', label: 'باقي المستحقات' },
+                        { value: 'تسوية جزئية', label: 'تسوية جزئية' },
+                        { value: 'تسوية نهائية', label: 'تسوية نهائية' },
+                        { value: 'سلفة', label: 'سلفة' },
+                        { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
+                        { value: 'اخرى', label: 'اخرى' }
+                      ] : [
+                        { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
+                        { value: 'تنقل', label: 'تنقل' },
+                        { value: 'اقامة', label: 'اقامة' },
+                        { value: 'إطعام', label: 'إطعام' },
+                        { value: 'تجهيزات', label: 'تجهيزات' },
+                        { value: 'صيانة', label: 'صيانة' },
+                        { value: 'فواتير', label: 'فواتير' },
+                        { value: 'كراء', label: 'كراء' },
+                        { value: 'اخرى', label: 'اخرى' }
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                {amountNature === 'رقم دفعة' && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>{t('payments.form_date_from', 'من تاريخ')}</label>
+                      <input type="date" className="form-control" value={dateFrom} onChange={e => setDateFrom(e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('payments.form_date_to', 'إلى تاريخ')}</label>
+                      <input type="date" className="form-control" value={dateTo} onChange={e => setDateTo(e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
+                      <input type="text" className="form-control" value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} required />
+                    </div>
+                  </div>
+                )}
+
+                {amountNature === 'راتب شهري' && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>{t('payments.form_month', 'الشهر')}</label>
+                      <CustomDropdown
+                        value={month}
+                        onChange={setMonth}
+                        options={[
+                          { value: '01', label: 'جانفي' },
+                          { value: '02', label: 'فيفري' },
+                          { value: '03', label: 'مارس' },
+                          { value: '04', label: 'أفريل' },
+                          { value: '05', label: 'ماي' },
+                          { value: '06', label: 'جوان' },
+                          { value: '07', label: 'جويلية' },
+                          { value: '08', label: 'أوت' },
+                          { value: '09', label: 'سبتمبر' },
+                          { value: '10', label: 'أكتوبر' },
+                          { value: '11', label: 'نوفمبر' },
+                          { value: '12', label: 'ديسمبر' }
+                        ]}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('payments.form_year', 'السنة')}</label>
+                      <CustomDropdown
+                        value={year}
+                        onChange={setYear}
+                        options={Array.from({ length: 10 }, (_, i) => {
+                          const y = (new Date().getFullYear() - 5 + i).toString();
+                          return { value: y, label: y };
+                        })}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {amountNature === 'تسجيل أهداف' && (
+                  <div className="form-group">
+                    <label>{t('payments.form_number_of_goals', 'عدد الأهداف')}</label>
+                    <input type="number" className="form-control" value={numberOfGoals} onChange={e => setNumberOfGoals(e.target.value)} required min="1" />
+                  </div>
+                )}
+
+                {!['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة فوز'].includes(amountNature) && (
+                  <div className="form-group">
+                    <label>{t('payments.form_occasion', 'المناسبة / السبب')}</label>
+                    <input type="text" className="form-control" value={occasion} onChange={e => setOccasion(e.target.value)} required={amountNature === 'اخرى'} />
+                  </div>
+                )}
+
+                <div className="form-group">
+                  <label>{t('payments.form_amount', 'المبلغ (د.ج)')}</label>
+                  <CurrencyInput 
+                    className="form-control amount-cell" 
+                    value={amount} 
+                    onChangeValue={setAmount} 
+                    required 
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label>{t('payments.form_notes', 'ملاحظات')}</label>
+                  <input type="text" className="form-control" value={notes} onChange={e => setNotes(e.target.value)} />
+                </div>
+
+                <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
+                  <button type="button" className="btn-cancel" onClick={closeDialog}>{t('payments.cancel', 'إلغاء')}</button>
+                  <button type="submit" className="btn-primary">{t('payments.save', 'حفظ الدفعة')}</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {printData && (
+        <div className="global-print-container">
+          <PrintableReceipt 
+            payment={printData.payment} 
+            member={printData.member} 
+            contract={printData.contract} 
+          />
+        </div>
+      )}
+    </div>
+  );
+};

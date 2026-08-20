@@ -1,0 +1,217 @@
+.funds-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.funds-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.funds-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.funds-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.fund-card {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.05), 0 5px 15px -3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fund-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 25px 50px -10px rgba(0, 0, 0, 0.1);
+}
+
+body.dark-mode .fund-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.3);
+}
+
+.fund-card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.fund-card-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+.fund-card-icon.bank { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.fund-card-icon.mail { background: linear-gradient(135deg, #f59e0b, #b45309); }
+.fund-card-icon.wallet { background: linear-gradient(135deg, #10b981, #047857); }
+.fund-card-icon.default { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+.fund-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-h);
+  margin: 0;
+}
+
+.fund-card-balance {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--text-h);
+  margin-top: 4px;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.fund-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+
+.btn-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.btn-action.edit-btn { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+.btn-action.edit-btn:hover { background-color: #dcfce7; transform: scale(1.02); }
+
+.btn-action.delete-btn { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+.btn-action.delete-btn:hover { background-color: #fee2e2; transform: scale(1.02); }
+
+.btn-action.view-btn { background-color: var(--accent); color: white; flex: 2; }
+.btn-action.view-btn:hover { background-color: var(--accent-dark); transform: scale(1.02); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
+
+body.dark-mode .btn-action.edit-btn { background-color: rgba(22, 163, 74, 0.15); color: #4ade80; border-color: rgba(22, 163, 74, 0.3); }
+body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3); }
+
+
+/* Transactions Table & Filters */
+.funds-table-wrapper {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 24px;
+  overflow-x: auto;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+}
+
+.filters-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.filters-row .form-group {
+  min-width: 220px;
+  flex: 1;
+}
+
+.badge-in {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.badge-out {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.amount-cell {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+/* Dialog Styles */
+.add-fund-dialog {
+  max-width: 600px;
+  width: 95%;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  background: var(--card-bg);
+}
+
+.add-fund-dialog .dialog-header {
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.01);
+  border-radius: 20px 20px 0 0;
+}
+
+.add-fund-dialog .dialog-body {
+  padding: 32px;
+}
+
+.add-fund-dialog .form-group {
+  margin-bottom: 20px;
+}
+
+.add-fund-dialog label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 700;
+  color: var(--text-h);
+  font-size: 0.95rem;
+}
+
+.add-fund-dialog .form-row {
+  display: flex;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .add-fund-dialog .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
