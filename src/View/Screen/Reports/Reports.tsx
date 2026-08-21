@@ -1,19 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { 
-  FileText, 
-  Printer, 
-  Users, 
-  CreditCard, 
-  Briefcase, 
-  Landmark,
-  SearchX,
-  AlertCircle,
-  PieChart,
-  List
-} from 'lucide-react';
 import { useReportsController } from './ReportsController';
-import type { ReportCategory, IndividualReportType, ExpenseReportType, ContractReportType, FundReportType } from './ReportsController';
+import type { ReportCategory, IndividualReportType } from './ReportsController';
+import { 
+  FileText, Printer, Users, CreditCard, Briefcase, Landmark, SearchX, AlertCircle, List
+} from 'lucide-react';
+
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import './Reports.css';

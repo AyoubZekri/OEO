@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import { forwardRef } from 'react';
 import './PrintableReceipt.css';
 import receiptBg from '../../../../assets/receipt-template.png';
 
@@ -94,16 +94,64 @@ const numberToArabicWords = (amount: number) => {
 export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps>((props, ref) => {
   const { payment, member, contract, totalPaid = 0, deductions = 0, remaining = 0 } = props;
 
-  const fullName = member ? `${member.first_name} ${member.last_name}` : payment?.occasion || '';
-  const role = member?.type === 'player' ? 'لاعب' : member?.type === 'coach' ? 'مدرب' : member?.type === 'employee' ? 'موظف إداري' : 'أخرى';
+  const fullName = member ? `${member.firstName || ''} ${member.lastName || ''}`.trim() : payment?.occasion || '';
+  const role = member?.memberRole || 'أخرى';
   
   const paymentDate = payment?.paymentDate ? new Date(payment.paymentDate).toLocaleDateString('en-GB') : '';
   const amount = Number(payment?.amount) || 0;
   
   const contractValue = contract ? (Number(contract.contractValue) || 0) : 0;
   
-  // Format numbers nicely
-  const formatNum = (num: number) => num.toLocaleString('en-US');
+  const amountNatureRaw = payment?.amountNature || payment?.amount_nature || (payment as any)?.AmountNature || (payment as any)?.amount_Nature || '';
+  const amountNature = String(amountNatureRaw).trim();
+  
+  let instNumVal = payment?.installmentNumber || (payment as any)?.Occasion_Reason_numper || (payment as any)?.occasion_reason_numper || (payment as any)?.Occasion_reason_numper;
+  
+  if (!instNumVal && amountNature === 'رقم دفعة') {
+    instNumVal = payment?.checkNumber;
+  }
+  
+  const instNum = String(instNumVal || '').trim();
+  
+  const isSalary = amountNature === 'راتب شهري' || amountNature === 'راتب';
+  const isInstallment = amountNature === 'رقم دفعة' || !!(payment?.installmentNumber || (payment as any)?.Occasion_Reason_numper || (payment as any)?.occasion_reason_numper);
+  const isResult = ['نتيجة', 'تحفيز', 'منحة فوز', 'تسجيل أهداف'].includes(amountNature);
+  const isDues = ['مستحقات', 'جزء من المستحقات', 'باقي المستحقات'].includes(amountNature);
+  const isCompensation = ['تعويض مصاريف', 'إقامة', 'تنقل', 'إطعام'].includes(amountNature);
+  const isPartialSettlement = amountNature === 'تسوية جزئية';
+  const isFinalSettlement = amountNature === 'تسوية نهائية';
+  const isLoan = amountNature === 'سلفة' || amountNature === 'إرجاع سلفة';
+  
+  const isOtherNature = !isSalary && !isInstallment && !isResult && !isDues && !isCompensation && !isPartialSettlement && !isFinalSettlement && !isLoan && amountNature !== '';
+  
+  const paddedId = payment?.id ? String(payment.id).padStart(4, '0') : '';
+  
+  // Format numbers exactly as requested (matching the Payments page format: 20.000,00)
+  const formatNum = (num?: number | string | null) => {
+    const amountVal = Number(num) || 0;
+    const numStr = amountVal.toLocaleString('en-US', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
+    return numStr.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+  };
+
+  const getOrdinal = (num: any) => {
+    const strNum = String(num).trim();
+    const ordinals: Record<string, string> = {
+      '1': 'الأولى',
+      '2': 'الثانية',
+      '3': 'الثالثة',
+      '4': 'الرابعة',
+      '5': 'الخامسة',
+      '6': 'السادسة',
+      '7': 'السابعة',
+      '8': 'الثامنة',
+      '9': 'التاسعة',
+      '10': 'العاشرة'
+    };
+    return ordinals[strNum] || `رقم ${strNum}`;
+  };
 
   return (
     <div className="receipt-wrapper" ref={ref}>
@@ -115,8 +163,8 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
         </div>
 
         <div className="top-details">
-          <div>الوادي في : {paymentDate || '......../....../......'}</div>
-          <div>رقم الوصل: {payment?.id || '.......................'}</div>
+          <div>الوادي في : {paymentDate}</div>
+          <div>رقم الوصل: {paddedId}</div>
         </div>
 
         <div className="section-title">بيانات المستفيد</div>
@@ -127,12 +175,12 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
               <td className="col-50">الصفة: <span style={{fontWeight: 'normal'}}>{role}</span></td>
             </tr>
             <tr>
-              <td>رقم بطاقة الهوية : <span style={{fontWeight: 'normal'}}>{member?.national_id || '..............................'}</span></td>
-              <td>رقم العقد أو الاتفاقية: <span style={{fontWeight: 'normal'}}>{contract?.id || '..............................'}</span></td>
+              <td>رقم بطاقة الهوية : <span style={{fontWeight: 'normal'}}>{member?.nationalId || ''}</span></td>
+              <td>رقم العقد أو الاتفاقية: <span style={{fontWeight: 'normal'}}>{contract?.id || ''}</span></td>
             </tr>
             <tr>
-              <td>تاريخ ومكان الميلاد: <span style={{fontWeight: 'normal'}}>{member?.birth_date?.split('T')[0]} {member?.place_of_birth}</span></td>
-              <td>رقم الهاتف: <span style={{fontWeight: 'normal'}}>{member?.phone || '..............................'}</span></td>
+              <td>تاريخ ومكان الميلاد: <span style={{fontWeight: 'normal'}}>{member?.dateOfBirth?.split('T')[0] || ''} {member?.placeOfBirth || ''}</span></td>
+              <td>رقم الهاتف: <span style={{fontWeight: 'normal'}}>{member?.phoneNumber || ''}</span></td>
             </tr>
           </tbody>
         </table>
@@ -150,27 +198,33 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
                   <label className="check-item"><span className={`check-box ${payment?.paymentMethod === 'حوالة' || payment?.paymentMethod === 'دفع إلكتروني' ? 'checked' : ''}`}></span> حوالة / دفع إلكتروني</label>
                   <label className="check-item"><span className={`check-box ${payment?.paymentMethod === 'أخرى' ? 'checked' : ''}`}></span> أخرى</label>
                 </div>
-                <div className="text-line">رقم العملية / الصك: <span className="dotted-line" style={{width: '60%'}}>{payment?.transactionNumber || ''}</span></div>
-                <div className="text-line">تاريخ الدفع: {paymentDate || '......../....../......'}</div>
-                <div className="text-line">الفترة / المناسبة: <span className="dotted-line" style={{width: '60%'}}>{payment?.occasion || ''}</span></div>
-                <div className="text-line">الرصيد المتبقي - إن وجد: <span className="dotted-line" style={{width: '40%'}}>{remaining > 0 ? formatNum(remaining) : ''}</span> دج</div>
-                <div className="text-line">ملاحظات: <span className="dotted-line" style={{width: '70%'}}>{payment?.notes || ''}</span></div>
+                <div className="text-line">رقم العملية: <span style={{fontWeight: 'normal'}}>{payment?.transactionNumber || paddedId}</span></div>
+                {(payment?.postal_check || payment?.paymentMethod === 'صك' || payment?.paymentMethod === 'تحويل بنكي' || payment?.paymentMethod === 'حوالة' || payment?.paymentMethod === 'دفع إلكتروني') && (
+                  <div className="text-line">رقم الصك: <span style={{fontWeight: 'normal'}}>{payment?.postal_check || ''}</span></div>
+                )}
+                <div className="text-line">تاريخ الدفع: <span style={{fontWeight: 'normal'}}>{paymentDate}</span></div>
+                {isInstallment && (
+                  <div className="text-line">الفترة: <span style={{fontWeight: 'normal'}}>من {payment?.dateFrom || ''} إلى {payment?.dateTo || ''}</span></div>
+                )}
+                <div className="text-line">المناسبة: <span style={{fontWeight: 'normal'}}>{payment?.occasion || (!isInstallment ? payment?.checkNumber : '') || ''}</span></div>
+                <div className="text-line">ملاحظات: <span style={{fontWeight: 'normal'}}>{payment?.notes || ''}</span></div>
               </td>
               <td style={{width: '40%', verticalAlign: 'top', padding: '10px'}}>
                 <div style={{fontWeight: 'bold', color: '#F97316', marginBottom: '10px', textAlign: 'center'}}>طبيعة المبلغ</div>
                 <div className="check-grid">
                   <label className="check-item">
-                    <span className={`check-box ${payment?.amountNature === 'رقم دفعة' ? 'checked' : ''}`}></span> 
-                    دفعة أولى &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span className="check-box"></span> دفعة ثانية &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span className="check-box"></span> دفعة ثالثة
+                    <span className={`check-box ${isInstallment ? 'checked' : ''}`}></span> {isInstallment && instNum ? `الدفعة ${getOrdinal(instNum)}` : 'رقم الدفعة'}
                   </label>
-                  <label className="check-item"><span className={`check-box ${payment?.amountNature === 'راتب شهري' || payment?.amountNature === 'راتب' ? 'checked' : ''}`}></span> راتب شهري</label>
-                  <label className="check-item"><span className={`check-box ${payment?.amountNature === 'نتيجة' || payment?.amountNature === 'تحفيز' ? 'checked' : ''}`}></span> نتيجة / تحفيز</label>
-                  <label className="check-item"><span className={`check-box ${payment?.amountNature === 'مستحقات' ? 'checked' : ''}`}></span> جزء من المستحقات / باقي المستحقات</label>
-                  <label className="check-item"><span className={`check-box ${payment?.amountNature === 'تعويض مصاريف' || payment?.amountNature === 'إقامة' ? 'checked' : ''}`}></span> تعويض مصاريف / تنقل / إقامة / إطعام</label>
+                  <label className="check-item"><span className={`check-box ${isSalary ? 'checked' : ''}`}></span> راتب شهري</label>
+                  <label className="check-item"><span className={`check-box ${isResult ? 'checked' : ''}`}></span> نتيجة / تحفيز</label>
+                  <label className="check-item"><span className={`check-box ${isDues ? 'checked' : ''}`}></span> جزء من المستحقات / باقي المستحقات</label>
+                  <label className="check-item"><span className={`check-box ${isCompensation ? 'checked' : ''}`}></span> تعويض مصاريف / تنقل / إقامة / إطعام</label>
                   <label className="check-item">
-                    <span className={`check-box ${payment?.amountNature === 'تسوية جزئية' ? 'checked' : ''}`}></span> تسوية جزئية &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span className={`check-box ${payment?.amountNature === 'تسوية نهائية' ? 'checked' : ''}`}></span> تسوية نهائية
+                    <span className={`check-box ${isPartialSettlement ? 'checked' : ''}`}></span> تسوية جزئية &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span className={`check-box ${isFinalSettlement ? 'checked' : ''}`}></span> تسوية نهائية
                   </label>
-                  <label className="check-item"><span className={`check-box ${payment?.amountNature === 'سلفة' || payment?.amountNature === 'إرجاع سلفة' ? 'checked' : ''}`}></span> سلفة / استرجاع مبلغ / أخرى: <span className="dotted-line" style={{flex: 1}}></span></label>
+                  <label className="check-item">
+                    <span className={`check-box ${isLoan || isOtherNature ? 'checked' : ''}`}></span> سلفة / استرجاع مبلغ / أخرى: <span style={{fontWeight: 'normal', paddingRight: '5px'}}>{isOtherNature ? (payment?.amountNature === 'اخرى' ? payment?.occasion : payment?.amountNature) : ''}</span>
+                  </label>
                 </div>
               </td>
             </tr>
@@ -190,23 +244,23 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
           </thead>
           <tbody>
             <tr>
-              <td>{contractValue > 0 ? formatNum(contractValue) : '.......................'} دج</td>
-              <td>{totalPaid > 0 ? formatNum(totalPaid) : '.......................'} دج</td>
-              <td>{deductions > 0 ? formatNum(deductions) : '.......................'} دج</td>
-              <td>{amount > 0 ? formatNum(amount) : '.......................'} دج</td>
-              <td>{remaining > 0 ? formatNum(remaining) : '.......................'} دج</td>
+              <td>{formatNum(contractValue)} دج</td>
+              <td>{formatNum(totalPaid - amount)} دج</td>
+              <td>{formatNum(deductions)} دج</td>
+              <td>{formatNum(amount)} دج</td>
+              <td>{formatNum(remaining)} دج</td>
             </tr>
           </tbody>
         </table>
 
         <div style={{fontWeight: 'bold', margin: '15px 0', color: '#F97316'}}>
-          صافي المبلغ بالحروف: <span className="dotted-line" style={{width: '70%'}}>{numberToArabicWords(amount)}</span> دينار جزائري
+          صافي المبلغ بالحروف: <span style={{fontWeight: 'normal'}}>{numberToArabicWords(amount)}</span> دينار جزائري
         </div>
 
         <div className="section-title">الإقـــــرار</div>
         <div className="declaration-text">
-          أقر بأنني استلمت من النادي / الهيئة المذكورة أعلاه المبلغ الآتي: بالأرقام: <span className="dotted-line" style={{width: '150px'}}>{formatNum(amount)}</span> دج<br/>
-          بالحروف: <span className="dotted-line" style={{width: '70%'}}>{numberToArabicWords(amount)}</span> دينار جـزائري<br/>
+          أقر بأنني استلمت من النادي / الهيئة المذكورة أعلاه المبلغ الآتي: بالأرقام: <span style={{fontWeight: 'normal'}}>{formatNum(amount)}</span> دج<br/>
+          بالحروف: <span style={{fontWeight: 'normal'}}>{numberToArabicWords(amount)}</span> دينار جـزائري<br/>
           أقر باستلام المبلغ المبين أعلاه فعليا وكاملا بالنسبة للقيمة المحددة في هذا الوصل، ويعد هذا الوصل إثباتا لاستلام هذا المبلغ فقط وفي حدود طبيعته وفترته المبينتين أعلاه. ولا يعد التوقيع عليه إبراء شاملا لبقية المستحقات أو تنازلا عن حقوق أخرى، إلا إذا تم اختيار «تسويـــــة نهائية» وبيان نطاقها صراحة. كما أقر بصحة البيانات وبأن أي شطب أو إضافة أو تعديل لا يعتمد إلا إذا صودق عليه بتوقيع الطرفين.
         </div>
 

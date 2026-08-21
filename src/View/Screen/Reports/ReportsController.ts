@@ -176,7 +176,7 @@ export const useReportsController = () => {
       // Filter by type (player, coach, employee)
       const filteredMembers = members.filter(m => m.type === activeIndividualTab).map(m => m.id);
       relevantContracts = relevantContracts.filter(c => filteredMembers.includes(c.individuals_id));
-      relevantPayments = relevantPayments.filter(p => filteredMembers.includes(p.memberId));
+      relevantPayments = relevantPayments.filter(p => p.memberId && filteredMembers.includes(p.memberId));
     }
 
     // Filter payments by date range

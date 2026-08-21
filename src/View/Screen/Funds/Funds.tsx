@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useFundsController, type Fund, type TransactionType } from './FundsController';
-import { Wallet, Landmark, Mail, ArrowUpRight, ArrowDownRight, ArrowRightLeft, Plus, Filter, X, Edit2, Trash2 } from 'lucide-react';
+import { Wallet, Landmark, Mail, ArrowRightLeft, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
 import './Funds.css';
@@ -14,15 +14,10 @@ export const Funds: React.FC = () => {
   const controller = useFundsController();
   const {
     funds,
-    transactions,
     isFundDialogOpen,
     isOperationDialogOpen,
     selectedFundId,
     editingFund,
-    filterFundId,
-    filterType,
-    setFilterFundId,
-    setFilterType,
     openFundDialog,
     closeFundDialog,
     addFund,
@@ -31,7 +26,6 @@ export const Funds: React.FC = () => {
     openOperationDialog,
     closeOperationDialog,
     addTransaction,
-    deleteTransaction,
     getBalance,
     formatCurrency
   } = controller;

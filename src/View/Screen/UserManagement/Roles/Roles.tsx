@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Shield, Eye, X, ChevronDown, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Plus, Edit2, Trash2, Shield, Eye, X, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useRolesController } from './RolesController';
 import { RoleDialog } from './RoleDialog';
 import { useAuth } from '../../../../core/context/AuthContext';
@@ -11,11 +11,7 @@ export const Roles: React.FC = () => {
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useRolesController();
   const { t } = useTranslation();
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ dailyTasks: true });
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
-  };
 
   return (
     <div className="roles-container">

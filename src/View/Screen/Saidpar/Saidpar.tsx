@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSaidparController } from './SaidparController';
-import { Search, Sun, Moon, PanelRightClose, PanelRightOpen, ChevronDown, ChevronLeft, Circle } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, ChevronDown, ChevronLeft, Circle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './Saidpar.css';
 
@@ -8,10 +8,6 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
   const {
     isOpen,
     activeItem,
-    searchQuery,
-    setSearchQuery,
-    isDarkMode,
-    toggleTheme,
     toggleSidebar,
     handleItemClick,
     menuSections,

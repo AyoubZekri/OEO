@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHomeController } from './HomeController';
-import { Wallet, Users, UserCog, CreditCard, Banknote, Landmark, CalendarClock, History, ArrowUpRight, ArrowDownLeft, TrendingDown } from 'lucide-react';
+import { Wallet, Users, UserCog, CreditCard, Landmark, CalendarClock, History, ArrowUpRight, ArrowDownLeft, TrendingDown } from 'lucide-react';
 import './Home.css';
 
 export const Home: React.FC = () => {
@@ -15,13 +15,6 @@ export const Home: React.FC = () => {
     if (type === 'تحويل') return 'badge badge-blue';
     return 'badge badge-purple';
   };
-
-  const currentDate = new Intl.DateTimeFormat('ar-DZ', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  }).format(new Date());
 
   if (controller.isLoading) {
     return (

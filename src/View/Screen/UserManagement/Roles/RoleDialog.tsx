@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X, ShieldAlert, ShieldCheck, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Plus, Edit2, Trash2, Printer, Search, Settings, Activity } from 'lucide-react';
 import { CustomInput } from '../../../widget/CustomInput';
 import { CustomDropdown } from '../../../widget/CustomDropdown';
-import { RoleModel, defaultPermissions, emptyPermissions } from './role_model';
+import { RoleModel, defaultPermissions } from './role_model';
 import type { AppPermissions } from './role_model';
 import { validInput } from '../../../../core/functions/valiedinput';
 import './Roles.css';

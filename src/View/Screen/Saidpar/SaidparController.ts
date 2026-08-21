@@ -28,7 +28,12 @@ export const useSaidparController = (onLogout?: () => void) => {
   const [isOpen, setIsOpen] = useState(true);
   const [activeItem, setActiveItem] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const savedTheme = localStorage.getItem('appTheme');
+    return savedTheme === 'dark';
+  });
+
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const navigate = useNavigate();
@@ -46,11 +51,12 @@ export const useSaidparController = (onLogout?: () => void) => {
 
   // Load initial theme from local storage or system preference if desired
   useEffect(() => {
-    // For now, let's just sync it with a basic body class to show the effect
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
+      localStorage.setItem('appTheme', 'dark');
     } else {
       document.body.classList.remove('dark-mode');
+      localStorage.setItem('appTheme', 'light');
     }
   }, [isDarkMode]);
 

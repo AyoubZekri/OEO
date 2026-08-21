@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Users, Eye, X, Receipt, Search, Filter, Plus, Printer, UserPlus, FileSignature, CalendarClock, CheckCircle2, TrendingDown, Landmark, Wallet, Edit2, Trash2 } from 'lucide-react';
+import { Eye, X, Receipt, Search, Plus, Printer, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2 } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import './Members.css';
@@ -32,8 +32,7 @@ export const Members: React.FC = () => {
     handleDeleteMember,
     openExpensesDialog, 
     closeDialog, 
-    formatCurrency, 
-    getRemainingAmount 
+    formatCurrency
   } = controller;
 
   // Print function

@@ -40,8 +40,10 @@ export interface PaymentRecord {
   year?: string; // For 'راتب شهري'
   occasion?: string; // For 'اخرى' and others
   numberOfGoals?: number; // For 'تسجيل أهداف'
-  
+
   notes?: string;
+  member?: any;
+  postal_check?: string;
 }
 
 export const usePaymentsController = () => {
@@ -111,6 +113,7 @@ export const usePaymentsController = () => {
     setIsLoading(true);
     const response = await paymentsData.getPayments();
     if (response) {
+      console.log("=== RAW BACKEND DATA (PAYMENTS) ===", response);
       if (Array.isArray(response)) {
         setPayments(response);
       } else if (response.data && Array.isArray(response.data)) {

@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaymentsController, type PaymentRecord } from './PaymentsController';
-import { Plus, Search, Filter, Edit, Trash2, X, Wallet, Users, ShoppingBag } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -17,6 +17,23 @@ const PrintReceiptButton = ({ payment, member, contract, onPrint }: any) => {
   );
 };
 
+const getInstallmentText = (num: any) => {
+  const strNum = String(num).trim();
+  const map: Record<string, string> = {
+    '1': 'الأولى',
+    '2': 'الثانية',
+    '3': 'الثالثة',
+    '4': 'الرابعة',
+    '5': 'الخامسة',
+    '6': 'السادسة',
+    '7': 'السابعة',
+    '8': 'الثامنة',
+    '9': 'التاسعة',
+    '10': 'العاشرة',
+  };
+  return map[strNum] || strNum;
+};
+
 export const Payments: React.FC = () => {
   const { t } = useTranslation();
   const { permissions, isFullAccess } = useAuth();
@@ -26,7 +43,24 @@ export const Payments: React.FC = () => {
   const [printData, setPrintData] = useState<any>(null);
 
   const handleNativePrint = (payment: any, member: any, contract: any) => {
-    setPrintData({ payment, member, contract });
+    // Calculate totals for this member based on all their payments of type 'دفع' AND nature 'رقم دفعة'
+    const memberPayments = controller.payments.filter((p: any) => {
+      const isMemberMatch = String(p.memberId) === String(payment.memberId) || String(p.member_id) === String(payment.memberId) || String(p.individuals_id) === String(payment.memberId);
+      const tType = (p.transactionType || p.transaction_type || '').trim();
+      const isTypeMatch = tType === 'دفع' || tType === ''; // Handle legacy data with NULL transactionType
+      const aNature = String(p.amountNature || p.amount_nature || '').trim();
+      const instNumVal = p.installmentNumber || (p as any).Occasion_Reason_numper || (p as any).occasion_reason_numper || (p as any).Occasion_reason_numper;
+      const isNatureMatch = aNature === 'رقم دفعة' || !!instNumVal;
+      
+      return isMemberMatch && isTypeMatch && isNatureMatch;
+    });
+    // Ensure we sum up only installment payments
+    const totalPaid = memberPayments.reduce((sum: number, p: any) => sum + (Number(p.amount) || 0), 0);
+    const contractValue = Number(contract?.contractValue) || Number(contract?.Contract_value) || Number(contract?.contract_value) || 0;
+    const deductions = 0; // Not specified yet, defaulting to 0
+    const remaining = contractValue - totalPaid;
+
+    setPrintData({ payment, member, contract, totalPaid, deductions, remaining });
     setTimeout(() => {
       window.print();
     }, 200); // Wait for the component to render before printing
@@ -38,7 +72,6 @@ export const Payments: React.FC = () => {
     contracts,
     isDialogOpen,
     editingPayment,
-    isLoading,
     openDialog,
     closeDialog,
     deletePayment,
@@ -56,9 +89,9 @@ export const Payments: React.FC = () => {
   const [memberId, setMemberId] = useState('');
   const [fundId, setFundId] = useState('');
   const [amount, setAmount] = useState('');
+  const [postalCheck, setPostalCheck] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('نقدا');
   const [paymentDate, setPaymentDate] = useState('');
-  const [checkNumber, setCheckNumber] = useState('');
   const [amountNature, setAmountNature] = useState('راتب شهري');
   const [installmentNumber, setInstallmentNumber] = useState('');
   const [dateFrom, setDateFrom] = useState('');
@@ -97,14 +130,14 @@ export const Payments: React.FC = () => {
       setAmount(payment.amount.toString());
       setPaymentMethod(payment.paymentMethod);
       setPaymentDate(payment.paymentDate);
-      setCheckNumber(payment.checkNumber || '');
+      setPostalCheck(payment.postal_check || '');
       setAmountNature(payment.amountNature);
-      setInstallmentNumber(payment.installmentNumber || '');
+      setInstallmentNumber(payment.installmentNumber || (payment as any).Occasion_Reason_numper || '');
       setDateFrom(payment.dateFrom || '');
       setDateTo(payment.dateTo || '');
       setMonth(payment.month || '');
       setYear(payment.year || '');
-      setOccasion(payment.occasion || '');
+      setOccasion(payment.occasion || (!payment.installmentNumber && payment.amountNature !== 'رقم دفعة' ? payment.checkNumber : '') || '');
       setNumberOfGoals(payment.numberOfGoals?.toString() || '');
       setNotes(payment.notes || '');
     } else {
@@ -114,13 +147,13 @@ export const Payments: React.FC = () => {
       setAmount('');
       setPaymentMethod('نقدا');
       setPaymentDate(new Date().toISOString().split('T')[0]);
-      setCheckNumber('');
+      setPostalCheck('');
       setAmountNature('راتب شهري');
       setInstallmentNumber('');
       setDateFrom('');
       setDateTo('');
       setMonth('');
-      setYear(new Date().getFullYear().toString());
+      setYear('');
       setOccasion('');
       setNumberOfGoals('');
       setNotes('');
@@ -139,7 +172,7 @@ export const Payments: React.FC = () => {
       amount: parseFloat(amount) || 0,
       paymentMethod,
       paymentDate,
-      checkNumber: paymentMethod === 'صك' ? checkNumber : undefined,
+      postal_check: postalCheck,
       amountNature,
       installmentNumber: amountNature === 'رقم دفعة' ? installmentNumber : undefined,
       dateFrom: amountNature === 'رقم دفعة' ? dateFrom : undefined,
@@ -233,7 +266,24 @@ export const Payments: React.FC = () => {
                   <tr key={payment.id}>
                     <td className="text-muted" data-label={t('payments.col_date', 'التاريخ')}>{payment.paymentDate}</td>
                     <td className="font-weight-bold" data-label={t('payments.col_member', 'المستفيد')}>{member ? `${member.firstName} ${member.lastName}` : '-'}</td>
-                    <td data-label={t('payments.col_nature', 'طبيعة المبلغ')}>{payment.amountNature} {payment.amountNature === 'رقم دفعة' && payment.installmentNumber ? `(${payment.installmentNumber})` : ''}</td>
+                    <td data-label={t('payments.col_nature', 'طبيعة المبلغ')}>
+                      {(() => {
+                        const amountNatureVal = String(payment.amountNature || (payment as any).amount_nature || '').trim();
+                        let instNumVal = payment.installmentNumber || (payment as any).Occasion_Reason_numper || (payment as any).occasion_reason_numper || (payment as any).Occasion_reason_numper;
+                        if (!instNumVal && amountNatureVal === 'رقم دفعة') {
+                          instNumVal = payment.checkNumber;
+                        }
+                        
+                        const isInstallment = amountNatureVal === 'رقم دفعة' || !!(payment.installmentNumber || (payment as any).Occasion_Reason_numper || (payment as any).occasion_reason_numper);
+                        
+                        if (isInstallment && instNumVal) {
+                          return `الدفعة ${getInstallmentText(instNumVal)}`;
+                        }
+                        
+                        const occasionVal = payment.occasion || payment.checkNumber;
+                        return occasionVal ? `${amountNatureVal} - ${occasionVal}` : amountNatureVal;
+                      })()}
+                    </td>
                     <td className="amount-cell text-success" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(payment.amount)}</td>
                     <td data-label={t('payments.col_method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
                     <td data-label={t('payments.col_actions', 'إجراءات')}>
@@ -241,7 +291,11 @@ export const Payments: React.FC = () => {
                         <PrintReceiptButton 
                           payment={payment} 
                           member={member} 
-                          contract={contracts.find(c => c.individuals_id === payment.memberId)} 
+                          contract={contracts.find(c => 
+                            String(c.individuals_id) === String(payment.memberId) || 
+                            String((c as any).memberId) === String(payment.memberId) || 
+                            String((c as any).member_id) === String(payment.memberId)
+                          )} 
                           onPrint={handleNativePrint}
                         />
                         {hasAccess(permissions.payments.edit) && (
@@ -410,7 +464,7 @@ export const Payments: React.FC = () => {
                   {paymentMethod === 'صك' && (
                     <div className="form-group">
                       <label>{t('payments.form_check_number', 'رقم الصك')}</label>
-                      <input type="text" className="form-control" value={checkNumber} onChange={e => setCheckNumber(e.target.value)} required />
+                      <input type="text" className="form-control" value={postalCheck} onChange={e => setPostalCheck(e.target.value)} required />
                     </div>
                   )}
                 </div>
@@ -549,6 +603,9 @@ export const Payments: React.FC = () => {
             payment={printData.payment} 
             member={printData.member} 
             contract={printData.contract} 
+            totalPaid={printData.totalPaid}
+            deductions={printData.deductions}
+            remaining={printData.remaining}
           />
         </div>
       )}

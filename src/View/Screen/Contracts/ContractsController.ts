@@ -51,10 +51,6 @@ export const useContractsController = () => {
     status: 'active'
   });
 
-  const getStatusString = (status: string) => {
-    return status === 'active' ? 'نشط' : 'غير نشط';
-  };
-
   const openRenewModal = (contract: ContractModel) => {
     setContractToRenew(contract);
     setRenewEndDate(contract.endDate || '');
