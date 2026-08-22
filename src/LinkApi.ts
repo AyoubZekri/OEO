@@ -1,6 +1,6 @@
 export class Applink {
-  static readonly server: string = "http://backand.kaidoeo.com/api";
-  static readonly image: string = "http://backand.kaidoeo.com/storage";
+  static readonly server: string = "https://backand.kaidoeo.com/api";
+  static readonly image: string = "https://backand.kaidoeo.com/storage";
 
 //  =============================Auth============================== //
 
