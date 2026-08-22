@@ -116,8 +116,14 @@ export const Members: React.FC = () => {
             <tbody>
               {filteredMembers.map(member => (
                 <tr key={member.id}>
-                  <td data-label={t('members.photo', 'الصورة')}>
-                    <img src={member.photo} alt={member.first_name} className="member-avatar" />
+                  <td data-label={t('members.photo', 'الصورة')} className="avatar-cell">
+                    {member.photo && member.photo !== '' && !member.photo.includes('default') ? (
+                      <img src={member.photo} alt={member.first_name} className="member-avatar" />
+                    ) : (
+                      <div className="member-avatar placeholder">
+                        {member.first_name?.charAt(0) || ''}{member.last_name?.charAt(0) || ''}
+                      </div>
+                    )}
                   </td>
                   <td data-label={t('members.name', 'الاسم واللقب')} className="member-name-cell">
                     {member.first_name} {member.last_name}

@@ -1,5 +1,7 @@
 .home-container {
-  padding: 10px 10px 40px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   font-family: var(--sans);
 }
@@ -10,7 +12,6 @@
   border-radius: 20px;
   padding: 32px 40px;
   color: white;
-  margin-bottom: 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -68,9 +69,8 @@ body.dark-mode .home-hero {
 /* Metrics Grid */
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 24px;
-  margin-bottom: 40px;
 }
 
 .metric-card {
@@ -385,8 +385,75 @@ body.dark-mode .badge-red { color: #f87171; }
     padding: 24px;
   }
   
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .metric-card.highlight .metric-info .amount {
     font-size: 2rem;
+  }
+
+  /* Responsive Premium Table (Cards View) */
+  .premium-table {
+    display: block;
+    margin-top: 0;
+  }
+  
+  .premium-table thead {
+    display: none;
+  }
+  
+  .premium-table tbody {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  
+  .premium-table tr {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--card-bg, #ffffff);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+  
+  .premium-table tr:hover td {
+    transform: none !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+  }
+  
+  .premium-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-top: none;
+    border-bottom: 1px dashed var(--border);
+  }
+  
+  .premium-table td:first-child {
+    border-right: none;
+    border-radius: 0;
+  }
+  
+  .premium-table td:last-child {
+    border-left: none;
+    border-radius: 0;
+    border-bottom: none;
+  }
+  
+  .premium-table td::before {
+    content: attr(data-label);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    background-color: var(--bg-hover);
+    padding: 4px 10px;
+    border-radius: 6px;
   }
 }
 

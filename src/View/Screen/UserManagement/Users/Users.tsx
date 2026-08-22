@@ -54,7 +54,7 @@ export const Users: React.FC = () => {
           <tbody>
             {users.map((user) => (
               <tr key={user.id}>
-                <td>
+                <td data-label={t('users.user_col', 'المستخدم')}>
                   <div className="user-name">
                     <div className="user-avatar">
                       {user.name.substring(0, 2).toUpperCase()}
@@ -62,13 +62,13 @@ export const Users: React.FC = () => {
                     <span>{user.name}</span>
                   </div>
                 </td>
-                <td>
+                <td data-label={t('users.email_col', 'البريد')}>
                   <span className="user-email">{user.email}</span>
                 </td>
-                <td>
+                <td data-label={t('users.role_col', 'الدور')}>
                   <span className="access-level-badge">{getRoleName(user.roleId)}</span>
                 </td>
-                <td>
+                <td data-label={t('users.actions_col', 'إجراءات')}>
                   <div className="user-actions">
                     {hasAccess(permissions.usersAndRoles.editUsers) && (
                       <button 

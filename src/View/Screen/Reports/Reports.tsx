@@ -180,17 +180,29 @@ export const Reports: React.FC = () => {
         { id: 'employee', label: 'reports.employee_statement' }
       ];
       return (
-        <div className="sub-tabs-container">
-          {tabs.map(tab => (
-            <button 
-              key={tab.id}
-              className={`sub-tab-btn ${controller.activeIndividualTab === tab.id ? 'active' : ''}`}
-              onClick={() => controller.setActiveIndividualTab(tab.id)}
-            >
-              {t(tab.label)}
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="sub-tabs-container desktop-only">
+            {tabs.map(tab => (
+              <button 
+                key={tab.id}
+                className={`sub-tab-btn ${controller.activeIndividualTab === tab.id ? 'active' : ''}`}
+                onClick={() => controller.setActiveIndividualTab(tab.id)}
+              >
+                {t(tab.label)}
+              </button>
+            ))}
+          </div>
+          
+          <div className="sub-tabs-mobile mobile-only filter-group" style={{ marginBottom: '16px' }}>
+            <label>نوع الكشف</label>
+            <CustomDropdown
+              options={tabs.map(tab => ({ value: tab.id, label: t(tab.label) }))}
+              value={controller.activeIndividualTab}
+              onChange={(val) => controller.setActiveIndividualTab(val as IndividualReportType)}
+              placeholder="اختر نوع الكشف"
+            />
+          </div>
+        </>
       );
     }
     
@@ -401,13 +413,13 @@ export const Reports: React.FC = () => {
                         const member = controller.members.find(m => m.id === payment.memberId);
                         return (
                           <tr key={payment.id}>
-                            <td className="text-muted">{payment.paymentDate}</td>
+                            <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
                             {!controller.selectedMember && (
-                              <td className="font-weight-bold">{member ? `${member.first_name} ${member.last_name}` : '-'}</td>
+                              <td className="font-weight-bold" data-label={t('reports.member', 'العضو')}>{member ? `${member.first_name} ${member.last_name}` : '-'}</td>
                             )}
-                            <td>{payment.amountNature} {payment.installmentNumber ? `(${payment.installmentNumber})` : ''}</td>
-                            <td>{payment.paymentMethod}</td>
-                            <td className="amount-cell text-success">{controller.formatCurrency(payment.amount)}</td>
+                            <td data-label={t('reports.nature', 'طبيعة الدفع')}>{payment.amountNature} {payment.installmentNumber ? `(${payment.installmentNumber})` : ''}</td>
+                            <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                            <td className="amount-cell text-success" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
                           </tr>
                         );
                       });
@@ -445,10 +457,10 @@ export const Reports: React.FC = () => {
                       }
                       return summary.payments.map(payment => (
                         <tr key={payment.id}>
-                          <td className="text-muted">{payment.paymentDate}</td>
-                          <td>{payment.amountNature} {payment.occasion ? `(${payment.occasion})` : ''}</td>
-                          <td>{payment.paymentMethod}</td>
-                          <td className="amount-cell text-danger">{controller.formatCurrency(payment.amount)}</td>
+                          <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
+                          <td data-label={t('reports.expense_nature', 'طبيعة المصروف')}>{payment.amountNature} {payment.occasion ? `(${payment.occasion})` : ''}</td>
+                          <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                          <td className="amount-cell text-danger" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
                         </tr>
                       ));
                     })()}
@@ -488,13 +500,13 @@ export const Reports: React.FC = () => {
                       }
                       return summary.contracts.map(contract => (
                         <tr key={contract.id}>
-                          <td>{contract.contractNumber}</td>
-                          <td className="font-weight-bold">{contract.beneficiary}</td>
-                          <td className="text-muted">{contract.startDate}</td>
-                          <td className="text-muted">{contract.endDate}</td>
-                          <td className="amount-cell">{controller.formatCurrency(contract.contractValue)}</td>
-                          <td className="amount-cell text-success">{controller.formatCurrency(contract.netPaid)}</td>
-                          <td className="amount-cell text-danger">{controller.formatCurrency(contract.remaining)}</td>
+                          <td data-label={t('reports.contract_num', 'رقم العقد')}>{contract.contractNumber}</td>
+                          <td className="font-weight-bold" data-label={t('reports.beneficiary', 'المستفيد')}>{contract.beneficiary}</td>
+                          <td className="text-muted" data-label={t('reports.start_date', 'بداية العقد')}>{contract.startDate}</td>
+                          <td className="text-muted" data-label={t('reports.end_date', 'نهاية العقد')}>{contract.endDate}</td>
+                          <td className="amount-cell" data-label={t('reports.contract_value', 'قيمة العقد')}>{controller.formatCurrency(contract.contractValue)}</td>
+                          <td className="amount-cell text-success" data-label={t('reports.paid', 'المدفوع')}>{controller.formatCurrency(contract.netPaid)}</td>
+                          <td className="amount-cell text-danger" data-label={t('reports.remaining', 'المتبقي')}>{controller.formatCurrency(contract.remaining)}</td>
                         </tr>
                       ));
                     })()}
@@ -541,17 +553,17 @@ export const Reports: React.FC = () => {
                             }
                             return (
                               <tr key={tx.id}>
-                                <td className="text-muted">{tx.date}</td>
-                                <td className="font-weight-bold">{fundNameDisplay}</td>
-                                <td>
+                                <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{tx.date}</td>
+                                <td className="font-weight-bold" data-label={t('reports.fund', 'الصندوق')}>{fundNameDisplay}</td>
+                                <td data-label={t('reports.type', 'النوع')}>
                                   <span className={`status-badge ${tx.type === 'إيداع' ? 'active' : tx.type === 'سحب' ? 'inactive' : 'pending'}`}>
                                     {tx.type}
                                   </span>
                                 </td>
-                                <td className={`amount-cell ${tx.type === 'إيداع' ? 'text-success' : 'text-danger'}`}>
+                                <td className={`amount-cell ${tx.type === 'إيداع' ? 'text-success' : 'text-danger'}`} data-label={t('reports.amount', 'المبلغ')}>
                                   {controller.formatCurrency(tx.amount)}
                                 </td>
-                                <td>{tx.description}</td>
+                                <td data-label={t('reports.description', 'البيان')}>{tx.description}</td>
                               </tr>
                             );
                           });

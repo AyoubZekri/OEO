@@ -19,6 +19,8 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
 
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
+  
+  const effectivelyOpen = isOpen || isMobileOpen;
 
   return (
     <>
@@ -27,17 +29,17 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
         <div className="mobile-backdrop" onClick={toggleMobileSidebar}></div>
       )}
 
-      <aside className={`saidpar-container ${isOpen ? 'open' : 'closed'} ${isMobileOpen ? 'mobile-open' : ''}`}>
+      <aside className={`saidpar-container ${effectivelyOpen ? 'open' : 'closed'} ${isMobileOpen ? 'mobile-open' : ''}`}>
         {/* Header (Logo + Toggle) */}
         <div className="saidpar-header">
-          {isOpen && (
+          {effectivelyOpen && (
           <div className="saidpar-logo-area">
             <div className="logo-icon">OEO</div>
             <span className="saidpar-logo-text">Olympic OEO</span>
           </div>
         )}
         <button onClick={toggleSidebar} className="toggle-btn" aria-label="Toggle Sidebar">
-          {isOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
+          {effectivelyOpen ? <PanelRightClose size={20} /> : <PanelRightOpen size={20} />}
         </button>
       </div>
 
@@ -45,8 +47,8 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
       <div className="saidpar-scrollable-content">
         {menuSections.map((section, idx) => (
           <div key={idx} className="menu-section">
-            {isOpen && <h4 className="section-title">{t(section.title)}</h4>}
-            {(!isOpen) && <div className="section-divider"></div>}
+            {effectivelyOpen && <h4 className="section-title">{t(section.title)}</h4>}
+            {(!effectivelyOpen) && <div className="section-divider"></div>}
 
             <nav className="saidpar-menu">
               {section.items.map((item) => {
@@ -61,7 +63,7 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
                         className={`menu-item ${activeItem === item.name ? 'active' : ''} ${isDropdownOpen ? 'dropdown-open' : ''}`}
                         onClick={() => {
                           if (isEffectivelyDropdown) {
-                            if (!isOpen) toggleSidebar();
+                            if (!effectivelyOpen) toggleSidebar();
                             toggleDropdown(item.name);
                           } else {
                             handleItemClick(item.name, item.route);
@@ -69,15 +71,13 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
                         }}
                       >
                         <Icon className="menu-icon" size={22} />
-                        {isOpen && <span className="menu-label">{t(item.label)}</span>}
-                        {isOpen && isEffectivelyDropdown && (
-                          <div className="dropdown-icon">
-                            {isDropdownOpen ? <ChevronDown size={16} /> : (isRTL ? <ChevronLeft size={16} /> : <ChevronDown size={16} style={{transform: 'rotate(-90deg)'}} />)}
-                          </div>
+                        {effectivelyOpen && <span className="menu-text">{t(item.label)}</span>}
+                        {isEffectivelyDropdown && effectivelyOpen && (
+                          <ChevronDown size={16} className={`dropdown-arrow ${isDropdownOpen ? 'open' : ''}`} />
                         )}
                       </div>
-                    {isEffectivelyDropdown && (isDropdownOpen || !isOpen) && (
-                      <div className={`submenu-container ${(!isOpen && isDropdownOpen) ? 'force-open' : ''}`}>
+                    {isEffectivelyDropdown && (isDropdownOpen || !effectivelyOpen) && (
+                      <div className={`submenu-container ${(!effectivelyOpen && isDropdownOpen) ? 'force-open' : ''}`}>
                         {item.subItems?.map(subItem => (
                           <div
                             key={subItem.name}
@@ -103,14 +103,14 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
         <div 
           className="logout-btn" 
           onClick={controller.handleLogout}
-          title={!isOpen ? t('sidebar.logout', 'تسجيل خروج') : ''}
+          title={!effectivelyOpen ? t('sidebar.logout', 'تسجيل خروج') : ''}
         >
           <svg className="logout-icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <polyline points="16 17 21 12 16 7"></polyline>
             <line x1="21" y1="12" x2="9" y2="12"></line>
           </svg>
-          {isOpen && <span className="logout-text">{t('sidebar.logout', 'تسجيل خروج')}</span>}
+          {effectivelyOpen && <span className="logout-text">{t('sidebar.logout', 'تسجيل خروج')}</span>}
         </div>
       </div>
     </aside>

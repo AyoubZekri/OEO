@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaymentsController, type PaymentRecord } from './PaymentsController';
-import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
-import { Printer } from 'lucide-react';
+import { Printer, Paperclip } from 'lucide-react';
 import { PrintableReceipt } from './PrintableReceipt/PrintableReceipt';
+import { UploadReceiptDialog } from './UploadReceiptDialog';
+import { ViewReceiptDialog } from './ViewReceiptDialog';
+import { Applink } from '../../../LinkApi';
 import './Payments.css';
 
 const PrintReceiptButton = ({ payment, member, contract, onPrint }: any) => {
@@ -41,6 +44,7 @@ export const Payments: React.FC = () => {
   const controller = usePaymentsController();
   
   const [printData, setPrintData] = useState<any>(null);
+  const [viewingReceiptUrl, setViewingReceiptUrl] = useState<string | null>(null);
 
   const handleNativePrint = (payment: any, member: any, contract: any) => {
     // Calculate totals for this member based on all their payments of type 'دفع' AND nature 'رقم دفعة'
@@ -306,6 +310,26 @@ export const Payments: React.FC = () => {
                         {hasAccess(permissions.payments.delete) && (
                           <button className="btn-icon delete" onClick={() => deletePayment(payment.id)}>
                             <Trash2 size={18} />
+                          </button>
+                        )}
+                        <button className="btn-icon view" onClick={() => controller.openUploadDialog(payment)} title={t('payments.upload_receipt', 'إرفاق وصل العملية')} style={{color: '#3b82f6'}}>
+                          <Paperclip size={18} />
+                        </button>
+                        {payment.receipt_file && (
+                          <button 
+                            className="btn-icon view"
+                            title={t('payments.view_receipt', 'عرض الوصل')}
+                            style={{ color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)' }}
+                            onClick={() => {
+                              const file = payment.receipt_file;
+                              let url = null;
+                              if (typeof file === 'string') {
+                                url = file.startsWith('http') ? file : `${Applink.image}/${file.replace(/^[\/\\]/, '')}`;
+                              }
+                              setViewingReceiptUrl(url);
+                            }}
+                          >
+                            <Eye size={18} />
                           </button>
                         )}
                       </div>
@@ -587,6 +611,7 @@ export const Payments: React.FC = () => {
                   <input type="text" className="form-control" value={notes} onChange={e => setNotes(e.target.value)} />
                 </div>
 
+
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
                   <button type="button" className="btn-cancel" onClick={closeDialog}>{t('payments.cancel', 'إلغاء')}</button>
                   <button type="submit" className="btn-primary">{t('payments.save', 'حفظ الدفعة')}</button>
@@ -609,6 +634,19 @@ export const Payments: React.FC = () => {
           />
         </div>
       )}
+
+      <UploadReceiptDialog 
+        isOpen={controller.isUploadDialogOpen}
+        onClose={controller.closeUploadDialog}
+        payment={controller.paymentForUpload}
+        onUpload={controller.uploadReceipt}
+      />
+
+      <ViewReceiptDialog 
+        isOpen={!!viewingReceiptUrl}
+        onClose={() => setViewingReceiptUrl(null)}
+        imageUrl={viewingReceiptUrl || ''}
+      />
     </div>
   );
 };

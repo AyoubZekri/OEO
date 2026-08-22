@@ -25,9 +25,16 @@ export interface MenuSection {
 }
 
 export const useSaidparController = (onLogout?: () => void) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(() => {
+    const savedState = localStorage.getItem('sidebarState');
+    return savedState === 'closed' ? false : true;
+  });
   const [activeItem, setActiveItem] = useState('Home');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  useEffect(() => {
+    localStorage.setItem('sidebarState', isOpen ? 'open' : 'closed');
+  }, [isOpen]);
   
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedTheme = localStorage.getItem('appTheme');

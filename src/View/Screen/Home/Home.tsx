@@ -114,7 +114,7 @@ export const Home: React.FC = () => {
             <tbody>
               {recentOperations.map(op => (
                 <tr key={op.id}>
-                  <td>
+                  <td data-label={t('home.name', 'الاسم')}>
                     <div className="op-name-cell">
                       <div className="op-icon-wrapper">
                         {op.type === 'سحب' ? <ArrowUpRight size={18} color="#ef4444" /> : <ArrowDownLeft size={18} color="#10b981" />}
@@ -122,13 +122,13 @@ export const Home: React.FC = () => {
                       <span>{op.name}</span>
                     </div>
                   </td>
-                  <td className="date-cell">{new Intl.DateTimeFormat('ar-DZ', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(op.date))}</td>
-                  <td>
+                  <td className="date-cell" data-label={t('home.date', 'التاريخ')}>{new Intl.DateTimeFormat('ar-DZ', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(op.date))}</td>
+                  <td data-label={t('home.op_type', 'النوع')}>
                     <span className={getBadgeClass(op.type)}>
                       {op.type}
                     </span>
                   </td>
-                  <td className={`amount-cell ${op.type === 'سحب' ? 'amount-negative' : 'amount-positive'}`}>
+                  <td className={`amount-cell ${op.type === 'سحب' ? 'amount-negative' : 'amount-positive'}`} data-label={t('home.amount', 'المبلغ')}>
                     {op.type === 'سحب' ? '-' : '+'}{formatCurrency(op.amount)}
                   </td>
                 </tr>
@@ -160,7 +160,7 @@ export const Home: React.FC = () => {
                   <tbody>
                     {controller.allOperations.map(op => (
                       <tr key={op.id}>
-                        <td>
+                        <td data-label={t('home.name', 'الاسم')}>
                           <div className="op-name-cell">
                             <div className="op-icon-wrapper">
                               {op.type === 'سحب' ? <ArrowUpRight size={18} color="#ef4444" /> : <ArrowDownLeft size={18} color="#10b981" />}
@@ -168,13 +168,13 @@ export const Home: React.FC = () => {
                             <span>{op.name}</span>
                           </div>
                         </td>
-                        <td className="date-cell">{new Intl.DateTimeFormat('ar-DZ', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(op.date))}</td>
-                        <td>
+                        <td className="date-cell" data-label={t('home.date', 'التاريخ')}>{new Intl.DateTimeFormat('ar-DZ', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(op.date))}</td>
+                        <td data-label={t('home.op_type', 'النوع')}>
                           <span className={getBadgeClass(op.type)}>
                             {op.type}
                           </span>
                         </td>
-                        <td className={`amount-cell ${op.type === 'سحب' ? 'amount-negative' : 'amount-positive'}`}>
+                        <td className={`amount-cell ${op.type === 'سحب' ? 'amount-negative' : 'amount-positive'}`} data-label={t('home.amount', 'المبلغ')}>
                           {op.type === 'سحب' ? '-' : '+'}{formatCurrency(op.amount)}
                         </td>
                       </tr>

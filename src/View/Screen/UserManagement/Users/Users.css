@@ -151,4 +151,128 @@
     align-items: flex-start;
     gap: 16px;
   }
+  
+  /* Reset container scroll and background */
+  .users-table-container {
+    overflow-x: visible;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  .users-table {
+    min-width: 0;
+  }
+  
+  /* Responsive Users Table (Profile Cards View) */
+  .users-table {
+    display: block;
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+  }
+  
+  .users-table thead {
+    display: none;
+  }
+  
+  .users-table tbody {
+    display: grid;
+    /* fit 2 or 3 cards side by side on mobile/tablet */
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  
+  .users-table tbody tr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: linear-gradient(145deg, var(--card-bg, #ffffff) 0%, rgba(255,255,255,0.02) 100%);
+    border: 1px solid var(--border, #e2e8f0);
+    border-radius: 20px;
+    padding: 24px 16px 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .users-table tbody tr:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.1) !important;
+    background-color: var(--card-bg) !important;
+  }
+  
+  .users-table tbody tr::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
+    z-index: 0;
+  }
+  
+  .users-table td {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 4px 0;
+    border: none;
+    z-index: 1;
+    width: 100%;
+  }
+  
+  .users-table td:last-child {
+    border-bottom: none;
+  }
+  
+  /* Disable data-labels for profile cards */
+  .users-table td::before {
+    display: none;
+  }
+  
+  /* User Name & Avatar */
+  .users-table td:nth-child(1) .user-name {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .users-table td:nth-child(1) .user-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: 1.5rem;
+    border: 4px solid var(--card-bg, #ffffff);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  }
+  .users-table td:nth-child(1) span {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  
+  /* Email */
+  .users-table td:nth-child(2) {
+    margin-bottom: 8px;
+  }
+  .users-table td:nth-child(2) .user-email {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+  
+  /* Role Badge */
+  .users-table td:nth-child(3) {
+    margin-bottom: 24px;
+  }
+  
+  /* Actions */
+  .users-table td:nth-child(4) {
+    border-top: 1px dashed var(--border);
+    padding-top: 16px;
+    margin-top: auto;
+  }
+  .users-table td:nth-child(4) .user-actions {
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+  }
 }

@@ -44,6 +44,7 @@ export interface PaymentRecord {
   notes?: string;
   member?: any;
   postal_check?: string;
+  receipt_file?: string | File | null;
 }
 
 export const usePaymentsController = () => {
@@ -133,6 +134,8 @@ export const usePaymentsController = () => {
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+  const [paymentForUpload, setPaymentForUpload] = useState<PaymentRecord | null>(null);
 
   const openDialog = (payment?: PaymentRecord) => {
     if (payment) {
@@ -146,6 +149,26 @@ export const usePaymentsController = () => {
   const closeDialog = () => {
     setIsDialogOpen(false);
     setEditingPayment(null);
+  };
+
+  const openUploadDialog = (payment: PaymentRecord) => {
+    setPaymentForUpload(payment);
+    setIsUploadDialogOpen(true);
+  };
+
+  const closeUploadDialog = () => {
+    setIsUploadDialogOpen(false);
+    setPaymentForUpload(null);
+  };
+
+  const uploadReceipt = async (paymentId: string, file: File) => {
+    setIsLoading(true);
+    const response = await paymentsData.updatePayment({ id: paymentId }, file);
+    if (response) {
+      fetchPayments();
+    }
+    closeUploadDialog();
+    setIsLoading(false);
   };
 
   const deletePayment = async (id: string) => {
@@ -180,15 +203,18 @@ export const usePaymentsController = () => {
       delete payload.fundId;
     }
 
+    const receiptFile = payload.receipt_file instanceof File ? payload.receipt_file : undefined;
+    delete payload.receipt_file; // Don't send as string in formData
+
     if (editingPayment) {
       // Update
-      const response = await paymentsData.updatePayment({ id: editingPayment.id, ...payload });
+      const response = await paymentsData.updatePayment({ id: editingPayment.id, ...payload }, receiptFile);
       if (response) {
         fetchPayments();
       }
     } else {
       // Add
-      const response = await paymentsData.createPayment(payload);
+      const response = await paymentsData.createPayment(payload, receiptFile);
       if (response) {
         fetchPayments();
       }
@@ -242,5 +268,10 @@ export const usePaymentsController = () => {
     setSearchQuery,
     filterNature,
     setFilterNature,
+    isUploadDialogOpen,
+    paymentForUpload,
+    openUploadDialog,
+    closeUploadDialog,
+    uploadReceipt,
   };
 };

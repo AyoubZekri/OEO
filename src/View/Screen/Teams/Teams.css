@@ -1,8 +1,4 @@
-.teams-container {
-  padding: 24px;
-  background-color: var(--bg-color);
-  min-height: calc(100vh - 70px);
-}
+
 
 .teams-header {
   display: flex;

@@ -1,5 +1,5 @@
 .members-container {
-  padding: 10px 10px 40px 10px;
+  padding: 10px 0px 40px 0px;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -229,11 +229,22 @@ body.dark-mode .members-table tbody tr:hover {
 .member-avatar {
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: 12px;
   object-fit: cover;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.member-avatar.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--accent) 0%, #f97316 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
 }
 
 body.dark-mode .member-avatar {
@@ -431,11 +442,15 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
     background-color: var(--bg-hover);
   }
 
+  .members-table td.avatar-cell,
   .members-table td:first-child {
-    justify-content: center;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
     border-bottom: none;
     padding-top: 0;
     padding-bottom: 8px;
+    width: 100%;
   }
   
   .members-table td:first-child::before,
@@ -449,6 +464,10 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
     border-radius: 24px;
     border: 3px solid #ffffff;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  
+  .member-avatar.placeholder {
+    font-size: 2rem;
   }
 
   body.dark-mode .member-avatar {

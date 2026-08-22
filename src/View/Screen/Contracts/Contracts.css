@@ -1,5 +1,7 @@
 .contracts-container {
-  padding: 10px 10px 40px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   animation: fadeIn 0.4s ease-out;
 }
 
@@ -7,7 +9,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 20px;
 }
