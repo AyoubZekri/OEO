@@ -185,21 +185,32 @@ export const usePaymentsController = () => {
     let payload = { ...payment };
     const isReturnAdvance = payment.amountNature === 'إرجاع سلفة';
 
-    if (isReturnAdvance && payload.fundId) {
-      // Create deposit transaction manually via frontend API
+    if (payload.fundId) {
       const memberName = getMemberDetails(payload.memberId) 
         ? `${getMemberDetails(payload.memberId)?.firstName} ${getMemberDetails(payload.memberId)?.lastName}` 
-        : 'مجهول';
+        : 'مصروف عام';
       
-      await fundsData.createTransaction({
-        fundId: payload.fundId,
-        type: 'إيداع',
-        amount: payload.amount,
-        date: payload.paymentDate,
-        description: `إرجاع سلفة - ${memberName}`
-      });
+      if (isReturnAdvance) {
+        // Create deposit transaction manually via frontend API
+        await fundsData.createTransaction({
+          fundId: payload.fundId,
+          type: 'إيداع',
+          amount: payload.amount,
+          date: payload.paymentDate,
+          description: `إرجاع سلفة - ${memberName}`
+        });
+      } else {
+        // Create withdrawal transaction manually via frontend API
+        await fundsData.createTransaction({
+          fundId: payload.fundId,
+          type: 'سحب',
+          amount: payload.amount,
+          date: payload.paymentDate,
+          description: `دفع/مصروف (${payload.amountNature}) - ${memberName}`
+        });
+      }
       
-      // Remove fundId from the payload so the backend doesn't process it as a withdrawal (سحب)
+      // Remove fundId from the payload so the backend doesn't complain
       delete payload.fundId;
     }
 

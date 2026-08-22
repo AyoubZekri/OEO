@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSaidparController } from './SaidparController';
-import { PanelRightClose, PanelRightOpen, ChevronDown, ChevronLeft, Circle } from 'lucide-react';
+import { PanelRightClose, PanelRightOpen, ChevronDown, Circle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './Saidpar.css';
 
@@ -17,8 +17,7 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
     toggleMobileSidebar,
   } = controller;
 
-  const { t, i18n } = useTranslation();
-  const isRTL = i18n.language === 'ar';
+  const { t } = useTranslation();
   
   const effectivelyOpen = isOpen || isMobileOpen;
 

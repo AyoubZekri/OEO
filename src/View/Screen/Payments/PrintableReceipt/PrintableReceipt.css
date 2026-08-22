@@ -197,15 +197,30 @@
   text-align: justify;
 }
 
-.black-box {
-  background-color: #000;
-  color: white;
-  padding: 4px;
-  margin: 3px 0;
-  font-weight: 800;
+.handwriting-box {
+  background-color: transparent;
+  color: #000;
+  border: 1px solid #000;
+  padding: 8px 4px;
+  margin: 6px 0;
   text-align: center;
-  line-height: 1.4;
+}
+
+.handwriting-title {
+  font-weight: 800;
   font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.handwriting-line {
+  border-bottom: 1px dashed #000;
+  width: 80%;
+  margin: 0 auto 15px auto;
+}
+
+.handwriting-footer {
+  font-weight: 700;
+  font-size: 13px;
 }
 
 /* Signature Table */
