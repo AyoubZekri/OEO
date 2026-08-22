@@ -33,7 +33,9 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
         <div className="saidpar-header">
           {effectivelyOpen && (
           <div className="saidpar-logo-area">
-            <div className="logo-icon">OEO</div>
+            <div className="logo-icon">
+              <img src="/LOGO.webp" alt="OEO Logo" />
+            </div>
             <span className="saidpar-logo-text">Olympic OEO</span>
           </div>
         )}

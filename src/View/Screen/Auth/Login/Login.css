@@ -40,18 +40,18 @@ body.dark-mode .login-container {
 }
 
 .login-logo {
-  width: 60px;
-  height: 60px;
+  width: 100px;
+  height: auto;
   margin: 0 auto 20px;
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); /* Premium Orange Gradient */
-  color: white;
-  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 1.5rem;
-  box-shadow: 0 10px 20px rgba(249, 115, 22, 0.3);
+}
+
+.login-logo img {
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
 }
 
 .login-header h1 {

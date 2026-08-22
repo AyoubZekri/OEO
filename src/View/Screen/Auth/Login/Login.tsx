@@ -19,7 +19,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       <div className="login-container">
         <div className="login-header">
           <div className="login-logo">
-            OEO
+            <img src="/LOGO.webp" alt="OEO Logo" />
           </div>
           <h1>{t('login.welcome_back', 'مرحباً بعودتك')}</h1>
           <p>{t('login.subtitle', 'قم بتسجيل الدخول للوصول إلى لوحة التحكم')}</p>
