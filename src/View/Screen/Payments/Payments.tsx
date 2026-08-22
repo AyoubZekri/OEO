@@ -5,11 +5,13 @@ import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye } from '
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
-import { Printer, Paperclip } from 'lucide-react';
+import { Printer, Paperclip, RefreshCw } from 'lucide-react';
 import { PrintableReceipt } from './PrintableReceipt/PrintableReceipt';
 import { UploadReceiptDialog } from './UploadReceiptDialog';
 import { ViewReceiptDialog } from './ViewReceiptDialog';
 import { Applink } from '../../../LinkApi';
+import { Pagination } from '../../widget/Pagination';
+import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import './Payments.css';
 
 const PrintReceiptButton = ({ payment, member, contract, onPrint }: any) => {
@@ -45,6 +47,11 @@ export const Payments: React.FC = () => {
   
   const [printData, setPrintData] = useState<any>(null);
   const [viewingReceiptUrl, setViewingReceiptUrl] = useState<string | null>(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const paginatedPayments = controller.payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleNativePrint = (payment: any, member: any, contract: any) => {
     // Calculate totals for this member based on all their payments of type 'دفع' AND nature 'رقم دفعة'
@@ -119,11 +126,18 @@ export const Payments: React.FC = () => {
         } else if (amountNature === 'منحة فوز') {
           setAmount(contract.winBonus.toString());
         } else if (amountNature === 'رقم دفعة') {
-          setAmount(contract.paymentValue.toString());
+          if (installmentNumber && contract.installments && Array.isArray(contract.installments)) {
+            const installment = contract.installments.find((inst: any) => String(inst.installment_number) === String(installmentNumber));
+            if (installment) {
+              setAmount(installment.amount.toString());
+              return;
+            }
+          }
+          setAmount(contract.paymentValue ? contract.paymentValue.toString() : '0');
         }
       }
     }
-  }, [memberId, amountNature, numberOfGoals, contracts, editingPayment]);
+  }, [memberId, amountNature, numberOfGoals, installmentNumber, contracts, editingPayment]);
 
   // Handle open modal for Edit or Add
   const handleOpenDialog = (payment?: PaymentRecord) => {
@@ -209,6 +223,14 @@ export const Payments: React.FC = () => {
           </div>
           <CustomDropdown
             options={[
+              { value: 'all', label: 'كل الصناديق' },
+              ...controller.funds.map(f => ({ value: String(f.id), label: f.name }))
+            ]}
+            value={controller.selectedFundFilter}
+            onChange={(val) => controller.setSelectedFundFilter(val)}
+          />
+          <CustomDropdown
+            options={[
               { value: 'all', label: t('payments.filter_all', 'الكل') },
               { value: 'راتب شهري', label: 'راتب شهري' },
               { value: 'رقم دفعة', label: 'رقم دفعة' },
@@ -244,8 +266,10 @@ export const Payments: React.FC = () => {
         </div>
       </div>
 
-      <div className="members-table-wrapper">
-        <table className="custom-table members-table">
+      <div className="table-pagination-wrapper">
+        <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+        <div className="members-table-wrapper">
+          <table className="custom-table">
           <thead>
             <tr>
               <th>{t('payments.col_date', 'التاريخ')}</th>
@@ -264,7 +288,7 @@ export const Payments: React.FC = () => {
                 </td>
               </tr>
             ) : (
-              payments.map(payment => {
+              paginatedPayments.map(payment => {
                 const member = getMemberDetails(payment.memberId);
                 return (
                   <tr key={payment.id}>
@@ -290,7 +314,7 @@ export const Payments: React.FC = () => {
                     </td>
                     <td className="amount-cell text-success" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(payment.amount)}</td>
                     <td data-label={t('payments.col_method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
-                    <td data-label={t('payments.col_actions', 'إجراءات')}>
+                    <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
                       <div style={{ display: 'flex', gap: '8px' }}>
                         <PrintReceiptButton 
                           payment={payment} 
@@ -308,9 +332,14 @@ export const Payments: React.FC = () => {
                           </button>
                         )}
                         {hasAccess(permissions.payments.delete) && (
-                          <button className="btn-icon delete" onClick={() => deletePayment(payment.id)}>
-                            <Trash2 size={18} />
-                          </button>
+                          <>
+                            <button className="btn-icon return-btn" onClick={() => controller.returnPayment(payment.id)} title="إرجاع الدفعة للصندوق" style={{ color: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)' }}>
+                              <RefreshCw size={18} />
+                            </button>
+                            <button className="btn-icon delete" onClick={() => deletePayment(payment.id)}>
+                              <Trash2 size={18} />
+                            </button>
+                          </>
                         )}
                         <button className="btn-icon view" onClick={() => controller.openUploadDialog(payment)} title={t('payments.upload_receipt', 'إرفاق وصل العملية')} style={{color: '#3b82f6'}}>
                           <Paperclip size={18} />
@@ -340,6 +369,14 @@ export const Payments: React.FC = () => {
             )}
           </tbody>
         </table>
+        </div>
+        <Pagination 
+          totalItems={controller.payments.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={currentPage} 
+          onPageChange={setCurrentPage} 
+          onItemsPerPageChange={setItemsPerPage} 
+        />
       </div>
 
       {/* Add/Edit Modal */}

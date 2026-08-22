@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContractsController } from './ContractsController';
-import { Search, Plus, FileSignature, Edit2, CalendarClock, X, Calculator, Trash2, RefreshCw } from 'lucide-react';
+import { Search, Plus, FileSignature, Edit2, CalendarClock, X, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
+import { Pagination } from '../../widget/Pagination';
+import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import './Contracts.css';
 
 export const Contracts: React.FC = () => {
@@ -21,7 +23,9 @@ export const Contracts: React.FC = () => {
     selectedContract,
     formData,
     errors,
-    calculatedPaymentValue,
+    isMismatchWarningOpen,
+    setIsMismatchWarningOpen,
+    proceedSaveContract,
     openAddModal,
     openEditModal,
     closeAddEditModal,
@@ -45,11 +49,10 @@ export const Contracts: React.FC = () => {
     handleRenewContract
   } = controller;
 
-  // For the automatically calculated payment value, we also want it to look like 1.000,00
-  const formatCalculated = (val: number) => {
-    const enStr = val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return enStr.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
-  };
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const paginatedContracts = contracts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="contracts-container">
@@ -88,8 +91,10 @@ export const Contracts: React.FC = () => {
       </div>
 
       {/* Main Contracts Table */}
-      <div className="contracts-table-wrapper">
-        <table className="custom-table contracts-main-table">
+      <div className="table-pagination-wrapper">
+        <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+        <div className="contracts-table-wrapper">
+          <table className="custom-table">
           <thead>
             <tr>
               <th>{t('contracts.beneficiary', 'المستفيد')}</th>
@@ -102,7 +107,7 @@ export const Contracts: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {contracts.map(contract => (
+            {paginatedContracts.map(contract => (
               <tr key={contract.id}>
                 <td className="contract-beneficiary-cell" data-label={t('contracts.beneficiary', 'المستفيد')}>
                   <div className="beneficiary-info">
@@ -118,7 +123,7 @@ export const Contracts: React.FC = () => {
                 <td style={{ color: 'var(--text-muted)' }} data-label={t('contracts.end_date', 'تاريخ النهاية')}>
                   {contract.endDate ? new Intl.DateTimeFormat('ar-DZ').format(new Date(contract.endDate)) : '-'}
                 </td>
-                  <td data-label={t('contracts.actions', 'إجراءات')}>
+                  <td data-label={t('contracts.actions', 'إجراءات')} className="actions-cell">
                     <div className="action-buttons-wrapper">
                       {hasAccess(permissions.contracts.view) && (
                         <button className="btn-action view-btn" onClick={() => openScheduleModal(contract)} title="عرض الاستحقاقات">
@@ -153,6 +158,14 @@ export const Contracts: React.FC = () => {
             )}
           </tbody>
         </table>
+        </div>
+        <Pagination 
+          totalItems={contracts.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={currentPage} 
+          onPageChange={setCurrentPage} 
+          onItemsPerPageChange={setItemsPerPage} 
+        />
       </div>
 
       {/* Add / Edit Contract Modal */}
@@ -211,7 +224,7 @@ export const Contracts: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="form-row auto-calc-row">
+                <div className="form-row">
                   <div className="form-group">
                     <label>{t('contracts.contract_value', 'قيمة العقد')}</label>
                     <CurrencyInput name="contractValue" value={formData.contractValue} onChangeValue={(val) => setFormDataValue('contractValue', val)} className="form-control value-input" />
@@ -222,10 +235,38 @@ export const Contracts: React.FC = () => {
                     <input type="number" name="numberOfPayments" value={formData.numberOfPayments} onChange={handleFormChange} className="form-control" min="1" />
                     {errors.numberOfPayments && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.numberOfPayments}</span>}
                   </div>
-                  <div className="form-group auto-calc-result">
-                    <label><Calculator size={14} /> {t('contracts.auto_payment_value', 'قيمة الدفعة (تلقائي)')}</label>
-                    <div className="calculated-value" dir="ltr" style={{ textAlign: 'left' }}>{formatCalculated(calculatedPaymentValue)}</div>
+                </div>
+
+                <div className="installments-section mt-4 mb-4" style={{ backgroundColor: 'var(--bg-body)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-h)' }}>جدول الدفعات المخصصة</h4>
+                    <button type="button" className="btn-primary" onClick={controller.handleAddInstallment} style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Plus size={16} /> إضافة دفعة
+                    </button>
                   </div>
+                  {controller.formData.installments && controller.formData.installments.length === 0 ? (
+                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '12px', background: 'var(--card-bg)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
+                      لا توجد دفعات مخصصة.
+                    </div>
+                  ) : (
+                    <div className="installments-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      {controller.formData.installments?.map((inst, index) => (
+                        <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'var(--card-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                          <div className="form-group" style={{ margin: 0, flex: 1 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>رقم / اسم الدفعة</label>
+                            <input type="text" className="form-control" value={inst.installment_number} onChange={(e) => controller.handleUpdateInstallment(index, 'installment_number', e.target.value)} placeholder="مثال: الأولى" />
+                          </div>
+                          <div className="form-group" style={{ margin: 0, flex: 2 }}>
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>القيمة (د.ج)</label>
+                            <CurrencyInput name="amount" value={inst.amount} onChangeValue={(val) => controller.handleUpdateInstallment(index, 'amount', val)} className="form-control" />
+                          </div>
+                          <button type="button" onClick={() => controller.handleRemoveInstallment(index)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '8px', marginTop: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="حذف الدفعة">
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="form-row">
@@ -348,6 +389,129 @@ export const Contracts: React.FC = () => {
                   {isLoading ? 'جاري الحفظ...' : 'حفظ التجديد'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
+      {/* Premium Mismatch Warning Modal */}
+      {isMismatchWarningOpen && (
+        <div 
+          className="task-dialog-overlay" 
+          style={{ 
+            zIndex: 9999, 
+            backdropFilter: 'blur(8px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0
+          }}
+        >
+          <div 
+            className="modal-content" 
+            style={{ 
+              maxWidth: '420px', 
+              width: '90%',
+              textAlign: 'center', 
+              padding: '32px 24px',
+              borderRadius: '24px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              background: 'var(--bg-card, #ffffff)',
+              border: '1px solid rgba(249, 115, 22, 0.2)',
+              animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
+              <div style={{ 
+                backgroundColor: 'rgba(249, 115, 22, 0.1)', 
+                padding: '20px', 
+                borderRadius: '50%',
+                boxShadow: '0 0 20px rgba(249, 115, 22, 0.2)'
+              }}>
+                <AlertTriangle size={42} color="#F97316" strokeWidth={2.5} />
+              </div>
+            </div>
+            
+            <h2 style={{ 
+              fontSize: '1.4rem', 
+              marginBottom: '12px', 
+              color: 'var(--text-color, #111827)',
+              fontWeight: '700'
+            }}>
+              تنبيه: عدم تطابق القيم
+            </h2>
+            
+            <p style={{ 
+              marginBottom: '30px', 
+              lineHeight: '1.7', 
+              color: 'var(--text-muted, #4B5563)',
+              fontSize: '1.05rem',
+              padding: '0 10px'
+            }}>
+              مجموع قيم الدفعات لا يساوي القيمة الإجمالية للعقد.
+              <br />
+              <span style={{ fontWeight: '600', color: '#F97316', display: 'inline-block', marginTop: '8px' }}>
+                هل تريد العودة للتعديل أم حفظ العقد كما هو؟
+              </span>
+            </p>
+            
+            <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+              <button 
+                type="button" 
+                onClick={() => setIsMismatchWarningOpen(false)} 
+                style={{ 
+                  flex: 1, 
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: '2px solid #E5E7EB',
+                  backgroundColor: 'transparent',
+                  color: 'var(--text-color, #374151)',
+                  fontWeight: '600',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-hover, #F3F4F6)'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+              >
+                تعديل القيم
+              </button>
+              
+              <button 
+                type="button" 
+                onClick={proceedSaveContract} 
+                style={{ 
+                  flex: 1, 
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#F97316',
+                  color: '#ffffff',
+                  fontWeight: '600',
+                  fontSize: '1rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(249, 115, 22, 0.4)',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(249, 115, 22, 0.5)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(249, 115, 22, 0.4)';
+                }}
+              >
+                حفظ كما هي
+              </button>
             </div>
           </div>
         </div>

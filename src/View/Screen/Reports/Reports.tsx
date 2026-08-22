@@ -8,6 +8,8 @@ import {
 
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
+import { Pagination } from '../../widget/Pagination';
+import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import './Reports.css';
 
 export const Reports: React.FC = () => {
@@ -15,6 +17,13 @@ export const Reports: React.FC = () => {
   const controller = useReportsController();
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
+
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
+  
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [controller.activeCategory, controller.presetDate, controller.selectedMember]);
 
   const categories = React.useMemo(() => [
     { id: 'individuals' as ReportCategory, label: 'reports.tab_individuals', icon: <Users size={18} />, show: hasAccess(permissions.reports.viewIndividuals) },
@@ -159,7 +168,8 @@ export const Reports: React.FC = () => {
                   { value: '', label: 'الكل' },
                   { value: 'إيداع', label: 'إيداع' },
                   { value: 'سحب', label: 'سحب' },
-                  { value: 'تحويل', label: 'تحويل' }
+                  { value: 'تحويل', label: 'تحويل' },
+                  { value: 'إرجاع', label: 'إرجاع' }
                 ]}
                 value={controller.fundTransactionTypeFilter}
                 onChange={(val) => controller.setFundTransactionTypeFilter(val)}
@@ -386,46 +396,53 @@ export const Reports: React.FC = () => {
 
               <div className="payments-list-section" style={{ marginTop: '32px' }}>
                 <h3><List size={24} style={{ marginInlineEnd: '8px', color: 'var(--accent)' }} /> سجل المدفوعات</h3>
-                <div className="report-table-wrapper">
-                  <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>التاريخ</th>
-                      {!controller.selectedMember && <th>الاسم</th>}
-                      <th>البيان (الطبيعة)</th>
-                      <th>طريقة الدفع</th>
-                      <th>المبلغ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const summary = controller.getIndividualSummary();
-                      if (summary.payments.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={controller.selectedMember ? 4 : 5} className="text-center py-4 text-muted">
-                              {t('reports.no_data', 'لا توجد بيانات')}
-                            </td>
-                          </tr>
-                        );
-                      }
-                      return summary.payments.map(payment => {
-                        const member = controller.members.find(m => m.id === payment.memberId);
-                        return (
-                          <tr key={payment.id}>
-                            <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
-                            {!controller.selectedMember && (
-                              <td className="font-weight-bold" data-label={t('reports.member', 'العضو')}>{member ? `${member.first_name} ${member.last_name}` : '-'}</td>
-                            )}
-                            <td data-label={t('reports.nature', 'طبيعة الدفع')}>{payment.amountNature} {payment.installmentNumber ? `(${payment.installmentNumber})` : ''}</td>
-                            <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
-                            <td className="amount-cell text-success" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
-                          </tr>
-                        );
-                      });
-                    })()}
-                  </tbody>
-                  </table>
+                <div className="table-pagination-wrapper">
+                  <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+                  <div className="report-table-wrapper">
+                    <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>التاريخ</th>
+                        {!controller.selectedMember && <th>الاسم</th>}
+                        <th>البيان (الطبيعة)</th>
+                        <th>طريقة الدفع</th>
+                        <th>المبلغ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const summary = controller.getIndividualSummary();
+                        if (summary.payments.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={controller.selectedMember ? 4 : 5} className="text-center py-4 text-muted">
+                                {t('reports.no_data', 'لا توجد بيانات')}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        const paginatedPayments = summary.payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                        return paginatedPayments.map(payment => {
+                          const member = controller.members.find(m => m.id === payment.memberId);
+                          return (
+                            <tr key={payment.id}>
+                              <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
+                              {!controller.selectedMember && (
+                                <td className="font-weight-bold" data-label={t('reports.member', 'العضو')}>{member ? `${member.first_name} ${member.last_name}` : '-'}</td>
+                              )}
+                              <td data-label={t('reports.nature', 'طبيعة الدفع')}>{payment.amountNature} {payment.installmentNumber ? `(${payment.installmentNumber})` : ''}</td>
+                              <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                              <td className="amount-cell text-success" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
+                            </tr>
+                          );
+                        });
+                      })()}
+                    </tbody>
+                    </table>
+                  </div>
+                  {controller.getIndividualSummary().payments.length > 0 && (
+                    <Pagination totalItems={controller.getIndividualSummary().payments.length} itemsPerPage={itemsPerPage} currentPage={currentPage} onPageChange={setCurrentPage} onItemsPerPageChange={setItemsPerPage} />
+                  )}
                 </div>
               </div>
             </div>
@@ -433,39 +450,46 @@ export const Reports: React.FC = () => {
             <div className="expense-report">
               <div className="payments-list-section" style={{ marginTop: '32px' }}>
                 <h3><List size={24} style={{ marginInlineEnd: '8px', color: 'var(--accent)' }} /> سجل المصاريف</h3>
-                <div className="report-table-wrapper">
-                  <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>التاريخ</th>
-                      <th>طبيعة المصروف</th>
-                      <th>طريقة الدفع</th>
-                      <th>المبلغ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const summary = controller.getExpenseSummary();
-                      if (summary.payments.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={4} className="text-center py-4 text-muted">
-                              {t('reports.no_data', 'لا توجد بيانات')}
-                            </td>
+                <div className="table-pagination-wrapper">
+                  <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+                  <div className="report-table-wrapper">
+                    <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>التاريخ</th>
+                        <th>طبيعة المصروف</th>
+                        <th>طريقة الدفع</th>
+                        <th>المبلغ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const summary = controller.getExpenseSummary();
+                        if (summary.payments.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={4} className="text-center py-4 text-muted">
+                                {t('reports.no_data', 'لا توجد بيانات')}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        const paginatedExpenses = summary.payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                        return paginatedExpenses.map(payment => (
+                          <tr key={payment.id}>
+                            <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
+                            <td data-label={t('reports.expense_nature', 'طبيعة المصروف')}>{payment.amountNature} {payment.occasion ? `(${payment.occasion})` : ''}</td>
+                            <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                            <td className="amount-cell text-danger" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
                           </tr>
-                        );
-                      }
-                      return summary.payments.map(payment => (
-                        <tr key={payment.id}>
-                          <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
-                          <td data-label={t('reports.expense_nature', 'طبيعة المصروف')}>{payment.amountNature} {payment.occasion ? `(${payment.occasion})` : ''}</td>
-                          <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
-                          <td className="amount-cell text-danger" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
-                        </tr>
-                      ));
-                    })()}
-                  </tbody>
-                  </table>
+                        ));
+                      })()}
+                    </tbody>
+                    </table>
+                  </div>
+                  {controller.getExpenseSummary().payments.length > 0 && (
+                    <Pagination totalItems={controller.getExpenseSummary().payments.length} itemsPerPage={itemsPerPage} currentPage={currentPage} onPageChange={setCurrentPage} onItemsPerPageChange={setItemsPerPage} />
+                  )}
                 </div>
               </div>
             </div>
@@ -473,45 +497,52 @@ export const Reports: React.FC = () => {
             <div className="contract-report">
               <div className="payments-list-section" style={{ marginTop: '32px' }}>
                 <h3><List size={24} style={{ marginInlineEnd: '8px', color: 'var(--accent)' }} /> سجل العقود</h3>
-                <div className="report-table-wrapper">
-                  <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>رقم العقد</th>
-                      <th>المستفيد</th>
-                      <th>بداية العقد</th>
-                      <th>نهاية العقد</th>
-                      <th>قيمة العقد</th>
-                      <th>المدفوع (صافي)</th>
-                      <th>المتبقي</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(() => {
-                      const summary = controller.getContractsSummary();
-                      if (summary.contracts.length === 0) {
-                        return (
-                          <tr>
-                            <td colSpan={7} className="text-center py-4 text-muted">
-                              {t('reports.no_data', 'لا توجد بيانات')}
-                            </td>
+                <div className="table-pagination-wrapper">
+                  <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+                  <div className="report-table-wrapper">
+                    <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>رقم العقد</th>
+                        <th>المستفيد</th>
+                        <th>بداية العقد</th>
+                        <th>نهاية العقد</th>
+                        <th>قيمة العقد</th>
+                        <th>المدفوع (صافي)</th>
+                        <th>المتبقي</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(() => {
+                        const summary = controller.getContractsSummary();
+                        if (summary.contracts.length === 0) {
+                          return (
+                            <tr>
+                              <td colSpan={7} className="text-center py-4 text-muted">
+                                {t('reports.no_data', 'لا توجد بيانات')}
+                              </td>
+                            </tr>
+                          );
+                        }
+                        const paginatedContracts = summary.contracts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                        return paginatedContracts.map(contract => (
+                          <tr key={contract.id}>
+                            <td data-label={t('reports.contract_num', 'رقم العقد')}>{contract.contractNumber}</td>
+                            <td className="font-weight-bold" data-label={t('reports.beneficiary', 'المستفيد')}>{contract.beneficiary}</td>
+                            <td className="text-muted" data-label={t('reports.start_date', 'بداية العقد')}>{contract.startDate}</td>
+                            <td className="text-muted" data-label={t('reports.end_date', 'نهاية العقد')}>{contract.endDate}</td>
+                            <td className="amount-cell" data-label={t('reports.contract_value', 'قيمة العقد')}>{controller.formatCurrency(contract.contractValue)}</td>
+                            <td className="amount-cell text-success" data-label={t('reports.paid', 'المدفوع')}>{controller.formatCurrency(contract.netPaid)}</td>
+                            <td className="amount-cell text-danger" data-label={t('reports.remaining', 'المتبقي')}>{controller.formatCurrency(contract.remaining)}</td>
                           </tr>
-                        );
-                      }
-                      return summary.contracts.map(contract => (
-                        <tr key={contract.id}>
-                          <td data-label={t('reports.contract_num', 'رقم العقد')}>{contract.contractNumber}</td>
-                          <td className="font-weight-bold" data-label={t('reports.beneficiary', 'المستفيد')}>{contract.beneficiary}</td>
-                          <td className="text-muted" data-label={t('reports.start_date', 'بداية العقد')}>{contract.startDate}</td>
-                          <td className="text-muted" data-label={t('reports.end_date', 'نهاية العقد')}>{contract.endDate}</td>
-                          <td className="amount-cell" data-label={t('reports.contract_value', 'قيمة العقد')}>{controller.formatCurrency(contract.contractValue)}</td>
-                          <td className="amount-cell text-success" data-label={t('reports.paid', 'المدفوع')}>{controller.formatCurrency(contract.netPaid)}</td>
-                          <td className="amount-cell text-danger" data-label={t('reports.remaining', 'المتبقي')}>{controller.formatCurrency(contract.remaining)}</td>
-                        </tr>
-                      ));
-                    })()}
-                  </tbody>
-                  </table>
+                        ));
+                      })()}
+                    </tbody>
+                    </table>
+                  </div>
+                  {controller.getContractsSummary().contracts.length > 0 && (
+                    <Pagination totalItems={controller.getContractsSummary().contracts.length} itemsPerPage={itemsPerPage} currentPage={currentPage} onPageChange={setCurrentPage} onItemsPerPageChange={setItemsPerPage} />
+                  )}
                 </div>
               </div>
             </div>
@@ -519,57 +550,64 @@ export const Reports: React.FC = () => {
             <div className="funds-report">
               <div className="payments-list-section" style={{ marginTop: '32px' }}>
                 <h3><List size={24} style={{ marginInlineEnd: '8px', color: 'var(--accent)' }} /> {t('reports.funds_records', 'سجلات الصناديق')}</h3>
-                <div className="report-table-wrapper">
-                  <table className="custom-table">
-                  <thead>
-                    <tr>
-                      <th>التاريخ</th>
-                      <th>الصندوق</th>
-                      <th>النوع</th>
-                      <th>المبلغ</th>
-                      <th>البيان</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                        {(() => {
-                          const summary = controller.getFundsSummary();
-                          if (summary.transactions.length === 0) {
-                            return (
-                              <tr>
-                                <td colSpan={5} className="text-center py-4 text-muted">
-                                  {t('reports.no_data', 'لا توجد بيانات')}
-                                </td>
-                              </tr>
-                            );
-                          }
-                          return summary.transactions.map(tx => {
-                            const fundId = tx.fundId || (tx as any).fund_id;
-                            const toFundId = tx.toFundId || (tx as any).to_fund_id;
-                            const fund = controller.funds.find(f => f.id === fundId);
-                            const toFund = toFundId ? controller.funds.find(f => f.id === toFundId) : null;
-                            let fundNameDisplay = fund ? fund.name : '-';
-                            if (tx.type === 'تحويل' && toFund) {
-                              fundNameDisplay = `${fundNameDisplay} ➔ ${toFund.name}`;
+                <div className="table-pagination-wrapper">
+                  <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+                  <div className="report-table-wrapper">
+                    <table className="custom-table">
+                    <thead>
+                      <tr>
+                        <th>التاريخ</th>
+                        <th>الصندوق</th>
+                        <th>النوع</th>
+                        <th>المبلغ</th>
+                        <th>البيان</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                          {(() => {
+                            const summary = controller.getFundsSummary();
+                            if (summary.transactions.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={5} className="text-center py-4 text-muted">
+                                    {t('reports.no_data', 'لا توجد بيانات')}
+                                  </td>
+                                </tr>
+                              );
                             }
-                            return (
-                              <tr key={tx.id}>
-                                <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{tx.date}</td>
-                                <td className="font-weight-bold" data-label={t('reports.fund', 'الصندوق')}>{fundNameDisplay}</td>
-                                <td data-label={t('reports.type', 'النوع')}>
-                                  <span className={`status-badge ${tx.type === 'إيداع' ? 'active' : tx.type === 'سحب' ? 'inactive' : 'pending'}`}>
-                                    {tx.type}
-                                  </span>
-                                </td>
-                                <td className={`amount-cell ${tx.type === 'إيداع' ? 'text-success' : 'text-danger'}`} data-label={t('reports.amount', 'المبلغ')}>
-                                  {controller.formatCurrency(tx.amount)}
-                                </td>
-                                <td data-label={t('reports.description', 'البيان')}>{tx.description}</td>
-                              </tr>
-                            );
-                          });
-                        })()}
-                      </tbody>
-                  </table>
+                            const paginatedTx = summary.transactions.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+                            return paginatedTx.map(tx => {
+                              const fundId = tx.fundId || (tx as any).fund_id;
+                              const toFundId = tx.toFundId || (tx as any).to_fund_id;
+                              const fund = controller.funds.find(f => f.id === fundId);
+                              const toFund = toFundId ? controller.funds.find(f => f.id === toFundId) : null;
+                              let fundNameDisplay = fund ? fund.name : '-';
+                              if (tx.type === 'تحويل' && toFund) {
+                                fundNameDisplay = `${fundNameDisplay} ➔ ${toFund.name}`;
+                              }
+                              return (
+                                <tr key={tx.id}>
+                                  <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{tx.date}</td>
+                                  <td className="font-weight-bold" data-label={t('reports.fund', 'الصندوق')}>{fundNameDisplay}</td>
+                                  <td data-label={t('reports.type', 'النوع')}>
+                                    <span className={`status-badge ${tx.type === 'إيداع' ? 'active' : tx.type === 'سحب' ? 'inactive' : 'pending'}`}>
+                                      {tx.type}
+                                    </span>
+                                  </td>
+                                  <td className={`amount-cell ${tx.type === 'إيداع' ? 'text-success' : 'text-danger'}`} data-label={t('reports.amount', 'المبلغ')}>
+                                    {controller.formatCurrency(tx.amount)}
+                                  </td>
+                                  <td data-label={t('reports.description', 'البيان')}>{tx.description}</td>
+                                </tr>
+                              );
+                            });
+                          })()}
+                        </tbody>
+                    </table>
+                  </div>
+                  {controller.getFundsSummary().transactions.length > 0 && (
+                    <Pagination totalItems={controller.getFundsSummary().transactions.length} itemsPerPage={itemsPerPage} currentPage={currentPage} onPageChange={setCurrentPage} onItemsPerPageChange={setItemsPerPage} />
+                  )}
                 </div>
               </div>
             </div>

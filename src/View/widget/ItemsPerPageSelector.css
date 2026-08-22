@@ -1,0 +1,40 @@
+.items-per-page-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.ipp-label {
+  font-size: 0.9rem;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.ipp-select {
+  padding: 6px 32px 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border, #e2e8f0);
+  background-color: transparent;
+  color: var(--text-h, #0f172a);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 8px center;
+  transition: all 0.2s ease;
+}
+
+.ipp-select:hover, .ipp-select:focus {
+  border-color: var(--accent, #3b82f6);
+}
+
+@media (max-width: 768px) {
+  .items-per-page-container {
+    display: none !important;
+  }
+}

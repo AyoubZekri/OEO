@@ -21,6 +21,7 @@ export const useContractsController = () => {
 
   const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const [isMismatchWarningOpen, setIsMismatchWarningOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState<ContractModel | null>(null);
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -48,7 +49,8 @@ export const useContractsController = () => {
     winBonus: '' as number | string,
     goalsBonus: '' as number | string,
     notes: '',
-    status: 'active'
+    status: 'active',
+    installments: [] as { installment_number: string; amount: number }[]
   });
 
   const openRenewModal = (contract: ContractModel) => {
@@ -136,7 +138,8 @@ export const useContractsController = () => {
       winBonus: '',
       goalsBonus: '',
       notes: '',
-      status: 'active'
+      status: 'active',
+      installments: [{ installment_number: '1', amount: 0 }]
     });
     setIsAddEditModalOpen(true);
   };
@@ -155,7 +158,8 @@ export const useContractsController = () => {
       winBonus: contract.winBonus || '',
       goalsBonus: contract.goalsBonus || '',
       notes: contract.notes,
-      status: contract.status
+      status: contract.status,
+      installments: contract.installments ? [...contract.installments] : []
     });
     setIsAddEditModalOpen(true);
   };
@@ -184,12 +188,33 @@ export const useContractsController = () => {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: ['contractValue', 'numberOfPayments', 'monthlySalary', 'winBonus', 'goalsBonus'].includes(name) 
+    setFormData(prev => {
+      const numValue = ['contractValue', 'numberOfPayments', 'monthlySalary', 'winBonus', 'goalsBonus'].includes(name) 
         ? (value === '' ? '' : Number(value)) 
-        : value
-    }));
+        : value;
+
+      const newFormData = { ...prev, [name]: numValue };
+
+      // Auto-generate installments if numberOfPayments changes
+      if (name === 'numberOfPayments') {
+        const numInstallments = Number(value) || 0;
+        let newInstallments = [...(prev.installments || [])];
+        
+        if (numInstallments > newInstallments.length) {
+          // add more
+          for (let i = newInstallments.length; i < numInstallments; i++) {
+            newInstallments.push({ installment_number: String(i + 1), amount: 0 });
+          }
+        } else if (numInstallments < newInstallments.length) {
+          // remove excess
+          newInstallments = newInstallments.slice(0, numInstallments);
+        }
+        
+        newFormData.installments = newInstallments;
+      }
+
+      return newFormData;
+    });
   };
 
   const setFormDataValue = (name: string, value: any) => {
@@ -199,10 +224,28 @@ export const useContractsController = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Auto-calculated payment value
-  const numPayments = Number(formData.numberOfPayments) || 0;
-  const cValue = Number(formData.contractValue) || 0;
-  const calculatedPaymentValue = numPayments > 0 ? cValue / numPayments : 0;
+  const handleAddInstallment = () => {
+    setFormData(prev => ({
+      ...prev,
+      installments: [...prev.installments, { installment_number: String(prev.installments.length + 1), amount: 0 }]
+    }));
+  };
+
+  const handleUpdateInstallment = (index: number, field: string, value: string | number) => {
+    setFormData(prev => {
+      const newInst = [...prev.installments];
+      newInst[index] = { ...newInst[index], [field]: value };
+      return { ...prev, installments: newInst };
+    });
+  };
+
+  const handleRemoveInstallment = (index: number) => {
+    setFormData(prev => {
+      const newInst = [...prev.installments];
+      newInst.splice(index, 1);
+      return { ...prev, installments: newInst };
+    });
+  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -234,6 +277,20 @@ export const useContractsController = () => {
   const saveContract = async () => {
     if (!validateForm()) return;
 
+    const contractVal = Number(formData.contractValue) || 0;
+    const installmentsSum = formData.installments.reduce((acc, inst) => acc + (Number(inst.amount) || 0), 0);
+
+    // If sum is different, show warning dialog first
+    if (Math.abs(contractVal - installmentsSum) > 0.01) {
+      setIsMismatchWarningOpen(true);
+      return;
+    }
+
+    proceedSaveContract();
+  };
+
+  const proceedSaveContract = async () => {
+    setIsMismatchWarningOpen(false);
     setIsLoading(true);
     const payload = {
       individuals_id: formData.individuals_id,
@@ -246,7 +303,8 @@ export const useContractsController = () => {
       Winning_Bonus: formData.winBonus || 0,
       Goals_Bonus: formData.goalsBonus || 0,
       nots: formData.notes,
-      status: formData.status
+      status: formData.status,
+      installments: formData.installments
     };
 
     if (editingContractId) {
@@ -304,10 +362,12 @@ export const useContractsController = () => {
     isLoading,
     isAddEditModalOpen,
     isScheduleModalOpen,
+    isMismatchWarningOpen,
+    setIsMismatchWarningOpen,
+    proceedSaveContract,
     selectedContract,
     formData,
     errors,
-    calculatedPaymentValue,
     openAddModal,
     openEditModal,
     closeAddEditModal,
@@ -328,6 +388,9 @@ export const useContractsController = () => {
     setRenewEndDate,
     openRenewModal,
     closeRenewModal,
-    handleRenewContract
+    handleRenewContract,
+    handleAddInstallment,
+    handleUpdateInstallment,
+    handleRemoveInstallment
   };
 };

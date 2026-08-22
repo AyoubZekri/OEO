@@ -26,6 +26,7 @@ export interface PaymentRecord {
   transactionType?: 'دفع' | 'مصروف';
   memberId?: string;
   fundId?: string;
+  fund_id?: string;
   amount: number;
   paymentMethod: string; // نقدا, تحويل بنكي, صك, حوالة, دفع إلكتروني, أخرى
   paymentDate: string;
@@ -55,6 +56,7 @@ export const usePaymentsController = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterNature, setFilterNature] = useState('all');
+  const [selectedFundFilter, setSelectedFundFilter] = useState('all');
 
   const crud = new Crud();
   const paymentsData = new PaymentsData(crud);
@@ -171,47 +173,35 @@ export const usePaymentsController = () => {
     setIsLoading(false);
   };
 
+  const returnPayment = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من إرجاع هذه الدفعة وإلغائها؟ سيتم إرجاع المبلغ للصندوق.')) {
+      setIsLoading(true);
+      const response = await paymentsData.returnPayment({ id });
+      if (response) {
+        setPayments(payments.filter(p => p.id !== id));
+      }
+      setIsLoading(false);
+    }
+  };
+
   const deletePayment = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه الدفعة؟')) {
+    if (window.confirm('هل أنت متأكد من حذف هذه الدفعة؟ (الحذف لا يقوم بإرجاع المبلغ للصندوق تلقائياً)')) {
+      setIsLoading(true);
       const response = await paymentsData.deletePayment({ id });
       if (response) {
         setPayments(payments.filter(p => p.id !== id));
       }
+      setIsLoading(false);
     }
   };
 
   const savePayment = async (payment: Omit<PaymentRecord, 'id'>) => {
     setIsLoading(true);
     let payload = { ...payment };
-    const isReturnAdvance = payment.amountNature === 'إرجاع سلفة';
 
     if (payload.fundId) {
-      const memberName = getMemberDetails(payload.memberId) 
-        ? `${getMemberDetails(payload.memberId)?.firstName} ${getMemberDetails(payload.memberId)?.lastName}` 
-        : 'مصروف عام';
-      
-      if (isReturnAdvance) {
-        // Create deposit transaction manually via frontend API
-        await fundsData.createTransaction({
-          fundId: payload.fundId,
-          type: 'إيداع',
-          amount: payload.amount,
-          date: payload.paymentDate,
-          description: `إرجاع سلفة - ${memberName}`
-        });
-      } else {
-        // Create withdrawal transaction manually via frontend API
-        await fundsData.createTransaction({
-          fundId: payload.fundId,
-          type: 'سحب',
-          amount: payload.amount,
-          date: payload.paymentDate,
-          description: `دفع/مصروف (${payload.amountNature}) - ${memberName}`
-        });
-      }
-      
-      // Remove fundId from the payload so the backend doesn't complain
-      delete payload.fundId;
+      payload.fund_id = payload.fundId; // Add for backend
+      delete payload.fundId; // Not strictly needed but clean
     }
 
     const receiptFile = payload.receipt_file instanceof File ? payload.receipt_file : undefined;
@@ -257,8 +247,9 @@ export const usePaymentsController = () => {
       (p.paymentDate && p.paymentDate.includes(searchLower));
       
     const matchesFilter = filterNature === 'all' || p.amountNature === filterNature;
+    const matchesFund = selectedFundFilter === 'all' || p.fund_id === selectedFundFilter;
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesFund;
   });
 
   return {
@@ -272,6 +263,7 @@ export const usePaymentsController = () => {
     openDialog,
     closeDialog,
     deletePayment,
+    returnPayment,
     savePayment,
     formatCurrency,
     getMemberDetails,
@@ -279,6 +271,8 @@ export const usePaymentsController = () => {
     setSearchQuery,
     filterNature,
     setFilterNature,
+    selectedFundFilter,
+    setSelectedFundFilter,
     isUploadDialogOpen,
     paymentForUpload,
     openUploadDialog,

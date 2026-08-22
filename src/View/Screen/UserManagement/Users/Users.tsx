@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useUsersController } from './UsersController';
 import { UserDialog } from './UserDialog';
 import { useRolesController } from '../Roles/RolesController';
 import { useAuth } from '../../../../core/context/AuthContext';
+import { Pagination } from '../../../widget/Pagination';
+import { ItemsPerPageSelector } from '../../../widget/ItemsPerPageSelector';
 import './Users.css';
 
 export const Users: React.FC = () => {
@@ -20,6 +22,11 @@ export const Users: React.FC = () => {
     handleSaveUser,
     handleDeleteUser,
   } = useUsersController();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  const paginatedUsers = users.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const { roles } = useRolesController();
   const { t } = useTranslation();
@@ -41,8 +48,10 @@ export const Users: React.FC = () => {
         )}
       </div>
 
-      <div className="users-table-container">
-        <table className="users-table">
+      <div className="table-pagination-wrapper">
+        <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
+        <div className="users-table-container">
+          <table className="custom-table">
           <thead>
             <tr>
               <th>{t('users.user_col')}</th>
@@ -52,9 +61,9 @@ export const Users: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {paginatedUsers.map((user) => (
               <tr key={user.id}>
-                <td data-label={t('users.user_col', 'المستخدم')}>
+                <td data-label={t('users.user_col', 'المستخدم')} className="avatar-cell">
                   <div className="user-name">
                     <div className="user-avatar">
                       {user.name.substring(0, 2).toUpperCase()}
@@ -68,7 +77,7 @@ export const Users: React.FC = () => {
                 <td data-label={t('users.role_col', 'الدور')}>
                   <span className="access-level-badge">{getRoleName(user.roleId)}</span>
                 </td>
-                <td data-label={t('users.actions_col', 'إجراءات')}>
+                <td data-label={t('users.actions_col', 'إجراءات')} className="actions-cell">
                   <div className="user-actions">
                     {hasAccess(permissions.usersAndRoles.editUsers) && (
                       <button 
@@ -101,6 +110,14 @@ export const Users: React.FC = () => {
             )}
           </tbody>
         </table>
+        </div>
+        <Pagination 
+          totalItems={users.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={currentPage} 
+          onPageChange={setCurrentPage} 
+          onItemsPerPageChange={setItemsPerPage} 
+        />
       </div>
 
       <UserDialog

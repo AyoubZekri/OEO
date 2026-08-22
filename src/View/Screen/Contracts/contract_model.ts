@@ -16,6 +16,7 @@ export class ContractModel {
   notes: string;
   status: string;
   entitlements: any[]; // Assuming entitlements aren't fully implemented in the backend yet, we'll keep it empty or mock it
+  installments?: { installment_number: string, amount: number }[];
 
   constructor(data: any) {
     this.id = data.id?.toString() || '';
@@ -53,6 +54,11 @@ export class ContractModel {
     
     // For now, no entitlements from backend, we might generate them on the fly if needed
     this.entitlements = [];
+    
+    this.installments = data.installments ? data.installments.map((inst: any) => ({
+      installment_number: inst.installment_number,
+      amount: Number(inst.amount) || 0
+    })) : [];
   }
 
   static fromJson(json: any): ContractModel {

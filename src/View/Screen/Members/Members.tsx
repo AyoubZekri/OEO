@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
 import { Eye, X, Receipt, Search, Plus, Printer, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2 } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
+import { Pagination } from '../../widget/Pagination';
+import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import './Members.css';
 
 export const Members: React.FC = () => {
@@ -34,6 +36,11 @@ export const Members: React.FC = () => {
     closeDialog, 
     formatCurrency
   } = controller;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Print function
   const handlePrint = () => {
@@ -100,8 +107,10 @@ export const Members: React.FC = () => {
       </div>
 
       {/* Members Table */}
+      <div className="table-pagination-wrapper">
+        <ItemsPerPageSelector itemsPerPage={itemsPerPage} onItemsPerPageChange={setItemsPerPage} onPageChange={setCurrentPage} />
         <div className="members-table-wrapper">
-          <table className="custom-table members-table">
+          <table className="custom-table">
             <thead>
               <tr>
                 <th>{t('members.photo', 'الصورة')}</th>
@@ -114,8 +123,8 @@ export const Members: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredMembers.map(member => (
-                <tr key={member.id}>
+              {paginatedMembers.map(member => (
+                <tr key={member.id} className="member-row">
                   <td data-label={t('members.photo', 'الصورة')} className="avatar-cell">
                     {member.photo && member.photo !== '' && !member.photo.includes('default') ? (
                       <img src={member.photo} alt={member.first_name} className="member-avatar" />
@@ -136,7 +145,7 @@ export const Members: React.FC = () => {
                   </td>
                   <td data-label={t('members.team', 'الفريق')}>{member.team_name || '-'}</td>
                   <td data-label={t('members.status', 'الحالة')}>{getStatusBadge(member.status)}</td>
-                  <td data-label={t('members.actions', 'إجراءات')}>
+                  <td data-label={t('members.actions', 'إجراءات')} className="actions-cell">
                     <div className="action-buttons-wrapper">
                       {hasAccess(permissions.members.viewFinancialRecord) && (
                         <button className="btn-action view-btn" onClick={() => openExpensesDialog(member)} title="الكشف المالي">
@@ -167,6 +176,14 @@ export const Members: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <Pagination 
+          totalItems={filteredMembers.length} 
+          itemsPerPage={itemsPerPage} 
+          currentPage={currentPage} 
+          onPageChange={setCurrentPage} 
+          onItemsPerPageChange={setItemsPerPage} 
+        />
+      </div>
 
       {/* Add/Edit Member Modal */}
       {isAddMemberOpen && (

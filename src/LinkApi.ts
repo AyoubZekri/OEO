@@ -65,4 +65,5 @@ export class Applink {
   static readonly createPayment: string = `${Applink.server}/payments/create`;
   static readonly updatePayment: string = `${Applink.server}/payments/update`;
   static readonly deletePayment: string = `${Applink.server}/payments/delete`;
+  static readonly returnPayment: string = `${Applink.server}/payments/return`;
 }

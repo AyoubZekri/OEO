@@ -671,3 +671,36 @@ input:disabled + .toggle-slider:before {
 .small-switch input:disabled + .glow-slider:before {
   background-color: #e2e8f0;
 }
+
+.role-form-top { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+@media (max-width: 768px) {
+  .premium-role-dialog {
+    width: 100% !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
+    max-width: 100vw !important;
+    border-radius: 0;
+  }
+  .premium-dialog-overlay {
+    padding: 0;
+  }
+  .premium-modules-grid {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+    gap: 16px;
+  }
+  .role-form-top {
+    grid-template-columns: 1fr;
+  }
+  .premium-dialog-header {
+    padding: 16px 20px !important;
+  }
+  .premium-module-header {
+    padding: 16px !important;
+  }
+  .premium-actions-list {
+    padding: 16px !important;
+    grid-template-columns: 1fr !important;
+  }
+}

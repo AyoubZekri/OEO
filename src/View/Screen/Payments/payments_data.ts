@@ -37,4 +37,9 @@ export class PaymentsData {
     const response = await this.crud.postDataheaders(Applink.deletePayment, data);
     return response._tag === 'Right' ? response.right : null;
   }
+
+  returnPayment = async (data: any) => {
+    const response = await this.crud.postDataheaders(Applink.returnPayment, data);
+    return response._tag === 'Right' ? response.right : null;
+  }
 }

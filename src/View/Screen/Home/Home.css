@@ -199,7 +199,7 @@ body.dark-mode .metric-card.highlight {
   background-color: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 20px;
-  padding: 32px;
+  padding: 15px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02);
 }
 
