@@ -204,7 +204,7 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
                 )}
                 <div className="text-line">تاريخ الدفع: <span style={{fontWeight: 'normal'}}>{paymentDate}</span></div>
                 {isInstallment && (
-                  <div className="text-line">الفترة: <span style={{fontWeight: 'normal'}}>من {payment?.dateFrom || ''} إلى {payment?.dateTo || ''}</span></div>
+                  <div className="text-line">الموسم: <span style={{fontWeight: 'normal'}}>{(payment?.dateFrom && /^\d{4}-\d{2}-\d{2}$/.test(payment.dateFrom)) ? `من ${payment.dateFrom} إلى ${payment.dateTo || ''}` : payment?.dateFrom || ''}</span></div>
                 )}
                 <div className="text-line">المناسبة: <span style={{fontWeight: 'normal'}}>{payment?.occasion || (!isInstallment ? payment?.checkNumber : '') || ''}</span></div>
                 <div className="text-line">ملاحظات: <span style={{fontWeight: 'normal'}}>{payment?.notes || ''}</span></div>

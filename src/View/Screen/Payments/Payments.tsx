@@ -105,7 +105,13 @@ export const Payments: React.FC = () => {
   const [paymentDate, setPaymentDate] = useState('');
   const [amountNature, setAmountNature] = useState('راتب شهري');
   const [installmentNumber, setInstallmentNumber] = useState('');
-  const [dateFrom, setDateFrom] = useState('');
+  const getDefaultSeasonYear = () => {
+    const d = new Date();
+    const startYear = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+    return `${startYear} - ${startYear + 1}`;
+  };
+
+  const [dateFrom, setDateFrom] = useState(getDefaultSeasonYear());
   const [dateTo, setDateTo] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
@@ -168,7 +174,7 @@ export const Payments: React.FC = () => {
       setPostalCheck('');
       setAmountNature('راتب شهري');
       setInstallmentNumber('');
-      setDateFrom('');
+      setDateFrom(getDefaultSeasonYear());
       setDateTo('');
       setMonth('');
       setYear('');
@@ -525,7 +531,7 @@ export const Payments: React.FC = () => {
                   {paymentMethod === 'صك' && (
                     <div className="form-group">
                       <label>{t('payments.form_check_number', 'رقم الصك')}</label>
-                      <input type="text" className="form-control" value={postalCheck} onChange={e => setPostalCheck(e.target.value)} required />
+                      <input type="text" className="form-control" value={postalCheck} onChange={e => setPostalCheck(e.target.value)} />
                     </div>
                   )}
                 </div>
@@ -568,12 +574,8 @@ export const Payments: React.FC = () => {
                 {amountNature === 'رقم دفعة' && (
                   <div className="form-row">
                     <div className="form-group">
-                      <label>{t('payments.form_date_from', 'من تاريخ')}</label>
-                      <input type="date" className="form-control" value={dateFrom} onChange={e => setDateFrom(e.target.value)} required />
-                    </div>
-                    <div className="form-group">
-                      <label>{t('payments.form_date_to', 'إلى تاريخ')}</label>
-                      <input type="date" className="form-control" value={dateTo} onChange={e => setDateTo(e.target.value)} required />
+                      <label>{t('payments.form_season_year', 'الموسم')}</label>
+                      <input type="text" placeholder="مثال: 2026 - 2027" className="form-control" value={dateFrom} onChange={e => setDateFrom(e.target.value)} required />
                     </div>
                     <div className="form-group">
                       <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
