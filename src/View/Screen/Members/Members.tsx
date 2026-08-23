@@ -148,7 +148,7 @@ export const Members: React.FC = () => {
                   <td data-label={t('members.actions', 'إجراءات')} className="actions-cell">
                     <div className="action-buttons-wrapper">
                       {hasAccess(permissions.members.viewFinancialRecord) && (
-                        <button className="btn-action view-btn" onClick={() => openExpensesDialog(member)} title="الكشف المالي">
+                        <button className="btn-action view-btn" onClick={() => openExpensesDialog(member)} title="كشف الحساب">
                           <Eye size={18} />
                         </button>
                       )}
@@ -286,7 +286,7 @@ export const Members: React.FC = () => {
             <div className="dialog-header no-print">
               <div className="dialog-title">
                 <Receipt size={24} />
-                <h2>{t('members.expenses_record', 'الكشف المالي')} - {selectedMember.first_name} {selectedMember.last_name}</h2>
+                <h2>{t('members.expenses_record', 'كشف الحساب')} - {selectedMember.first_name} {selectedMember.last_name}</h2>
               </div>
               <button className="close-btn" onClick={closeDialog}>
                 <X size={24} />
@@ -306,33 +306,59 @@ export const Members: React.FC = () => {
                   <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
                   <span className="card-badge">{selectedMember.type === 'player' ? 'لاعب' : 'عضو فريق'}</span>
                 </div>
-                <div className="card-grid">
-                  <div className="card-item contract">
-                    <div className="card-icon"><FileSignature size={24} /></div>
-                    <div className="card-content">
-                      <span className="label">{t('members.contract', 'العقد:')}</span>
-                      <span className="value">{formatCurrency(controller.getContractValue(selectedMember.id))}</span>
+                
+                {/* Contracts Loop */}
+                {controller.getContractsForMember(selectedMember.id).map((contract, index) => {
+                  const contractVal = Number(contract.contractValue) || Number(contract.Contract_value) || 0;
+                  const contractPaid = controller.getPaidForContract(selectedMember.id, contract);
+                  const contractRemaining = contractVal - contractPaid;
+                  
+                  return (
+                    <div key={contract.id || index} style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-body)', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                      <h4 style={{ marginBottom: '12px', color: 'var(--text-h)', fontSize: '1.1rem' }}>
+                        عقد موسم: {contract.startDate || contract.start_date || 'غير محدد'}
+                      </h4>
+                      <div className="card-grid">
+                        <div className="card-item contract">
+                          <div className="card-icon"><FileSignature size={24} /></div>
+                          <div className="card-content">
+                            <span className="label">{t('members.contract', 'قيمة العقد:')}</span>
+                            <span className="value">{formatCurrency(contractVal)}</span>
+                          </div>
+                        </div>
+                        <div className="card-item paid">
+                          <div className="card-icon"><CheckCircle2 size={24} /></div>
+                          <div className="card-content">
+                            <span className="label text-success">{t('members.paid', 'المدفوع من العقد:')}</span>
+                            <span className="value text-success">{formatCurrency(contractPaid)}</span>
+                          </div>
+                        </div>
+                        <div className="card-item highlight-item">
+                          <div className="card-icon"><Wallet size={24} /></div>
+                          <div className="card-content">
+                            <span className="label">{t('members.remaining', 'المتبقي من العقد:')}</span>
+                            <span className="value">{formatCurrency(contractRemaining)}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="card-item paid">
-                    <div className="card-icon"><CheckCircle2 size={24} /></div>
-                    <div className="card-content">
-                      <span className="label text-success">{t('members.paid', 'المدفوع:')}</span>
-                      <span className="value text-success">{formatCurrency(controller.getTotalExpensesForMember(selectedMember.id))}</span>
-                    </div>
-                  </div>
+                  );
+                })}
+
+                {/* Global Advances and Global Remaining (after advances) */}
+                <div className="card-grid" style={{ marginTop: '20px' }}>
                   <div className="card-item advances">
                     <div className="card-icon"><Landmark size={24} /></div>
                     <div className="card-content">
-                      <span className="label text-danger">{t('members.advances', 'السلف:')}</span>
+                      <span className="label text-danger">{t('members.advances', 'إجمالي السلف:')}</span>
                       <span className="value text-danger">{formatCurrency(controller.getAdvances(selectedMember.id))}</span>
                     </div>
                   </div>
-                  <div className="card-item highlight-item">
-                    <div className="card-icon"><Wallet size={24} /></div>
+                  <div className="card-item" style={{ background: 'rgba(249, 115, 22, 0.1)', borderColor: 'rgba(249, 115, 22, 0.2)' }}>
+                    <div className="card-icon" style={{ color: '#F97316' }}><Wallet size={24} /></div>
                     <div className="card-content">
-                      <span className="label">{t('members.remaining', 'المتبقي:')}</span>
-                      <span className="value">{formatCurrency(controller.getRemainingAmount(selectedMember.id))}</span>
+                      <span className="label" style={{ color: '#F97316' }}>الرصيد النهائي المتبقي:</span>
+                      <span className="value" style={{ color: '#F97316' }}>{formatCurrency(controller.getRemainingAmount(selectedMember.id))}</span>
                     </div>
                   </div>
                 </div>
@@ -379,10 +405,6 @@ export const Members: React.FC = () => {
 
             <div className="dialog-footer no-print">
               <button className="btn-cancel" onClick={closeDialog}>{t('members.close', 'إغلاق')}</button>
-              <button className="btn-primary" onClick={handlePrint}>
-                <Printer size={18} />
-                {t('members.print_pdf', 'طباعة كشف الحساب PDF')}
-              </button>
             </div>
           </div>
         </div>

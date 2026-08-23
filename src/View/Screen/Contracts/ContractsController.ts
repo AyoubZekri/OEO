@@ -26,10 +26,6 @@ export const useContractsController = () => {
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const [isRenewModalOpen, setIsRenewModalOpen] = useState(false);
-  const [contractToRenew, setContractToRenew] = useState<ContractModel | null>(null);
-  const [renewEndDate, setRenewEndDate] = useState('');
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
 
@@ -37,11 +33,17 @@ export const useContractsController = () => {
   const contractsData = new ContractsData(crud);
   const membersData = new MembersData(crud);
 
+  const getDefaultSeasonYear = () => {
+    const d = new Date();
+    const startYear = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+    return `${startYear} - ${startYear + 1}`;
+  };
+
   // Form State
   const [formData, setFormData] = useState({
     individuals_id: '',
     contractNumber: '',
-    startDate: '',
+    startDate: getDefaultSeasonYear(),
     endDate: '',
     contractValue: '' as number | string,
     numberOfPayments: 1 as number | string,
@@ -52,44 +54,6 @@ export const useContractsController = () => {
     status: 'active',
     installments: [] as { installment_number: string; amount: number }[]
   });
-
-  const openRenewModal = (contract: ContractModel) => {
-    setContractToRenew(contract);
-    setRenewEndDate(contract.endDate || '');
-    setIsRenewModalOpen(true);
-  };
-
-  const closeRenewModal = () => {
-    setIsRenewModalOpen(false);
-    setContractToRenew(null);
-    setRenewEndDate('');
-  };
-
-  const handleRenewContract = async () => {
-    if (!contractToRenew || !renewEndDate) return;
-    setIsLoading(true);
-    const payload = {
-      id: contractToRenew.id,
-      individuals_id: contractToRenew.individuals_id,
-      end_date: renewEndDate,
-      start_date: contractToRenew.startDate,
-      Contract_value: contractToRenew.contractValue,
-      Number_payments: contractToRenew.numberOfPayments,
-      Monthly_Salary: contractToRenew.monthlySalary,
-      Winning_Bonus: contractToRenew.winBonus,
-      Goals_Bonus: contractToRenew.goalsBonus,
-      nots: contractToRenew.notes,
-      status: 'active'
-    };
-    const response = await contractsData.editContract(payload);
-    if (response && !response.error) {
-      fetchData();
-      closeRenewModal();
-    } else {
-      alert('حدث خطأ أثناء التجديد');
-    }
-    setIsLoading(false);
-  };
 
   const fetchData = async () => {
     setIsLoading(true);
@@ -130,7 +94,7 @@ export const useContractsController = () => {
     setFormData({
       individuals_id: '',
       contractNumber: '',
-      startDate: '',
+      startDate: getDefaultSeasonYear(),
       endDate: '',
       contractValue: '',
       numberOfPayments: 1,
@@ -251,9 +215,9 @@ export const useContractsController = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.individuals_id) {
       newErrors.individuals_id = 'يرجى اختيار المستفيد';
-    } else if (!editingContractId && contracts.some(c => String(c.individuals_id) === String(formData.individuals_id))) {
-      newErrors.individuals_id = 'هذا العضو يمتلك عقداً بالفعل. يرجى استخدام ميزة التجديد.';
-      showSnackbar('تنبيه', 'هذا العضو يمتلك عقداً بالفعل. يرجى استخدام ميزة التجديد.', '#ef4444');
+    } else if (contracts.some(c => String(c.individuals_id) === String(formData.individuals_id) && c.startDate === formData.startDate && c.id !== editingContractId)) {
+      newErrors.individuals_id = 'هذا العضو يمتلك عقداً في هذا الموسم بالفعل.';
+      showSnackbar('تنبيه', 'هذا العضو يمتلك عقداً في هذا الموسم بالفعل.', '#ef4444');
     }
     if (formData.contractValue === '' || Number(formData.contractValue) < 0) {
       newErrors.contractValue = 'يرجى إدخال قيمة صحيحة للعقد';
@@ -262,12 +226,9 @@ export const useContractsController = () => {
       newErrors.numberOfPayments = 'عدد الدفعات يجب أن يكون 1 على الأقل';
     }
     if (!formData.startDate) {
-      newErrors.startDate = 'يرجى إدخال تاريخ البداية';
-    }
-    if (!formData.endDate) {
-      newErrors.endDate = 'يرجى إدخال تاريخ النهاية';
-    } else if (formData.startDate && new Date(formData.endDate) < new Date(formData.startDate)) {
-      newErrors.endDate = 'تاريخ النهاية يجب أن يكون بعد تاريخ البداية';
+      newErrors.startDate = 'يرجى إدخال الموسم';
+    } else if (!/^\d{4}\s*-\s*\d{4}$/.test(formData.startDate)) {
+      newErrors.startDate = 'صيغة الموسم غير صحيحة، يجب أن تكون بالشكل: 2026 - 2027';
     }
     
     setErrors(newErrors);
@@ -382,13 +343,7 @@ export const useContractsController = () => {
     setSearchQuery,
     filterType,
     setFilterType,
-    isRenewModalOpen,
-    contractToRenew,
-    renewEndDate,
-    setRenewEndDate,
-    openRenewModal,
-    closeRenewModal,
-    handleRenewContract,
+
     handleAddInstallment,
     handleUpdateInstallment,
     handleRemoveInstallment

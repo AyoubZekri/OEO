@@ -118,19 +118,28 @@ export const Payments: React.FC = () => {
   const [occasion, setOccasion] = useState('');
   const [numberOfGoals, setNumberOfGoals] = useState('');
   const [notes, setNotes] = useState('');
+  const [selectedContractId, setSelectedContractId] = useState('');
 
   // Auto-calculate amount based on contract and amountNature
   useEffect(() => {
     if (transactionType === 'دفع' && memberId && amountNature && contracts.length > 0 && !editingPayment) {
-      const contract = contracts.find(c => c.individuals_id === memberId);
+      const memberContracts = contracts.filter(c => String(c.individuals_id) === String(memberId));
+      let contract = memberContracts.find(c => String(c.id) === String(selectedContractId));
+      if (!contract && memberContracts.length > 0) {
+        contract = memberContracts[0];
+        setSelectedContractId(contract.id);
+        setDateFrom(contract.startDate || getDefaultSeasonYear());
+        setDateTo(contract.endDate || '');
+      }
+
       if (contract) {
         if (amountNature === 'راتب شهري') {
-          setAmount(contract.monthlySalary.toString());
+          setAmount(contract.monthlySalary?.toString() || '0');
         } else if (amountNature === 'تسجيل أهداف') {
           const goals = parseInt(numberOfGoals) || 0;
-          setAmount((contract.goalsBonus * goals).toString());
+          setAmount(((contract.goalsBonus || 0) * goals).toString());
         } else if (amountNature === 'منحة فوز') {
-          setAmount(contract.winBonus.toString());
+          setAmount(contract.winBonus?.toString() || '0');
         } else if (amountNature === 'رقم دفعة') {
           if (installmentNumber && contract.installments && Array.isArray(contract.installments)) {
             const installment = contract.installments.find((inst: any) => String(inst.installment_number) === String(installmentNumber));
@@ -143,7 +152,7 @@ export const Payments: React.FC = () => {
         }
       }
     }
-  }, [memberId, amountNature, numberOfGoals, installmentNumber, contracts, editingPayment]);
+  }, [memberId, amountNature, numberOfGoals, installmentNumber, contracts, editingPayment, selectedContractId]);
 
   // Handle open modal for Edit or Add
   const handleOpenDialog = (payment?: PaymentRecord) => {
@@ -181,6 +190,7 @@ export const Payments: React.FC = () => {
       setOccasion('');
       setNumberOfGoals('');
       setNotes('');
+      setSelectedContractId('');
     }
     openDialog(payment);
   };
@@ -205,7 +215,8 @@ export const Payments: React.FC = () => {
       year: amountNature === 'راتب شهري' ? year : undefined,
       occasion: !['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة فوز'].includes(amountNature) ? occasion : undefined,
       numberOfGoals: amountNature === 'تسجيل أهداف' ? (parseInt(numberOfGoals) || 0) : undefined,
-      notes
+      notes,
+      contract_id: amountNature === 'رقم دفعة' ? selectedContractId : undefined
     });
   };
 
@@ -572,16 +583,38 @@ export const Payments: React.FC = () => {
                 </div>
 
                 {amountNature === 'رقم دفعة' && (
-                  <div className="form-row">
-                    <div className="form-group">
-                      <label>{t('payments.form_season_year', 'الموسم')}</label>
-                      <input type="text" placeholder="مثال: 2026 - 2027" className="form-control" value={dateFrom} onChange={e => setDateFrom(e.target.value)} required />
+                  <>
+                    {contracts.filter(c => String(c.individuals_id) === String(memberId)).length > 1 && (
+                      <div className="form-row">
+                        <div className="form-group" style={{ width: '100%' }}>
+                          <label>تحديد العقد (الموسم)</label>
+                          <CustomDropdown
+                            value={selectedContractId}
+                            onChange={(val) => {
+                              setSelectedContractId(val);
+                              const selectedContract = contracts.find(c => String(c.id) === String(val));
+                              if (selectedContract) {
+                                setDateFrom(selectedContract.startDate || getDefaultSeasonYear());
+                                setDateTo(selectedContract.endDate || '');
+                              }
+                            }}
+                            options={contracts
+                              .filter(c => String(c.individuals_id) === String(memberId))
+                              .map(c => ({
+                                value: String(c.id),
+                                label: `عقد موسم ${c.startDate || 'غير محدد'} - ${c.contractValue} د.ج`
+                              }))}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="form-row">
+                      <div className="form-group" style={{ width: '100%' }}>
+                        <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
+                        <input type="text" className="form-control" value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} required />
+                      </div>
                     </div>
-                    <div className="form-group">
-                      <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
-                      <input type="text" className="form-control" value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} required />
-                    </div>
-                  </div>
+                  </>
                 )}
 
                 {amountNature === 'راتب شهري' && (

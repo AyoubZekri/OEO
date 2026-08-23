@@ -46,6 +46,7 @@ export interface PaymentRecord {
   member?: any;
   postal_check?: string;
   receipt_file?: string | File | null;
+  contract_id?: string;
 }
 
 export const usePaymentsController = () => {

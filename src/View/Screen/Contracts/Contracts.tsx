@@ -40,13 +40,6 @@ export const Contracts: React.FC = () => {
     setSearchQuery,
     filterType,
     setFilterType,
-    isRenewModalOpen,
-    contractToRenew,
-    renewEndDate,
-    setRenewEndDate,
-    openRenewModal,
-    closeRenewModal,
-    handleRenewContract
   } = controller;
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -101,8 +94,7 @@ export const Contracts: React.FC = () => {
               <th>{t('contracts.contract_number', 'رقم العقد')}</th>
               <th>{t('contracts.contract_type', 'نوع العقد')}</th>
               <th>{t('contracts.contract_value', 'قيمة العقد')}</th>
-              <th>{t('contracts.start_date', 'تاريخ البداية')}</th>
-              <th>{t('contracts.end_date', 'تاريخ النهاية')}</th>
+              <th>{t('contracts.start_date', 'الموسم')}</th>
               <th>{t('contracts.actions', 'إجراءات')}</th>
             </tr>
           </thead>
@@ -117,11 +109,10 @@ export const Contracts: React.FC = () => {
                 <td className="contract-number-cell" data-label={t('contracts.contract_number', 'رقم العقد')}>{String(contract.id).padStart(4, '0')}</td>
                 <td data-label={t('contracts.contract_type', 'نوع العقد')}><span className="badge badge-purple">{contract.contractType}</span></td>
                 <td className="amount-cell" data-label={t('contracts.contract_value', 'قيمة العقد')}>{formatCurrency(contract.contractValue)}</td>
-                <td style={{ color: 'var(--text-muted)' }} data-label={t('contracts.start_date', 'تاريخ البداية')}>
-                  {contract.startDate ? new Intl.DateTimeFormat('ar-DZ').format(new Date(contract.startDate)) : '-'}
-                </td>
-                <td style={{ color: 'var(--text-muted)' }} data-label={t('contracts.end_date', 'تاريخ النهاية')}>
-                  {contract.endDate ? new Intl.DateTimeFormat('ar-DZ').format(new Date(contract.endDate)) : '-'}
+                <td style={{ color: 'var(--text-muted)' }} data-label={t('contracts.start_date', 'الموسم')}>
+                  {(contract.startDate && /^\d{4}-\d{2}-\d{2}$/.test(contract.startDate)) 
+                      ? new Intl.DateTimeFormat('ar-DZ').format(new Date(contract.startDate)) 
+                      : contract.startDate || '-'}
                 </td>
                   <td data-label={t('contracts.actions', 'إجراءات')} className="actions-cell">
                     <div className="action-buttons-wrapper">
@@ -130,11 +121,7 @@ export const Contracts: React.FC = () => {
                           <CalendarClock size={18} color="#333333" />
                         </button>
                       )}
-                      {hasAccess(permissions.contracts.renew) && (
-                        <button className="btn-action renew-btn" onClick={() => openRenewModal(contract)} title="تجديد العقد">
-                          <RefreshCw size={18} />
-                        </button>
-                      )}
+
                       {hasAccess(permissions.contracts.edit) && (
                         <button className="btn-action edit-btn" onClick={() => openEditModal(contract)} title="تعديل">
                           <Edit2 size={18} />
@@ -212,15 +199,10 @@ export const Contracts: React.FC = () => {
                       onChange={(val) => setFormDataValue('status', val)}
                     />
                   </div>
-                  <div className="form-group">
-                    <label>{t('contracts.start_date', 'تاريخ البداية')} *</label>
-                    <input type="date" name="startDate" value={formData.startDate} onChange={handleFormChange} className="form-control" />
+                  <div className="form-group" style={{ flex: 2 }}>
+                    <label>{t('contracts.start_date', 'الموسم')} *</label>
+                    <input type="text" name="startDate" placeholder="مثال: 2026 - 2027" value={formData.startDate} onChange={handleFormChange} className="form-control" />
                     {errors.startDate && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.startDate}</span>}
-                  </div>
-                  <div className="form-group">
-                    <label>{t('contracts.end_date', 'تاريخ النهاية')} *</label>
-                    <input type="date" name="endDate" value={formData.endDate} onChange={handleFormChange} className="form-control" />
-                    {errors.endDate && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.endDate}</span>}
                   </div>
                 </div>
 
@@ -331,68 +313,27 @@ export const Contracts: React.FC = () => {
               </div>
 
               <div className="entitlements-list">
-                {selectedContract.entitlements && selectedContract.entitlements.length > 0 ? (
-                  selectedContract.entitlements.map((ent, idx) => (
-                    <div className={`entitlement-card ${ent.status}`} key={ent.id}>
+                {selectedContract.installments && selectedContract.installments.length > 0 ? (
+                  selectedContract.installments.map((inst: any, idx: number) => (
+                    <div className="entitlement-card unpaid" key={idx}>
                       <div className="ent-header">
                         <span className="ent-index">#{idx + 1}</span>
-                        <span className={`ent-status badge ${ent.status === 'paid' ? 'badge-green' : 'badge-red'}`}>
-                          {ent.status === 'paid' ? t('contracts.paid', 'مدفوع') : t('contracts.unpaid', 'غير مدفوع')}
-                        </span>
                       </div>
                       <div className="ent-body">
-                        <div className="ent-desc">{ent.description}</div>
-                        <div className="ent-amount">{formatCurrency(ent.amount)}</div>
-                      </div>
-                      <div className="ent-footer">
-                        <CalendarClock size={14} color="#333333" />
-                        {new Intl.DateTimeFormat('ar-DZ').format(new Date(ent.dueDate))}
+                        <div className="ent-desc">الدفعة {inst.installment_number}</div>
+                        <div className="ent-amount">{formatCurrency(inst.amount)}</div>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <div className="no-data">{t('contracts.no_schedule', 'لا يوجد جدول استحقاقات')}</div>
+                  <div className="no-data">{t('contracts.no_schedule', 'لا توجد دفعات مخصصة')}</div>
                 )}
               </div>
             </div>
           </div>
         </div>
       )}
-      {/* Renew Contract Modal */}
-      {isRenewModalOpen && contractToRenew && (
-        <div className="task-dialog-overlay" onClick={closeRenewModal} style={{ zIndex: 1100 }}>
-          <div className="task-dialog" onClick={e => e.stopPropagation()}>
-            <div className="task-dialog-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <RefreshCw size={24} color="#3b82f6" />
-                <h2>{t('contracts.renew_contract', 'تجديد العقد')} - {contractToRenew.beneficiary}</h2>
-              </div>
-              <button className="close-btn" onClick={closeRenewModal}>
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="task-form">
-              <div className="form-group">
-                <label>تاريخ التجديد إلى غاية *</label>
-                <input 
-                  type="date" 
-                  className="form-control" 
-                  value={renewEndDate} 
-                  onChange={(e) => setRenewEndDate(e.target.value)} 
-                />
-              </div>
-              
-              <div className="form-actions">
-                <button className="btn-cancel" onClick={closeRenewModal}>{t('contracts.cancel', 'إلغاء')}</button>
-                <button className="btn-primary" onClick={handleRenewContract} disabled={isLoading || !renewEndDate} style={{ background: '#3b82f6', border: 'none' }}>
-                  {isLoading ? 'جاري الحفظ...' : 'حفظ التجديد'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
 
 
 

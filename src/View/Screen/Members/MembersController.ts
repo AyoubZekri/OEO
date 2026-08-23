@@ -197,17 +197,19 @@ export const useMembersController = () => {
     return `${swapped} د.ج`;
   };
 
-  const getContractForMember = (memberId: string) => {
-    return contracts.find(c => 
+  const getContractsForMember = (memberId: string) => {
+    return contracts.filter(c => 
       String(c.individuals_id) === String(memberId) || 
       String(c.memberId) === String(memberId) || 
       String(c.member_id) === String(memberId)
-    ) || null;
+    );
   };
 
   const getContractValue = (memberId: string) => {
-    const contract = getContractForMember(memberId);
-    return contract ? (Number(contract.contractValue) || Number(contract.Contract_value) || Number(contract.contract_value) || 0) : 0;
+    const memberContracts = getContractsForMember(memberId);
+    return memberContracts.reduce((sum, contract) => {
+      return sum + (Number(contract.contractValue) || Number(contract.Contract_value) || Number(contract.contract_value) || 0);
+    }, 0);
   };
 
   const getMemberPayments = (memberId: string) => {
@@ -238,6 +240,21 @@ export const useMembersController = () => {
     const paid = memberPayments.filter(p => 
       p.amountNature === 'رقم دفعة' || p.amount_nature === 'رقم دفعة'
     );
+    return paid.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  };
+
+  const getPaidForContract = (memberId: string, contract: any) => {
+    const memberPayments = getMemberPayments(memberId);
+    const paid = memberPayments.filter(p => {
+      if (p.amountNature !== 'رقم دفعة' && p.amount_nature !== 'رقم دفعة') return false;
+      if (p.contract_id) {
+        return String(p.contract_id) === String(contract.id);
+      }
+      // Fallback for older records
+      const cStart = contract.startDate || contract.start_date;
+      const cStartPayment = p.dateFrom || p.start_date;
+      return cStart === cStartPayment;
+    });
     return paid.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
   };
 
@@ -284,9 +301,11 @@ export const useMembersController = () => {
     openExpensesDialog,
     closeDialog,
     formatCurrency,
+    getContractsForMember,
+    getContractValue,
+    getPaidForContract,
     getTotalExpensesForMember,
     getRemainingAmount,
-    getContractValue,
     getAdvances,
     getMemberPayments,
   };
