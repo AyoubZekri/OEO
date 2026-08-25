@@ -344,3 +344,81 @@
 
 /* Custom Table styling moved to index.css */
 
+@media (max-width: 768px) {
+  .reports-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .report-content {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  /* Remove background from filters container */
+  .unified-filters-section {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  /* Hide desktop sub-tabs (buttons), show mobile dropdown instead */
+  .desktop-only {
+    display: none !important;
+  }
+
+  .mobile-only {
+    display: flex !important;
+    flex-direction: column;
+  }
+
+  /* Style the mobile dropdown for نوع الكشف */
+  .sub-tabs-mobile {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .sub-tabs-mobile label {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .report-table-wrapper {
+    overflow-x: hidden;
+  }
+
+  .report-metrics {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .financial-summary-section {
+    padding: 14px;
+    border-radius: 12px;
+  }
+
+  .financial-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filter-group {
+    min-width: 100%;
+  }
+}

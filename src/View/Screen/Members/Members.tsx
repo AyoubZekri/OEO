@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Receipt, Search, Plus, Printer, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2 } from 'lucide-react';
+import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2 } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
@@ -43,9 +43,7 @@ export const Members: React.FC = () => {
   const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Print function
-  const handlePrint = () => {
-    window.print();
-  };
+
 
   const getStatusBadge = (status: string) => {
     if (status === 'active') return <span className="badge badge-green">{t('members.active', 'نشط')}</span>;
@@ -119,6 +117,7 @@ export const Members: React.FC = () => {
                 <th>{t('members.jersey', 'رقم القميص')}</th>
                 <th>{t('members.team', 'الفريق')}</th>
                 <th>{t('members.status', 'الحالة')}</th>
+                <th>{t('members.internal_system', 'النظام الداخلي')}</th>
                 <th>{t('members.actions', 'إجراءات')}</th>
               </tr>
             </thead>
@@ -145,6 +144,34 @@ export const Members: React.FC = () => {
                   </td>
                   <td data-label={t('members.team', 'الفريق')}>{member.team_name || '-'}</td>
                   <td data-label={t('members.status', 'الحالة')}>{getStatusBadge(member.status)}</td>
+                  <td data-label={t('members.internal_system', 'النظام الداخلي')}>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      {member.is_internal_system_printed ? (
+                        <div 
+                          title="تمت طباعة النظام الداخلي"
+                          style={{ 
+                            width: '32px', height: '32px', borderRadius: '50%', 
+                            backgroundColor: '#ecfdf5', color: '#10b981', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 0 12px rgba(16, 185, 129, 0.15)',
+                            border: '1px solid #a7f3d0'
+                          }}>
+                          <CheckCircle2 size={16} />
+                        </div>
+                      ) : (
+                        <div 
+                          title="لم تتم الطباعة"
+                          style={{ 
+                            width: '32px', height: '32px', borderRadius: '50%', 
+                            backgroundColor: '#f8fafc', color: '#cbd5e1', 
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            border: '1px dashed #e2e8f0'
+                          }}>
+                          <X size={16} />
+                        </div>
+                      )}
+                    </div>
+                  </td>
                   <td data-label={t('members.actions', 'إجراءات')} className="actions-cell">
                     <div className="action-buttons-wrapper">
                       {hasAccess(permissions.members.viewFinancialRecord) && (
@@ -168,7 +195,7 @@ export const Members: React.FC = () => {
               ))}
               {filteredMembers.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b', fontSize: '1.1rem' }}>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '32px', color: '#64748b', fontSize: '1.1rem' }}>
                     لا يوجد أعضاء مطابقين للبحث
                   </td>
                 </tr>

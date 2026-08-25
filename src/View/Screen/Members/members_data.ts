@@ -27,4 +27,9 @@ export class MembersData {
     const response = await this.crud.postDataheaders(Applink.deleteIndividual, { id });
     return response._tag === 'Left' ? response.left : response.right;
   }
+
+  async printMember(id: string) {
+    const response = await this.crud.postDataheaders(Applink.printIndividual, { id });
+    return response._tag === 'Left' ? response.left : response.right;
+  }
 }

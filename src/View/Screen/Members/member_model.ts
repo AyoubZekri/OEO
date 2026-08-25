@@ -9,6 +9,7 @@ export class MemberModel {
   birth_date: string;
   Shirt_number: number | null;
   status: string;
+  is_internal_system_printed: boolean;
   team_id: string;
   
   // Custom properties for display
@@ -26,6 +27,7 @@ export class MemberModel {
     this.birth_date = data.birth_date || '';
     this.Shirt_number = data.Shirt_number || null;
     this.status = data.status || 'active';
+    this.is_internal_system_printed = data.is_internal_system_printed === true || data.is_internal_system_printed === 1;
     this.team_id = data.team_id?.toString() || '';
     
     // Auto-generate avatar or use default

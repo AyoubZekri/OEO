@@ -225,6 +225,14 @@ export const usePaymentsController = () => {
     setIsLoading(false);
   };
 
+  const handlePrintMemberSystem = async (memberId: string) => {
+    try {
+      await membersData.printMember(memberId);
+    } catch (e) {
+      console.error('Error setting print flag', e);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     const numStr = (amount || 0).toLocaleString('en-US', { 
       minimumFractionDigits: 2, 
@@ -266,6 +274,7 @@ export const usePaymentsController = () => {
     deletePayment,
     returnPayment,
     savePayment,
+    handlePrintMemberSystem,
     formatCurrency,
     getMemberDetails,
     searchQuery,

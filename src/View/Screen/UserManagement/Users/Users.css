@@ -113,7 +113,7 @@
 
 @media (max-width: 768px) {
   .users-container {
-    padding: 16px;
+    padding: 0;
   }
   .users-header {
     flex-direction: column;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContractsController } from './ContractsController';
-import { Search, Plus, FileSignature, Edit2, CalendarClock, X, Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Search, Plus, FileSignature, Edit2, CalendarClock, X, Trash2, AlertTriangle } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaymentsController, type PaymentRecord } from './PaymentsController';
-import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
-import { Printer, Paperclip, RefreshCw } from 'lucide-react';
 import { PrintableReceipt } from './PrintableReceipt/PrintableReceipt';
+import { InternalRegulationsDocument } from './PrintableReceipt/InternalRegulationsDocument';
 import { UploadReceiptDialog } from './UploadReceiptDialog';
 import { ViewReceiptDialog } from './ViewReceiptDialog';
 import { Applink } from '../../../LinkApi';
@@ -53,7 +53,23 @@ export const Payments: React.FC = () => {
 
   const paginatedPayments = controller.payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const [printOptionsDialog, setPrintOptionsDialog] = useState<{
+    isOpen: boolean;
+    payment: any;
+    member: any;
+    contract: any;
+  } | null>(null);
+
   const handleNativePrint = (payment: any, member: any, contract: any) => {
+    // Open the print options dialog instead of printing immediately
+    setPrintOptionsDialog({ isOpen: true, payment, member, contract });
+  };
+
+  const confirmPrint = (includeRegulations: boolean) => {
+    if (!printOptionsDialog) return;
+    
+    const { payment, member, contract } = printOptionsDialog;
+    
     // Calculate totals for this member based on all their payments of type 'دفع' AND nature 'رقم دفعة'
     const memberPayments = controller.payments.filter((p: any) => {
       const isMemberMatch = String(p.memberId) === String(payment.memberId) || String(p.member_id) === String(payment.memberId) || String(p.individuals_id) === String(payment.memberId);
@@ -71,8 +87,24 @@ export const Payments: React.FC = () => {
     const deductions = 0; // Not specified yet, defaulting to 0
     const remaining = contractValue - totalPaid;
 
-    setPrintData({ payment, member, contract, totalPaid, deductions, remaining });
+    setPrintData({ payment, member, contract, totalPaid, deductions, remaining, includeRegulations });
+    setPrintOptionsDialog(null);
+    
     setTimeout(() => {
+      // Setup listener for when the print dialog closes
+      if (includeRegulations && payment.memberId) {
+        const handleAfterPrint = () => {
+          // Add a small timeout so it doesn't block the UI immediately after print dialog closes
+          setTimeout(() => {
+            if (window.confirm("هل اكتملت عملية طباعة النظام الداخلي بنجاح؟ (سيتم تعليمه كمطبوع)")) {
+              controller.handlePrintMemberSystem(payment.memberId);
+            }
+          }, 500);
+          window.removeEventListener('afterprint', handleAfterPrint);
+        };
+        window.addEventListener('afterprint', handleAfterPrint);
+      }
+      
       window.print();
     }, 200); // Wait for the component to render before printing
   };
@@ -119,6 +151,7 @@ export const Payments: React.FC = () => {
   const [numberOfGoals, setNumberOfGoals] = useState('');
   const [notes, setNotes] = useState('');
   const [selectedContractId, setSelectedContractId] = useState('');
+  const [formSubmitted, setFormSubmitted] = useState(false);
 
   // Auto-calculate amount based on contract and amountNature
   useEffect(() => {
@@ -192,12 +225,15 @@ export const Payments: React.FC = () => {
       setNotes('');
       setSelectedContractId('');
     }
+    setFormSubmitted(false);
     openDialog(payment);
   };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
+    setFormSubmitted(true);
     if (transactionType === 'دفع' && !memberId) return;
+    if (!fundId) return;
 
     savePayment({
       transactionType,
@@ -470,7 +506,10 @@ export const Payments: React.FC = () => {
 
                 {/* Fund Selection */}
                 <div className="form-group mb-3">
-                  <label>{t('payments.form_select_fund', 'تحديد صندوق الدفع')}</label>
+                  <label>
+                    {t('payments.form_select_fund', 'تحديد صندوق الدفع')}
+                    <span style={{ color: '#ef4444', marginRight: '4px' }}>*</span>
+                  </label>
                   <CustomDropdown
                     value={fundId}
                     onChange={setFundId}
@@ -482,6 +521,7 @@ export const Payments: React.FC = () => {
                       }))
                     ]}
                   />
+                  {formSubmitted && !fundId && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{t('payments.fund_required', 'اختيار الصندوق إجباري')}</span>}
                 </div>
 
                 {/* Auto Populated Member Details */}
@@ -704,6 +744,42 @@ export const Payments: React.FC = () => {
             deductions={printData.deductions}
             remaining={printData.remaining}
           />
+          {printData.includeRegulations && <InternalRegulationsDocument />}
+        </div>
+      )}
+
+      {printOptionsDialog && printOptionsDialog.isOpen && (
+        <div className="dialog-overlay" style={{ zIndex: 50 }}>
+          <div className="dialog-content" style={{ maxWidth: '400px', textAlign: 'center', padding: '20px' }}>
+            <div className="dialog-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h3 style={{ margin: 0, color: '#ea580c', fontWeight: 'bold' }}>خيارات الطباعة</h3>
+              <button className="close-btn" onClick={() => setPrintOptionsDialog(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
+            <div className="dialog-body">
+              <Printer size={48} style={{ margin: '0 auto 15px auto', color: '#ea580c' }} />
+              <p style={{ marginBottom: '25px', fontWeight: 'bold', fontSize: '1.1rem' }}>ماذا تريد أن تطبع مع هذا الوصل؟</p>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <button 
+                  className="btn-primary"
+                  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
+                  onClick={() => confirmPrint(true)}
+                >
+                  <BookOpen size={20} style={{ marginLeft: '8px' }} />
+                  طباعة الوصل + النظام الداخلي
+                </button>
+                
+                <button 
+                  className="btn-cancel"
+                  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
+                  onClick={() => confirmPrint(false)}
+                >
+                  <Printer size={20} style={{ marginLeft: '8px' }} />
+                  طباعة الوصل فقط
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 

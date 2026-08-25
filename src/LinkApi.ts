@@ -37,6 +37,7 @@ export class Applink {
   static readonly createIndividual: string = `${Applink.server}/individuals/create`;
   static readonly updateIndividual: string = `${Applink.server}/individuals/update`;
   static readonly deleteIndividual: string = `${Applink.server}/individuals/delete`;
+  static readonly printIndividual: string = `${Applink.server}/individuals/print`;
 
 //  =============================Contracts============================== //
 

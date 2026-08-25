@@ -178,6 +178,17 @@ export const useMembersController = () => {
     }
   };
 
+  const handlePrintMember = async (id: string) => {
+    setIsLoading(true);
+    const response = await membersData.printMember(id);
+    if (response && !response.error) {
+      fetchMembers();
+    } else {
+      alert('حدث خطأ أثناء طباعة النظام الداخلي');
+    }
+    setIsLoading(false);
+  };
+
   const openExpensesDialog = (member: MemberModel) => {
     setSelectedMember(member);
     setIsDialogOpen(true);
@@ -298,6 +309,7 @@ export const useMembersController = () => {
     openEditMemberDialog,
     closeAddMemberDialog,
     handleDeleteMember,
+    handlePrintMember,
     openExpensesDialog,
     closeDialog,
     formatCurrency,

@@ -61,15 +61,18 @@ body.dark-mode #social .button-icon {
   min-height: 100vh;
   display: flex;
   box-sizing: border-box;
+  overflow-x: hidden;
 }
 
-* {
-  font-family: var(--sans);
+*, *::before, *::after {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   font-family: var(--sans);
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 h1,
