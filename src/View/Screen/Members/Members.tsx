@@ -65,6 +65,9 @@ const processImage = (file: File, maxSizeKB: number): Promise<File> => {
         };
         checkSize();
       };
+      img.onerror = () => {
+        resolve(file);
+      };
     };
   });
 };
@@ -296,7 +299,7 @@ export const Members: React.FC = () => {
                     <input 
                       id="photo-upload-input"
                       type="file" 
-                      accept="image/*" 
+                      accept="image/*,.heic,.heif" 
                       style={{ display: 'none' }}
                       onChange={async (e) => {
                         if (e.target.files && e.target.files.length > 0) {
