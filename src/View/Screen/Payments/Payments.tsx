@@ -65,9 +65,10 @@ export const Payments: React.FC = () => {
     setPrintOptionsDialog({ isOpen: true, payment, member, contract });
   };
 
-  const confirmPrint = (includeRegulations: boolean) => {
+  const confirmPrint = (options: { includeRegulations: boolean, printReceipt: boolean }) => {
     if (!printOptionsDialog) return;
     
+    const { includeRegulations, printReceipt } = options;
     const { payment, member, contract } = printOptionsDialog;
     
     // Calculate totals for this member based on all their payments of type 'دفع' AND nature 'رقم دفعة'
@@ -87,18 +88,18 @@ export const Payments: React.FC = () => {
     const deductions = 0; // Not specified yet, defaulting to 0
     const remaining = contractValue - totalPaid;
 
-    setPrintData({ payment, member, contract, totalPaid, deductions, remaining, includeRegulations });
+    setPrintData({ payment, member, contract, totalPaid, deductions, remaining, includeRegulations, printReceipt });
     setPrintOptionsDialog(null);
+    
+    const targetMemberId = payment.memberId || payment.member_id || payment.individuals_id;
     
     setTimeout(() => {
       // Setup listener for when the print dialog closes
-      if (includeRegulations && payment.memberId) {
+      if (includeRegulations && targetMemberId) {
         const handleAfterPrint = () => {
           // Add a small timeout so it doesn't block the UI immediately after print dialog closes
           setTimeout(() => {
-            if (window.confirm("هل اكتملت عملية طباعة النظام الداخلي بنجاح؟ (سيتم تعليمه كمطبوع)")) {
-              controller.handlePrintMemberSystem(payment.memberId);
-            }
+            controller.handlePrintMemberSystem(targetMemberId);
           }, 500);
           window.removeEventListener('afterprint', handleAfterPrint);
         };
@@ -736,14 +737,16 @@ export const Payments: React.FC = () => {
       
       {printData && (
         <div className="global-print-container">
-          <PrintableReceipt 
-            payment={printData.payment} 
-            member={printData.member} 
-            contract={printData.contract} 
-            totalPaid={printData.totalPaid}
-            deductions={printData.deductions}
-            remaining={printData.remaining}
-          />
+          {printData.printReceipt && (
+            <PrintableReceipt 
+              payment={printData.payment} 
+              member={printData.member} 
+              contract={printData.contract} 
+              totalPaid={printData.totalPaid}
+              deductions={printData.deductions}
+              remaining={printData.remaining}
+            />
+          )}
           {printData.includeRegulations && <InternalRegulationsDocument />}
         </div>
       )}
@@ -763,7 +766,7 @@ export const Payments: React.FC = () => {
                 <button 
                   className="btn-primary"
                   style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
-                  onClick={() => confirmPrint(true)}
+                  onClick={() => confirmPrint({ includeRegulations: true, printReceipt: true })}
                 >
                   <BookOpen size={20} style={{ marginLeft: '8px' }} />
                   طباعة الوصل + النظام الداخلي
@@ -772,10 +775,19 @@ export const Payments: React.FC = () => {
                 <button 
                   className="btn-cancel"
                   style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
-                  onClick={() => confirmPrint(false)}
+                  onClick={() => confirmPrint({ includeRegulations: false, printReceipt: true })}
                 >
                   <Printer size={20} style={{ marginLeft: '8px' }} />
                   طباعة الوصل فقط
+                </button>
+
+                <button 
+                  className="btn-cancel"
+                  style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
+                  onClick={() => confirmPrint({ includeRegulations: true, printReceipt: false })}
+                >
+                  <BookOpen size={20} style={{ marginLeft: '8px' }} />
+                  طباعة النظام الداخلي فقط
                 </button>
               </div>
             </div>

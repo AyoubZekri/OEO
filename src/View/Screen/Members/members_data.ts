@@ -18,8 +18,18 @@ export class MembersData {
     return response._tag === 'Left' ? response.left : response.right;
   }
 
+  async addMemberWithImage(data: any, image: File) {
+    const response = await this.crud.addRequestWithImageOne(Applink.createIndividual, data, image, 'photo');
+    return response._tag === 'Left' ? response.left : response.right;
+  }
+
   async editMember(data: any) {
     const response = await this.crud.postDataheaders(Applink.updateIndividual, data);
+    return response._tag === 'Left' ? response.left : response.right;
+  }
+
+  async editMemberWithImage(data: any, image: File) {
+    const response = await this.crud.addRequestWithImageOne(Applink.updateIndividual, data, image, 'photo');
     return response._tag === 'Left' ? response.left : response.right;
   }
 

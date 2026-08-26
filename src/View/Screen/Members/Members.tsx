@@ -1,12 +1,73 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2 } from 'lucide-react';
+import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import './Members.css';
+
+const processImage = (file: File, maxSizeKB: number): Promise<File> => {
+  return new Promise((resolve) => {
+    if (file.size <= maxSizeKB * 1024) {
+      resolve(file);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 1200;
+        const MAX_HEIGHT = 1200;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.9;
+        const checkSize = () => {
+          canvas.toBlob((blob) => {
+            if (blob) {
+              if (blob.size <= maxSizeKB * 1024 || quality <= 0.2) {
+                const newFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(newFile);
+              } else {
+                quality -= 0.1;
+                checkSize();
+              }
+            } else {
+              resolve(file);
+            }
+          }, 'image/jpeg', quality);
+        };
+        checkSize();
+      };
+    };
+  });
+};
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
@@ -26,6 +87,8 @@ export const Members: React.FC = () => {
     memberToEdit,
     formData,
     setFormData,
+    photoFile,
+    setPhotoFile,
     handleFormDataChange,
     handleSaveMember,
     openAddMemberDialog,
@@ -228,6 +291,40 @@ export const Members: React.FC = () => {
             
             <div className="dialog-body">
               <form id="memberForm" onSubmit={handleSaveMember} className="add-member-form">
+                <div className="photo-upload-container">
+                  <div className="photo-upload-card" onClick={() => document.getElementById('photo-upload-input')?.click()} title="اختيار صورة">
+                    <input 
+                      id="photo-upload-input"
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          const file = e.target.files[0];
+                          const processedFile = await processImage(file, 5000); // 5000 KB to be safely under 5120
+                          setPhotoFile(processedFile);
+                        } else {
+                          setPhotoFile(null);
+                        }
+                      }} 
+                    />
+                    {photoFile ? (
+                      <img src={URL.createObjectURL(photoFile)} alt="Preview" className="photo-preview-image" />
+                    ) : memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default') ? (
+                      <img src={memberToEdit.photo} alt="Current" className="photo-preview-image" />
+                    ) : (
+                      <div className="photo-placeholder-ui">
+                        <Camera size={32} className="photo-placeholder-icon" />
+                        <span>الصورة</span>
+                      </div>
+                    )}
+                  </div>
+                  {(photoFile || (memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default'))) && (
+                    <button type="button" className="btn-remove-photo" onClick={(e) => { e.stopPropagation(); setPhotoFile(null); if (memberToEdit) memberToEdit.photo = ''; }}>
+                      <X size={14} /> إزالة
+                    </button>
+                  )}
+                </div>
                 <div className="form-row">
                   <div className="form-group">
                     <label>{t('members.form_firstname', 'الاسم')} *</label>

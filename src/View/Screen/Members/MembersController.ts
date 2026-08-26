@@ -36,6 +36,7 @@ export const useMembersController = () => {
     status: 'active',
     team_id: ''
   });
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
 
   const crud = new Crud();
   const membersData = new MembersData(crud);
@@ -92,6 +93,7 @@ export const useMembersController = () => {
 
   const openAddMemberDialog = () => {
     setMemberToEdit(null);
+    setPhotoFile(null);
     setFormData({
       first_name: '',
       last_name: '',
@@ -109,6 +111,7 @@ export const useMembersController = () => {
 
   const openEditMemberDialog = (member: MemberModel) => {
     setMemberToEdit(member);
+    setPhotoFile(null);
     setFormData({
       first_name: member.first_name,
       last_name: member.last_name,
@@ -146,7 +149,12 @@ export const useMembersController = () => {
 
     if (memberToEdit) {
       payload.id = memberToEdit.id;
-      const response = await membersData.editMember(payload);
+      let response;
+      if (photoFile) {
+        response = await membersData.editMemberWithImage(payload, photoFile);
+      } else {
+        response = await membersData.editMember(payload);
+      }
       if (response && !response.error) {
         fetchMembers();
         closeAddMemberDialog();
@@ -154,7 +162,12 @@ export const useMembersController = () => {
         alert('حدث خطأ أثناء التعديل');
       }
     } else {
-      const response = await membersData.addMember(payload);
+      let response;
+      if (photoFile) {
+        response = await membersData.addMemberWithImage(payload, photoFile);
+      } else {
+        response = await membersData.addMember(payload);
+      }
       if (response && !response.error) {
         fetchMembers();
         closeAddMemberDialog();
@@ -303,6 +316,8 @@ export const useMembersController = () => {
     memberToEdit,
     formData,
     setFormData,
+    photoFile,
+    setPhotoFile,
     handleFormDataChange,
     handleSaveMember,
     openAddMemberDialog,

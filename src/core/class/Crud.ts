@@ -172,7 +172,8 @@ export class Crud {
                 }
                 
                 Object.keys(data).forEach(key => {
-                    formData.append(key, String(data[key]));
+                    const value = data[key];
+                    formData.append(key, value === null || value === undefined ? '' : String(value));
                 });
 
                 const response = await fetch(url, {

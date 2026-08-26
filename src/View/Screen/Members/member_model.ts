@@ -1,3 +1,5 @@
+import { Applink } from '../../../LinkApi';
+
 export class MemberModel {
   id: string;
   type: string;
@@ -31,7 +33,11 @@ export class MemberModel {
     this.team_id = data.team_id?.toString() || '';
     
     // Auto-generate avatar or use default
-    this.photo = data.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.first_name + '+' + this.last_name)}&background=3b82f6&color=fff`;
+    if (data.photo) {
+      this.photo = data.photo.startsWith('http') ? data.photo : `${Applink.image}/${data.photo}`;
+    } else {
+      this.photo = `https://ui-avatars.com/api/?name=${encodeURIComponent(this.first_name + '+' + this.last_name)}&background=3b82f6&color=fff`;
+    }
     
     // Get team name from relationship if it exists
     this.team_name = data.team?.name;
