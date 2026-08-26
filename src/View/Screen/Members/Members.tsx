@@ -1,22 +1,39 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera } from 'lucide-react';
+import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import './Members.css';
+import heic2any from 'heic2any';
 
-const processImage = (file: File, maxSizeKB: number): Promise<File> => {
+const processImage = async (file: File, maxSizeKB: number): Promise<File> => {
+  let fileToProcess = file;
+
+  if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+    try {
+      const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
+      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+      fileToProcess = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
+        type: 'image/jpeg',
+        lastModified: Date.now(),
+      });
+    } catch (error) {
+      console.error('Error converting HEIC image:', error);
+      return file;
+    }
+  }
+
   return new Promise((resolve) => {
-    if (file.size <= maxSizeKB * 1024) {
-      resolve(file);
+    if (fileToProcess.size <= maxSizeKB * 1024) {
+      resolve(fileToProcess);
       return;
     }
 
     const reader = new FileReader();
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(fileToProcess);
     reader.onload = (event) => {
       const img = new Image();
       img.src = event.target?.result as string;
@@ -49,7 +66,7 @@ const processImage = (file: File, maxSizeKB: number): Promise<File> => {
           canvas.toBlob((blob) => {
             if (blob) {
               if (blob.size <= maxSizeKB * 1024 || quality <= 0.2) {
-                const newFile = new File([blob], file.name, {
+                const newFile = new File([blob], fileToProcess.name, {
                   type: 'image/jpeg',
                   lastModified: Date.now(),
                 });
@@ -59,14 +76,14 @@ const processImage = (file: File, maxSizeKB: number): Promise<File> => {
                 checkSize();
               }
             } else {
-              resolve(file);
+              resolve(fileToProcess);
             }
           }, 'image/jpeg', quality);
         };
         checkSize();
       };
       img.onerror = () => {
-        resolve(file);
+        resolve(fileToProcess);
       };
     };
   });
@@ -105,6 +122,7 @@ export const Members: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
   const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -299,19 +317,34 @@ export const Members: React.FC = () => {
                     <input 
                       id="photo-upload-input"
                       type="file" 
-                      accept="image/*,.heic,.heif" 
+                      accept="image/*,image/heic,image/heif,.heic,.heif,.HEIC,.HEIF" 
                       style={{ display: 'none' }}
                       onChange={async (e) => {
                         if (e.target.files && e.target.files.length > 0) {
                           const file = e.target.files[0];
-                          const processedFile = await processImage(file, 5000); // 5000 KB to be safely under 5120
-                          setPhotoFile(processedFile);
+                          setIsProcessingImage(true);
+                          try {
+                            const processedFile = await processImage(file, 5000); // 5000 KB to be safely under 5120
+                            setPhotoFile(processedFile);
+                          } catch (err) {
+                            console.error(err);
+                          } finally {
+                            setIsProcessingImage(false);
+                          }
                         } else {
                           setPhotoFile(null);
                         }
                       }} 
                     />
-                    {photoFile ? (
+                    {isProcessingImage ? (
+                      <div className="photo-placeholder-ui">
+                        <RefreshCw size={32} className="photo-placeholder-icon" style={{ animation: 'spin 1s linear infinite', color: '#f97316' }} />
+                        <span style={{ color: '#f97316' }}>جاري المعالجة...</span>
+                        <style>{`
+                          @keyframes spin { 100% { transform: rotate(360deg); } }
+                        `}</style>
+                      </div>
+                    ) : photoFile ? (
                       <img src={URL.createObjectURL(photoFile)} alt="Preview" className="photo-preview-image" />
                     ) : memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default') ? (
                       <img src={memberToEdit.photo} alt="Current" className="photo-preview-image" />
