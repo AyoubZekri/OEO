@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, ShieldAlert, ShieldCheck, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Plus, Edit2, Trash2, Printer, Search, Settings, Activity } from 'lucide-react';
+import { X, ShieldAlert, ShieldCheck, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Plus, Edit2, Trash2, Printer, Search, Settings, Activity, Package, ArrowLeftRight, RefreshCw } from 'lucide-react';
 import { CustomInput } from '../../../widget/CustomInput';
 import { CustomDropdown } from '../../../widget/CustomDropdown';
 import { RoleModel, defaultPermissions } from './role_model';
@@ -21,6 +21,8 @@ const getActionIcon = (action: string) => {
     case 'edit': return <Edit2 size={18} className="premium-action-icon" />;
     case 'delete': return <Trash2 size={18} className="premium-action-icon" />;
     case 'print': return <Printer size={18} className="premium-action-icon" />;
+    case 'handover': return <ArrowLeftRight size={18} className="premium-action-icon" />;
+    case 'return': return <RefreshCw size={18} className="premium-action-icon" />;
     case 'viewFinancialRecord': return <Search size={18} className="premium-action-icon" />;
     case 'addTransaction': return <Plus size={18} className="premium-action-icon" />;
     case 'deleteTransaction': return <Trash2 size={18} className="premium-action-icon" />;
@@ -48,6 +50,8 @@ const getModuleIcon = (moduleKey: string) => {
     case 'funds': return <Vault size={24} />;
     case 'reports': return <PieChart size={24} />;
     case 'usersAndRoles': return <Shield size={24} />;
+    case 'equipment': return <Package size={24} />;
+    case 'equipmentOperations': return <ArrowLeftRight size={24} />;
     default: return <Shield size={24} />;
   }
 };
@@ -67,7 +71,9 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
     { key: 'payments', actions: ['add', 'edit', 'delete'] },
     { key: 'funds', actions: ['add', 'edit', 'delete', 'addTransaction'] },
     { key: 'reports', actions: ['viewIndividuals', 'viewTeams', 'viewContracts', 'viewFunds'] },
-    { key: 'usersAndRoles', actions: ['viewUsers', 'addUsers', 'editUsers', 'deleteUsers', 'viewRoles', 'addRoles', 'editRoles', 'deleteRoles'] }
+    { key: 'usersAndRoles', actions: ['viewUsers', 'addUsers', 'editUsers', 'deleteUsers', 'viewRoles', 'addRoles', 'editRoles', 'deleteRoles'] },
+    { key: 'equipment', actions: ['add', 'edit', 'delete', 'print'] },
+    { key: 'equipmentOperations', actions: ['handover', 'return', 'edit', 'delete', 'print'] }
   ];
 
   useEffect(() => {
@@ -177,7 +183,10 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                       <div className="premium-module-icon">
                         {getModuleIcon(module.key)}
                       </div>
-                      {module.key === 'dashboard' ? 'الصفحة الرئيسية' : t(`roles_permissions.modules.${module.key}`)}
+                      {module.key === 'dashboard' ? 'الصفحة الرئيسية' : 
+                       module.key === 'equipment' ? 'معدات الفريق' :
+                       module.key === 'equipmentOperations' ? 'حركة العتاد' :
+                       t(`roles_permissions.modules.${module.key}`)}
                     </div>
                     <label className="glow-switch">
                       <input 
@@ -195,7 +204,9 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                         <div key={action} className="premium-action-item">
                           <div className="premium-action-info">
                             {getActionIcon(action)}
-                            {t(`roles_permissions.actions.${action}`)}
+                            {action === 'handover' ? 'تسليم' : 
+                             action === 'return' ? 'إرجاع' :
+                             t(`roles_permissions.actions.${action}`)}
                           </div>
                           <label className="glow-switch small-switch">
                             <input 

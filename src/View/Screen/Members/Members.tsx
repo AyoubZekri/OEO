@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw } from 'lucide-react';
+import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, ShieldAlert, FileWarning } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
+import { DisciplinaryActionDialog } from './DisciplinaryActionDialog';
+import { DisciplinaryHistoryDialog } from './DisciplinaryHistoryDialog';
 import './Members.css';
 import heic2any from 'heic2any';
 
@@ -126,8 +128,66 @@ export const Members: React.FC = () => {
 
   const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  // Print function
+  // Disciplinary State
+  const [isDisciplinaryActionOpen, setIsDisciplinaryActionOpen] = useState(false);
+  const [isDisciplinaryHistoryOpen, setIsDisciplinaryHistoryOpen] = useState(false);
+  const [selectedDisciplinaryMember, setSelectedDisciplinaryMember] = useState<any>(null);
+  const [mockDisciplinaryHistory, setMockDisciplinaryHistory] = useState<any[]>([
+    {
+      id: 1,
+      memberId: 1,
+      actionType: 'تنبيه',
+      incident: 'التأخر عن حضور الاجتماع التقني',
+      incidentDate: '2026-08-25',
+      location: 'قاعة الاجتماعات',
+      ruleViolated: 'المادة 4 من النظام الداخلي',
+      notes: 'تأخر لمدة 30 دقيقة بدون عذر مسبق',
+      requirements: {
+        commitment: true,
+        clarification: false,
+        hearing: '',
+        other: ''
+      }
+    },
+    {
+      id: 2,
+      memberId: 1,
+      actionType: 'إنذار',
+      incident: 'عدم الالتزام بالزي الرسمي الرياضي',
+      incidentDate: '2026-08-20',
+      location: 'الملعب الأولمبي',
+      ruleViolated: 'المادة 12 - الهندام والمظهر',
+      notes: '',
+      requirements: {
+        commitment: true,
+        clarification: true,
+        hearing: '',
+        other: 'استبدال الزي'
+      }
+    }
+  ]);
 
+  const [disciplinaryToEdit, setDisciplinaryToEdit] = useState<any>(null);
+
+  const handleSaveDisciplinary = (data: any) => {
+    if (data.id) {
+      // Edit
+      setMockDisciplinaryHistory(prev => prev.map(item => item.id === data.id ? data : item));
+    } else {
+      // Add
+      const newAction = {
+        ...data,
+        id: Date.now(), // Generate mock ID
+      };
+      setMockDisciplinaryHistory(prev => [newAction, ...prev]);
+    }
+    setDisciplinaryToEdit(null);
+    setIsDisciplinaryActionOpen(false);
+  };
+
+  const handleDeleteDisciplinary = (id: string | number) => {
+    setMockDisciplinaryHistory(prev => prev.filter(item => item.id !== id));
+  };
 
   const getStatusBadge = (status: string) => {
     if (status === 'active') return <span className="badge badge-green">{t('members.active', 'نشط')}</span>;
@@ -263,6 +323,17 @@ export const Members: React.FC = () => {
                           <Eye size={18} />
                         </button>
                       )}
+                      
+                      {/* Disciplinary Buttons */}
+                      <button className="btn-action" style={{ color: 'var(--primary)', backgroundColor: 'var(--primary-light, rgba(249, 115, 22, 0.1))' }} onClick={() => { setDisciplinaryToEdit(null); setSelectedDisciplinaryMember(member); setIsDisciplinaryActionOpen(true); }} title="إجراء تأديبي / تنبيه">
+                        <ShieldAlert size={18} />
+                      </button>
+                      {mockDisciplinaryHistory.some(h => h.memberId === member.id) && (
+                        <button className="btn-action" style={{ color: 'var(--primary)', backgroundColor: 'var(--primary-light, rgba(249, 115, 22, 0.1))' }} onClick={() => { setSelectedDisciplinaryMember(member); setIsDisciplinaryHistoryOpen(true); }} title="السجل التأديبي">
+                          <FileWarning size={18} />
+                        </button>
+                      )}
+
                       {hasAccess(permissions.members.edit) && (
                         <button className="btn-action edit-btn" onClick={() => openEditMemberDialog(member)} title="تعديل">
                           <Edit2 size={18} />
@@ -569,6 +640,28 @@ export const Members: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Disciplinary Action Dialog */}
+      <DisciplinaryActionDialog 
+        isOpen={isDisciplinaryActionOpen}
+        onClose={() => { setIsDisciplinaryActionOpen(false); setDisciplinaryToEdit(null); }}
+        member={selectedDisciplinaryMember}
+        onSave={handleSaveDisciplinary}
+        editData={disciplinaryToEdit}
+      />
+
+      {/* Disciplinary History Dialog */}
+      <DisciplinaryHistoryDialog 
+        isOpen={isDisciplinaryHistoryOpen}
+        onClose={() => setIsDisciplinaryHistoryOpen(false)}
+        member={selectedDisciplinaryMember}
+        history={mockDisciplinaryHistory.filter(h => h.memberId === selectedDisciplinaryMember?.id)}
+        onEdit={(item) => {
+          setDisciplinaryToEdit(item);
+          setIsDisciplinaryActionOpen(true);
+        }}
+        onDelete={handleDeleteDisciplinary}
+      />
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { Package, History, ImageIcon, Edit2, Trash2, Plus, MapPin } from 'lucide
 import { MovementDialog } from './MovementDialog';
 import { LocationsDialog } from './LocationsDialog';
 import { EquipmentDialog } from './EquipmentDialog';
+import { useAuth } from '../../../core/context/AuthContext';
 import './Equipment.css';
 
 // Mock Data for Design
@@ -30,6 +31,9 @@ const mockEquipment = [
 ];
 
 export const Equipment: React.FC = () => {
+  const { permissions, isFullAccess } = useAuth();
+  const hasAccess = (check: boolean) => isFullAccess || check;
+
   const [selectedEq, setSelectedEq] = useState<any>(null);
   const [isMovementOpen, setIsMovementOpen] = useState(false);
   const [isLocationsOpen, setIsLocationsOpen] = useState(false);
@@ -61,10 +65,12 @@ export const Equipment: React.FC = () => {
       {/* Header Section */}
       <div className="equipment-header">
         <h1>معدات الفريق</h1>
-        <button className="add-eq-btn" onClick={openAddDialog}>
-          <Plus size={20} />
-          إضافة عتاد
-        </button>
+        {hasAccess(permissions.equipment.add) && (
+          <button className="add-eq-btn" onClick={openAddDialog}>
+            <Plus size={20} />
+            إضافة عتاد
+          </button>
+        )}
       </div>
 
       {/* Grid Section */}
@@ -99,14 +105,18 @@ export const Equipment: React.FC = () => {
                   )}
                 </div>
 
-                {/* Floating Admin Actions (Visible on Hover) */}
+                {/* Admin Actions */}
                 <div className="card-admin-actions">
-                  <button className="icon-btn edit" title="تعديل" onClick={() => openEditDialog(eq)}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button className="icon-btn delete" title="حذف" onClick={() => console.log('Delete', eq.id)}>
-                    <Trash2 size={16} />
-                  </button>
+                  {hasAccess(permissions.equipment.edit) && (
+                    <button className="icon-btn edit" title="تعديل" onClick={() => openEditDialog(eq)}>
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                  {hasAccess(permissions.equipment.delete) && (
+                    <button className="icon-btn delete" title="حذف">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
 

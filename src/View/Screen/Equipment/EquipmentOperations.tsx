@@ -3,6 +3,7 @@ import { ArrowLeftRight, Printer, RefreshCw, Edit2 } from 'lucide-react';
 import { EquipmentOperationDialog } from './EquipmentOperationDialog';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
+import { useAuth } from '../../../core/context/AuthContext';
 import './Equipment.css';
 import './EquipmentOperations.css';
 
@@ -14,6 +15,9 @@ const mockOperationsHistory = [
 ];
 
 export const EquipmentOperations: React.FC = () => {
+  const { permissions, isFullAccess } = useAuth();
+  const hasAccess = (check: boolean) => isFullAccess || check;
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -24,10 +28,12 @@ export const EquipmentOperations: React.FC = () => {
     <div className="equipment-page-wrapper">
       <div className="equipment-header">
         <h1>حركة العتاد</h1>
-        <button className="add-eq-btn" onClick={() => setIsDialogOpen(true)}>
-          <ArrowLeftRight size={20} />
-          عملية جديدة
-        </button>
+        {(hasAccess(permissions.equipmentOperations.handover) || hasAccess(permissions.equipmentOperations.return)) && (
+          <button className="add-eq-btn" onClick={() => setIsDialogOpen(true)}>
+            <ArrowLeftRight size={20} />
+            عملية جديدة
+          </button>
+        )}
       </div>
 
       <div className="table-pagination-wrapper" style={{ marginTop: '24px' }}>
@@ -64,17 +70,21 @@ export const EquipmentOperations: React.FC = () => {
                   <td data-label="التاريخ">{op.date}</td>
                   <td data-label="الإجراءات" className="actions-cell">
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button className="btn-icon edit" title="تعديل" style={{ color: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)' }}>
-                        <Edit2 size={18} />
-                      </button>
-                      {op.type === 'تسليم' && (
+                      {hasAccess(permissions.equipmentOperations.edit) && (
+                        <button className="btn-icon edit" title="تعديل" style={{ color: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)' }}>
+                          <Edit2 size={18} />
+                        </button>
+                      )}
+                      {op.type === 'تسليم' && hasAccess(permissions.equipmentOperations.return) && (
                         <button className="btn-icon return-btn" title="إرجاع العتاد" style={{ color: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)' }}>
                           <RefreshCw size={18} />
                         </button>
                       )}
-                      <button className="btn-icon print-btn" title="طباعة محضر" style={{ color: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-                        <Printer size={18} />
-                      </button>
+                      {hasAccess(permissions.equipmentOperations.print) && (
+                        <button className="btn-icon print-btn" title="طباعة محضر" style={{ color: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
+                          <Printer size={18} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

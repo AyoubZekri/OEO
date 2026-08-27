@@ -272,11 +272,6 @@ body.dark-mode .badge-purple { background-color: rgba(139, 92, 246, 0.1); color:
 .btn-action.view-btn {
   background-color: #eff6ff;
   color: #3b82f6;
-  width: auto;
-  padding: 0 16px;
-  gap: 8px;
-  font-weight: 600;
-  font-family: var(--sans);
 }
 
 .btn-action.view-btn:hover { background-color: #dbeafe; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2); }
@@ -307,9 +302,7 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
     justify-content: space-between;
   }
 
-  .btn-action.view-btn {
-    flex: 1;
-  }
+
 
 @media (max-width: 768px) {
   .custom-table td.avatar-cell,

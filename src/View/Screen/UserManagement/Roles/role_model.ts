@@ -61,6 +61,23 @@ export interface UsersRolesPermissions {
   deleteRoles: boolean;
 }
 
+export interface EquipmentPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  print: boolean;
+}
+
+export interface EquipmentOperationsPermissions {
+  view: boolean;
+  handover: boolean;
+  return: boolean;
+  print: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
 export interface AppPermissions {
   dashboard: DashboardPermissions;
   members: MembersPermissions;
@@ -70,6 +87,8 @@ export interface AppPermissions {
   funds: FundsPermissions;
   reports: ReportsPermissions;
   usersAndRoles: UsersRolesPermissions;
+  equipment: EquipmentPermissions;
+  equipmentOperations: EquipmentOperationsPermissions;
 }
 
 export const defaultPermissions: AppPermissions = {
@@ -81,6 +100,8 @@ export const defaultPermissions: AppPermissions = {
   funds: { view: true, add: true, edit: true, delete: true, addTransaction: true },
   reports: { view: true, viewIndividuals: true, viewTeams: true, viewContracts: true, viewFunds: true },
   usersAndRoles: { view: true, viewUsers: true, addUsers: true, editUsers: true, deleteUsers: true, viewRoles: true, addRoles: true, editRoles: true, deleteRoles: true },
+  equipment: { view: true, add: true, edit: true, delete: true, print: true },
+  equipmentOperations: { view: true, handover: true, return: true, print: true, edit: true, delete: true },
 };
 
 export const emptyPermissions: AppPermissions = {
@@ -92,6 +113,8 @@ export const emptyPermissions: AppPermissions = {
   funds: { view: false, add: false, edit: false, delete: false, addTransaction: false },
   reports: { view: false, viewIndividuals: false, viewTeams: false, viewContracts: false, viewFunds: false },
   usersAndRoles: { view: false, viewUsers: false, addUsers: false, editUsers: false, deleteUsers: false, viewRoles: false, addRoles: false, editRoles: false, deleteRoles: false },
+  equipment: { view: false, add: false, edit: false, delete: false, print: false },
+  equipmentOperations: { view: false, handover: false, return: false, print: false, edit: false, delete: false },
 };
 
 export class RoleModel {
@@ -137,7 +160,9 @@ export class RoleModel {
           payments: { ...emptyPermissions.payments, ...(parsed.payments || {}) },
           funds: { ...emptyPermissions.funds, ...(parsed.funds || {}) },
           reports: { ...emptyPermissions.reports, ...(parsed.reports || {}) },
-          usersAndRoles: { ...emptyPermissions.usersAndRoles, ...(parsed.usersAndRoles || {}) }
+          usersAndRoles: { ...emptyPermissions.usersAndRoles, ...(parsed.usersAndRoles || {}) },
+          equipment: { ...emptyPermissions.equipment, ...(parsed.equipment || {}) },
+          equipmentOperations: { ...emptyPermissions.equipmentOperations, ...(parsed.equipmentOperations || {}) }
         };
       } catch (e) {
         parsedPermissions = emptyPermissions;
