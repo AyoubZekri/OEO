@@ -145,24 +145,24 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'sidebar.reports',
           route: Approutes.Reports,
         }] : []),
-        {
-          name: 'EquipmentGroup',
-          icon: Package,
-          isDropdown: true,
-          label: 'العتاد',
-          subItems: [
-            {
-              name: 'Equipment',
-              label: 'معدات الفريق',
-              route: Approutes.Equipment,
-            },
-            {
-              name: 'EquipmentOperations',
-              label: 'حركة العتاد',
-              route: Approutes.EquipmentOperations,
-            }
-          ]
-        },
+        // {
+        //   name: 'EquipmentGroup',
+        //   icon: Package,
+        //   isDropdown: true,
+        //   label: 'العتاد',
+        //   subItems: [
+        //     {
+        //       name: 'Equipment',
+        //       label: 'معدات الفريق',
+        //       route: Approutes.Equipment,
+        //     },
+        //     {
+        //       name: 'EquipmentOperations',
+        //       label: 'حركة العتاد',
+        //       route: Approutes.EquipmentOperations,
+        //     }
+        //   ]
+        // },
         ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
           name: 'UsersManagement',
           icon: Users,
