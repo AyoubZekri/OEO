@@ -13,6 +13,8 @@ import { Teams } from './View/Screen/Teams/Teams';
 import { Payments } from './View/Screen/Payments/Payments';
 import { Funds } from './View/Screen/Funds/Funds';
 import { Reports } from './View/Screen/Reports/Reports';
+import { Equipment } from './View/Screen/Equipment/Equipment';
+import { EquipmentOperations } from './View/Screen/Equipment/EquipmentOperations';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
@@ -42,6 +44,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Funds} element={<Funds />} />
             <Route path={Approutes.Reports} element={<Reports />} />
             <Route path={Approutes.Teams} element={<Teams />} />
+            <Route path={Approutes.Equipment} element={<Equipment />} />
+            <Route path={Approutes.EquipmentOperations} element={<EquipmentOperations />} />
             {/* Add more routes here as needed */}
           </Routes>
         </div>

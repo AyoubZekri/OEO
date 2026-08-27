@@ -188,25 +188,37 @@ export const Payments: React.FC = () => {
     }
   }, [memberId, amountNature, numberOfGoals, installmentNumber, contracts, editingPayment, selectedContractId]);
 
-  // Handle open modal for Edit or Add
   const handleOpenDialog = (payment?: PaymentRecord) => {
     if (payment) {
-      setTransactionType(payment.transactionType || 'دفع');
-      setMemberId(payment.memberId || '');
-      setFundId(payment.fundId || '');
-      setAmount(payment.amount.toString());
-      setPaymentMethod(payment.paymentMethod);
-      setPaymentDate(payment.paymentDate);
-      setPostalCheck(payment.postal_check || '');
-      setAmountNature(payment.amountNature);
-      setInstallmentNumber(payment.installmentNumber || (payment as any).Occasion_Reason_numper || '');
+      setTransactionType(payment.transactionType || (payment as any).type || 'دفع');
+      setMemberId(payment.memberId || (payment as any).id_individuals?.toString() || '');
+      setFundId(payment.fundId || payment.fund_id?.toString() || '');
+      setAmount((payment.amount || (payment as any).Amount || 0).toString());
+      setPaymentMethod(payment.paymentMethod || (payment as any).Payment_method || 'نقدا');
+      setPaymentDate(payment.paymentDate || (payment as any).Date || '');
+      setPostalCheck(payment.postal_check || (payment as any).checkNumber || '');
+      
+      const nature = payment.amountNature || (payment as any).Nature_amount || (payment as any).amount_nature || 'راتب شهري';
+      setAmountNature(nature);
+      
+      const occasionOrNum = payment.installmentNumber || (payment as any).Occasion_Reason_numper || (payment as any).occasion_reason_numper || (payment as any).Occasion_reason_numper || '';
+      if (nature === 'رقم دفعة') {
+        let instNum = occasionOrNum;
+        if (!instNum) instNum = payment.checkNumber || ''; // Fallback as seen in table logic
+        setInstallmentNumber(instNum.toString());
+        setOccasion('');
+      } else {
+        setInstallmentNumber('');
+        setOccasion(payment.occasion || occasionOrNum.toString() || '');
+      }
+
       setDateFrom(payment.dateFrom || '');
       setDateTo(payment.dateTo || '');
       setMonth(payment.month || '');
       setYear(payment.year || '');
-      setOccasion(payment.occasion || (!payment.installmentNumber && payment.amountNature !== 'رقم دفعة' ? payment.checkNumber : '') || '');
       setNumberOfGoals(payment.numberOfGoals?.toString() || '');
-      setNotes(payment.notes || '');
+      setNotes(payment.notes || (payment as any).nots || '');
+      setSelectedContractId(payment.contract_id?.toString() || '');
     } else {
       setTransactionType('دفع');
       setMemberId('');

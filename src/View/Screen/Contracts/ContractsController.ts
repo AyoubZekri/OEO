@@ -112,17 +112,17 @@ export const useContractsController = () => {
     setEditingContractId(contract.id);
     setErrors({});
     setFormData({
-      individuals_id: contract.individuals_id,
-      contractNumber: contract.contractNumber,
-      startDate: contract.startDate,
-      endDate: contract.endDate,
-      contractValue: contract.contractValue || '',
+      individuals_id: contract.individuals_id?.toString() || '',
+      contractNumber: contract.contractNumber || '',
+      startDate: contract.startDate || '',
+      endDate: contract.endDate || '',
+      contractValue: contract.contractValue !== undefined ? contract.contractValue : '',
       numberOfPayments: contract.numberOfPayments || 1,
-      monthlySalary: contract.monthlySalary || '',
-      winBonus: contract.winBonus || '',
-      goalsBonus: contract.goalsBonus || '',
-      notes: contract.notes,
-      status: contract.status,
+      monthlySalary: contract.monthlySalary !== undefined ? contract.monthlySalary : '',
+      winBonus: contract.winBonus !== undefined ? contract.winBonus : '',
+      goalsBonus: contract.goalsBonus !== undefined ? contract.goalsBonus : '',
+      notes: contract.notes || '',
+      status: contract.status || 'active',
       installments: contract.installments ? [...contract.installments] : []
     });
     setIsAddEditModalOpen(true);

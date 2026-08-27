@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Package } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 
@@ -145,6 +145,24 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'sidebar.reports',
           route: Approutes.Reports,
         }] : []),
+        {
+          name: 'EquipmentGroup',
+          icon: Package,
+          isDropdown: true,
+          label: 'العتاد',
+          subItems: [
+            {
+              name: 'Equipment',
+              label: 'معدات الفريق',
+              route: Approutes.Equipment,
+            },
+            {
+              name: 'EquipmentOperations',
+              label: 'حركة العتاد',
+              route: Approutes.EquipmentOperations,
+            }
+          ]
+        },
         ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
           name: 'UsersManagement',
           icon: Users,
