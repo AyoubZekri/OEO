@@ -10,4 +10,9 @@ export class Approutes {
   static readonly Teams = "/teams";
   static readonly Equipment = "/equipment";
   static readonly EquipmentOperations = "/equipment-operations";
+  static readonly Correspondences = "/correspondences";
+  static readonly Disciplinary = "/disciplinary";
+  static readonly TrainingSessions = "/training-sessions";
+  static readonly TakeAttendance = "/training-sessions/:id/attendance";
+  static readonly AbsenceRequests = "/absence-requests";
 }

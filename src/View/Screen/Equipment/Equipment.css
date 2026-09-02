@@ -29,24 +29,30 @@
 }
 
 .add-eq-btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   background: linear-gradient(135deg, var(--accent, #3b82f6) 0%, var(--accent-secondary, #8b5cf6) 100%);
   color: white;
   border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
+  padding: 10px 22px;
+  border-radius: 12px;
   font-family: var(--sans, sans-serif);
-  font-size: 1rem;
-  font-weight: 500;
+  font-size: 0.95rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
 }
 
 .add-eq-btn:hover {
-  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
+  opacity: 0.95;
 }
+
 .add-eq-btn:active {
   transform: scale(0.98);
 }
@@ -71,13 +77,23 @@
 }
 
 @media (max-width: 650px) {
+  .equipment-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .add-eq-btn {
+    width: 100%;
+  }
+
   .equipment-premium-grid {
     grid-template-columns: repeat(1, 1fr);
   }
 }
 
 /* Premium Card */
-.premium-card {
+.equipment-premium-grid .premium-card {
   background: #ffffff;
   border-radius: 24px;
   overflow: hidden;
@@ -87,9 +103,11 @@
   position: relative;
   display: flex;
   flex-direction: column;
+  padding: 0;
+  gap: 0;
 }
 
-.premium-card:hover {
+.equipment-premium-grid .premium-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.15);
   border-color: rgba(99, 102, 241, 0.3);
@@ -111,7 +129,7 @@
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.premium-card:hover .card-img {
+.equipment-premium-grid .premium-card:hover .card-img {
   transform: scale(1.08);
 }
 
@@ -189,7 +207,7 @@
   right: 16px;
 }
 
-.premium-card:hover .card-admin-actions {
+.equipment-premium-grid .premium-card:hover .card-admin-actions {
   opacity: 1;
   transform: translateY(0);
 }
@@ -746,3 +764,155 @@
 .eq-btn-save:active {
   transform: scale(0.98);
 }
+
+/* Responsive Design for Equipment Page (<= 768px) */
+@media (max-width: 768px) {
+  .equipment-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .add-eq-btn {
+    width: 100%;
+  }
+
+  .equipment-premium-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Small devices (<= 480px) */
+@media (max-width: 480px) {
+  .equipment-page-wrapper {
+    gap: 16px;
+    padding-bottom: 20px;
+  }
+
+  .equipment-header h1 {
+    font-size: 1.35rem;
+  }
+
+  .add-eq-btn {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    border-radius: 12px;
+  }
+
+  .card-image-box {
+    height: 180px;
+  }
+
+  .card-content-box {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .card-title {
+    font-size: 1.1rem;
+  }
+
+  .card-total-qty {
+    font-size: 0.88rem;
+  }
+
+  .card-primary-actions {
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .action-pill {
+    padding: 10px;
+    font-size: 0.88rem;
+    border-radius: 10px;
+  }
+
+  .action-pill.secondary {
+    width: 40px;
+  }
+
+  .eq-dialog-overlay {
+    padding: 10px;
+  }
+
+  .eq-dialog-content {
+    border-radius: 14px;
+  }
+
+  .eq-dialog-header {
+    padding: 16px 20px;
+  }
+
+  .eq-dialog-body {
+    padding: 16px 20px;
+  }
+
+  .eq-dialog-footer {
+    padding: 12px 16px;
+  }
+}
+
+/* Ultra-small devices (<= 320px, Galaxy Fold, etc.) */
+@media (max-width: 320px) {
+  .equipment-page-wrapper {
+    gap: 12px;
+  }
+
+  .equipment-header h1 {
+    font-size: 1.15rem;
+  }
+
+  .add-eq-btn {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    border-radius: 10px;
+  }
+
+  .equipment-premium-grid {
+    gap: 12px;
+  }
+
+  .card-image-box {
+    height: 140px;
+  }
+
+  .card-content-box {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
+  }
+
+  .card-total-qty {
+    font-size: 0.8rem;
+  }
+
+  .action-pill {
+    padding: 8px;
+    font-size: 0.78rem;
+    border-radius: 8px;
+  }
+
+  .action-pill.secondary {
+    width: 34px;
+  }
+
+  .eq-dialog-header,
+  .eq-dialog-body {
+    padding: 12px 14px;
+  }
+
+  .eq-dialog-footer {
+    padding: 10px 12px;
+  }
+
+  .eq-btn-save,
+  .eq-btn-cancel {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
+}
+

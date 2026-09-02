@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Package } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Mail, Calendar, FileWarning } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 
@@ -110,12 +110,40 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'sidebar.members',
           route: Approutes.Members,
         }] : []),
+        ...(hasAccess(permissions.members.view) ? [{
+          name: 'Correspondences',
+          icon: Mail,
+          isDropdown: false,
+          label: 'المراسلات الرسمية',
+          route: Approutes.Correspondences,
+        }] : []),
+        ...(hasAccess(permissions.members.view) ? [{
+          name: 'Disciplinary',
+          icon: Scale,
+          isDropdown: false,
+          label: 'الإجراءات التأديبية',
+          route: Approutes.Disciplinary,
+        }] : []),
         ...(hasAccess(permissions.teams.view) ? [{
           name: 'Teams',
           icon: Users,
           isDropdown: false,
           label: 'فئات الفرق',
           route: Approutes.Teams,
+        }] : []),
+        ...(hasAccess(true) ? [{
+          name: 'TrainingSessions',
+          icon: Calendar,
+          isDropdown: false,
+          label: 'حصص التدريب',
+          route: Approutes.TrainingSessions,
+        }] : []),
+        ...(hasAccess(true) ? [{
+          name: 'AbsenceRequests',
+          icon: FileWarning,
+          isDropdown: false,
+          label: 'sidebar.absence_requests',
+          route: Approutes.AbsenceRequests,
         }] : []),
         ...(hasAccess(permissions.contracts.view) ? [{
           name: 'Contracts',

@@ -389,13 +389,19 @@ body.dark-mode .badge-red { color: #f87171; }
     grid-template-columns: 1fr;
   }
 
-  .metric-card.highlight .metric-info .amount {
-    font-size: 2rem;
+  .metric-info .amount {
+    font-size: 1.3rem;
   }
 
-  /* Hide labels on metric cards on mobile */
+  .metric-card.highlight .metric-info .amount {
+    font-size: 1.7rem;
+  }
+
+  /* Show labels on metric cards on mobile */
   .metric-info h3 {
-    display: none;
+    display: block;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
   }
 
   /* ── Remove the operations section container on mobile ── */
@@ -550,6 +556,171 @@ body.dark-mode .badge-red { color: #f87171; }
   }
   .dialog-header {
     padding: 16px;
+  }
+}
+
+/* Extra small devices (phones, 320px and up) */
+@media (max-width: 480px) {
+  .home-hero {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+  
+  .page-title {
+    font-size: 1.35rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .metric-card {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+  
+  .metric-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+  }
+  
+  .metric-card.highlight .metric-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
+  
+  .metric-info h3 {
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .metric-info .amount {
+    font-size: 1.15rem;
+  }
+  
+  .metric-card.highlight .metric-info .amount {
+    font-size: 1.45rem;
+  }
+  
+  .home-container {
+    gap: 16px;
+  }
+  
+  .metrics-grid {
+    gap: 16px;
+  }
+  
+  /* Operations Table on 320px */
+  .premium-table tr {
+    padding: 12px;
+    gap: 6px;
+    grid-template-columns: 1fr auto;
+  }
+  
+  .premium-table td:nth-child(1) .op-icon-wrapper {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .premium-table td:nth-child(1) .op-name-cell span {
+    font-size: 0.85rem;
+  }
+  
+  .premium-table td:nth-child(4) {
+    font-size: 0.9rem;
+  }
+}
+
+/* Ultra small devices (Galaxy Fold, smartwatches, below 320px) */
+@media (max-width: 320px) {
+  .home-hero {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  
+  .page-title {
+    font-size: 1.15rem;
+  }
+  
+  .page-subtitle {
+    font-size: 0.8rem;
+  }
+  
+  .metric-card {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+  
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+  
+  .metric-card.highlight .metric-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+  
+  .metric-info h3 {
+    font-size: 0.65rem;
+    margin-bottom: 2px;
+  }
+  
+  .metric-info .amount {
+    font-size: 0.95rem;
+  }
+  
+  .metric-card.highlight .metric-info .amount {
+    font-size: 1.15rem;
+  }
+  
+  .home-container {
+    gap: 12px;
+  }
+  
+  .metrics-grid {
+    gap: 12px;
+  }
+  
+  .premium-table tr {
+    padding: 10px;
+    gap: 4px;
+    grid-template-columns: 1fr auto;
+    border-radius: 12px;
+  }
+  
+  .premium-table td:nth-child(1) .op-icon-wrapper {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+  
+  .premium-table td:nth-child(1) .op-name-cell span {
+    font-size: 0.75rem;
+  }
+  
+  .premium-table td:nth-child(2) {
+    font-size: 0.7rem;
+  }
+  
+  .premium-table td:nth-child(3) .badge {
+    font-size: 0.65rem;
+    padding: 2px 6px;
+  }
+  
+  .premium-table td:nth-child(4) {
+    font-size: 0.8rem;
   }
 }
 

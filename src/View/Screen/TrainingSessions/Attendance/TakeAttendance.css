@@ -1,0 +1,218 @@
+.take-attendance-container {
+  padding: 0;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.take-attendance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.header-titles {
+  text-align: center;
+}
+
+.header-titles h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--text-h, #1f2937);
+}
+
+.header-titles p {
+  margin: 5px 0 0;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid rgba(209, 213, 219, 0.5);
+  color: #4b5563;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.save-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transition: all 0.3s;
+}
+
+.save-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+}
+
+.attendance-table-card {
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  border: 1px solid rgba(229, 231, 235, 0.6);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: right;
+}
+
+.attendance-table th, 
+.attendance-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.6);
+}
+
+.attendance-table th {
+  background-color: rgba(249, 250, 251, 0.5);
+  font-weight: 600;
+  color: #4b5563;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.attendance-table .status-col {
+  text-align: center;
+  width: 100px;
+}
+
+.attendance-table tr {
+  transition: background-color 0.2s;
+}
+
+.attendance-table tr:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+}
+
+.attendance-table tr.row-selected {
+  background-color: rgba(243, 244, 246, 0.3);
+}
+
+.player-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.player-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent, #3b82f6) 0%, var(--accent-secondary, #8b5cf6) 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.player-name {
+  font-weight: 600;
+  color: var(--text-h, #1f2937);
+}
+
+.status-cell {
+  text-align: center;
+}
+
+.status-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  color: transparent; /* icon color */
+}
+
+.status-btn:hover {
+  background: #f3f4f6;
+}
+
+/* Active states */
+.status-btn.present.active {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.status-btn.late.active {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+  color: #f59e0b;
+}
+
+.status-btn.excused.active {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.status-btn.absent.active {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.note-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  background: transparent;
+  color: var(--text-h, #1f2937);
+}
+
+.note-input:focus {
+  outline: none;
+  border-color: var(--accent, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+body.dark-mode .attendance-table th {
+  background-color: rgba(31, 41, 55, 0.5);
+  color: #9ca3af;
+}
+
+body.dark-mode .attendance-table tr:hover,
+body.dark-mode .attendance-table tr.row-selected {
+  background-color: rgba(31, 41, 55, 0.3);
+}
+
+body.dark-mode .note-input {
+  border-color: #4b5563;
+}

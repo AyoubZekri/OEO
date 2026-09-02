@@ -115,9 +115,65 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
   
   const isSalary = amountNature === 'راتب شهري' || amountNature === 'راتب';
   const isInstallment = amountNature === 'رقم دفعة' || !!(payment?.installmentNumber || (payment as any)?.Occasion_Reason_numper || (payment as any)?.occasion_reason_numper);
-  const isResult = ['نتيجة', 'تحفيز', 'منحة فوز', 'تسجيل أهداف'].includes(amountNature);
+  const isResult = ['نتيجة', 'تحفيز', 'منحة مقابلات', 'تسجيل أهداف'].includes(amountNature);
   const isDues = ['مستحقات', 'جزء من المستحقات', 'باقي المستحقات'].includes(amountNature);
-  const isCompensation = ['تعويض مصاريف', 'إقامة', 'تنقل', 'إطعام'].includes(amountNature);
+  const isCompensation = ['تعويض مصاريف', 'إقامة', 'تنقل', 'إطعام', 'مصاريف التنقل'].includes(amountNature);
+
+  const getMonthName = (monthStr: string) => {
+    const months: {[key: string]: string} = {
+      '01': 'جانفي', '02': 'فيفري', '03': 'مارس', '04': 'أفريل',
+      '05': 'ماي', '06': 'جوان', '07': 'جويلية', '08': 'أوت',
+      '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
+    };
+    return months[monthStr] || monthStr;
+  };
+
+  let formattedOccasion = payment?.occasion || '';
+  if (isSalary && formattedOccasion) {
+    const parts = formattedOccasion.split('-');
+    if (parts.length === 2) {
+      const mStr = parts[0];
+      const yStr = parts[1];
+      const numMonths = payment?.numberOfMonths || (payment as any)?.Number_of_months || 1;
+      
+      if (numMonths > 3) {
+        let currentMonthNum = parseInt(mStr);
+        let currentYearNum = parseInt(yStr);
+        let endMonthNum = currentMonthNum + numMonths - 1;
+        let endYearNum = currentYearNum;
+        
+        while (endMonthNum > 12) {
+          endMonthNum -= 12;
+          endYearNum++;
+        }
+        
+        const startMonthName = getMonthName(currentMonthNum.toString().padStart(2, '0'));
+        const endMonthName = getMonthName(endMonthNum.toString().padStart(2, '0'));
+        
+        if (currentYearNum !== endYearNum) {
+          formattedOccasion = `من شهر ${startMonthName} ${currentYearNum} إلى شهر ${endMonthName} ${endYearNum}`;
+        } else {
+          formattedOccasion = `من شهر ${startMonthName} إلى شهر ${endMonthName} - ${yStr}`;
+        }
+      } else if (numMonths > 1) {
+        let currentMonthNum = parseInt(mStr);
+        let currentYearNum = parseInt(yStr);
+        const monthNames = [];
+        for (let i = 0; i < numMonths; i++) {
+          const formattedMonth = currentMonthNum.toString().padStart(2, '0');
+          monthNames.push(getMonthName(formattedMonth));
+          currentMonthNum++;
+          if (currentMonthNum > 12) {
+            currentMonthNum = 1;
+            currentYearNum++;
+          }
+        }
+        formattedOccasion = `${monthNames.join('، ')} - ${yStr}`;
+      } else {
+        formattedOccasion = `${getMonthName(mStr)}-${yStr}`;
+      }
+    }
+  }
   const isPartialSettlement = amountNature === 'تسوية جزئية';
   const isFinalSettlement = amountNature === 'تسوية نهائية';
   const isLoan = amountNature === 'سلفة' || amountNature === 'إرجاع سلفة';
@@ -204,7 +260,7 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
                 )}
                 <div className="text-line">تاريخ الدفع: <span style={{fontWeight: 'normal'}}>{paymentDate}</span></div>
 
-                <div className="text-line">المناسبة: <span style={{fontWeight: 'normal'}}>{payment?.occasion || (!isInstallment ? payment?.checkNumber : '') || ''}</span></div>
+                <div className="text-line">المناسبة: <span style={{fontWeight: 'normal'}}>{formattedOccasion || (!isInstallment ? payment?.checkNumber : '') || ''}</span></div>
                 <div className="text-line">ملاحظات: <span style={{fontWeight: 'normal'}}>{payment?.notes || ''}</span></div>
               </td>
               <td style={{width: '40%', verticalAlign: 'top', padding: '10px'}}>
@@ -213,10 +269,10 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
                   <label className="check-item">
                     <span className={`check-box ${isInstallment ? 'checked' : ''}`}></span> {isInstallment && instNum ? `الدفعة ${getOrdinal(instNum)}` : 'رقم الدفعة'}
                   </label>
-                  <label className="check-item"><span className={`check-box ${isSalary ? 'checked' : ''}`}></span> راتب شهري</label>
-                  <label className="check-item"><span className={`check-box ${isResult ? 'checked' : ''}`}></span> نتيجة / تحفيز</label>
-                  <label className="check-item"><span className={`check-box ${isDues ? 'checked' : ''}`}></span> جزء من المستحقات / باقي المستحقات</label>
-                  <label className="check-item"><span className={`check-box ${isCompensation ? 'checked' : ''}`}></span> تعويض مصاريف / تنقل / إقامة / إطعام</label>
+                  <label className="check-item"><span className={`check-box ${isSalary ? 'checked' : ''}`}></span> راتب شهري / منحة شهرية: <span style={{fontWeight: 'normal', paddingRight: '5px'}}>{isSalary ? formattedOccasion || payment?.checkNumber : ''}</span></label>
+                  <label className="check-item"><span className={`check-box ${isResult ? 'checked' : ''}`}></span> {isResult ? amountNature : 'نتيجة / تحفيز'}</label>
+                  <label className="check-item"><span className={`check-box ${isDues ? 'checked' : ''}`}></span> {isDues ? amountNature : 'جزء من المستحقات / باقي المستحقات'}</label>
+                  <label className="check-item"><span className={`check-box ${isCompensation ? 'checked' : ''}`}></span> {isCompensation ? amountNature : 'تعويض مصاريف / مصاريف التنقل / إقامة / إطعام'}</label>
                   <label className="check-item">
                     <span className={`check-box ${isPartialSettlement ? 'checked' : ''}`}></span> تسوية جزئية &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span className={`check-box ${isFinalSettlement ? 'checked' : ''}`}></span> تسوية نهائية
                   </label>

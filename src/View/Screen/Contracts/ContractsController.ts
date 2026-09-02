@@ -50,6 +50,7 @@ export const useContractsController = () => {
     monthlySalary: '' as number | string,
     winBonus: '' as number | string,
     goalsBonus: '' as number | string,
+    transportationExpenses: '' as number | string,
     notes: '',
     status: 'active',
     installments: [] as { installment_number: string; amount: number }[]
@@ -101,6 +102,7 @@ export const useContractsController = () => {
       monthlySalary: '',
       winBonus: '',
       goalsBonus: '',
+      transportationExpenses: '',
       notes: '',
       status: 'active',
       installments: [{ installment_number: '1', amount: 0 }]
@@ -121,6 +123,7 @@ export const useContractsController = () => {
       monthlySalary: contract.monthlySalary !== undefined ? contract.monthlySalary : '',
       winBonus: contract.winBonus !== undefined ? contract.winBonus : '',
       goalsBonus: contract.goalsBonus !== undefined ? contract.goalsBonus : '',
+      transportationExpenses: contract.transportationExpenses !== undefined ? contract.transportationExpenses : '',
       notes: contract.notes || '',
       status: contract.status || 'active',
       installments: contract.installments ? [...contract.installments] : []
@@ -153,7 +156,7 @@ export const useContractsController = () => {
     }
 
     setFormData(prev => {
-      const numValue = ['contractValue', 'numberOfPayments', 'monthlySalary', 'winBonus', 'goalsBonus'].includes(name) 
+      const numValue = ['contractValue', 'numberOfPayments', 'monthlySalary', 'winBonus', 'goalsBonus', 'transportationExpenses'].includes(name) 
         ? (value === '' ? '' : Number(value)) 
         : value;
 
@@ -219,11 +222,11 @@ export const useContractsController = () => {
       newErrors.individuals_id = 'هذا العضو يمتلك عقداً في هذا الموسم بالفعل.';
       showSnackbar('تنبيه', 'هذا العضو يمتلك عقداً في هذا الموسم بالفعل.', '#ef4444');
     }
-    if (formData.contractValue === '' || Number(formData.contractValue) < 0) {
-      newErrors.contractValue = 'يرجى إدخال قيمة صحيحة للعقد';
+    if (formData.contractValue !== '' && Number(formData.contractValue) < 0) {
+      newErrors.contractValue = 'قيمة العقد لا يمكن أن تكون سالبة';
     }
-    if (formData.numberOfPayments === '' || Number(formData.numberOfPayments) < 1) {
-      newErrors.numberOfPayments = 'عدد الدفعات يجب أن يكون 1 على الأقل';
+    if (formData.numberOfPayments !== '' && Number(formData.numberOfPayments) < 0) {
+      newErrors.numberOfPayments = 'عدد الدفعات لا يمكن أن يكون سالباً';
     }
     if (!formData.startDate) {
       newErrors.startDate = 'يرجى إدخال الموسم';
@@ -263,6 +266,7 @@ export const useContractsController = () => {
       Monthly_Salary: formData.monthlySalary || 0,
       Winning_Bonus: formData.winBonus || 0,
       Goals_Bonus: formData.goalsBonus || 0,
+      Transportation_Expenses: formData.transportationExpenses || 0,
       nots: formData.notes,
       status: formData.status,
       installments: formData.installments

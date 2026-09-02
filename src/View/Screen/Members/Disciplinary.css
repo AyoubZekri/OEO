@@ -177,7 +177,7 @@
 
 .incident-text-clean {
   font-size: 1rem;
-  color: var(--text-p, #334155);
+  color: var(--text, #334155);
   margin: 0 0 12px 0;
   line-height: 1.6;
 }
@@ -209,7 +209,7 @@
 
 .notes-box-clean {
   font-size: 0.9rem;
-  color: var(--text-p, #334155);
+  color: var(--text, #334155);
   background: #fffbeb;
   padding: 8px 12px;
   border-radius: 6px;

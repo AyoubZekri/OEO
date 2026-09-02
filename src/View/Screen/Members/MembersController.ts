@@ -6,15 +6,19 @@ import { TeamModel } from '../Teams/team_model';
 import { Crud } from '../../../core/class/Crud';
 import { PaymentsData } from '../Payments/payments_data';
 import { ContractsData } from '../Contracts/contracts_data';
+import { EvaluationsData } from './Evaluation/evaluation_data';
+import type { EvaluationRecord } from './Evaluation/evaluation_data';
 
 export const useMembersController = () => {
   const [members, setMembers] = useState<MemberModel[]>([]);
   const [teams, setTeams] = useState<TeamModel[]>([]);
   const [payments, setPayments] = useState<any[]>([]);
   const [contracts, setContracts] = useState<any[]>([]);
+  const [evaluations, setEvaluations] = useState<EvaluationRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   
   const [selectedMember, setSelectedMember] = useState<MemberModel | null>(null);
+  const [evalHistoryMember, setEvalHistoryMember] = useState<MemberModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
@@ -43,6 +47,7 @@ export const useMembersController = () => {
   const teamsData = new TeamsData(crud);
   const paymentsData = new PaymentsData(crud);
   const contractsData = new ContractsData(crud);
+  const evalsData = new EvaluationsData();
 
   const fetchMembers = async () => {
     setIsLoading(true);
@@ -289,7 +294,7 @@ export const useMembersController = () => {
 
   const filteredMembers = members.filter(member => {
     const searchLower = searchQuery.toLowerCase();
-    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : 'موظف إداري';
+    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'موظف إداري';
     
     const matchesSearch = 
       member.first_name.toLowerCase().includes(searchLower) ||
@@ -300,6 +305,44 @@ export const useMembersController = () => {
 
     return matchesSearch && matchesTeam;
   });
+
+  const loadEvaluations = (memberId: number) => {
+    evalsData.seedDefaultEvaluations(memberId);
+    const data = evalsData.getEvaluationsByMember(memberId);
+    setEvaluations(data);
+  };
+
+  const saveEvaluation = (evaluation: Omit<EvaluationRecord, 'id'>) => {
+    const saved = evalsData.saveEvaluation(evaluation);
+    setEvaluations(prev => [saved, ...prev]);
+    return saved;
+  };
+
+  const updateEvaluation = (evaluation: EvaluationRecord) => {
+    const updated = evalsData.updateEvaluation(evaluation);
+    setEvaluations(prev => prev.map(e => e.id === updated.id ? updated : e));
+    return updated;
+  };
+
+  const deleteEvaluation = (id: string) => {
+    evalsData.deleteEvaluation(id);
+    setEvaluations(prev => prev.filter(e => e.id !== id));
+  };
+
+  const addTestEvaluation = (memberId: number) => {
+    const testEval = evalsData.generateTestEvaluation(memberId);
+    saveEvaluation(testEval);
+  };
+
+  const openEvalHistory = (member: MemberModel) => {
+    setEvalHistoryMember(member);
+    loadEvaluations(Number(member.id));
+  };
+
+  const closeEvalHistory = () => {
+    setEvalHistoryMember(null);
+    setEvaluations([]);
+  };
 
   return {
     members,
@@ -335,5 +378,13 @@ export const useMembersController = () => {
     getRemainingAmount,
     getAdvances,
     getMemberPayments,
+    evaluations,
+    evalHistoryMember,
+    openEvalHistory,
+    closeEvalHistory,
+    saveEvaluation,
+    updateEvaluation,
+    deleteEvaluation,
+    addTestEvaluation,
   };
 };

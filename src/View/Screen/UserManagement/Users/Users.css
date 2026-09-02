@@ -117,8 +117,12 @@
   }
   .users-header {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .add-user-btn {
+    width: 100%;
+    justify-content: center;
   }
   
   /* Reset container scroll and background */
@@ -127,7 +131,62 @@
     background: transparent;
     border: none;
     box-shadow: none;
-    box-shadow: none;
+  }
+
+  .custom-table td.avatar-cell {
+    justify-content: center !important;
+    border-bottom: none !important;
+    padding-top: 0 !important;
+    padding-bottom: 8px !important;
+    width: 100%;
+  }
+
+  .custom-table td.avatar-cell::before {
+    display: none !important;
+  }
+
+  .custom-table td.avatar-cell .user-name {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .custom-table td.avatar-cell .user-avatar {
+    width: 64px;
+    height: 64px;
+    font-size: 1.5rem;
   }
 }
-@media (max-width: 768px) { .custom-table td.avatar-cell { justify-content: center !important; border-bottom: none !important; padding-top: 0 !important; padding-bottom: 8px !important; width: 100%; } .custom-table td.avatar-cell::before { display: none !important; } .custom-table td.avatar-cell .user-name { flex-direction: column; align-items: center; justify-content: center; text-align: center; } .custom-table td.avatar-cell .user-avatar { width: 80px; height: 80px; font-size: 2rem; } }
+
+/* Small devices (<= 480px) */
+@media (max-width: 480px) {
+  .users-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .add-user-btn {
+    height: 42px;
+    font-size: 0.92rem;
+    border-radius: 10px;
+  }
+}
+
+/* Ultra-small devices (<= 320px) */
+@media (max-width: 320px) {
+  .users-header h1 {
+    font-size: 1.15rem;
+  }
+
+  .add-user-btn {
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .custom-table td.avatar-cell .user-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.2rem;
+  }
+}
+

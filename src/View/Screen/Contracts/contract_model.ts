@@ -13,6 +13,7 @@ export class ContractModel {
   monthlySalary: number;
   winBonus: number;
   goalsBonus: number;
+  transportationExpenses: number;
   notes: string;
   status: string;
   entitlements: any[]; // Assuming entitlements aren't fully implemented in the backend yet, we'll keep it empty or mock it
@@ -29,6 +30,8 @@ export class ContractModel {
       // Determine contract type from individual type
       if (data.individual.type === 'player') this.contractType = 'لاعب';
       else if (data.individual.type === 'coach') this.contractType = 'مدرب';
+      else if (data.individual.type === 'assistant_coach') this.contractType = 'مساعد مدرب';
+      else if (data.individual.type === 'goalkeeper_coach') this.contractType = 'مدرب حراس';
       else this.contractType = 'موظف / إداري / طبيب';
     } else {
       this.beneficiary = 'مستفيد غير معروف';
@@ -45,6 +48,7 @@ export class ContractModel {
     this.monthlySalary = Number(data.Monthly_Salary) || 0;
     this.winBonus = Number(data.Winning_Bonus) || 0;
     this.goalsBonus = Number(data.Goals_Bonus) || 0;
+    this.transportationExpenses = Number(data.Transportation_Expenses) || 0;
     this.notes = data.nots || '';
     this.status = data.status || 'active';
     

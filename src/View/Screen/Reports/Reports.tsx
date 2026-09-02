@@ -105,7 +105,7 @@ export const Reports: React.FC = () => {
                   { value: 'راتب شهري', label: 'راتب شهري' },
                   { value: 'رقم دفعة', label: 'رقم دفعة' },
                   { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
-                  { value: 'منحة فوز', label: 'منحة فوز' },
+                  { value: 'منحة مقابلات', label: 'منحة مقابلات' },
                   { value: 'نتيجة', label: 'نتيجة' },
                   { value: 'تحفيز', label: 'تحفيز' },
                   { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
@@ -126,26 +126,99 @@ export const Reports: React.FC = () => {
           </>
         )}
         {controller.activeCategory === 'expenses' && (
-          <div className="filter-group">
-            <label>طبيعة المصروف</label>
+          <>
+            <div className="filter-group">
+              <label>نوع العملية</label>
+              <CustomDropdown
+                options={[
+                  { value: '', label: 'الكل' },
+                  { value: 'دفع', label: 'دفع' },
+                  { value: 'مصروف', label: 'مصروف' },
+                  { value: 'مصاريف استثنائية', label: 'مصاريف استثنائية' }
+                ]}
+                value={controller.expenseTransactionTypeFilter}
+                onChange={(val) => {
+                  controller.setExpenseTransactionTypeFilter(val);
+                  controller.setExpenseTypeFilter(''); // Reset sub-type when main type changes
+                }}
+                placeholder="اختر نوع العملية"
+              />
+            </div>
+            <div className="filter-group">
+              <label>طبيعة المصروف</label>
             <CustomDropdown
-              options={[
-                { value: '', label: 'الكل' },
-                { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
-                { value: 'تنقل', label: 'تنقل' },
-                { value: 'اقامة', label: 'اقامة' },
-                { value: 'إطعام', label: 'إطعام' },
-                { value: 'تجهيزات', label: 'تجهيزات' },
-                { value: 'صيانة', label: 'صيانة' },
-                { value: 'فواتير', label: 'فواتير' },
-                { value: 'كراء', label: 'كراء' },
-                { value: 'اخرى', label: 'اخرى' }
-              ]}
+              options={
+                controller.expenseTransactionTypeFilter === 'دفع' ? [
+                  { value: '', label: 'الكل' },
+                  { value: 'راتب شهري', label: 'راتب شهري' },
+                  { value: 'رقم دفعة', label: 'رقم دفعة' },
+                  { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
+                  { value: 'منحة مقابلات', label: 'منحة مقابلات' },
+                  { value: 'مصاريف التنقل', label: 'مصاريف التنقل' },
+                  { value: 'نتيجة', label: 'نتيجة' },
+                  { value: 'تحفيز', label: 'تحفيز' },
+                  { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
+                  { value: 'باقي المستحقات', label: 'باقي المستحقات' },
+                  { value: 'تسوية جزئية', label: 'تسوية جزئية' },
+                  { value: 'تسوية نهائية', label: 'تسوية نهائية' },
+                  { value: 'سلفة', label: 'سلفة' },
+                  { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
+                  { value: 'اخرى', label: 'اخرى' }
+                ] : controller.expenseTransactionTypeFilter === 'مصاريف استثنائية' ? [
+                  { value: '', label: 'الكل' },
+                  { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
+                  { value: 'تنقل', label: 'تنقل' },
+                  { value: 'اقامة', label: 'اقامة' },
+                  { value: 'إطعام', label: 'إطعام' },
+                  { value: 'تجهيزات', label: 'تجهيزات' },
+                  { value: 'صيانة', label: 'صيانة' },
+                  { value: 'فواتير', label: 'فواتير' },
+                  { value: 'كراء', label: 'كراء' },
+                  { value: 'اخرى', label: 'اخرى' }
+                ] : controller.expenseTransactionTypeFilter === 'مصروف' ? [
+                  { value: '', label: 'الكل' },
+                  { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
+                  { value: 'تنقل', label: 'تنقل' },
+                  { value: 'اقامة', label: 'اقامة' },
+                  { value: 'إطعام', label: 'إطعام' },
+                  { value: 'تجهيزات', label: 'تجهيزات' },
+                  { value: 'صيانة', label: 'صيانة' },
+                  { value: 'فواتير', label: 'فواتير' },
+                  { value: 'كراء', label: 'كراء' },
+                  { value: 'اخرى', label: 'اخرى' }
+                ] : [
+                  { value: '', label: 'الكل' },
+                  { value: 'راتب شهري', label: 'راتب شهري' },
+                  { value: 'رقم دفعة', label: 'رقم دفعة' },
+                  { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
+                  { value: 'منحة مقابلات', label: 'منحة مقابلات' },
+                  { value: 'مصاريف التنقل', label: 'مصاريف التنقل' },
+                  { value: 'نتيجة', label: 'نتيجة' },
+                  { value: 'تحفيز', label: 'تحفيز' },
+                  { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
+                  { value: 'باقي المستحقات', label: 'باقي المستحقات' },
+                  { value: 'تسوية جزئية', label: 'تسوية جزئية' },
+                  { value: 'تسوية نهائية', label: 'تسوية نهائية' },
+                  { value: 'سلفة', label: 'سلفة' },
+                  { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
+                  { value: 'مصاريف استثنائية', label: 'مصاريف استثنائية' },
+                  { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
+                  { value: 'تنقل', label: 'تنقل' },
+                  { value: 'اقامة', label: 'اقامة' },
+                  { value: 'إطعام', label: 'إطعام' },
+                  { value: 'تجهيزات', label: 'تجهيزات' },
+                  { value: 'صيانة', label: 'صيانة' },
+                  { value: 'فواتير', label: 'فواتير' },
+                  { value: 'كراء', label: 'كراء' },
+                  { value: 'اخرى', label: 'اخرى' }
+                ]
+              }
               value={controller.expenseTypeFilter}
               onChange={(val) => controller.setExpenseTypeFilter(val)}
               placeholder="اختر طبيعة المصروف"
             />
           </div>
+          </>
         )}
         {controller.activeCategory === 'funds' && (
           <>

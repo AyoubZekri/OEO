@@ -353,3 +353,137 @@
   transform: translateY(0);
   box-shadow: 0 2px 10px rgba(16, 185, 129, 0.2);
 }
+
+/* Transaction Type Selector Styling */
+.transaction-type-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.transaction-type-option {
+  cursor: pointer;
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.transaction-type-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.transaction-type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 15px;
+  border: 2px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+  background-color: var(--card-bg, #ffffff);
+  transition: all 0.3s ease;
+  text-align: center;
+  gap: 10px;
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  word-break: break-word;
+}
+
+.transaction-type-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--bg, #f3f4f6);
+  color: var(--text-muted, #6b7280);
+  transition: all 0.3s ease;
+}
+
+.transaction-type-label,
+.transaction-type-card span {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text, #374151);
+  transition: all 0.3s ease;
+}
+
+/* Hover State */
+.transaction-type-option:hover .transaction-type-card {
+  border-color: var(--accent-border, rgba(249, 115, 22, 0.5));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px var(--accent-bg, rgba(249, 115, 22, 0.1));
+}
+
+.transaction-type-option:hover .transaction-type-icon {
+  background-color: var(--accent-bg, rgba(249, 115, 22, 0.1));
+  color: var(--accent, #f97316);
+}
+
+/* Active State */
+.transaction-type-option input[type="radio"]:checked + .transaction-type-card {
+  border-color: var(--accent, #f97316);
+  background-color: var(--accent-bg, rgba(249, 115, 22, 0.1));
+  box-shadow: 0 4px 15px var(--accent-bg, rgba(249, 115, 22, 0.15));
+}
+
+.transaction-type-option input[type="radio"]:checked + .transaction-type-card .transaction-type-icon {
+  background-color: var(--accent, #f97316);
+  color: white;
+}
+
+.transaction-type-option input[type="radio"]:checked + .transaction-type-card span,
+.transaction-type-option input[type="radio"]:checked + .transaction-type-card .transaction-type-label {
+  color: var(--accent, #f97316);
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .transaction-type-card {
+  border-color: var(--border, #374151);
+  background-color: var(--card-bg, #1f2937);
+}
+
+body.dark-mode .transaction-type-icon {
+  background-color: var(--bg, #111827);
+  color: var(--text-muted, #9ca3af);
+}
+
+body.dark-mode .transaction-type-label,
+body.dark-mode .transaction-type-card span {
+  color: var(--text, #d1d5db);
+}
+
+body.dark-mode .transaction-type-option:hover .transaction-type-card {
+  border-color: var(--accent-border, rgba(251, 146, 60, 0.5));
+  background-color: var(--card-bg, #1f2937);
+}
+
+body.dark-mode .transaction-type-option input[type="radio"]:checked + .transaction-type-card {
+  border-color: var(--accent, #fb923c);
+  background-color: var(--accent-bg, rgba(251, 146, 60, 0.15));
+}
+
+body.dark-mode .transaction-type-option input[type="radio"]:checked + .transaction-type-card .transaction-type-icon {
+  background-color: var(--accent, #fb923c);
+  color: white;
+}
+
+body.dark-mode .transaction-type-option input[type="radio"]:checked + .transaction-type-card span,
+body.dark-mode .transaction-type-option input[type="radio"]:checked + .transaction-type-card .transaction-type-label {
+  color: var(--accent, #fb923c);
+}
+
+@media (max-width: 640px) {
+  .transaction-type-selector {
+    flex-direction: column;
+  }
+  .transaction-type-option {
+    width: 100%;
+  }
+}

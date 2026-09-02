@@ -1,5 +1,5 @@
 import React from 'react';
-import { AlertTriangle, FileWarning, MessageSquare, CheckCircle2, Calendar, MapPin, X, ShieldAlert, Clock, Scale } from 'lucide-react';
+import { AlertTriangle, FileWarning, MessageSquare, CheckCircle2, Calendar, MapPin, X, Clock, Scale } from 'lucide-react';
 import './Disciplinary.css';
 import './Members.css';
 

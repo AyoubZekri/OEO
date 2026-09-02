@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Receipt, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, ShieldAlert, FileWarning } from 'lucide-react';
+import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
+import { EvaluationDialog } from './Evaluation/EvaluationDialog';
+import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
+
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
-import { DisciplinaryActionDialog } from './DisciplinaryActionDialog';
-import { DisciplinaryHistoryDialog } from './DisciplinaryHistoryDialog';
+import { MemberModel } from './member_model';
 import './Members.css';
+import '../Disciplinary/Disciplinary.css';
 import heic2any from 'heic2any';
 
 const processImage = async (file: File, maxSizeKB: number): Promise<File> => {
@@ -125,69 +128,12 @@ export const Members: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [evalMember, setEvalMember] = useState<MemberModel | null>(null);
+  const [editingEvaluation, setEditingEvaluation] = useState<{player: MemberModel, data: any} | null>(null);
+
+  const [activeDialogTab, setActiveDialogTab] = useState<'financial' | 'equipment' | 'disciplinary' | 'correspondences'>('financial');
 
   const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-
-  // Disciplinary State
-  const [isDisciplinaryActionOpen, setIsDisciplinaryActionOpen] = useState(false);
-  const [isDisciplinaryHistoryOpen, setIsDisciplinaryHistoryOpen] = useState(false);
-  const [selectedDisciplinaryMember, setSelectedDisciplinaryMember] = useState<any>(null);
-  const [mockDisciplinaryHistory, setMockDisciplinaryHistory] = useState<any[]>([
-    {
-      id: 1,
-      memberId: 1,
-      actionType: 'تنبيه',
-      incident: 'التأخر عن حضور الاجتماع التقني',
-      incidentDate: '2026-08-25',
-      location: 'قاعة الاجتماعات',
-      ruleViolated: 'المادة 4 من النظام الداخلي',
-      notes: 'تأخر لمدة 30 دقيقة بدون عذر مسبق',
-      requirements: {
-        commitment: true,
-        clarification: false,
-        hearing: '',
-        other: ''
-      }
-    },
-    {
-      id: 2,
-      memberId: 1,
-      actionType: 'إنذار',
-      incident: 'عدم الالتزام بالزي الرسمي الرياضي',
-      incidentDate: '2026-08-20',
-      location: 'الملعب الأولمبي',
-      ruleViolated: 'المادة 12 - الهندام والمظهر',
-      notes: '',
-      requirements: {
-        commitment: true,
-        clarification: true,
-        hearing: '',
-        other: 'استبدال الزي'
-      }
-    }
-  ]);
-
-  const [disciplinaryToEdit, setDisciplinaryToEdit] = useState<any>(null);
-
-  const handleSaveDisciplinary = (data: any) => {
-    if (data.id) {
-      // Edit
-      setMockDisciplinaryHistory(prev => prev.map(item => item.id === data.id ? data : item));
-    } else {
-      // Add
-      const newAction = {
-        ...data,
-        id: Date.now(), // Generate mock ID
-      };
-      setMockDisciplinaryHistory(prev => [newAction, ...prev]);
-    }
-    setDisciplinaryToEdit(null);
-    setIsDisciplinaryActionOpen(false);
-  };
-
-  const handleDeleteDisciplinary = (id: string | number) => {
-    setMockDisciplinaryHistory(prev => prev.filter(item => item.id !== id));
-  };
 
   const getStatusBadge = (status: string) => {
     if (status === 'active') return <span className="badge badge-green">{t('members.active', 'نشط')}</span>;
@@ -203,6 +149,8 @@ export const Members: React.FC = () => {
   const typeOptions = [
     { value: 'player', label: 'لاعب' },
     { value: 'coach', label: 'مدرب' },
+    { value: 'assistant_coach', label: 'مساعد مدرب' },
+    { value: 'goalkeeper_coach', label: 'مدرب حراس' },
     { value: 'employee', label: 'موظف / إداري / طبيب' }
   ];
 
@@ -281,7 +229,7 @@ export const Members: React.FC = () => {
                     {member.first_name} {member.last_name}
                   </td>
                   <td data-label={t('members.type', 'المنصب')}>
-                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : 'موظف/إداري'}
+                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'موظف/إداري'}
                   </td>
                   <td data-label={t('members.jersey', 'رقم القميص')} className="jersey-cell">
                     {member.Shirt_number ? <span className="jersey-number">{member.Shirt_number}</span> : '-'}
@@ -318,19 +266,20 @@ export const Members: React.FC = () => {
                   </td>
                   <td data-label={t('members.actions', 'إجراءات')} className="actions-cell">
                     <div className="action-buttons-wrapper">
+                      {member.type === 'player' && (
+                        <>
+                          <button className="btn-action" onClick={() => setEvalMember(member)} title="إضافة تقييم" style={{ color: '#8b5cf6', background: 'rgba(139, 92, 246, 0.1)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
+                            <TrendingUp size={18} />
+                          </button>
+                          <button className="btn-action" onClick={() => controller.openEvalHistory(member)} title="أرشيف التقييمات" style={{ color: '#0ea5e9', background: 'rgba(14, 165, 233, 0.1)', borderColor: 'rgba(14, 165, 233, 0.2)' }}>
+                            <ClipboardList size={18} />
+                          </button>
+                        </>
+                      )}
+                      
                       {hasAccess(permissions.members.viewFinancialRecord) && (
                         <button className="btn-action view-btn" onClick={() => openExpensesDialog(member)} title="كشف الحساب">
                           <Eye size={18} />
-                        </button>
-                      )}
-                      
-                      {/* Disciplinary Buttons */}
-                      <button className="btn-action" style={{ color: 'var(--primary)', backgroundColor: 'var(--primary-light, rgba(249, 115, 22, 0.1))' }} onClick={() => { setDisciplinaryToEdit(null); setSelectedDisciplinaryMember(member); setIsDisciplinaryActionOpen(true); }} title="إجراء تأديبي / تنبيه">
-                        <ShieldAlert size={18} />
-                      </button>
-                      {mockDisciplinaryHistory.some(h => h.memberId === member.id) && (
-                        <button className="btn-action" style={{ color: 'var(--primary)', backgroundColor: 'var(--primary-light, rgba(249, 115, 22, 0.1))' }} onClick={() => { setSelectedDisciplinaryMember(member); setIsDisciplinaryHistoryOpen(true); }} title="السجل التأديبي">
-                          <FileWarning size={18} />
                         </button>
                       )}
 
@@ -510,32 +459,65 @@ export const Members: React.FC = () => {
         </div>
       )}
 
-      {/* Expenses & Details Dialog */}
+      {/* Tracking Record Dialog */}
       {isDialogOpen && selectedMember && (
         <div className="dialog-overlay printable-overlay" onClick={closeDialog}>
           <div className="dialog-content details-dialog" onClick={e => e.stopPropagation()}>
             <div className="dialog-header no-print">
               <div className="dialog-title">
-                <Receipt size={24} />
-                <h2>{t('members.expenses_record', 'كشف الحساب')} - {selectedMember.first_name} {selectedMember.last_name}</h2>
+                <ClipboardList size={24} />
+                <h2>سجل متابعة اللاعب - {selectedMember.first_name} {selectedMember.last_name}</h2>
               </div>
               <button className="close-btn" onClick={closeDialog}>
                 <X size={24} />
               </button>
             </div>
             
+            <div className="dialog-tabs no-print" style={{ display: 'flex', gap: '10px', padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
+              <button 
+                className={`tab-btn ${activeDialogTab === 'financial' ? 'active' : ''}`}
+                onClick={() => setActiveDialogTab('financial')}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'financial' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'financial' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                كشف الحساب
+              </button>
+              <button 
+                className={`tab-btn ${activeDialogTab === 'equipment' ? 'active' : ''}`}
+                onClick={() => setActiveDialogTab('equipment')}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'equipment' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'equipment' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                سجل المعدات
+              </button>
+              <button 
+                className={`tab-btn ${activeDialogTab === 'disciplinary' ? 'active' : ''}`}
+                onClick={() => setActiveDialogTab('disciplinary')}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'disciplinary' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'disciplinary' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                الإجراءات التأديبية
+              </button>
+              <button 
+                className={`tab-btn ${activeDialogTab === 'correspondences' ? 'active' : ''}`}
+                onClick={() => setActiveDialogTab('correspondences')}
+                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'correspondences' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'correspondences' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                المراسلات
+              </button>
+            </div>
+
             <div className="dialog-body printable-area">
-              <div className="print-header only-print">
-                <h2>نادي أولمبيك - كشف حساب</h2>
-                <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
-              </div>
+              {activeDialogTab === 'financial' && (
+                <>
+                  <div className="print-header only-print">
+                    <h2>نادي أولمبيك - كشف حساب</h2>
+                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
+                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
+                  </div>
 
               {/* Financial Summary Card */}
               <div className="financial-summary-card">
                 <div className="card-header">
                   <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                  <span className="card-badge">{selectedMember.type === 'player' ? 'لاعب' : 'عضو فريق'}</span>
+                  <span className="card-badge">{selectedMember.type === 'player' ? 'لاعب' : selectedMember.type === 'coach' ? 'مدرب' : selectedMember.type === 'assistant_coach' ? 'مساعد مدرب' : selectedMember.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'عضو فريق'}</span>
                 </div>
                 
                 {/* Contracts Loop */}
@@ -632,6 +614,192 @@ export const Members: React.FC = () => {
                   </tbody>
                 </table>
               </div>
+              </>
+              )}
+              {activeDialogTab === 'equipment' && (
+                <>
+                  <div className="print-header only-print">
+                    <h2>نادي أولمبيك - سجل المعدات</h2>
+                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
+                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
+                  </div>
+                  <div className="financial-summary-card" style={{ marginTop: '20px' }}>
+                    <div className="card-header">
+                      <h3>حركة المعدات الخاصة باللاعب</h3>
+                    </div>
+                    <div className="users-table-container">
+                      <table className="custom-table" style={{ width: '100%' }}>
+                        <thead>
+                          <tr>
+                            <th>العتاد</th>
+                            <th>النوع</th>
+                            <th>الكمية</th>
+                            <th>التاريخ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {/* Mock Data for now */}
+                          <tr>
+                            <td data-label="العتاد">طقم رياضي</td>
+                            <td data-label="النوع"><span className="op-type-badge badge-handover" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '4px 8px', borderRadius: '4px', fontSize: '0.875rem' }}>تسليم</span></td>
+                            <td data-label="الكمية"><span className="qty-badge-table" style={{ background: 'var(--bg-body)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border)' }}>1</span></td>
+                            <td data-label="التاريخ">2026-08-25</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeDialogTab === 'disciplinary' && (
+                <>
+                  <div className="print-header only-print">
+                    <h2>نادي أولمبيك - السجل التأديبي</h2>
+                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
+                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
+                  </div>
+                  <div className="disciplinary-grid" style={{ marginTop: '20px' }}>
+                    <div className="disciplinary-premium-card">
+                      <div className="card-header-premium">
+                        <div className="action-type-pill تنبيه">
+                          <AlertTriangle size={16} />
+                          <span>تنبيه</span>
+                        </div>
+                        <span className="card-subtitle-premium">#102938</span>
+                      </div>
+                      
+                      <div className="card-body-premium">
+                        <div className="info-row-premium">
+                          <Calendar size={16} />
+                          <span><strong>تاريخ الحدث:</strong> 2026-08-20</span>
+                        </div>
+                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
+                          <FileText size={16} />
+                          <span><strong>السبب:</strong> تأخر متكرر عن التدريبات بدون عذر مسبق.</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="disciplinary-premium-card">
+                      <div className="card-header-premium">
+                        <div className="action-type-pill إنذار">
+                          <FileWarning size={16} />
+                          <span>إنذار</span>
+                        </div>
+                        <span className="card-subtitle-premium">#394857</span>
+                      </div>
+                      
+                      <div className="card-body-premium">
+                        <div className="info-row-premium">
+                          <Calendar size={16} />
+                          <span><strong>تاريخ الحدث:</strong> 2026-08-10</span>
+                        </div>
+                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
+                          <FileText size={16} />
+                          <span><strong>السبب:</strong> سلوك غير رياضي تجاه أحد أعضاء الفريق الخصم أثناء مباراة ودية.</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+              {activeDialogTab === 'correspondences' && (
+                <>
+                  <div className="print-header only-print">
+                    <h2>نادي أولمبيك - سجل المراسلات</h2>
+                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
+                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
+                  </div>
+                  <div className="disciplinary-grid" style={{ marginTop: '20px' }}>
+                    {/* Correspondence Card 1 - Outgoing */}
+                    <div className="disciplinary-premium-card">
+                      <div className="card-header-premium">
+                        <div className="action-type-pill" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
+                          <ArrowUpRight size={16} />
+                          <span>صادر</span>
+                        </div>
+                        <span className="card-subtitle-premium" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Hash size={14} />
+                          م/2026/045
+                        </span>
+                      </div>
+                      
+                      <div className="card-body-premium">
+                        <div className="info-row-premium">
+                          <Calendar size={16} />
+                          <span><strong>التاريخ:</strong> 2026-08-25</span>
+                        </div>
+                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
+                          <Mail size={16} />
+                          <span><strong>الموضوع:</strong> طلب إعارة لاعب إلى نادي شبيبة الساورة للموسم 2026/2027</span>
+                        </div>
+                        <div className="info-row-premium">
+                          <MapPin size={16} />
+                          <span><strong>الجهة:</strong> الرابطة الوطنية لكرة القدم</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Correspondence Card 2 - Incoming */}
+                    <div className="disciplinary-premium-card">
+                      <div className="card-header-premium">
+                        <div className="action-type-pill" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
+                          <ArrowDownLeft size={16} />
+                          <span>وارد</span>
+                        </div>
+                        <span className="card-subtitle-premium" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Hash size={14} />
+                          م/2026/032
+                        </span>
+                      </div>
+                      
+                      <div className="card-body-premium">
+                        <div className="info-row-premium">
+                          <Calendar size={16} />
+                          <span><strong>التاريخ:</strong> 2026-08-15</span>
+                        </div>
+                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
+                          <Mail size={16} />
+                          <span><strong>الموضوع:</strong> استدعاء للمشاركة في تربص المنتخب الوطني للشباب</span>
+                        </div>
+                        <div className="info-row-premium">
+                          <MapPin size={16} />
+                          <span><strong>الجهة:</strong> الاتحادية الجزائرية لكرة القدم</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Correspondence Card 3 - Outgoing */}
+                    <div className="disciplinary-premium-card">
+                      <div className="card-header-premium">
+                        <div className="action-type-pill" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
+                          <ArrowUpRight size={16} />
+                          <span>صادر</span>
+                        </div>
+                        <span className="card-subtitle-premium" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Hash size={14} />
+                          م/2026/018
+                        </span>
+                      </div>
+                      
+                      <div className="card-body-premium">
+                        <div className="info-row-premium">
+                          <Calendar size={16} />
+                          <span><strong>التاريخ:</strong> 2026-07-20</span>
+                        </div>
+                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
+                          <Mail size={16} />
+                          <span><strong>الموضوع:</strong> إخطار اللاعب بتجديد عقده لموسمين إضافيين</span>
+                        </div>
+                        <div className="info-row-premium">
+                          <MapPin size={16} />
+                          <span><strong>الجهة:</strong> داخلي - إدارة النادي</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="dialog-footer no-print">
@@ -641,27 +809,61 @@ export const Members: React.FC = () => {
         </div>
       )}
 
-      {/* Disciplinary Action Dialog */}
-      <DisciplinaryActionDialog 
-        isOpen={isDisciplinaryActionOpen}
-        onClose={() => { setIsDisciplinaryActionOpen(false); setDisciplinaryToEdit(null); }}
-        member={selectedDisciplinaryMember}
-        onSave={handleSaveDisciplinary}
-        editData={disciplinaryToEdit}
-      />
+      {/* Evaluation Dialog */}
+      {(evalMember || editingEvaluation) && (
+        <EvaluationDialog 
+          player={evalMember || editingEvaluation?.player} 
+          initialData={editingEvaluation?.data}
+          onClose={() => {
+            setEvalMember(null);
+            setEditingEvaluation(null);
+          }}
+          onSave={(data) => {
+            const date = new Date().toISOString().split('T')[0];
+            if (editingEvaluation) {
+              controller.updateEvaluation({
+                id: editingEvaluation.data.id,
+                member_id: Number(editingEvaluation.player.id),
+                evalDate: editingEvaluation.data.evalDate,
+                season: data.season,
+                period: data.period,
+                totalScore: data.totalScore,
+                recommendation: data.recommendation,
+                strengths: data.strengths,
+                weaknesses: data.weaknesses,
+                scores: data.scores
+              });
+              setEditingEvaluation(null);
+            } else if (evalMember) {
+              controller.saveEvaluation({
+                member_id: Number(evalMember.id),
+                season: data.season,
+                period: data.period,
+                evalDate: date,
+                totalScore: data.totalScore,
+                recommendation: data.recommendation,
+                strengths: data.strengths,
+                weaknesses: data.weaknesses,
+                scores: data.scores
+              });
+              setEvalMember(null);
+            }
+          }}
+        />
+      )}
+      
+      {/* Evaluation History Dialog */}
+      {controller.evalHistoryMember && (
+        <EvaluationHistoryDialog 
+          player={controller.evalHistoryMember}
+          evaluations={controller.evaluations}
+          onClose={controller.closeEvalHistory}
+          onAddTest={() => controller.addTestEvaluation(Number(controller.evalHistoryMember!.id))}
+          onEdit={(ev) => setEditingEvaluation({ player: controller.evalHistoryMember!, data: ev })}
+          onDelete={(id) => controller.deleteEvaluation(id)}
+        />
+      )}
 
-      {/* Disciplinary History Dialog */}
-      <DisciplinaryHistoryDialog 
-        isOpen={isDisciplinaryHistoryOpen}
-        onClose={() => setIsDisciplinaryHistoryOpen(false)}
-        member={selectedDisciplinaryMember}
-        history={mockDisciplinaryHistory.filter(h => h.memberId === selectedDisciplinaryMember?.id)}
-        onEdit={(item) => {
-          setDisciplinaryToEdit(item);
-          setIsDisciplinaryActionOpen(true);
-        }}
-        onDelete={handleDeleteDisciplinary}
-      />
     </div>
   );
 };

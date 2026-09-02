@@ -23,7 +23,7 @@ export interface PaymentMember {
 
 export interface PaymentRecord {
   id: string;
-  transactionType?: 'دفع' | 'مصروف';
+  transactionType?: 'دفع' | 'مصروف' | 'مصاريف استثنائية';
   memberId?: string;
   fundId?: string;
   fund_id?: string;
@@ -40,6 +40,7 @@ export interface PaymentRecord {
   month?: string; // For 'راتب شهري'
   year?: string; // For 'راتب شهري'
   occasion?: string; // For 'اخرى' and others
+  numberOfMonths?: number; // For 'راتب شهري'
   numberOfGoals?: number; // For 'تسجيل أهداف'
 
   notes?: string;
@@ -198,11 +199,17 @@ export const usePaymentsController = () => {
 
   const savePayment = async (payment: Omit<PaymentRecord, 'id'>) => {
     setIsLoading(true);
-    let payload = { ...payment };
+    let payload: any = { ...payment };
 
     if (payload.fundId) {
       payload.fund_id = payload.fundId; // Add for backend
       delete payload.fundId; // Not strictly needed but clean
+    }
+
+    if (payload.transactionType) {
+      payload.transaction_type = payload.transactionType; // Add for backend
+      payload.type = payload.transactionType; // Some backends use 'type'
+      // Keep transactionType as well since backend update() checks for it
     }
 
     const receiptFile = payload.receipt_file instanceof File ? payload.receipt_file : undefined;

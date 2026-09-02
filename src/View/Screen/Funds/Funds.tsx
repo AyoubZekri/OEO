@@ -150,17 +150,17 @@ export const Funds: React.FC = () => {
             <div className="fund-card-actions">
               {hasAccess(permissions.funds.edit) && (
                 <button className="btn-action edit-btn" onClick={() => openFundDialog(fund)} title="تعديل">
-                  <Edit2 size={16} /> تعديل
+                  <Edit2 size={16} /> <span>تعديل</span>
                 </button>
               )}
               {hasAccess(permissions.funds.delete) && (
                 <button className="btn-action delete-btn" onClick={() => deleteFund(fund.id)} title="حذف">
-                  <Trash2 size={16} /> حذف
+                  <Trash2 size={16} /> <span>حذف</span>
                 </button>
               )}
               {hasAccess(permissions.funds.addTransaction) && (
                 <button className="btn-action view-btn" onClick={() => openOperationDialog(fund.id)} title="عملية جديدة">
-                  <ArrowRightLeft size={16} /> عملية جديدة
+                  <ArrowRightLeft size={16} /> <span>عملية جديدة</span>
                 </button>
               )}
             </div>

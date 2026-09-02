@@ -851,3 +851,200 @@ body.dark-mode .card-item:hover {
   color: #ffffff;
   transform: translateY(-1px);
 }
+
+/* Small devices (Mobile phones <= 480px) */
+@media (max-width: 480px) {
+  .members-container {
+    padding: 10px 0 20px 0;
+  }
+
+  .members-header {
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    font-size: 1.35rem;
+  }
+
+  .members-actions {
+    gap: 10px;
+  }
+
+  .members-actions .search-box,
+  .members-actions .btn-primary,
+  .members-actions .form-group > div:first-of-type {
+    height: 42px !important;
+  }
+
+  .member-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    font-size: 1.5rem;
+  }
+
+  .member-avatar.placeholder {
+    font-size: 1.5rem;
+  }
+
+  .custom-table td.member-name-cell {
+    font-size: 1.1rem;
+    padding-bottom: 10px !important;
+  }
+
+  .action-buttons-wrapper {
+    gap: 6px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .btn-action svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  /* Financial Summary Card in Dialog */
+  .financial-summary-card {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .financial-summary-card .card-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .card-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .card-item {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .card-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+  }
+
+  .card-item .value {
+    font-size: 1rem;
+  }
+
+  .card-item .label {
+    font-size: 0.78rem;
+  }
+
+  .dialog-content {
+    width: 96% !important;
+    max-height: 94vh !important;
+    border-radius: 14px;
+  }
+
+  .dialog-header {
+    padding: 16px;
+  }
+
+  .dialog-title h2 {
+    font-size: 1.15rem;
+  }
+
+  .dialog-body {
+    padding: 16px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .dialog-footer {
+    padding: 14px 16px;
+  }
+}
+
+/* Ultra small devices (<= 320px, Galaxy Fold, etc.) */
+@media (max-width: 320px) {
+  .page-title {
+    font-size: 1.15rem;
+  }
+
+  .members-actions .search-box,
+  .members-actions .btn-primary,
+  .members-actions .form-group > div:first-of-type {
+    height: 38px !important;
+    font-size: 0.85rem;
+  }
+
+  .member-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    font-size: 1.2rem;
+  }
+
+  .member-avatar.placeholder {
+    font-size: 1.2rem;
+  }
+
+  .custom-table td.member-name-cell {
+    font-size: 0.95rem;
+  }
+
+  .action-buttons-wrapper {
+    gap: 4px;
+  }
+
+  .btn-action {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  .btn-action svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .financial-summary-card {
+    padding: 12px;
+  }
+
+  .card-item {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .card-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+  }
+
+  .card-item .value {
+    font-size: 0.9rem;
+  }
+
+  .card-item .label {
+    font-size: 0.7rem;
+  }
+
+  .dialog-body {
+    padding: 12px;
+  }
+
+  .dialog-header {
+    padding: 12px;
+  }
+}
+

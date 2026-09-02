@@ -435,3 +435,47 @@ body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
     display: none !important;
   }
 }
+
+@media (max-width: 480px) {
+  .custom-table tbody {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .custom-table tbody tr {
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .custom-table td {
+    padding: 8px 0;
+    font-size: 0.88rem;
+  }
+
+  .custom-table td::before {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+}
+
+@media (max-width: 320px) {
+  .custom-table tbody {
+    gap: 10px;
+  }
+
+  .custom-table tbody tr {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .custom-table td {
+    padding: 6px 0;
+    font-size: 0.8rem;
+  }
+
+  .custom-table td::before {
+    font-size: 0.68rem;
+    padding: 2px 6px;
+  }
+}

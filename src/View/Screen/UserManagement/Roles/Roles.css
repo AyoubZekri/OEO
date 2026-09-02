@@ -675,6 +675,22 @@ input:disabled + .toggle-slider:before {
 .role-form-top { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
 @media (max-width: 768px) {
+  .roles-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .add-role-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .roles-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
   .premium-role-dialog {
     width: 100% !important;
     height: 100vh !important;
@@ -704,3 +720,299 @@ input:disabled + .toggle-slider:before {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Small devices (<= 480px) */
+@media (max-width: 480px) {
+  .roles-header h1 {
+    font-size: 1.3rem;
+  }
+
+  .add-role-btn {
+    height: 42px;
+    font-size: 0.92rem;
+    border-radius: 10px;
+  }
+
+  .role-card {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .role-card-header {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  .role-title h2 {
+    font-size: 1.1rem;
+  }
+
+  .permissions-summary ul {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .premium-permissions-list {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .premium-permissions-list li {
+    padding: 8px 12px;
+    font-size: 0.88rem;
+  }
+
+  .premium-dialog-header h2 {
+    font-size: 1.2rem;
+  }
+
+  .premium-modules-grid {
+    padding: 12px !important;
+    gap: 12px;
+  }
+
+  .premium-module-header {
+    padding: 12px !important;
+  }
+
+  .premium-module-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .premium-module-title {
+    font-size: 0.98rem;
+    gap: 8px;
+  }
+
+  .premium-actions-list {
+    padding: 12px !important;
+    gap: 8px;
+  }
+
+  .premium-action-item {
+    padding: 10px 12px;
+  }
+
+  .premium-action-info {
+    font-size: 0.88rem;
+    gap: 8px;
+  }
+}
+
+/* Ultra-small devices (<= 320px, Galaxy Fold, etc.) */
+@media (max-width: 320px) {
+  .roles-header h1 {
+    font-size: 1.15rem;
+  }
+
+  .add-role-btn {
+    height: 38px;
+    font-size: 0.85rem;
+  }
+
+  .role-card {
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .role-title h2 {
+    font-size: 0.95rem;
+  }
+
+  .role-actions {
+    gap: 4px;
+  }
+
+  .btn-icon {
+    padding: 4px;
+  }
+
+  .premium-permissions-list li {
+    padding: 6px 8px;
+    font-size: 0.8rem;
+  }
+
+  .premium-dialog-header {
+    padding: 10px 12px !important;
+  }
+
+  .premium-dialog-header h2 {
+    font-size: 1rem;
+  }
+
+  .premium-modules-grid {
+    padding: 8px !important;
+    gap: 8px;
+  }
+
+  .premium-module-header {
+    padding: 8px 10px !important;
+  }
+
+  .premium-module-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .premium-module-title {
+    font-size: 0.85rem;
+    gap: 6px;
+  }
+
+  .premium-actions-list {
+    padding: 8px !important;
+    gap: 6px;
+  }
+
+  .premium-action-item {
+    padding: 8px;
+  }
+
+  .premium-action-info {
+    font-size: 0.78rem;
+    gap: 6px;
+  }
+
+  .glow-switch {
+    transform: scale(0.85);
+  }
+
+  .small-switch {
+    transform: scale(0.8);
+  }
+}
+
+
+/* --- New View Permissions Design --- */
+
+.view-permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  padding: 24px;
+  background-color: #f8fafc;
+}
+
+.view-module-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.view-module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.view-module-card.active {
+  border-color: #cbd5e1;
+}
+
+.view-module-card.inactive {
+  opacity: 0.65;
+  filter: grayscale(100%);
+}
+
+.view-module-header {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
+}
+
+.view-module-card.active .view-module-header {
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.view-module-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-module-card.active .view-module-icon {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.view-module-title-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-module-title-wrap h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.view-status-badge {
+  align-self: flex-start;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.view-status-badge.active {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+.view-status-badge.inactive {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.view-permissions-list {
+  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.view-perm-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.view-perm-chip.granted {
+  background: #eff6ff;
+  color: #2563eb;
+  border: 1px solid #bfdbfe;
+}
+
+.view-perm-chip.denied {
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+  text-decoration: line-through;
+}
+
+.view-perm-chip svg {
+  flex-shrink: 0;
+}
+

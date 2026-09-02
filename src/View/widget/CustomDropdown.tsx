@@ -45,8 +45,9 @@ export const CustomDropdown = <T extends string>({
         onClick={() => setIsOpen(!isOpen)}
         style={{ 
           display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', 
-          border: '1px solid var(--border, #d1d5db)', borderRadius: '8px', 
-          cursor: 'pointer', background: 'var(--bg, #fff)', color: 'var(--text-h, #111827)' 
+          border: '1px solid var(--border, #d1d5db)', borderRadius: '12px', 
+          cursor: 'pointer', background: 'var(--bg, #fff)', color: 'var(--text-h, #111827)',
+          height: '100%', boxSizing: 'border-box'
         }}
       >
         {selectedOption?.icon}
@@ -57,7 +58,7 @@ export const CustomDropdown = <T extends string>({
         <div style={{ 
           position: 'absolute', top: '100%', left: 0, width: '100%', 
           background: 'var(--bg, #fff)', border: '1px solid var(--border, #d1d5db)', 
-          borderRadius: '8px', zIndex: 50, marginTop: '4px', 
+          borderRadius: '12px', zIndex: 50, marginTop: '4px', 
           boxShadow: '0 4px 6px rgba(0,0,0,0.1)', overflowY: 'auto', overflowX: 'hidden', maxHeight: '250px' 
         }}>
           {options.map((opt) => (

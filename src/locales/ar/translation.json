@@ -24,7 +24,8 @@
     "contracts": "العقود",
     "payments": "المصاريف والمدفوعات",
     "funds": "الصناديق المالية",
-    "reports": "التقارير المالية"
+    "reports": "التقارير المالية",
+    "absence_requests": "الغيابات والتبريرات"
   },
   "topbar": {
     "admin": "مدير النظام",
@@ -106,13 +107,16 @@
     "save_role": "حفظ الدور",
     "permissions": "الصلاحيات",
     "modules": {
+      "dashboard": "الصفحة الرئيسية",
       "members": "الأفراد والأعضاء",
       "teams": "الفرق الرياضية",
       "contracts": "العقود",
       "payments": "المدفوعات",
       "funds": "الصناديق المالية",
       "reports": "التقارير",
-      "usersAndRoles": "إدارة المستخدمين والصلاحيات"
+      "usersAndRoles": "إدارة المستخدمين والصلاحيات",
+      "equipment": "معدات الفريق",
+      "equipmentOperations": "حركة العتاد"
     },
     "actions": {
       "view": "عرض",
@@ -124,6 +128,8 @@
       "renew": "تجديد العقد",
       "addTransaction": "إضافة حركة مالية",
       "deleteTransaction": "حذف حركة مالية",
+      "handover": "تسليم عتاد",
+      "return": "إرجاع عتاد",
       "viewIndividuals": "عرض تقارير الأفراد",
       "viewTeams": "عرض تقارير الفرق",
       "viewContracts": "عرض تقارير العقود",
@@ -204,6 +210,9 @@
     "adv_name": "اسم المعلن",
     "adv_phone": "رقم هاتف المعلن",
     "date": "التاريخ",
+    "form_month": "الشهر",
+    "form_year": "السنة",
+    "form_number_of_months": "عدد الأشهر",
     "time": "الوقت",
     "price": "السعر",
     "paid_amount": "المبلغ المدفوع",
@@ -600,6 +609,9 @@
     "add_new_contract": "إضافة عقد جديد",
     "type_player": "لاعب",
     "type_coach": "مدرب",
+    "type_assistant_coach": "مساعد مدرب",
+    "type_goalkeeper_coach": "مدرب حراس",
+    "transportation_expenses": "مصاريف النقل",
     "type_doctor": "طبيب",
     "type_admin": "إداري",
     "payment_method": "طريقة الاستحقاق",

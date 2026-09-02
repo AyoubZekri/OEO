@@ -115,11 +115,31 @@ body.dark-mode .fund-card {
 .btn-action.delete-btn { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
 .btn-action.delete-btn:hover { background-color: #fee2e2; transform: scale(1.02); }
 
-.btn-action.view-btn { background-color: var(--accent); color: white; flex: 2; }
-.btn-action.view-btn:hover { background-color: var(--accent-dark); transform: scale(1.02); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2); }
+.btn-action.view-btn {
+  background: linear-gradient(135deg, var(--accent, #f97316) 0%, var(--accent-secondary, #ea580c) 100%);
+  color: #ffffff;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 10px 16px;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 2;
+  white-space: nowrap;
+}
+
+.btn-action.view-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(249, 115, 22, 0.35);
+  opacity: 0.95;
+}
 
 body.dark-mode .btn-action.edit-btn { background-color: rgba(22, 163, 74, 0.15); color: #4ade80; border-color: rgba(22, 163, 74, 0.3); }
 body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3); }
+body.dark-mode .btn-action.view-btn { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4); }
+
 
 
 /* Transactions Table & Filters */
@@ -205,9 +225,166 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
 }
 
 @media (max-width: 768px) {
+  .funds-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .funds-actions {
+    width: 100%;
+  }
+
+  .funds-actions button {
+    width: 100%;
+  }
+
+  .funds-summary {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .fund-card-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .fund-card-actions .view-btn span {
+    display: none;
+  }
+
+  .fund-card-actions .view-btn {
+    width: 44px;
+    height: 40px;
+    padding: 0;
+    flex: 0 0 44px;
+    border-radius: 12px;
+    justify-content: center;
+  }
+
+  .fund-card-actions .edit-btn,
+  .fund-card-actions .delete-btn {
+    flex: 1;
+    height: 40px;
+  }
+
+  .funds-table-wrapper {
+    background-color: transparent;
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    border-radius: 0;
+  }
+
+  .filters-row {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .filters-row .form-group {
+    min-width: 100%;
+  }
+
   .add-fund-dialog .form-row {
     flex-direction: column;
     gap: 0;
+  }
+}
+
+/* Small devices (<= 480px) */
+@media (max-width: 480px) {
+  .fund-card {
+    padding: 16px;
+    gap: 12px;
+    border-radius: 16px;
+  }
+
+  .fund-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .fund-card-title {
+    font-size: 1.05rem;
+  }
+
+  .fund-card-balance {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+  }
+
+  .fund-card-actions {
+    padding-top: 12px;
+    gap: 6px;
+  }
+
+  .btn-action {
+    font-size: 0.82rem;
+    padding: 6px 10px;
+  }
+
+  .add-fund-dialog {
+    width: 96% !important;
+    border-radius: 16px;
+  }
+
+  .add-fund-dialog .dialog-header {
+    padding: 16px 20px;
+  }
+
+  .add-fund-dialog .dialog-body {
+    padding: 16px 20px;
+  }
+}
+
+/* Ultra-small devices (<= 320px, Galaxy Fold, etc.) */
+@media (max-width: 320px) {
+  .fund-card {
+    padding: 12px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .fund-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+  }
+
+  .fund-card-title {
+    font-size: 0.95rem;
+  }
+
+  .fund-card-balance {
+    font-size: 1.15rem;
+  }
+
+  .fund-card-actions {
+    padding-top: 8px;
+    gap: 4px;
+  }
+
+  .fund-card-actions .view-btn {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 8px;
+  }
+
+  .fund-card-actions .edit-btn,
+  .fund-card-actions .delete-btn {
+    height: 34px;
+    font-size: 0.75rem;
+    padding: 4px;
+    border-radius: 6px;
+  }
+
+  .add-fund-dialog .dialog-header,
+  .add-fund-dialog .dialog-body {
+    padding: 12px 14px;
   }
 }
 
@@ -215,3 +392,4 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
   from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
+

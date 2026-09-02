@@ -244,9 +244,9 @@ body.dark-mode .menu-item.active {
   justify-content: center;
 }
 
-.menu-label {
+.menu-text {
   white-space: nowrap;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 .saidpar-container.closed .menu-item {
@@ -330,7 +330,7 @@ body.dark-mode .saidpar-container.closed .submenu-container {
   color: var(--text);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   gap: 12px;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   position: relative;
   overflow: hidden;
 }
@@ -454,7 +454,7 @@ body.dark-mode .saidpar-footer {
 
 .logout-text {
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   z-index: 2;
   white-space: nowrap;
 }

@@ -60,6 +60,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
   const [name, setName] = useState('');
   const [accessLevel, setAccessLevel] = useState<'full' | 'partial'>('full');
   const [appPerms, setAppPerms] = useState<AppPermissions>({ ...defaultPermissions });
+  const isFull = accessLevel === 'full';
   const [errors, setErrors] = useState<{name?: string}>({});
   const { t } = useTranslation();
 
@@ -183,15 +184,12 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                       <div className="premium-module-icon">
                         {getModuleIcon(module.key)}
                       </div>
-                      {module.key === 'dashboard' ? 'الصفحة الرئيسية' : 
-                       module.key === 'equipment' ? 'معدات الفريق' :
-                       module.key === 'equipmentOperations' ? 'حركة العتاد' :
-                       t(`roles_permissions.modules.${module.key}`)}
+                      {t(`roles_permissions.modules.${module.key}`)}
                     </div>
                     <label className="glow-switch">
                       <input 
                         type="checkbox" 
-                        checked={isModuleActive}
+                        checked={isModuleActive} disabled={isFull}
                         onChange={(e) => handleModuleToggle(module.key, e.target.checked)}
                       />
                       <span className="glow-slider"></span>
@@ -204,15 +202,13 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                         <div key={action} className="premium-action-item">
                           <div className="premium-action-info">
                             {getActionIcon(action)}
-                            {action === 'handover' ? 'تسليم' : 
-                             action === 'return' ? 'إرجاع' :
-                             t(`roles_permissions.actions.${action}`)}
+                            {t(`roles_permissions.actions.${action}`)}
                           </div>
                           <label className="glow-switch small-switch">
                             <input 
                               type="checkbox" 
                               checked={(modulePerms as any)[action] || false} 
-                              disabled={!isModuleActive}
+                              disabled={isFull || !(modulePerms as any)[action]}
                               onChange={(e) => handleActionChange(module.key, action, e.target.checked)} 
                             />
                             <span className="glow-slider"></span>

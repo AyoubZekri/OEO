@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Saidpar } from './View/Screen/Saidpar/Saidpar';
@@ -15,6 +16,11 @@ import { Funds } from './View/Screen/Funds/Funds';
 import { Reports } from './View/Screen/Reports/Reports';
 import { Equipment } from './View/Screen/Equipment/Equipment';
 import { EquipmentOperations } from './View/Screen/Equipment/EquipmentOperations';
+import { Correspondences } from './View/Screen/Correspondences/Correspondences';
+import { Disciplinary } from './View/Screen/Disciplinary/Disciplinary';
+import TrainingSessions from './View/Screen/TrainingSessions/TrainingSessions';
+import { TakeAttendance } from './View/Screen/TrainingSessions/Attendance/TakeAttendance';
+import { AbsenceRequests } from './View/Screen/Absence/AbsenceRequests';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
@@ -26,6 +32,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
+    console.log("Registered Route for Correspondences:", Approutes.Correspondences);
   }, [i18n.language]);
 
   return (
@@ -46,6 +53,11 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Teams} element={<Teams />} />
             <Route path={Approutes.Equipment} element={<Equipment />} />
             <Route path={Approutes.EquipmentOperations} element={<EquipmentOperations />} />
+            <Route path={Approutes.Correspondences} element={<Correspondences />} />
+            <Route path={Approutes.Disciplinary} element={<Disciplinary />} />
+            <Route path={Approutes.TrainingSessions} element={<TrainingSessions />} />
+            <Route path={Approutes.TakeAttendance} element={<TakeAttendance />} />
+            <Route path={Approutes.AbsenceRequests} element={<AbsenceRequests />} />
             {/* Add more routes here as needed */}
           </Routes>
         </div>

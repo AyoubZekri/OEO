@@ -10,7 +10,7 @@ import { FundsData } from '../Funds/funds_data';
 import type { Fund, FundTransaction } from '../Funds/FundsController';
 
 export type ReportCategory = 'individuals' | 'expenses' | 'contracts' | 'funds';
-export type IndividualReportType = 'player' | 'coach' | 'employee';
+export type IndividualReportType = 'player' | 'coach' | 'assistant_coach' | 'goalkeeper_coach' | 'employee';
 export type ExpenseReportType = 'daily' | 'monthly' | 'seasonal' | 'byType' | 'byTeam';
 export type ContractReportType = 'total' | 'paid' | 'remaining' | 'upcoming';
 export type FundReportType = 'fundMovement' | 'bankMovement' | 'transfers' | 'balance';
@@ -32,6 +32,7 @@ export const useReportsController = () => {
   const [individualPaymentTypeFilter, setIndividualPaymentTypeFilter] = useState<string>('');
   const [fundFilter, setFundFilter] = useState<string>('');
   const [fundTransactionTypeFilter, setFundTransactionTypeFilter] = useState<string>('');
+  const [expenseTransactionTypeFilter, setExpenseTransactionTypeFilter] = useState<string>('');
 
   const handlePresetDateChange = (preset: string) => {
     setPresetDate(preset);
@@ -227,14 +228,44 @@ export const useReportsController = () => {
 
   // Calculations for Expenses Report
   const getExpenseSummary = () => {
-    let relevantPayments = payments.filter(p => p.transactionType === 'مصروف' || (!p.memberId && ['تعويض مصاريف', 'تنقل', 'اقامة', 'إطعام', 'تجهيزات', 'صيانة', 'فواتير', 'كراء', 'اخرى'].includes(p.amountNature)));
+    let relevantPayments = [...payments].filter(p => p != null);
+    
+    if (expenseTransactionTypeFilter) {
+      if (relevantPayments.length > 0 && !(window as any).hasLoggedPaymentInfo) {
+         console.log("=== API PAYMENT RECORD ===");
+         console.log(relevantPayments[0]);
+         console.log("=========================");
+         (window as any).hasLoggedPaymentInfo = true;
+      }
+
+      relevantPayments = relevantPayments.filter(p => {
+        let tType = (
+          p.transactionType || 
+          (p as any).transaction_type || 
+          (p as any).type || 
+          (p as any).Transaction_Type ||
+          (p as any).Transaction_type ||
+          (p as any).transaction_Type ||
+          (p as any).TransactionType ||
+          ''
+        ).trim();
+        
+        // Fallback ONLY for legacy 'مصروف' and 'دفع', since 'مصاريف استثنائية' was just added
+        // and relies entirely on tType being correctly saved in DB.
+        // Removed fallback logic to guarantee strict separation between 'مصروف' and 'مصاريف استثنائية'
+        // If the backend returns tType as empty, it will NOT be shown in the filter.
+
+        
+        return tType === expenseTransactionTypeFilter;
+      });
+    }
     
     // Filter payments by date range
     if (fromDate) {
-      relevantPayments = relevantPayments.filter(p => p.paymentDate >= fromDate);
+      relevantPayments = relevantPayments.filter(p => p.paymentDate && p.paymentDate >= fromDate);
     }
     if (toDate) {
-      relevantPayments = relevantPayments.filter(p => p.paymentDate <= toDate);
+      relevantPayments = relevantPayments.filter(p => p.paymentDate && p.paymentDate <= toDate);
     }
 
     // Filter by expense type if selected
@@ -414,6 +445,8 @@ export const useReportsController = () => {
     setFundFilter,
     fundTransactionTypeFilter,
     setFundTransactionTypeFilter,
+    expenseTransactionTypeFilter,
+    setExpenseTransactionTypeFilter,
 
     members,
     contracts,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaymentsController, type PaymentRecord } from './PaymentsController';
-import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen, AlertCircle } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -129,7 +129,7 @@ export const Payments: React.FC = () => {
   } = controller;
 
   // Form State
-  const [transactionType, setTransactionType] = useState<'دفع' | 'مصروف'>('دفع');
+  const [transactionType, setTransactionType] = useState<'دفع' | 'مصروف' | 'مصاريف استثنائية'>('دفع');
   const [memberId, setMemberId] = useState('');
   const [fundId, setFundId] = useState('');
   const [amount, setAmount] = useState('');
@@ -148,6 +148,7 @@ export const Payments: React.FC = () => {
   const [dateTo, setDateTo] = useState('');
   const [month, setMonth] = useState('');
   const [year, setYear] = useState('');
+  const [numberOfMonths, setNumberOfMonths] = useState<number>(1);
   const [occasion, setOccasion] = useState('');
   const [numberOfGoals, setNumberOfGoals] = useState('');
   const [notes, setNotes] = useState('');
@@ -168,12 +169,14 @@ export const Payments: React.FC = () => {
 
       if (contract) {
         if (amountNature === 'راتب شهري') {
-          setAmount(contract.monthlySalary?.toString() || '0');
+          setAmount(((contract.monthlySalary || 0) * numberOfMonths).toString());
         } else if (amountNature === 'تسجيل أهداف') {
           const goals = parseInt(numberOfGoals) || 0;
           setAmount(((contract.goalsBonus || 0) * goals).toString());
-        } else if (amountNature === 'منحة فوز') {
+        } else if (amountNature === 'منحة مقابلات') {
           setAmount(contract.winBonus?.toString() || '0');
+        } else if (amountNature === 'مصاريف التنقل') {
+          setAmount(contract.transportationExpenses?.toString() || '0');
         } else if (amountNature === 'رقم دفعة') {
           if (installmentNumber && contract.installments && Array.isArray(contract.installments)) {
             const installment = contract.installments.find((inst: any) => String(inst.installment_number) === String(installmentNumber));
@@ -186,11 +189,11 @@ export const Payments: React.FC = () => {
         }
       }
     }
-  }, [memberId, amountNature, numberOfGoals, installmentNumber, contracts, editingPayment, selectedContractId]);
+  }, [memberId, amountNature, numberOfGoals, installmentNumber, numberOfMonths, contracts, editingPayment, selectedContractId]);
 
   const handleOpenDialog = (payment?: PaymentRecord) => {
     if (payment) {
-      setTransactionType(payment.transactionType || (payment as any).type || 'دفع');
+      setTransactionType(payment.transactionType || (payment as any).transaction_type || (payment as any).type || 'دفع');
       setMemberId(payment.memberId || (payment as any).id_individuals?.toString() || '');
       setFundId(payment.fundId || payment.fund_id?.toString() || '');
       setAmount((payment.amount || (payment as any).Amount || 0).toString());
@@ -201,22 +204,41 @@ export const Payments: React.FC = () => {
       const nature = payment.amountNature || (payment as any).Nature_amount || (payment as any).amount_nature || 'راتب شهري';
       setAmountNature(nature);
       
-      const occasionOrNum = payment.installmentNumber || (payment as any).Occasion_Reason_numper || (payment as any).occasion_reason_numper || (payment as any).Occasion_reason_numper || '';
+      const occasionOrNum = payment.installmentNumber || payment.checkNumber || (payment as any).Occasion_Reason_numper || '';
+      const rawOccasion = payment.occasion || occasionOrNum.toString() || '';
       if (nature === 'رقم دفعة') {
         let instNum = occasionOrNum;
         if (!instNum) instNum = payment.checkNumber || ''; // Fallback as seen in table logic
         setInstallmentNumber(instNum.toString());
         setOccasion('');
+      } else if (nature === 'راتب شهري') {
+        setInstallmentNumber('');
+        const parts = rawOccasion.split('-');
+        if (parts.length === 2) {
+          setMonth(parts[0]);
+          setYear(parts[1]);
+        } else {
+          setMonth(payment.month || '');
+          setYear(payment.year || '');
+        }
+        setOccasion('');
+      } else if (nature === 'تسجيل أهداف') {
+        setInstallmentNumber('');
+        setNumberOfGoals(rawOccasion || payment.numberOfGoals?.toString() || '');
+        setOccasion('');
       } else {
         setInstallmentNumber('');
-        setOccasion(payment.occasion || occasionOrNum.toString() || '');
+        setOccasion(rawOccasion);
       }
 
       setDateFrom(payment.dateFrom || '');
       setDateTo(payment.dateTo || '');
-      setMonth(payment.month || '');
-      setYear(payment.year || '');
-      setNumberOfGoals(payment.numberOfGoals?.toString() || '');
+      setNumberOfMonths(payment.numberOfMonths || (payment as any).Number_of_months || 1);
+      if (nature !== 'تسجيل أهداف') setNumberOfGoals(payment.numberOfGoals?.toString() || '');
+      if (nature !== 'راتب شهري') {
+        setMonth(payment.month || '');
+        setYear(payment.year || '');
+      }
       setNotes(payment.notes || (payment as any).nots || '');
       setSelectedContractId(payment.contract_id?.toString() || '');
     } else {
@@ -233,6 +255,7 @@ export const Payments: React.FC = () => {
       setDateTo('');
       setMonth('');
       setYear('');
+      setNumberOfMonths(1);
       setOccasion('');
       setNumberOfGoals('');
       setNotes('');
@@ -242,11 +265,29 @@ export const Payments: React.FC = () => {
     openDialog(payment);
   };
 
+  const getMonthName = (monthStr: string) => {
+    const months: {[key: string]: string} = {
+      '01': 'جانفي', '02': 'فيفري', '03': 'مارس', '04': 'أفريل',
+      '05': 'ماي', '06': 'جوان', '07': 'جويلية', '08': 'أوت',
+      '09': 'سبتمبر', '10': 'أكتوبر', '11': 'نوفمبر', '12': 'ديسمبر'
+    };
+    return months[monthStr] || monthStr;
+  };
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     setFormSubmitted(true);
     if (transactionType === 'دفع' && !memberId) return;
-    if (!fundId) return;
+    if (transactionType !== 'مصاريف استثنائية' && !fundId) return;
+
+    let computedOccasion = occasion;
+    if (amountNature === 'راتب شهري') {
+      computedOccasion = (month && year) ? `${month}-${year}` : occasion;
+    } else if (amountNature === 'تسجيل أهداف') {
+      computedOccasion = numberOfGoals;
+    } else if (['رقم دفعة', 'منحة مقابلات', 'مصاريف التنقل'].includes(amountNature)) {
+      computedOccasion = '';
+    }
 
     savePayment({
       transactionType,
@@ -262,10 +303,11 @@ export const Payments: React.FC = () => {
       dateTo: amountNature === 'رقم دفعة' ? dateTo : undefined,
       month: amountNature === 'راتب شهري' ? month : undefined,
       year: amountNature === 'راتب شهري' ? year : undefined,
-      occasion: !['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة فوز'].includes(amountNature) ? occasion : undefined,
+      numberOfMonths: amountNature === 'راتب شهري' ? numberOfMonths : undefined,
+      occasion: computedOccasion || undefined,
       numberOfGoals: amountNature === 'تسجيل أهداف' ? (parseInt(numberOfGoals) || 0) : undefined,
       notes,
-      contract_id: amountNature === 'رقم دفعة' ? selectedContractId : undefined
+      contract_id: selectedContractId || undefined
     });
   };
 
@@ -300,7 +342,8 @@ export const Payments: React.FC = () => {
               { value: 'all', label: t('payments.filter_all', 'الكل') },
               { value: 'راتب شهري', label: 'راتب شهري' },
               { value: 'رقم دفعة', label: 'رقم دفعة' },
-              { value: 'منحة فوز', label: 'منحة فوز' },
+              { value: 'منحة مقابلات', label: 'منحة مقابلات' },
+              { value: 'مصاريف التنقل', label: 'مصاريف التنقل' },
               { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
               { value: 'نتيجة', label: 'نتيجة' },
               { value: 'تحفيز', label: 'تحفيز' },
@@ -375,6 +418,53 @@ export const Payments: React.FC = () => {
                         }
                         
                         const occasionVal = payment.occasion || payment.checkNumber;
+                        
+                        if (amountNatureVal === 'راتب شهري' && occasionVal) {
+                          const parts = occasionVal.split('-');
+                          if (parts.length === 2) {
+                            const mStr = parts[0];
+                            const yStr = parts[1];
+                            const numMonths = payment.numberOfMonths || (payment as any).Number_of_months || 1;
+                            
+                            if (numMonths > 3) {
+                              let currentMonthNum = parseInt(mStr);
+                              let currentYearNum = parseInt(yStr);
+                              let endMonthNum = currentMonthNum + numMonths - 1;
+                              let endYearNum = currentYearNum;
+                              
+                              while (endMonthNum > 12) {
+                                endMonthNum -= 12;
+                                endYearNum++;
+                              }
+                              
+                              const startMonthName = getMonthName(currentMonthNum.toString().padStart(2, '0'));
+                              const endMonthName = getMonthName(endMonthNum.toString().padStart(2, '0'));
+                              
+                              if (currentYearNum !== endYearNum) {
+                                return `${amountNatureVal} - من شهر ${startMonthName} ${currentYearNum} إلى شهر ${endMonthName} ${endYearNum}`;
+                              } else {
+                                return `${amountNatureVal} - من شهر ${startMonthName} إلى شهر ${endMonthName} - ${yStr}`;
+                              }
+                            } else if (numMonths > 1) {
+                              let currentMonthNum = parseInt(mStr);
+                              let currentYearNum = parseInt(yStr);
+                              const monthNames = [];
+                              for (let i = 0; i < numMonths; i++) {
+                                const formattedMonth = currentMonthNum.toString().padStart(2, '0');
+                                monthNames.push(getMonthName(formattedMonth));
+                                currentMonthNum++;
+                                if (currentMonthNum > 12) {
+                                  currentMonthNum = 1;
+                                  currentYearNum++;
+                                }
+                              }
+                              return `${amountNatureVal} - ${monthNames.join('، ')} - ${yStr}`;
+                            } else {
+                              return `${amountNatureVal} - ${getMonthName(mStr)}-${yStr}`;
+                            }
+                          }
+                        }
+                        
                         return occasionVal ? `${amountNatureVal} - ${occasionVal}` : amountNatureVal;
                       })()}
                     </td>
@@ -493,7 +583,22 @@ export const Payments: React.FC = () => {
                         <div className="transaction-type-icon">
                           <ShoppingBag size={24} />
                         </div>
-                        <span>مصروف عام</span>
+                        <span className="transaction-type-label">مصروف</span>
+                      </div>
+                    </label>
+                    <label className={`transaction-type-option ${transactionType === 'مصاريف استثنائية' ? 'active' : ''}`}>
+                      <input 
+                        type="radio" 
+                        name="transactionType" 
+                        value="مصاريف استثنائية" 
+                        checked={transactionType === 'مصاريف استثنائية'} 
+                        onChange={() => { setTransactionType('مصاريف استثنائية'); setAmountNature('اخرى'); }} 
+                      />
+                      <div className="transaction-type-card">
+                        <div className="transaction-type-icon">
+                          <AlertCircle size={24} />
+                        </div>
+                        <span className="transaction-type-label">مصاريف استثنائية</span>
                       </div>
                     </label>
                   </div>
@@ -518,24 +623,26 @@ export const Payments: React.FC = () => {
                 )}
 
                 {/* Fund Selection */}
-                <div className="form-group mb-3">
-                  <label>
-                    {t('payments.form_select_fund', 'تحديد صندوق الدفع')}
-                    <span style={{ color: '#ef4444', marginRight: '4px' }}>*</span>
-                  </label>
-                  <CustomDropdown
-                    value={fundId}
-                    onChange={setFundId}
-                    options={[
-                      { value: '', label: t('payments.form_select_fund_placeholder', '-- اختر الصندوق --') },
-                      ...funds.map(f => ({
-                        value: f.id,
-                        label: f.name
-                      }))
-                    ]}
-                  />
-                  {formSubmitted && !fundId && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{t('payments.fund_required', 'اختيار الصندوق إجباري')}</span>}
-                </div>
+                {transactionType !== 'مصاريف استثنائية' && (
+                  <div className="form-group mb-3">
+                    <label>
+                      {t('payments.form_select_fund', 'تحديد صندوق الدفع')}
+                      <span style={{ color: '#ef4444', marginRight: '4px' }}>*</span>
+                    </label>
+                    <CustomDropdown
+                      value={fundId}
+                      onChange={setFundId}
+                      options={[
+                        { value: '', label: t('payments.form_select_fund_placeholder', '-- اختر الصندوق --') },
+                        ...funds.map(f => ({
+                          value: f.id,
+                          label: f.name
+                        }))
+                      ]}
+                    />
+                    {formSubmitted && !fundId && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{t('payments.fund_required', 'اختيار الصندوق إجباري')}</span>}
+                  </div>
+                )}
 
                 {/* Auto Populated Member Details */}
                 {transactionType === 'دفع' && selectedMemberDetails && (
@@ -610,7 +717,8 @@ export const Payments: React.FC = () => {
                         { value: 'راتب شهري', label: 'راتب شهري' },
                         { value: 'رقم دفعة', label: 'رقم دفعة' },
                         { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
-                        { value: 'منحة فوز', label: 'منحة فوز' },
+                        { value: 'منحة مقابلات', label: 'منحة مقابلات' },
+                        { value: 'مصاريف التنقل', label: 'مصاريف التنقل' },
                         { value: 'نتيجة', label: 'نتيجة' },
                         { value: 'تحفيز', label: 'تحفيز' },
                         { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
@@ -619,6 +727,16 @@ export const Payments: React.FC = () => {
                         { value: 'تسوية نهائية', label: 'تسوية نهائية' },
                         { value: 'سلفة', label: 'سلفة' },
                         { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
+                        { value: 'اخرى', label: 'اخرى' }
+                      ] : transactionType === 'مصاريف استثنائية' ? [
+                        { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
+                        { value: 'تنقل', label: 'تنقل' },
+                        { value: 'اقامة', label: 'اقامة' },
+                        { value: 'إطعام', label: 'إطعام' },
+                        { value: 'تجهيزات', label: 'تجهيزات' },
+                        { value: 'صيانة', label: 'صيانة' },
+                        { value: 'فواتير', label: 'فواتير' },
+                        { value: 'كراء', label: 'كراء' },
                         { value: 'اخرى', label: 'اخرى' }
                       ] : [
                         { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
@@ -635,39 +753,38 @@ export const Payments: React.FC = () => {
                   </div>
                 </div>
 
-                {amountNature === 'رقم دفعة' && (
-                  <>
-                    {contracts.filter(c => String(c.individuals_id) === String(memberId)).length > 1 && (
-                      <div className="form-row">
-                        <div className="form-group" style={{ width: '100%' }}>
-                          <label>تحديد العقد (الموسم)</label>
-                          <CustomDropdown
-                            value={selectedContractId}
-                            onChange={(val) => {
-                              setSelectedContractId(val);
-                              const selectedContract = contracts.find(c => String(c.id) === String(val));
-                              if (selectedContract) {
-                                setDateFrom(selectedContract.startDate || getDefaultSeasonYear());
-                                setDateTo(selectedContract.endDate || '');
-                              }
-                            }}
-                            options={contracts
-                              .filter(c => String(c.individuals_id) === String(memberId))
-                              .map(c => ({
-                                value: String(c.id),
-                                label: `عقد موسم ${c.startDate || 'غير محدد'} - ${c.contractValue} د.ج`
-                              }))}
-                          />
-                        </div>
-                      </div>
-                    )}
-                    <div className="form-row">
-                      <div className="form-group" style={{ width: '100%' }}>
-                        <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
-                        <input type="text" className="form-control" value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} required />
-                      </div>
+                {contracts.filter(c => String(c.individuals_id) === String(memberId)).length > 1 && (
+                  <div className="form-row">
+                    <div className="form-group" style={{ width: '100%' }}>
+                      <label>تحديد العقد (الموسم)</label>
+                      <CustomDropdown
+                        value={selectedContractId}
+                        onChange={(val) => {
+                          setSelectedContractId(val);
+                          const selectedContract = contracts.find(c => String(c.id) === String(val));
+                          if (selectedContract) {
+                            setDateFrom(selectedContract.startDate || getDefaultSeasonYear());
+                            setDateTo(selectedContract.endDate || '');
+                          }
+                        }}
+                        options={contracts
+                          .filter(c => String(c.individuals_id) === String(memberId))
+                          .map(c => ({
+                            value: String(c.id),
+                            label: `عقد موسم ${c.startDate || 'غير محدد'} - ${c.contractValue} د.ج`
+                          }))}
+                      />
                     </div>
-                  </>
+                  </div>
+                )}
+
+                {amountNature === 'رقم دفعة' && (
+                  <div className="form-row">
+                    <div className="form-group" style={{ width: '100%' }}>
+                      <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
+                      <input type="text" className="form-control" value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} required />
+                    </div>
+                  </div>
                 )}
 
                 {amountNature === 'راتب شهري' && (
@@ -704,6 +821,17 @@ export const Payments: React.FC = () => {
                         })}
                       />
                     </div>
+                    <div className="form-group">
+                      <label>{t('payments.form_number_of_months', 'عدد الأشهر')}</label>
+                      <input 
+                        type="number" 
+                        className="form-control" 
+                        value={numberOfMonths} 
+                        onChange={e => setNumberOfMonths(parseInt(e.target.value) || 1)} 
+                        min="1" 
+                        required 
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -714,7 +842,7 @@ export const Payments: React.FC = () => {
                   </div>
                 )}
 
-                {!['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة فوز'].includes(amountNature) && (
+                {!['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة مقابلات', 'مصاريف التنقل'].includes(amountNature) && (
                   <div className="form-group">
                     <label>{t('payments.form_occasion', 'المناسبة / السبب')}</label>
                     <input type="text" className="form-control" value={occasion} onChange={e => setOccasion(e.target.value)} required={amountNature === 'اخرى'} />
@@ -822,3 +950,5 @@ export const Payments: React.FC = () => {
     </div>
   );
 };
+
+

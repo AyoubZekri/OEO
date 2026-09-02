@@ -67,6 +67,8 @@ export const Contracts: React.FC = () => {
             options={[
               { value: 'all', label: t('contracts.filter_all', 'الكل') },
               { value: 'مدرب', label: 'مدرب' },
+              { value: 'مساعد مدرب', label: 'مساعد مدرب' },
+              { value: 'مدرب حراس', label: 'مدرب حراس' },
               { value: 'لاعب', label: 'لاعب' },
               { value: 'اداري', label: 'إداري' },
               { value: 'اخرى', label: 'أخرى' }
@@ -179,7 +181,7 @@ export const Contracts: React.FC = () => {
                       placeholder="-- اختر المستفيد --"
                       options={individuals.map(ind => ({ 
                         value: String(ind.id), 
-                        label: `${ind.first_name} ${ind.last_name} (${ind.type === 'player' ? 'لاعب' : ind.type === 'coach' ? 'مدرب' : 'إداري'})` 
+                        label: `${ind.first_name} ${ind.last_name} (${ind.type === 'player' ? 'لاعب' : ind.type === 'coach' ? 'مدرب' : ind.type === 'assistant_coach' ? 'مساعد مدرب' : ind.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'إداري'})` 
                       }))}
                       onChange={(val) => setFormDataValue('individuals_id', val)}
                     />
@@ -213,8 +215,8 @@ export const Contracts: React.FC = () => {
                     {errors.contractValue && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.contractValue}</span>}
                   </div>
                   <div className="form-group">
-                    <label>{t('contracts.num_payments', 'عدد الدفعات')} *</label>
-                    <input type="number" name="numberOfPayments" value={formData.numberOfPayments} onChange={handleFormChange} className="form-control" min="1" />
+                    <label>{t('contracts.num_payments', 'عدد الدفعات')}</label>
+                    <input type="number" name="numberOfPayments" value={formData.numberOfPayments} onChange={handleFormChange} className="form-control" min="0" />
                     {errors.numberOfPayments && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.numberOfPayments}</span>}
                   </div>
                 </div>
@@ -257,12 +259,16 @@ export const Contracts: React.FC = () => {
                     <CurrencyInput name="monthlySalary" value={formData.monthlySalary} onChangeValue={(val) => setFormDataValue('monthlySalary', val)} className="form-control" />
                   </div>
                   <div className="form-group">
-                    <label>{t('contracts.win_bonus', 'منحة الفوز')}</label>
+                    <label>{t('contracts.win_bonus', 'منحة المقابلات')}</label>
                     <CurrencyInput name="winBonus" value={formData.winBonus} onChangeValue={(val) => setFormDataValue('winBonus', val)} className="form-control" />
                   </div>
                   <div className="form-group">
                     <label>{t('contracts.goals_bonus', 'منحة الأهداف')}</label>
                     <CurrencyInput name="goalsBonus" value={formData.goalsBonus} onChangeValue={(val) => setFormDataValue('goalsBonus', val)} className="form-control" />
+                  </div>
+                  <div className="form-group">
+                    <label>{t('contracts.transportation_expenses', 'مصاريف النقل')}</label>
+                    <CurrencyInput name="transportationExpenses" value={formData.transportationExpenses} onChangeValue={(val) => setFormDataValue('transportationExpenses', val)} className="form-control" />
                   </div>
                 </div>
 

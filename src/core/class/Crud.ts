@@ -26,20 +26,23 @@ export class Crud {
                     headers["Authorization"] = `Bearer ${token}`;
                 }
 
+                const requestBody = JSON.stringify(data);
+                console.log(`[postDataheaders] Sending to ${linkurl}:`, requestBody);
+                
                 const response = await fetch(linkurl, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify(data)
+                    body: requestBody
                 });
 
-                console.log(response.status);
+          
+                console.log(`[postDataheaders] Status:`, response.status);
                 if (response.status === 200 || response.status === 201) {
                     const responsebody = await response.json();
-                    console.log(responsebody);
                     return Right(responsebody);
                 } else {
                     const responsebody = await response.json().catch(() => null);
-                    console.log("============================", responsebody);
+                    console.log(`[postDataheaders] Error response body:`, responsebody);
                     return Left(Statusrequest.failure);
                 }
             } else {
@@ -90,7 +93,10 @@ export class Crud {
                 // Mimicking URL-encoded form data which is the default for simple post body in Dart http
                 const formData = new URLSearchParams();
                 for (const key in data) {
-                    formData.append(key, data[key]);
+                    const value = data[key];
+                    if (value !== null && value !== undefined) {
+                        formData.append(key, value);
+                    }
                 }
 
                 const response = await fetch(linkurl, {
@@ -173,7 +179,9 @@ export class Crud {
                 
                 Object.keys(data).forEach(key => {
                     const value = data[key];
-                    formData.append(key, value === null || value === undefined ? '' : String(value));
+                    if (value !== null && value !== undefined) {
+                        formData.append(key, String(value));
+                    }
                 });
 
                 const response = await fetch(url, {
