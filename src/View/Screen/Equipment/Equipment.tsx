@@ -6,29 +6,7 @@ import { EquipmentDialog } from './EquipmentDialog';
 import { useAuth } from '../../../core/context/AuthContext';
 import './Equipment.css';
 
-// Mock Data for Design
-const mockEquipment = [
-  { 
-    id: 1, name: 'كاميرا سوني A7III', totalQuantity: 3, availableQuantity: 1, image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=300', 
-    holders: [{ name: 'أحمد محمود', qty: 1, date: '2026-08-20' }, { name: 'علي كمال', qty: 1, date: '2026-08-22' }] 
-  },
-  { 
-    id: 2, name: 'عدسة 24-70mm', totalQuantity: 2, availableQuantity: 1, image: 'https://images.unsplash.com/photo-1616423640778-28d1b53229bd?auto=format&fit=crop&q=80&w=300', 
-    holders: [{ name: 'سارة خالد', qty: 1, date: '2026-08-25' }] 
-  },
-  { 
-    id: 3, name: 'ميكروفون لاسلكي', totalQuantity: 4, availableQuantity: 4, image: 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=300', 
-    holders: [] 
-  },
-  { 
-    id: 4, name: 'حامل كاميرا (Tripod)', totalQuantity: 3, availableQuantity: 2, image: null, 
-    holders: [{ name: 'محمد أمين', qty: 1, date: '2026-08-26' }] 
-  },
-  { 
-    id: 5, name: 'إضاءة LED', totalQuantity: 2, availableQuantity: 2, image: 'https://images.unsplash.com/photo-1588666324838-510006325985?auto=format&fit=crop&q=80&w=300', 
-    holders: [] 
-  },
-];
+import { useEquipmentController } from './EquipmentController';
 
 export const Equipment: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
@@ -37,8 +15,18 @@ export const Equipment: React.FC = () => {
   const [selectedEq, setSelectedEq] = useState<any>(null);
   const [isMovementOpen, setIsMovementOpen] = useState(false);
   const [isLocationsOpen, setIsLocationsOpen] = useState(false);
-  const [isEquipmentDialogOpen, setIsEquipmentDialogOpen] = useState(false);
-  const [equipmentToEdit, setEquipmentToEdit] = useState<any>(null);
+
+  const {
+    equipments,
+    isEquipmentDialogOpen,
+    equipmentToEdit,
+    isLoading,
+    openAddDialog,
+    openEditDialog,
+    closeDialog,
+    handleSaveEquipment,
+    handleDeleteEquipment,
+  } = useEquipmentController();
 
   const openMovement = (eq: any) => {
     setSelectedEq(eq);
@@ -50,15 +38,6 @@ export const Equipment: React.FC = () => {
     setIsLocationsOpen(true);
   };
 
-  const openAddDialog = () => {
-    setEquipmentToEdit(null);
-    setIsEquipmentDialogOpen(true);
-  };
-
-  const openEditDialog = (eq: any) => {
-    setEquipmentToEdit(eq);
-    setIsEquipmentDialogOpen(true);
-  };
 
   return (
     <div className="equipment-page-wrapper">
@@ -75,9 +54,21 @@ export const Equipment: React.FC = () => {
 
       {/* Grid Section */}
       <div className="equipment-premium-grid">
-        {mockEquipment.map((eq) => {
-          const borrowed = eq.totalQuantity - eq.availableQuantity;
-          
+        {isLoading ? (
+          <div className="loading-container">
+            <div className="premium-loader">
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-dot"></div>
+            </div>
+            <p className="loading-text">جاري تحضير العتاد...</p>
+          </div>
+        ) : (
+          equipments.map((eq) => {
+            const borrowed = eq.totalQuantity - eq.availableQuantity;
+            
+
           return (
             <div key={eq.id} className="premium-card">
               {/* Image & Badges */}
@@ -113,10 +104,11 @@ export const Equipment: React.FC = () => {
                     </button>
                   )}
                   {hasAccess(permissions.equipment.delete) && (
-                    <button className="icon-btn delete" title="حذف">
+                    <button className="icon-btn delete" title="حذف" onClick={() => handleDeleteEquipment(eq.id)}>
                       <Trash2 size={16} />
                     </button>
                   )}
+
                 </div>
               </div>
 
@@ -141,19 +133,22 @@ export const Equipment: React.FC = () => {
                     <span>أماكن التواجد</span>
                   </button>
                   
-                  <button 
-                    className="action-pill secondary" 
-                    onClick={() => openMovement(eq)}
-                    title="حركة العتاد"
-                  >
-                    <History size={18} />
-                  </button>
+                  {hasAccess(permissions.equipmentOperations.view) && (
+                    <button 
+                      className="action-pill secondary" 
+                      onClick={() => openMovement(eq)}
+                      title="حركة العتاد"
+                    >
+                      <History size={18} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
+
 
       {/* Dialogs */}
       {isMovementOpen && (
@@ -175,8 +170,9 @@ export const Equipment: React.FC = () => {
       {isEquipmentDialogOpen && (
         <EquipmentDialog 
           isOpen={isEquipmentDialogOpen}
-          onClose={() => setIsEquipmentDialogOpen(false)}
+          onClose={closeDialog}
           equipmentToEdit={equipmentToEdit}
+          onSave={handleSaveEquipment}
         />
       )}
     </div>

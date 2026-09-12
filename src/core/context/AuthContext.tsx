@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserModel } from '../../View/Screen/UserManagement/Users/user_model';
 import {type AppPermissions, RoleModel, emptyPermissions } from '../../View/Screen/UserManagement/Roles/role_model';
+import { Crud } from '../class/Crud';
+import { Applink } from '../../LinkApi';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -66,6 +68,76 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isFullAccess
     };
   });
+
+  useEffect(() => {
+    if (!authState.isAuthenticated) return;
+
+    let isMounted = true;
+    const fetchFreshAuth = async () => {
+      try {
+        const crud = new Crud();
+        const response = await crud.getData(Applink.getUser);
+        
+        if (isMounted && response._tag === 'Right') {
+          const resBody = response.right;
+          if (resBody && resBody.status === 'success' && resBody.data) {
+            const { user, role } = resBody.data;
+            
+            let parsedUser = null;
+            let permissions = emptyPermissions;
+            let isFullAccess = false;
+            
+            if (user) {
+              try { parsedUser = UserModel.fromJson(user); } catch (e) {}
+            }
+            if (role) {
+              try {
+                const parsedRole = RoleModel.fromJson(role);
+                permissions = parsedRole.permissions;
+                isFullAccess = parsedRole.accessLevel === 'full';
+              } catch (e) {}
+            } else if (user && user.role) {
+              try {
+                const parsedRole = RoleModel.fromJson(user.role);
+                permissions = parsedRole.permissions;
+                isFullAccess = parsedRole.accessLevel === 'full';
+              } catch (e) {}
+            }
+            
+            setAuthState(prev => {
+              const prevUserStr = JSON.stringify(prev.user);
+              const newUserStr = JSON.stringify(parsedUser);
+              const prevPermStr = JSON.stringify(prev.permissions);
+              const newPermStr = JSON.stringify(permissions);
+              
+              if (prevUserStr !== newUserStr || prevPermStr !== newPermStr || prev.isFullAccess !== isFullAccess) {
+                if (user) localStorage.setItem('user', JSON.stringify(user));
+                if (role) localStorage.setItem('role', JSON.stringify(role));
+                
+                return {
+                  ...prev,
+                  user: parsedUser,
+                  permissions,
+                  isFullAccess
+                };
+              }
+              return prev;
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to refresh auth data", error);
+      }
+    };
+
+    fetchFreshAuth();
+    const interval = setInterval(fetchFreshAuth, 15000); // Poll every 15 seconds
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [authState.isAuthenticated]);
 
   const login = (token: string, userData: any, roleData?: any) => {
     localStorage.setItem('token', token);

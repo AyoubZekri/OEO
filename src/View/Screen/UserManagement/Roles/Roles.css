@@ -480,7 +480,7 @@ input:disabled + .toggle-slider:before {
   grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
   gap: 24px;
   padding: 24px 32px;
-  background-color: #f1f5f9;
+  background-color: transparent;
 }
 
 .premium-module-card {
@@ -1016,3 +1016,315 @@ input:disabled + .toggle-slider:before {
   flex-shrink: 0;
 }
 
+/* Additions for Role Dialog */
+.role-dialog-top-section {
+  padding: 24px 32px;
+  background: var(--card-bg, #ffffff);
+  border-bottom: 1px solid var(--border, #e2e8f0);
+}
+
+.role-dialog-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border, #e2e8f0);
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: var(--bg-hover, #f8fafc);
+  position: sticky;
+  bottom: 0;
+}
+
+.role-dialog-cancel-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border, #cbd5e1);
+  background: var(--card-bg, white);
+  color: var(--text-h, #333);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.role-dialog-cancel-btn:hover {
+  background: var(--bg-hover, #f1f5f9);
+}
+
+.role-dialog-save-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+/* Dark Mode Overrides for Role Dialog */
+body.dark-mode .premium-role-dialog {
+  background: var(--card-bg);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .premium-dialog-header {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+body.dark-mode .premium-modules-grid {
+  background-color: transparent;
+}
+
+body.dark-mode .premium-module-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+
+body.dark-mode .premium-module-header {
+  background: var(--card-bg);
+}
+
+body.dark-mode .premium-module-card.active .premium-module-header {
+  background: rgba(var(--accent-rgb), 0.1);
+}
+
+body.dark-mode .premium-module-title {
+  color: var(--text-h);
+}
+
+body.dark-mode .premium-module-icon {
+  background: var(--bg-hover);
+  color: var(--text-muted);
+}
+
+body.dark-mode .premium-module-card.active .premium-module-icon {
+  background: rgba(var(--accent-rgb), 0.2);
+  color: var(--accent);
+}
+
+body.dark-mode .premium-actions-list {
+  border-top: 1px solid var(--border);
+  background-color: var(--bg-hover);
+}
+
+body.dark-mode .premium-action-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+
+body.dark-mode .premium-action-info {
+  color: var(--text-h);
+}
+
+body.dark-mode .role-dialog-top-section {
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+body.dark-mode .role-dialog-footer {
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
+}
+
+body.dark-mode .role-dialog-cancel-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--text-h);
+}
+
+body.dark-mode .role-dialog-cancel-btn:hover {
+  background: var(--bg-hover);
+}
+
+/* --- Classic Table Layout for Permissions Dialog --- */
+
+.classic-table-container {
+  padding: 0 32px 32px 32px;
+  overflow-x: auto;
+}
+
+.classic-permissions-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.classic-permissions-table th {
+  background-color: var(--bg-hover, #f8fafc);
+  text-align: right; /* RTL */
+  padding: 14px 20px;
+  font-weight: 600;
+  color: var(--text-h, #334155);
+  border-bottom: 2px solid var(--border, #e2e8f0);
+}
+
+.classic-permissions-table td {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  vertical-align: middle;
+}
+
+.classic-permissions-table tr:last-child td {
+  border-bottom: none;
+}
+
+.classic-permissions-table tr:hover {
+  background-color: var(--bg-hover, #f8fafc);
+}
+
+.module-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: var(--text-h, #1e293b);
+}
+
+.module-title-wrapper svg {
+  color: var(--text-muted, #64748b);
+}
+
+.active-row .module-title-wrapper svg {
+  color: var(--accent);
+}
+
+/* Custom Checkbox */
+.classic-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+
+.classic-checkbox-label input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+.classic-checkmark {
+  height: 20px;
+  width: 20px;
+  background-color: transparent;
+  border: 2px solid var(--border, #cbd5e1);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.classic-checkbox-label:hover input ~ .classic-checkmark {
+  border-color: var(--accent);
+}
+
+.classic-checkbox-label input:checked ~ .classic-checkmark {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.classic-checkmark:after {
+  content: "";
+  display: none;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.classic-checkbox-label input:checked ~ .classic-checkmark:after {
+  display: block;
+}
+
+.classic-checkbox-label input:disabled ~ .classic-checkmark {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.classic-actions-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.classic-checkbox-label.small {
+  gap: 8px;
+}
+
+.classic-checkbox-label.small .classic-checkmark {
+  height: 16px;
+  width: 16px;
+  border-width: 1.5px;
+  border-radius: 3px;
+}
+
+.classic-checkbox-label.small .classic-checkmark:after {
+  width: 4px;
+  height: 8px;
+  margin-bottom: 2px;
+}
+
+.action-label-text {
+  font-size: 0.95rem;
+  color: var(--text-color, #475569);
+}
+
+.full-access-text {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #10B981;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.no-access-text {
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+}
+
+/* Dark Mode Overrides for Classic Table */
+body.dark-mode .classic-permissions-table {
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+}
+
+body.dark-mode .classic-permissions-table th {
+  background-color: var(--bg-hover);
+  color: var(--text-h);
+  border-bottom: 2px solid var(--border);
+}
+
+body.dark-mode .classic-permissions-table td {
+  border-bottom: 1px solid var(--border);
+}
+
+body.dark-mode .classic-permissions-table tr:hover {
+  background-color: var(--bg-hover);
+}
+
+body.dark-mode .module-title-wrapper {
+  color: var(--text-h);
+}
+
+body.dark-mode .module-title-wrapper svg {
+  color: var(--text-muted);
+}
+
+body.dark-mode .action-label-text {
+  color: var(--text-color);
+}
+
+body.dark-mode .classic-checkbox-label input:disabled ~ .classic-checkmark {
+  background-color: var(--bg-hover);
+  border-color: var(--border);
+}

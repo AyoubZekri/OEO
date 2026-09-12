@@ -1,3 +1,6 @@
+import axios from 'axios';
+import { Applink } from '../../../../LinkApi';
+
 export interface EvaluationRecord {
   id: string;
   member_id: number;
@@ -20,113 +23,197 @@ export interface EvaluationRecord {
   };
 }
 
-export class EvaluationsData {
-  private storageKey = 'olympic_oeo_evaluations';
+const mapRecommendation = (rec: string): string => {
+  const map: Record<string, string> = {
+    'normal_continuation': 'استمرار عادي',
+    'improvement_program': 'برنامج تحسين',
+    'special_monitoring': 'متابعة خاصة',
+    're_evaluate': 'إعادة تقييم بعد مدة محددة',
+    'comprehensive_eval': 'تقييم شامل عند نهاية الذهاب',
+    'contract_review': 'مراجعة الوضعية الرياضية/التعاقدية'
+  };
+  return map[rec] || rec;
+};
 
+export class EvaluationsData {
+  
   // Load all evaluations for a specific member
-  public getEvaluationsByMember(memberId: number): EvaluationRecord[] {
+  public async getEvaluationsByMember(memberId: number): Promise<EvaluationRecord[]> {
     try {
-      const data = localStorage.getItem(this.storageKey);
-      if (data) {
-        const allEvals: EvaluationRecord[] = JSON.parse(data);
-        return allEvals.filter(e => e.member_id === memberId).sort((a, b) => 
-          new Date(b.evalDate).getTime() - new Date(a.evalDate).getTime()
-        );
+      console.log(`[getEvaluationsByMember] Fetching evaluations for member: ${memberId}`);
+      const response = await axios.get(`${Applink.playerEvaluations}?member_id=${memberId}`, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+      console.log(`[getEvaluationsByMember] Response data:`, response.data);
+      if (response.data && response.data.data) {
+        // Map the backend data to EvaluationRecord
+        return response.data.data.map((item: any) => ({
+          id: (item.id || item._id || '').toString(),
+          member_id: item.member_id || item.playerId || 0,
+          season: item.sports_season || item.season || '',
+          period: item.evaluation_type || item.evaluationType || '',
+          evalDate: item.evaluation_date || item.periodStart || '',
+          totalScore: item.total_score || item.totalScore || 0,
+          recommendation: mapRecommendation(item.recommendations || item.recommendation || ''),
+          strengths: item.strengths || '',
+          weaknesses: item.weaknesses || '',
+          scores: {
+            discipline: item.discipline_score || item.scoreDiscipline || 0,
+            physical: item.physical_score || item.scoreFitness || 0,
+            technical: item.technical_score || item.scoreTechnical || 0,
+            tactical: item.tactical_score || item.scoreTactical || 0,
+            matchOutput: item.match_output_score || item.scoreMatchPerformance || 0,
+            instructions: item.instructions_score || item.scoreInstructions || 0,
+            behavior: item.behavior_score || item.scoreBehavior || 0,
+          }
+        }));
+      } else if (Array.isArray(response.data)) {
+        console.warn(`[getEvaluationsByMember] Response data is a direct array, not wrapped in 'data'. Please check backend format.`);
+        // If it's a direct array, map it
+        return response.data.map((item: any) => ({
+          id: (item.id || item._id || '').toString(),
+          member_id: item.member_id || item.playerId || 0,
+          season: item.sports_season || item.season || '',
+          period: item.evaluation_type || item.evaluationType || '',
+          evalDate: item.evaluation_date || item.periodStart || '',
+          totalScore: item.total_score || item.totalScore || 0,
+          recommendation: mapRecommendation(item.recommendations || item.recommendation || ''),
+          strengths: item.strengths || '',
+          weaknesses: item.weaknesses || '',
+          scores: {
+            discipline: item.discipline_score || item.scoreDiscipline || 0,
+            physical: item.physical_score || item.scoreFitness || 0,
+            technical: item.technical_score || item.scoreTechnical || 0,
+            tactical: item.tactical_score || item.scoreTactical || 0,
+            matchOutput: item.match_output_score || item.scoreMatchPerformance || 0,
+            instructions: item.instructions_score || item.scoreInstructions || 0,
+            behavior: item.behavior_score || item.scoreBehavior || 0,
+          }
+        }));
       }
-    } catch (e) {
-      console.error("Failed to load evaluations from local storage", e);
+      console.warn(`[getEvaluationsByMember] No data found or invalid format. returning empty array.`);
+      return [];
+    } catch (e: any) {
+      console.error("[getEvaluationsByMember] Failed to load evaluations from API", e);
+      if (e.response) {
+         console.error("[getEvaluationsByMember] Error response data:", e.response.data);
+      }
+      return [];
     }
-    return [];
   }
 
   // Save a new evaluation
-  public saveEvaluation(evaluation: Omit<EvaluationRecord, 'id'>): EvaluationRecord {
-    const newEval: EvaluationRecord = {
-      ...evaluation,
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9)
-    };
-
+  public async saveEvaluation(evaluation: Omit<EvaluationRecord, 'id'>): Promise<EvaluationRecord | null> {
     try {
-      const data = localStorage.getItem(this.storageKey);
-      let allEvals: EvaluationRecord[] = [];
-      if (data) {
-        allEvals = JSON.parse(data);
+      const payload = {
+        playerId: evaluation.member_id,
+        periodStart: evaluation.evalDate,
+        evaluationType: evaluation.period,
+        season: evaluation.season,
+        scoreFitness: evaluation.scores.physical,
+        scoreTechnical: evaluation.scores.technical,
+        scoreTactical: evaluation.scores.tactical,
+        scoreMatchPerformance: evaluation.scores.matchOutput,
+        scoreDiscipline: evaluation.scores.discipline,
+        scoreInstructions: evaluation.scores.instructions,
+        scoreBehavior: evaluation.scores.behavior,
+        strengths: evaluation.strengths,
+        weaknesses: evaluation.weaknesses,
+        recommendation: evaluation.recommendation,
+      };
+
+      const response = await axios.post(Applink.createPlayerEvaluation, payload, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+      
+      if (response.data && response.data.data) {
+        const item = response.data.data;
+        return {
+          id: (item.id || item._id || '').toString(),
+          member_id: item.member_id || item.playerId || 0,
+          season: item.sports_season || item.season || '',
+          period: item.evaluation_type || item.evaluationType || '',
+          evalDate: item.evaluation_date || item.periodStart || '',
+          totalScore: item.total_score || item.totalScore || 0,
+          recommendation: mapRecommendation(item.recommendations || item.recommendation || ''),
+          strengths: item.strengths || '',
+          weaknesses: item.weaknesses || '',
+          scores: {
+            discipline: item.discipline_score || item.scoreDiscipline || 0,
+            physical: item.physical_score || item.scoreFitness || 0,
+            technical: item.technical_score || item.scoreTechnical || 0,
+            tactical: item.tactical_score || item.scoreTactical || 0,
+            matchOutput: item.match_output_score || item.scoreMatchPerformance || 0,
+            instructions: item.instructions_score || item.scoreInstructions || 0,
+            behavior: item.behavior_score || item.scoreBehavior || 0,
+          }
+        };
       }
-      allEvals.push(newEval);
-      localStorage.setItem(this.storageKey, JSON.stringify(allEvals));
-      return newEval;
-    } catch (e) {
-      console.error("Failed to save evaluation to local storage", e);
+      return null;
+    } catch (e: any) {
+      console.error("Failed to save evaluation to API", e);
+      alert("Backend Error: " + (e.response?.data?.error || e.message));
       throw e;
     }
   }
 
   // Update an existing evaluation
-  public updateEvaluation(evaluation: EvaluationRecord): EvaluationRecord {
+  public async updateEvaluation(evaluation: EvaluationRecord): Promise<EvaluationRecord | null> {
     try {
-      const data = localStorage.getItem(this.storageKey);
-      if (data) {
-        let allEvals: EvaluationRecord[] = JSON.parse(data);
-        const index = allEvals.findIndex(e => e.id === evaluation.id);
-        if (index !== -1) {
-          allEvals[index] = evaluation;
-          localStorage.setItem(this.storageKey, JSON.stringify(allEvals));
-          return evaluation;
+      const payload = {
+        id: evaluation.id,
+        playerId: evaluation.member_id,
+        periodStart: evaluation.evalDate,
+        evaluationType: evaluation.period,
+        season: evaluation.season,
+        scoreFitness: evaluation.scores.physical,
+        scoreTechnical: evaluation.scores.technical,
+        scoreTactical: evaluation.scores.tactical,
+        scoreMatchPerformance: evaluation.scores.matchOutput,
+        scoreDiscipline: evaluation.scores.discipline,
+        scoreInstructions: evaluation.scores.instructions,
+        scoreBehavior: evaluation.scores.behavior,
+        strengths: evaluation.strengths,
+        weaknesses: evaluation.weaknesses,
+        recommendation: evaluation.recommendation,
+      };
+
+      const response = await axios.post(Applink.updatePlayerEvaluation, payload, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
         }
+      });
+      
+      if (response.data && response.data.data) {
+        return evaluation;
       }
-      throw new Error("Evaluation not found");
-    } catch (e) {
+      return null;
+    } catch (e: any) {
       console.error("Failed to update evaluation", e);
+      alert("Backend Error: " + (e.response?.data?.error || e.message));
       throw e;
     }
   }
 
   // Delete an evaluation
-  public deleteEvaluation(id: string): void {
+  public async deleteEvaluation(id: string): Promise<boolean> {
     try {
-      const data = localStorage.getItem(this.storageKey);
-      if (data) {
-        let allEvals: EvaluationRecord[] = JSON.parse(data);
-        allEvals = allEvals.filter(e => e.id !== id);
-        localStorage.setItem(this.storageKey, JSON.stringify(allEvals));
-      }
-    } catch (e) {
+      const response = await axios.post(Applink.deletePlayerEvaluation, { id: id }, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        }
+      });
+      return response.status === 200;
+    } catch (e: any) {
       console.error("Failed to delete evaluation", e);
-      throw e;
-    }
-  }
-
-  // Generate test evaluation
-  public generateTestEvaluation(memberId: number): Omit<EvaluationRecord, 'id'> {
-    const seasons = ['2023-2024', '2024-2025'];
-    const periods = ['بداية الموسم', 'منتصف الموسم', 'نهاية الموسم'];
-    return {
-      member_id: memberId,
-      season: seasons[Math.floor(Math.random() * seasons.length)],
-      period: periods[Math.floor(Math.random() * periods.length)],
-      evalDate: new Date().toISOString().split('T')[0],
-      totalScore: Math.floor(Math.random() * 41) + 50, // 50 to 90
-      recommendation: 'تقييم افتراضي تم إنشاؤه للتجريب',
-      strengths: 'أداء جيد في التدريبات',
-      weaknesses: 'يحتاج إلى تحسين اللياقة',
-      scores: {
-        discipline: Math.floor(Math.random() * 6) + 5, // out of 10
-        physical: Math.floor(Math.random() * 8) + 8, // out of 15
-        technical: Math.floor(Math.random() * 11) + 10, // out of 20
-        tactical: Math.floor(Math.random() * 8) + 8, // out of 15
-        matchOutput: Math.floor(Math.random() * 11) + 10, // out of 20
-        instructions: Math.floor(Math.random() * 6) + 5, // out of 10
-        behavior: Math.floor(Math.random() * 6) + 5, // out of 10
+      if (e.response && e.response.data) {
+        console.error("Error details:", e.response.data);
       }
-    };
-  }
-
-  // Seed default evaluations if empty
-  public seedDefaultEvaluations(memberId: number): void {
-    const existing = this.getEvaluationsByMember(memberId);
-    if (existing.length === 0) {
-      this.saveEvaluation(this.generateTestEvaluation(memberId));
-      this.saveEvaluation(this.generateTestEvaluation(memberId));
+      throw e;
     }
   }
 }

@@ -150,6 +150,65 @@ body.dark-mode .search-box:focus-within {
   font-family: var(--sans);
 }
 
+/* Premium Dialog Tabs */
+.premium-dialog-tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--card-bg);
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+
+.premium-dialog-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.premium-tab-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: var(--bg-body);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-weight: 700;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: fit-content;
+}
+
+body.dark-mode .premium-tab-btn {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.premium-tab-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-h);
+  transform: translateY(-1px);
+}
+
+
+
+.premium-tab-btn.active {
+  background: rgba(var(--accent-rgb, 59, 130, 246), 0.1);
+  border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.3);
+  color: var(--accent);
+  box-shadow: 0 4px 12px rgba(var(--accent-rgb, 59, 130, 246), 0.08);
+}
+
+body.dark-mode .premium-tab-btn.active {
+  background: rgba(var(--accent-rgb, 59, 130, 246), 0.15);
+  border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.4);
+}
+
 .tab-btn:hover {
   color: var(--text-h);
 }
@@ -361,7 +420,7 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
 }
 
 .add-member-dialog { max-width: 600px; }
-.details-dialog { max-width: 800px; }
+.details-dialog { max-width: 800px; min-height: 80vh; }
 
 .dialog-header {
   padding: 24px 32px;
@@ -380,6 +439,8 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
 }
 
 .dialog-title h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+
+.dialog-title span { color: var(--text-muted); font-size: 0.9rem; }
 
 .close-btn {
   background: transparent;

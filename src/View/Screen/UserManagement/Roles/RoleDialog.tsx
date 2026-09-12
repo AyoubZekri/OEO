@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, ShieldAlert, ShieldCheck, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Plus, Edit2, Trash2, Printer, Search, Settings, Activity, Package, ArrowLeftRight, RefreshCw } from 'lucide-react';
+import { X, ShieldAlert, ShieldCheck, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Plus, Edit2, Trash2, Printer, Search, Settings, Activity, Package, ArrowLeftRight, RefreshCw, PenTool, CheckCircle, MessageSquare, Gavel } from 'lucide-react';
 import { CustomInput } from '../../../widget/CustomInput';
 import { CustomDropdown } from '../../../widget/CustomDropdown';
 import { RoleModel, defaultPermissions } from './role_model';
@@ -33,9 +33,12 @@ const getActionIcon = (action: string) => {
     case 'viewUsers':
     case 'viewRoles':
       return <Search size={18} className="premium-action-icon" />;
-    case 'manageUsers':
     case 'manageRoles':
       return <Settings size={18} className="premium-action-icon" />;
+    case 'sign': return <PenTool size={18} className="premium-action-icon" />;
+    case 'changeStatus': return <CheckCircle size={18} className="premium-action-icon" />;
+    case 'viewReply': return <MessageSquare size={18} className="premium-action-icon" />;
+    case 'editReply': return <Edit2 size={18} className="premium-action-icon" />;
     default: return <Activity size={18} className="premium-action-icon" />;
   }
 };
@@ -49,9 +52,9 @@ const getModuleIcon = (moduleKey: string) => {
     case 'payments': return <Wallet size={24} />;
     case 'funds': return <Vault size={24} />;
     case 'reports': return <PieChart size={24} />;
-    case 'usersAndRoles': return <Shield size={24} />;
     case 'equipment': return <Package size={24} />;
     case 'equipmentOperations': return <ArrowLeftRight size={24} />;
+    case 'disciplinary': return <Gavel size={24} />;
     default: return <Shield size={24} />;
   }
 };
@@ -74,7 +77,8 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
     { key: 'reports', actions: ['viewIndividuals', 'viewTeams', 'viewContracts', 'viewFunds'] },
     { key: 'usersAndRoles', actions: ['viewUsers', 'addUsers', 'editUsers', 'deleteUsers', 'viewRoles', 'addRoles', 'editRoles', 'deleteRoles'] },
     { key: 'equipment', actions: ['add', 'edit', 'delete', 'print'] },
-    { key: 'equipmentOperations', actions: ['handover', 'return', 'edit', 'delete', 'print'] }
+    { key: 'equipmentOperations', actions: ['handover', 'return', 'edit', 'delete', 'print'] },
+    { key: 'disciplinary', actions: ['add', 'edit', 'delete', 'print', 'sign', 'changeStatus', 'viewReply', 'editReply'] }
   ];
 
   useEffect(() => {
@@ -149,7 +153,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
         </div>
         
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflowY: 'auto' }}>
-          <div style={{ padding: '24px 32px', background: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
+          <div className="role-dialog-top-section">
             <div className="role-form-top">
               <CustomInput 
                 type="text" 
@@ -208,7 +212,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                             <input 
                               type="checkbox" 
                               checked={(modulePerms as any)[action] || false} 
-                              disabled={isFull || !(modulePerms as any)[action]}
+                              disabled={isFull}
                               onChange={(e) => handleActionChange(module.key, action, e.target.checked)} 
                             />
                             <span className="glow-slider"></span>
@@ -222,9 +226,9 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
             })}
           </div>
 
-          <div style={{ padding: '16px 24px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: '#f8fafc', position: 'sticky', bottom: 0 }}>
-            <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 500 }}>{t('roles_permissions.cancel')}</button>
-            <button type="submit" style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: 'white', cursor: 'pointer', fontWeight: 500 }}>{t('roles_permissions.save_role')}</button>
+          <div className="role-dialog-footer">
+            <button type="button" onClick={onClose} className="role-dialog-cancel-btn">{t('roles_permissions.cancel')}</button>
+            <button type="submit" className="role-dialog-save-btn">{t('roles_permissions.save_role')}</button>
           </div>
         </form>
       </div>

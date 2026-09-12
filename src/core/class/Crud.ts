@@ -42,13 +42,14 @@ export class Crud {
                     return Right(responsebody);
                 } else {
                     const responsebody = await response.json().catch(() => null);
-                    console.log(`[postDataheaders] Error response body:`, responsebody);
+                    console.error(`[postDataheaders] API Error Response from ${linkurl}:`, responsebody);
                     return Left(Statusrequest.failure);
                 }
             } else {
                 return Left(Statusrequest.serverfailure);
             }
-        } catch (_) {
+        } catch (e) {
+            console.error(`[postDataheaders] Exception caught from ${linkurl}:`, e);
             return Left(Statusrequest.failure);
         }
     }
@@ -76,13 +77,14 @@ export class Crud {
                     return Right(responsebody);
                 } else {
                     const responsebody = await response.json().catch(() => null);
-                    console.log("============================", responsebody);
+                    console.error(`[postDataheadersLogout] API Error Response from ${linkurl}:`, responsebody);
                     return Left(Statusrequest.failure);
                 }
             } else {
                 return Left(Statusrequest.serverfailure);
             }
-        } catch (_) {
+        } catch (e) {
+            console.error(`[postDataheadersLogout] Exception caught from ${linkurl}:`, e);
             return Left(Statusrequest.failure);
         }
     }
@@ -115,14 +117,14 @@ export class Crud {
                     return Right(responsebody);
                 } else {
                     const responsebody = await response.json().catch(() => null);
-                    console.log("❌ API Error Response:", responsebody);
+                    console.error(`[postData] ❌ API Error Response from ${linkurl}:`, responsebody);
                     return Left(Statusrequest.failure);
                 }
             } else {
                 return Left(Statusrequest.serverfailure);
             }
         } catch (e) {
-            console.log("❌ Exception caught in Crud:", e);
+            console.error(`[postData] ❌ Exception caught from ${linkurl}:`, e);
             return Left(Statusrequest.failure);
         }
     }
@@ -149,14 +151,14 @@ export class Crud {
                     return Right(responsebody);
                 } else {
                     const responsebody = await response.json().catch(() => null);
-                    console.log(responsebody);
+                    console.error(`[getData] API Error Response from ${linkurl}:`, responsebody);
                     return Left(Statusrequest.failure);
                 }
             } else {
                 return Left(Statusrequest.serverfailure);
             }
         } catch (e) {
-            console.log("Exception:", e);
+            console.error(`[getData] Exception caught from ${linkurl}:`, e);
             return Left(Statusrequest.failure);
         }
     }
@@ -192,17 +194,18 @@ export class Crud {
 
                 if (response.status === 200 || response.status === 201) {
                     const responsebody = await response.json();
-                    console.log(responsebody);
+                    console.log(`[addRequestWithImageOne] Success from ${url}:`, responsebody);
                     return Right(responsebody);
                 } else {
                     const text = await response.text();
-                    console.log(`Server failure: ${response.status} - ${text}`);
+                    console.error(`[addRequestWithImageOne] Server failure from ${url}: ${response.status} - ${text}`);
                     return Left(Statusrequest.failure);
                 }
             } else {
                 return Left(Statusrequest.serverfailure);
             }
         } catch (e) {
+            console.error(`[addRequestWithImageOne] Exception caught from ${url}:`, e);
             return Left(Statusrequest.failure);
         }
     }

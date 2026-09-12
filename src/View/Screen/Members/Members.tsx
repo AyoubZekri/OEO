@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash } from 'lucide-react';
+import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash, Shirt, Scale } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
@@ -473,34 +473,24 @@ export const Members: React.FC = () => {
               </button>
             </div>
             
-            <div className="dialog-tabs no-print" style={{ display: 'flex', gap: '10px', padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
+            <div className="premium-dialog-tabs no-print">
               <button 
-                className={`tab-btn ${activeDialogTab === 'financial' ? 'active' : ''}`}
+                className={`premium-tab-btn ${activeDialogTab === 'financial' ? 'active' : ''}`}
                 onClick={() => setActiveDialogTab('financial')}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'financial' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'financial' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
               >
-                كشف الحساب
+                <Wallet size={16} /> كشف الحساب
               </button>
               <button 
-                className={`tab-btn ${activeDialogTab === 'equipment' ? 'active' : ''}`}
+                className={`premium-tab-btn ${activeDialogTab === 'equipment' ? 'active' : ''}`}
                 onClick={() => setActiveDialogTab('equipment')}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'equipment' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'equipment' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
               >
-                سجل المعدات
+                <Shirt size={16} /> سجل المعدات
               </button>
               <button 
-                className={`tab-btn ${activeDialogTab === 'disciplinary' ? 'active' : ''}`}
+                className={`premium-tab-btn ${activeDialogTab === 'disciplinary' ? 'active' : ''}`}
                 onClick={() => setActiveDialogTab('disciplinary')}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'disciplinary' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'disciplinary' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
               >
-                الإجراءات التأديبية
-              </button>
-              <button 
-                className={`tab-btn ${activeDialogTab === 'correspondences' ? 'active' : ''}`}
-                onClick={() => setActiveDialogTab('correspondences')}
-                style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: activeDialogTab === 'correspondences' ? 'var(--primary-color)' : 'var(--bg-body)', color: activeDialogTab === 'correspondences' ? 'white' : 'var(--text-color)', cursor: 'pointer', fontWeight: 'bold' }}
-              >
-                المراسلات
+                <Scale size={16} /> الإجراءات التأديبية
               </button>
             </div>
 
@@ -858,7 +848,6 @@ export const Members: React.FC = () => {
           player={controller.evalHistoryMember}
           evaluations={controller.evaluations}
           onClose={controller.closeEvalHistory}
-          onAddTest={() => controller.addTestEvaluation(Number(controller.evalHistoryMember!.id))}
           onEdit={(ev) => setEditingEvaluation({ player: controller.evalHistoryMember!, data: ev })}
           onDelete={(id) => controller.deleteEvaluation(id)}
         />

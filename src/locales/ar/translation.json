@@ -116,7 +116,8 @@
       "reports": "التقارير",
       "usersAndRoles": "إدارة المستخدمين والصلاحيات",
       "equipment": "معدات الفريق",
-      "equipmentOperations": "حركة العتاد"
+      "equipmentOperations": "حركة العتاد",
+      "disciplinary": "الإجراءات التأديبية"
     },
     "actions": {
       "view": "عرض",
@@ -141,7 +142,11 @@
       "viewRoles": "عرض الصلاحيات",
       "addRoles": "إضافة صلاحية",
       "editRoles": "تعديل صلاحية",
-      "deleteRoles": "حذف صلاحية"
+      "deleteRoles": "حذف صلاحية",
+      "sign": "توقيع بالاستلام",
+      "changeStatus": "تغيير الحالة",
+      "viewReply": "عرض الرد",
+      "editReply": "تعديل الرد"
     }
   },
   "users": {

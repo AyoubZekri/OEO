@@ -7,17 +7,23 @@ export const EquipmentDialog: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   equipmentToEdit?: any; // If passed, it's Edit mode, otherwise Add mode
-}> = ({ isOpen, onClose, equipmentToEdit }) => {
+  onSave: (data: any) => void;
+}> = ({ isOpen, onClose, equipmentToEdit, onSave }) => {
   const [name, setName] = useState('');
   const [totalQuantity, setTotalQuantity] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (equipmentToEdit) {
       setName(equipmentToEdit.name || '');
       setTotalQuantity(equipmentToEdit.totalQuantity?.toString() || '');
+      setImagePreview(equipmentToEdit.image || null);
     } else {
       setName('');
       setTotalQuantity('');
+      setImageFile(null);
+      setImagePreview(null);
     }
   }, [equipmentToEdit, isOpen]);
 
@@ -25,11 +31,31 @@ export const EquipmentDialog: React.FC<{
 
   const isEdit = !!equipmentToEdit;
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setImageFile(null);
+      setImagePreview(equipmentToEdit?.image || null);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically call an API or update state
-    console.log('Submitted:', { name, totalQuantity });
-    onClose();
+    onSave({
+      data: {
+        name,
+        totalQuantity: Number(totalQuantity),
+        availableQuantity: equipmentToEdit ? undefined : Number(totalQuantity),
+      },
+      imageFile
+    });
   };
 
   return (
@@ -47,6 +73,25 @@ export const EquipmentDialog: React.FC<{
 
         <form onSubmit={handleSubmit} className="eq-dialog-form">
           <div className="eq-dialog-body" style={{ padding: '32px 24px' }}>
+            
+            <div className="form-group" style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+               <label style={{ alignSelf: 'flex-start' }}>صورة العتاد</label>
+               <div style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '10px', position: 'relative' }}>
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>لا توجد صورة</span>
+                  )}
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleImageChange}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
+                  />
+               </div>
+               <span style={{ fontSize: '0.8rem', color: '#64748b' }}>انقر لاختيار صورة</span>
+            </div>
+
             <div className="form-group" style={{ marginBottom: '24px' }}>
               <CustomInput
                 type="text" 
@@ -67,7 +112,6 @@ export const EquipmentDialog: React.FC<{
               />
             </div>
             
-            {/* Can add more fields like Image URL if needed */}
           </div>
 
           <div className="eq-dialog-footer">

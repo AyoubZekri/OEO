@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { X, Calendar, ArrowRight, Save } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 
 export interface TrainingSessionModel {
   id?: number;
+  team_id?: string;
+  team_name?: string;
   date: string;
   location: string;
   start: string;
@@ -17,14 +20,16 @@ interface TrainingSessionDialogProps {
   onClose: () => void;
   onSave: (session: TrainingSessionModel) => void;
   sessionToEdit?: TrainingSessionModel | null;
+  teams: any[];
 }
 
-export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ isOpen, onClose, onSave, sessionToEdit }) => {
+export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ isOpen, onClose, onSave, sessionToEdit, teams }) => {
   const [date, setDate] = useState('');
   const [location, setLocation] = useState('');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [status, setStatus] = useState('مجدولة');
+  const [teamId, setTeamId] = useState('');
 
   useEffect(() => {
     if (isOpen) {
@@ -34,12 +39,14 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
         setStart(sessionToEdit.start);
         setEnd(sessionToEdit.end);
         setStatus(sessionToEdit.status || 'مجدولة');
+        setTeamId(sessionToEdit.team_id || '');
       } else {
         setDate('');
         setLocation('');
         setStart('');
         setEnd('');
         setStatus('مجدولة');
+        setTeamId('');
       }
     }
   }, [isOpen, sessionToEdit]);
@@ -50,6 +57,7 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
     e.preventDefault();
     onSave({
       id: sessionToEdit?.id,
+      team_id: teamId,
       date,
       location,
       start,
@@ -58,16 +66,42 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
     });
   };
 
-  return (
-    <div className="task-dialog-overlay" onClick={onClose}>
-      <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)' }} onClick={(e) => e.stopPropagation()}>
-        <div className="task-dialog-header">
-          <h2>{sessionToEdit ? 'تعديل الحصة' : 'إضافة حصة تدريبية'}</h2>
-          <button type="button" className="close-btn" onClick={onClose}><X size={20} /></button>
+  const teamOptions = teams.map(t => ({ value: t.id.toString(), label: t.name }));
+
+  return createPortal(
+    <div className="modern-dialog-overlay" onClick={onClose}>
+      <div className="modern-dialog-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modern-dialog-header app-bar-header">
+          <button type="button" className="mobile-back-btn" onClick={onClose}>
+            <ArrowRight size={24} />
+          </button>
+          <div className="modern-dialog-title">
+            <div className="modern-dialog-title-icon desktop-icon-container">
+              <Calendar size={24} />
+            </div>
+            <h2>
+              <span className="desktop-title">{sessionToEdit ? 'تعديل الحصة التدريبية' : 'إضافة حصة تدريبية جديدة'}</span>
+              <span className="mobile-title">{sessionToEdit ? 'تعديل حصة' : 'إضافة حصة'}</span>
+            </h2>
+          </div>
+          <button type="button" className="modern-close-btn desktop-close-btn" onClick={onClose}>
+            <X size={24} />
+          </button>
         </div>
         
-        <form onSubmit={handleSubmit} className="task-form">
-          <div className="form-row" style={{ display: 'flex', gap: '16px' }}>
+        <form onSubmit={handleSubmit} className="modern-dialog-body">
+          
+          <div className="modern-form-group">
+            <CustomDropdown<string>
+              label="الفئة المعنية (الفريق)"
+              value={teamId}
+              options={teamOptions}
+              onChange={(val) => setTeamId(val)}
+              placeholder="اختر الفئة المعنية..."
+            />
+          </div>
+
+          <div className="modern-form-group" style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
               <CustomInput 
                 label="تاريخ التدريب"
@@ -89,7 +123,7 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
             </div>
           </div>
 
-          <div className="form-row" style={{ display: 'flex', gap: '16px' }}>
+          <div className="modern-form-group" style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
               <CustomInput 
                 label="بداية الحصة"
@@ -110,7 +144,7 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
             </div>
           </div>
 
-          <div className="form-row">
+          <div className="modern-form-group">
             <CustomDropdown<string>
               label="حالة الحصة"
               value={status}
@@ -125,12 +159,19 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
             />
           </div>
 
-          <div className="form-actions" style={{ marginTop: '24px' }}>
-            <button type="button" className="btn-cancel" onClick={onClose}>إلغاء</button>
-            <button type="submit" className="btn-submit">حفظ الحصة</button>
-          </div>
         </form>
+
+        <div className="modern-dialog-footer no-print">
+          <button type="button" className="modern-btn-secondary" onClick={onClose}>
+            إلغاء
+          </button>
+          <button type="button" className="modern-btn-primary" onClick={handleSubmit}>
+            <Save size={18} />
+            {sessionToEdit ? 'حفظ التعديلات' : 'إضافة الحصة'}
+          </button>
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

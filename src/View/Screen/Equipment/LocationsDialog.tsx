@@ -47,26 +47,38 @@ export const LocationsDialog: React.FC<{
             </div>
           ) : (
             <div className="eq-holders-list">
-              {equipment.holders.map((holder: any, idx: number) => (
-                <div key={idx} className="eq-holder-item">
-                  <div className="eq-holder-info">
-                    <div className="eq-holder-avatar">
-                      <User size={20} />
+              {equipment.holders.map((holder: any, idx: number) => {
+                return (
+                  <div key={idx} className="premium-holder-card">
+                    <div className="holder-card-main">
+                      {holder.photo ? (
+                        <img src={holder.photo} alt={holder.name} className="holder-avatar-img" />
+                      ) : (
+                        <div className="holder-avatar-placeholder">
+                          <User size={24} strokeWidth={2.5} />
+                        </div>
+                      )}
+                      
+                      <div className="holder-details">
+                        <h4 className="holder-name">{holder.name}</h4>
+                        <div className="holder-meta">
+                          <span className="meta-item">
+                            <Calendar size={12} />
+                            {holder.last_date ? new Date(holder.last_date).toLocaleDateString('en-GB') : 'غير متوفر'}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="eq-holder-name">{holder.name}</div>
-                      <div className="eq-holder-date">
-                        <Calendar size={12} /> تاريخ الاستلام: {holder.date}
+                    
+                    <div className="holder-card-action">
+                      <div className="holder-qty-box">
+                        <span className="qty-label">الكمية</span>
+                        <span className="qty-value">{holder.quantity}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="eq-holder-qty">
-                    <span className="qty-badge">
-                      الكمية: {holder.qty}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

@@ -60,6 +60,14 @@ export class Applink {
   static readonly createTransaction: string = `${Applink.server}/transactions/create`;
   static readonly deleteTransaction: string = `${Applink.server}/transactions/delete`;
 
+//  =============================Equipments============================== //
+
+  static readonly equipments: string = `${Applink.server}/equipments`;
+  static readonly createEquipment: string = `${Applink.server}/equipments/create`;
+  static readonly updateEquipment: string = `${Applink.server}/equipments/update`;
+  static readonly deleteEquipment: string = `${Applink.server}/equipments/delete`;
+
+
 //  =============================Payments (Expenses)============================== //
 
   static readonly payments: string = `${Applink.server}/payments`;
@@ -67,4 +75,42 @@ export class Applink {
   static readonly updatePayment: string = `${Applink.server}/payments/update`;
   static readonly deletePayment: string = `${Applink.server}/payments/delete`;
   static readonly returnPayment: string = `${Applink.server}/payments/return`;
+//  =============================Equipment Operations============================== //
+
+  static readonly equipmentOperations: string = `${Applink.server}/equipment-operations`;
+  static readonly createEquipmentOperation: string = `${Applink.server}/equipment-operations/create`;
+  static readonly returnEquipmentOperation: string = `${Applink.server}/equipment-operations/return`;
+
+//  =============================Correspondences============================== //
+
+  static readonly correspondences: string = `${Applink.server}/correspondences`;
+  static readonly createCorrespondence: string = `${Applink.server}/correspondences/create`;
+  static readonly updateCorrespondence: string = `${Applink.server}/correspondences/update`;
+  static readonly deleteCorrespondence: string = `${Applink.server}/correspondences/delete`;
+
+//  =============================Disciplinary============================== //
+
+  static readonly disciplinary: string = `${Applink.server}/disciplinary`;
+//  =============================Player Evaluations============================== //
+
+  static readonly playerEvaluations: string = `${Applink.server}/player-evaluations`;
+  static readonly createPlayerEvaluation: string = `${Applink.server}/player-evaluations/create`;
+  static readonly updatePlayerEvaluation: string = `${Applink.server}/player-evaluations/update`;
+  static readonly deletePlayerEvaluation: string = `${Applink.server}/player-evaluations/delete`;
+
+//  =============================Improvement Programs============================== //
+
+  static readonly improvementPrograms: string = `${Applink.server}/improvement-programs`;
+  static readonly createImprovementProgram: string = `${Applink.server}/improvement-programs/create`;
+  static readonly updateImprovementProgram: string = `${Applink.server}/improvement-programs/update`;
+  static readonly deleteImprovementProgram: string = `${Applink.server}/improvement-programs/delete`;
+
+//  =============================Contract Reviews============================== //
+
+  static readonly contractReviews: string = `${Applink.server}/contract-reviews`;
+  static readonly createContractReview: string = `${Applink.server}/contract-reviews/create`;
+  static readonly updateContractReview: string = `${Applink.server}/contract-reviews/update`;
+  static readonly deleteContractReview: string = `${Applink.server}/contract-reviews/delete`;
+
 }
+

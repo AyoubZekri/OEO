@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { useSaidparController } from './SaidparController';
 import { PanelRightClose, PanelRightOpen, ChevronDown, Circle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -104,17 +104,19 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
         <div 
           className="logout-btn" 
           onClick={controller.handleLogout}
-          title={!effectivelyOpen ? t('sidebar.logout', 'تسجيل خروج') : ''}
+          title={!effectivelyOpen ? t('sidebar.logout', 'طھط³ط¬ظٹظ„ ط®ط±ظˆط¬') : ''}
         >
           <svg className="logout-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
             <polyline points="16 17 21 12 16 7"></polyline>
             <line x1="21" y1="12" x2="9" y2="12"></line>
           </svg>
-          {effectivelyOpen && <span className="logout-text">{t('sidebar.logout', 'تسجيل خروج')}</span>}
+          {effectivelyOpen && <span className="logout-text">{t('sidebar.logout', 'طھط³ط¬ظٹظ„ ط®ط±ظˆط¬')}</span>}
         </div>
       </div>
     </aside>
     </>
   );
 };
+
+

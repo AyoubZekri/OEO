@@ -306,32 +306,46 @@ export const useMembersController = () => {
     return matchesSearch && matchesTeam;
   });
 
-  const loadEvaluations = (memberId: number) => {
-    evalsData.seedDefaultEvaluations(memberId);
-    const data = evalsData.getEvaluationsByMember(memberId);
-    setEvaluations(data);
+  const loadEvaluations = async (memberId: number) => {
+    try {
+      const data = await evalsData.getEvaluationsByMember(memberId);
+      setEvaluations(data);
+    } catch (error) {
+      console.error("Error loading evaluations", error);
+      setEvaluations([]);
+    }
   };
 
-  const saveEvaluation = (evaluation: Omit<EvaluationRecord, 'id'>) => {
-    const saved = evalsData.saveEvaluation(evaluation);
-    setEvaluations(prev => [saved, ...prev]);
-    return saved;
+  const saveEvaluation = async (evaluation: Omit<EvaluationRecord, 'id'>) => {
+    try {
+      await evalsData.saveEvaluation(evaluation);
+      await loadEvaluations(evaluation.member_id);
+    } catch (error) {
+      console.error("Error saving evaluation", error);
+    }
   };
 
-  const updateEvaluation = (evaluation: EvaluationRecord) => {
-    const updated = evalsData.updateEvaluation(evaluation);
-    setEvaluations(prev => prev.map(e => e.id === updated.id ? updated : e));
-    return updated;
+  const updateEvaluation = async (evaluation: EvaluationRecord) => {
+    try {
+      await evalsData.updateEvaluation(evaluation);
+      await loadEvaluations(evaluation.member_id);
+    } catch (error) {
+      console.error("Error updating evaluation", error);
+    }
   };
 
-  const deleteEvaluation = (id: string) => {
-    evalsData.deleteEvaluation(id);
-    setEvaluations(prev => prev.filter(e => e.id !== id));
-  };
-
-  const addTestEvaluation = (memberId: number) => {
-    const testEval = evalsData.generateTestEvaluation(memberId);
-    saveEvaluation(testEval);
+  const deleteEvaluation = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا التقييم بشكل نهائي؟')) {
+      try {
+        await evalsData.deleteEvaluation(id);
+        setEvaluations(prev => prev.filter(e => e.id !== id));
+      } catch (error: any) {
+        console.error("Error deleting evaluation", error);
+        if (error.response && error.response.data) {
+          console.error("Backend response details:", error.response.data);
+        }
+      }
+    }
   };
 
   const openEvalHistory = (member: MemberModel) => {
@@ -385,6 +399,6 @@ export const useMembersController = () => {
     saveEvaluation,
     updateEvaluation,
     deleteEvaluation,
-    addTestEvaluation,
   };
 };
+

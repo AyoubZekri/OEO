@@ -1,0 +1,142 @@
+/* A4 Paper Setup */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+  
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+.receipt-wrapper {
+  position: relative;
+  width: 210mm;
+  height: 296mm;
+  font-family: Arial, Helvetica, sans-serif !important;
+  color: #000;
+  direction: rtl;
+  box-sizing: border-box;
+  overflow: hidden;
+  background: white;
+}
+
+/* Force Arial on all child elements as well */
+.receipt-wrapper * {
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+.receipt-bg-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.receipt-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  padding: 30mm 15mm 20mm 15mm; 
+  box-sizing: border-box;
+}
+
+/* Main Title Box */
+.receipt-main-title {
+  background-color: transparent;
+  color: #F97316; /* Theme Orange */
+  text-align: center;
+  padding: 0;
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 15px;
+}
+
+/* Top details (Receipt No & Date) */
+.top-details {
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid #000;
+  margin-bottom: 15px;
+  background-color: transparent;
+}
+.top-details > div {
+  padding: 5px 8px;
+  font-weight: bold;
+  font-size: 16px;
+}
+.top-details > div:first-child {
+  border-left: 1px solid #000;
+  flex: 1;
+}
+
+/* Section Titles */
+.section-title {
+  text-align: center;
+  color: #F97316; /* Theme Orange */
+  font-weight: 800;
+  font-size: 18px;
+  margin: 10px 0 5px 0;
+}
+
+/* Common Table Styles */
+.receipt-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  background-color: transparent;
+}
+.receipt-table th, .receipt-table td {
+  border: 1px solid #000;
+  padding: 6px 8px;
+  font-size: 15px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.receipt-table th {
+  background-color: #f9fafb;
+}
+
+.col-50 { width: 50%; }
+
+.declaration-text {
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 15px;
+  text-align: justify;
+}
+
+/* Signature Table */
+.signature-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background-color: transparent;
+}
+.signature-table th, .signature-table td {
+  border: 1px solid #000;
+  text-align: center;
+}
+.signature-table th {
+  padding: 5px;
+  font-size: 15px;
+}
+.signature-table td {
+  height: 80px;
+  vertical-align: top;
+  padding: 5px;
+}

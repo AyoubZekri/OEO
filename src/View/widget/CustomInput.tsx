@@ -4,6 +4,7 @@ import { Eye, EyeOff } from 'lucide-react';
 interface CustomInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   error?: string | null;
+  icon?: React.ReactNode;
 }
 
 export const CustomInput: React.FC<CustomInputProps> = ({ label, type, error, ...props }) => {
@@ -18,7 +19,7 @@ export const CustomInput: React.FC<CustomInputProps> = ({ label, type, error, ..
         <input 
           type={inputType} 
           {...props} 
-          style={{ width: '100%', ...(isPassword ? { paddingLeft: '40px' } : {}) }} 
+          style={{ width: '100%', height: '48px', boxSizing: 'border-box', ...(isPassword ? { paddingLeft: '40px' } : {}) }} 
         />
         {isPassword && (
           <button 

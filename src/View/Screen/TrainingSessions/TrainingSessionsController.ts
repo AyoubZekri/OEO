@@ -1,15 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { TrainingSessionModel } from './TrainingSessionDialog';
-
+import { TrainingSessionData } from './training_session_data';
+import axios from 'axios';
+import { Applink } from '../../../LinkApi';
 export const useTrainingSessionsController = () => {
-  const [sessions, setSessions] = useState<TrainingSessionModel[]>([
-    { id: 1, date: '2024-05-12', location: 'القاعة الرئيسية', start: '10:00', end: '12:00', status: 'مكتملة' },
-    { id: 2, date: '2024-05-14', location: 'الملعب المفتوح', start: '16:00', end: '18:30', status: 'جارية' },
-    { id: 3, date: '2024-05-16', location: 'المسبح الأولمبي', start: '08:00', end: '10:00', status: 'مجدولة' },
-  ]);
-
+  const [sessions, setSessions] = useState<TrainingSessionModel[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sessionToEdit, setSessionToEdit] = useState<TrainingSessionModel | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [selectedTeamId]);
+
+  const fetchTeams = async () => {
+    try {
+      const response = await axios.get(`${Applink.server}/teams`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setTeams(response.data);
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
+
+  const fetchSessions = async () => {
+    setIsLoading(true);
+    try {
+      const data = await TrainingSessionData.getSessions(selectedTeamId);
+      setSessions(data);
+    } catch (error) {
+      console.error('Failed to fetch sessions');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const openAddDialog = () => {
     setSessionToEdit(null);
@@ -26,30 +57,45 @@ export const useTrainingSessionsController = () => {
     setSessionToEdit(null);
   };
 
-  const handleSaveSession = (session: TrainingSessionModel) => {
-    if (session.id) {
-      setSessions(sessions.map(s => s.id === session.id ? { ...session, id: s.id } : s));
-    } else {
-      setSessions([...sessions, { ...session, id: Math.random() }]);
+  const handleSaveSession = async (session: TrainingSessionModel) => {
+    try {
+      await TrainingSessionData.saveSession(session);
+      await fetchSessions();
+      closeDialog();
+    } catch (error) {
+      alert('حدث خطأ أثناء الحفظ');
     }
-    closeDialog();
   };
 
-  const handleDeleteSession = (id?: number) => {
+  const handleDeleteSession = async (id?: number) => {
     if (id && window.confirm('هل أنت متأكد من حذف هذه الحصة التدريبية؟')) {
-      setSessions(sessions.filter(s => s.id !== id));
+      try {
+        await TrainingSessionData.deleteSession(id);
+        await fetchSessions();
+      } catch (error) {
+        alert('حدث خطأ أثناء الحذف');
+      }
     }
   };
 
-  const handleChangeStatus = (id: number | undefined, newStatus: string) => {
+  const handleChangeStatus = async (id: number | undefined, newStatus: string) => {
     if (!id) return;
-    setSessions(sessions.map(s => s.id === id ? { ...s, status: newStatus } : s));
+    try {
+      await TrainingSessionData.updateStatus(id, newStatus);
+      await fetchSessions();
+    } catch (error) {
+      alert('حدث خطأ أثناء التحديث');
+    }
   };
 
   return {
     sessions,
     isDialogOpen,
     sessionToEdit,
+    isLoading,
+    teams,
+    selectedTeamId,
+    setSelectedTeamId,
     openAddDialog,
     openEditDialog,
     closeDialog,

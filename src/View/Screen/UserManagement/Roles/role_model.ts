@@ -78,6 +78,18 @@ export interface EquipmentOperationsPermissions {
   delete: boolean;
 }
 
+export interface DisciplinaryPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  print: boolean;
+  sign: boolean;
+  changeStatus: boolean;
+  viewReply: boolean;
+  editReply: boolean;
+}
+
 export interface AppPermissions {
   dashboard: DashboardPermissions;
   members: MembersPermissions;
@@ -89,6 +101,7 @@ export interface AppPermissions {
   usersAndRoles: UsersRolesPermissions;
   equipment: EquipmentPermissions;
   equipmentOperations: EquipmentOperationsPermissions;
+  disciplinary: DisciplinaryPermissions;
 }
 
 export const defaultPermissions: AppPermissions = {
@@ -102,6 +115,7 @@ export const defaultPermissions: AppPermissions = {
   usersAndRoles: { view: true, viewUsers: true, addUsers: true, editUsers: true, deleteUsers: true, viewRoles: true, addRoles: true, editRoles: true, deleteRoles: true },
   equipment: { view: true, add: true, edit: true, delete: true, print: true },
   equipmentOperations: { view: true, handover: true, return: true, print: true, edit: true, delete: true },
+  disciplinary: { view: true, add: true, edit: true, delete: true, print: true, sign: true, changeStatus: true, viewReply: true, editReply: true },
 };
 
 export const emptyPermissions: AppPermissions = {
@@ -115,6 +129,7 @@ export const emptyPermissions: AppPermissions = {
   usersAndRoles: { view: false, viewUsers: false, addUsers: false, editUsers: false, deleteUsers: false, viewRoles: false, addRoles: false, editRoles: false, deleteRoles: false },
   equipment: { view: false, add: false, edit: false, delete: false, print: false },
   equipmentOperations: { view: false, handover: false, return: false, print: false, edit: false, delete: false },
+  disciplinary: { view: false, add: false, edit: false, delete: false, print: false, sign: false, changeStatus: false, viewReply: false, editReply: false },
 };
 
 export class RoleModel {
@@ -162,7 +177,8 @@ export class RoleModel {
           reports: { ...emptyPermissions.reports, ...(parsed.reports || {}) },
           usersAndRoles: { ...emptyPermissions.usersAndRoles, ...(parsed.usersAndRoles || {}) },
           equipment: { ...emptyPermissions.equipment, ...(parsed.equipment || {}) },
-          equipmentOperations: { ...emptyPermissions.equipmentOperations, ...(parsed.equipmentOperations || {}) }
+          equipmentOperations: { ...emptyPermissions.equipmentOperations, ...(parsed.equipmentOperations || {}) },
+          disciplinary: { ...emptyPermissions.disciplinary, ...(parsed.disciplinary || {}) }
         };
       } catch (e) {
         parsedPermissions = emptyPermissions;

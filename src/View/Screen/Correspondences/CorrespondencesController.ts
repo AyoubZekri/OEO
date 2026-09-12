@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { getCorrespondences, addCorrespondence, updateCorrespondenceStatus, deleteCorrespondence } from './correspondence_data';
 import { type CorrespondenceModel } from './correspondence_model';
 import { MembersData } from '../Members/members_data';
 import { MemberModel } from '../Members/member_model';
 import { Crud } from '../../../core/class/Crud';
+import { Applink } from '../../../LinkApi';
 
 export const useCorrespondencesController = () => {
   const [correspondences, setCorrespondences] = useState<CorrespondenceModel[]>([]);
@@ -22,9 +22,23 @@ export const useCorrespondencesController = () => {
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  const fetchCorrespondences = async () => {
+    try {
+      const response = await crud.getData(Applink.correspondences);
+      const data = response._tag === 'Right' ? response.right : [];
+      
+      let extracted = [];
+      if (Array.isArray(data)) extracted = data;
+      else if (data?.data && Array.isArray(data.data)) extracted = data.data;
+      
+      setCorrespondences(extracted);
+    } catch (error) {
+      console.error("Error fetching correspondences:", error);
+    }
+  };
+
   useEffect(() => {
-    // Load data
-    setCorrespondences(getCorrespondences());
+    fetchCorrespondences();
     
     const fetchMembers = async () => {
       const response = await membersData.getMembers();
@@ -49,20 +63,39 @@ export const useCorrespondencesController = () => {
     return members.find(m => String(m.id) === String(memberId));
   };
 
-  const handleAddCorrespondence = (data: Omit<CorrespondenceModel, 'id' | 'createdAt'>) => {
-    const newCorrespondence = addCorrespondence(data);
-    setCorrespondences([newCorrespondence, ...correspondences]);
-    setIsAddDialogOpen(false);
+  const handleAddCorrespondence = async (data: Omit<CorrespondenceModel, 'id' | 'createdAt'>) => {
+    try {
+      await crud.postDataheaders(`${Applink.correspondences}/create`, data);
+      await fetchCorrespondences();
+      setIsAddDialogOpen(false);
+    } catch (error) {
+      console.error("Error adding correspondence:", error);
+      alert("حدث خطأ أثناء الإضافة");
+    }
   };
 
-  const handleUpdateStatus = (id: string, status: CorrespondenceModel['status']) => {
-    updateCorrespondenceStatus(id, status);
-    setCorrespondences(correspondences.map(c => c.id === id ? { ...c, status } : c));
+  const handleUpdateStatus = async (id: string, status: CorrespondenceModel['status']) => {
+    try {
+      const itemToUpdate = correspondences.find(c => c.id === id);
+      if (itemToUpdate) {
+        await crud.postDataheaders(`${Applink.correspondences}/update`, { ...itemToUpdate, status });
+        await fetchCorrespondences();
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    deleteCorrespondence(id);
-    setCorrespondences(correspondences.filter(c => c.id !== id));
+  const handleDelete = async (id: string) => {
+    if (window.confirm("هل أنت متأكد من حذف هذه المراسلة؟")) {
+      try {
+        await crud.postDataheaders(`${Applink.correspondences}/delete`, { id });
+        await fetchCorrespondences();
+      } catch (error) {
+        console.error("Error deleting correspondence:", error);
+        alert("حدث خطأ أثناء الحذف");
+      }
+    }
   };
 
   const openAddDialog = () => {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Save, ClipboardList, ShieldAlert, CheckCircle2, RefreshCw, BarChart2, MessageSquare, Target, Calendar } from 'lucide-react';
+import { X, Save, ClipboardList, ShieldAlert, CheckCircle2, RefreshCw, BarChart2, MessageSquare, Target, Calendar, ArrowRight } from 'lucide-react';
 import { CustomInput } from '../../../widget/CustomInput';
 import { CustomDropdown } from '../../../widget/CustomDropdown';
 import './Evaluation.css';
@@ -13,7 +13,7 @@ interface EvaluationDialogProps {
 
 export const EvaluationDialog: React.FC<EvaluationDialogProps> = ({ player, initialData, onClose, onSave }) => {
   const [season, setSeason] = useState(initialData?.season || '2024-2025');
-  const [period, setPeriod] = useState(initialData?.period || 'first_half');
+  const [period, setPeriod] = useState(initialData?.period || 'مرحلة الذهاب');
   const [fromDate, setFromDate] = useState(initialData?.fromDate || '');
   const [toDate, setToDate] = useState(initialData?.toDate || '');
   
@@ -29,7 +29,7 @@ export const EvaluationDialog: React.FC<EvaluationDialogProps> = ({ player, init
   // Notes & Recs
   const [strengths, setStrengths] = useState(initialData?.strengths || '');
   const [weaknesses, setWeaknesses] = useState(initialData?.weaknesses || '');
-  const [recommendation, setRecommendation] = useState(initialData?.recommendation || 'normal_continuation');
+  const [recommendation, setRecommendation] = useState(initialData?.recommendation || 'استمرار عادي');
 
   const totalScore = discipline + physical + technical + tactical + matchOutput + instructions + behavior;
   
@@ -106,25 +106,36 @@ export const EvaluationDialog: React.FC<EvaluationDialogProps> = ({ player, init
   };
 
   const recOptions = [
-    { id: 'normal_continuation', label: 'استمرار عادي', icon: <CheckCircle2 size={16} /> },
-    { id: 'improvement_program', label: 'برنامج تحسين', icon: <BarChart2 size={16} /> },
-    { id: 'special_monitoring', label: 'متابعة خاصة', icon: <Target size={16} /> },
-    { id: 're_evaluate', label: 'إعادة تقييم بعد مدة محددة', icon: <RefreshCw size={16} /> },
-    { id: 'comprehensive_eval', label: 'تقييم شامل عند نهاية الذهاب', icon: <ClipboardList size={16} /> },
-    { id: 'contract_review', label: 'مراجعة الوضعية الرياضية/التعاقدية', icon: <ShieldAlert size={16} /> },
+    { id: 'استمرار عادي', label: 'استمرار عادي', icon: <CheckCircle2 size={16} /> },
+    { id: 'برنامج تحسين', label: 'برنامج تحسين', icon: <BarChart2 size={16} /> },
+    { id: 'متابعة خاصة', label: 'متابعة خاصة', icon: <Target size={16} /> },
+    { id: 'إعادة تقييم بعد مدة محددة', label: 'إعادة تقييم بعد مدة محددة', icon: <RefreshCw size={16} /> },
+    { id: 'تقييم شامل عند نهاية الذهاب', label: 'تقييم شامل عند نهاية الذهاب', icon: <ClipboardList size={16} /> },
+    { id: 'مراجعة الوضعية الرياضية/التعاقدية', label: 'مراجعة الوضعية الرياضية/التعاقدية', icon: <ShieldAlert size={16} /> },
   ];
 
   return (
-    <div className="eval-dialog-overlay">
+    <div className="eval-dialog-overlay" style={{ zIndex: 11000 }}>
       <div className="eval-dialog">
-        <div className="eval-header">
-          <h2>
-            <ClipboardList size={24} style={{ color: 'var(--accent)' }} />
-            تقييم فني وبدني: {player.nom} {player.prenom}
-          </h2>
-          <button className="btn-icon" onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
-            <X size={24} />
-          </button>
+        {/* Header - App Bar style */}
+        <div className="eval-header app-bar-header" style={{ padding: 0 }}>
+          <div className="app-bar-inner" style={{ padding: '24px 32px' }}>
+            <button className="mobile-back-btn" onClick={onClose} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}>
+              <ArrowRight size={24} />
+            </button>
+            <div className="desktop-icon-container" style={{ background: 'var(--bg-input)', border: '1px solid var(--border)', padding: '12px', borderRadius: '16px', color: 'var(--accent)' }}>
+              <ClipboardList size={28} />
+            </div>
+            <div className="app-bar-titles">
+              <h2 className="eval-main-title" style={{ margin: 0, fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--text-h)', letterSpacing: '0.5px' }}>
+                <span className="desktop-title">تقييم فني وبدني: {player.nom} {player.prenom}</span>
+                <span className="mobile-title">التقييم</span>
+              </h2>
+            </div>
+            <button className="desktop-close-btn" onClick={onClose} style={{ background: 'var(--bg-hover)', border: 'none', padding: '10px', borderRadius: '50%', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex', transition: 'background 0.2s' }}>
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         <div className="eval-body">
@@ -135,23 +146,33 @@ export const EvaluationDialog: React.FC<EvaluationDialogProps> = ({ player, init
                 <span>إعدادات فترة التقييم</span>
               </div>
               <div className="eval-meta-grid">
-                <CustomDropdown
+                <CustomInput
                   label="الموسم الرياضي"
-                  options={[{ value: '2024-2025', label: '2024-2025' }, { value: '2023-2024', label: '2023-2024' }]}
+                  placeholder="مثال: 2024-2025"
                   value={season}
-                  onChange={setSeason}
+                  onChange={(e: any) => {
+                    const val = e.target.value;
+                    // Allow only digits and hyphen, max length 9
+                    if (/^[\d-]{0,9}$/.test(val)) {
+                      setSeason(val);
+                    }
+                  }}
+                  error={season && !/^\d{4}-\d{4}$/.test(season) ? "يرجى كتابة الموسم بصيغة YYYY-YYYY" : null}
                 />
                 <CustomDropdown
-                  label="فترة التقييم"
+                  label="نوع التقييم"
                   options={[
-                    { value: 'first_half', label: 'نصف الموسم الأول' },
-                    { value: 'second_half', label: 'نصف الموسم الثاني' }
+                    { value: 'مرحلة الذهاب', label: 'مرحلة الذهاب' },
+                    { value: 'مرحلة الإياب', label: 'مرحلة الإياب' },
+                    { value: 'شهري', label: 'شهري' },
+                    { value: 'نهاية الموسم', label: 'نهاية الموسم' }
                   ]}
                   value={period}
                   onChange={setPeriod}
                 />
-                <CustomInput type="date" label="من تاريخ" value={fromDate} onChange={(e) => setFromDate(e.target.value)} className="eval-input" />
-                <CustomInput type="date" label="إلى تاريخ" value={toDate} onChange={(e) => setToDate(e.target.value)} className="eval-input" />
+                {period === 'شهري' && (
+                  <CustomInput type="month" label="الشهر المعني" value={fromDate ? fromDate.substring(0, 7) : ''} onChange={(e: any) => { setFromDate(e.target.value + '-01'); setToDate(e.target.value + '-28'); }} className="eval-input" />
+                )}
               </div>
             </div>
 

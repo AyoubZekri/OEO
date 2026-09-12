@@ -1,13 +1,23 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, User, Calendar, FileText, ChevronDown, Check } from 'lucide-react';
+
+import { useAuth } from '../../../core/context/AuthContext';
+
+import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, User, Calendar, ChevronDown, Check, Eye, PenTool, CheckCircle, Printer } from 'lucide-react';
 import { useDisciplinaryController } from './DisciplinaryController';
 import { DisciplinaryDialog } from './DisciplinaryDialog';
+import { IncidentDecisionDialog } from './Dialogs/IncidentDecisionDialog';
+import { ClarificationResponseDialog } from './Dialogs/ClarificationResponseDialog';
+import { HearingResponseDialog } from './Dialogs/HearingResponseDialog';
+import { DisciplinaryDetailsDialog } from './Dialogs/DisciplinaryDetailsDialog';
+import { ViewReplyDialog } from './Dialogs/ViewReplyDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
+import { IncidentPrintDialog } from './Dialogs/IncidentPrintDialog';
 
 
 import './Disciplinary.css';
 import '../Members/Members.css';
+
 
 const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -63,15 +73,20 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
 };
 
 export const Disciplinary: React.FC = () => {
-  // const { t } = useTranslation();
-  const controller = useDisciplinaryController();
+  const { permissions, isFullAccess } = useAuth();
+  const hasAccess = (check: boolean) => isFullAccess || check;
 
+  const controller = useDisciplinaryController();
+  const [viewingItem, setViewingItem] = useState<any>(null);
+  const [viewingReplyItem, setViewingReplyItem] = useState<any>(null);
+  const [printingIncident, setPrintingIncident] = useState<any>(null);
+  
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'تنبيه': return <AlertTriangle size={16} />;
-      case 'إنذار': return <AlertTriangle size={16} />;
       case 'طلب توضيح': return <MessageSquare size={16} />;
-      case 'إحالة على الجهة التأديبية المختصة': return <Scale size={16} />;
+      case 'استدعاء جلسة': return <Calendar size={16} />;
+      case 'إحالة على الجهة التأديبية المختصة': return <AlertTriangle size={16} />;
+      case 'واقعة': return <Scale size={16} />;
       default: return <AlertTriangle size={16} />;
     }
   };
@@ -92,10 +107,9 @@ export const Disciplinary: React.FC = () => {
 
   const typeOptions = [
     { value: 'الكل', label: 'جميع الأنواع' },
-    { value: 'تنبيه', label: 'تنبيه' },
-    { value: 'إنذار', label: 'إنذار' },
     { value: 'طلب توضيح', label: 'طلب توضيح' },
-    { value: 'إحالة على الجهة التأديبية المختصة', label: 'إحالة' }
+    { value: 'استدعاء جلسة', label: 'استدعاء جلسة' },
+    { value: 'واقعة', label: 'واقعة' }
   ];
 
   return (
@@ -130,10 +144,12 @@ export const Disciplinary: React.FC = () => {
             placeholder="جميع الحالات"
           />
 
-          <button className="btn-primary" onClick={controller.openAddDialog}>
-            <Plus size={18} />
-            إضافة إجراء
-          </button>
+          {hasAccess(permissions.disciplinary.add) && (
+            <button className="btn-primary" onClick={controller.openAddDialog}>
+              <Plus size={18} />
+              إضافة إجراء
+            </button>
+          )}
         </div>
       </div>
 
@@ -143,42 +159,86 @@ export const Disciplinary: React.FC = () => {
           {controller.disciplinaryList.map(c => (
             <div key={c.id} className="disciplinary-premium-card">
               <div className="card-header-premium">
-                <div className={`action-type-pill ${c.actionType.replace(/ /g, '.')}`}>
+                <div className={`action-type-pill ${c.actionType.replace(/ /g, '-')}`}>
                   {getTypeIcon(c.actionType)}
                   <span>{c.actionType}</span>
                 </div>
-                <span className="card-subtitle-premium">#{c.id.substring(0, 6)}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span className="card-subtitle-premium">#{c.id.substring(0, 6)}</span>
+                  {hasAccess(permissions.disciplinary.print) && (
+                    <button className="btn-action-premium" style={{ width: '32px', height: '32px', padding: 0 }} onClick={() => setPrintingIncident(c)} title="طباعة المحضر/القرار">
+                      <Printer size={16} />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="card-body-premium">
-                <div className="info-row-premium">
-                  <User size={16} />
-                  <span><strong>اللاعب:</strong> {c.memberName}</span>
+                <div className="player-info-premium">
+                  <div className="player-avatar-premium">
+                    <User size={24} />
+                  </div>
+                  <div className="player-details-premium">
+                    <span className="player-name-premium">{c.memberName}</span>
+                    <span className="incident-date-premium">
+                      <Calendar size={14} /> {new Date(c.incidentDate).toLocaleDateString('ar-DZ')}
+                    </span>
+                  </div>
                 </div>
-                <div className="info-row-premium">
-                  <Calendar size={16} />
-                  <span><strong>تاريخ الحدث:</strong> {new Date(c.incidentDate).toLocaleDateString('ar-DZ')}</span>
+                
+                <div className="incident-reason-premium">
+                  <p>{c.reason}</p>
                 </div>
-                <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
-                  <FileText size={16} />
-                  <span><strong>السبب:</strong> {c.reason}</span>
-                </div>
+
+                {hasAccess(permissions.disciplinary.sign) && (
+                  <button 
+                    className={`full-width-sign-btn ${c.is_acknowledged ? 'signed' : 'unsigned'}`}
+                    onClick={() => !c.is_acknowledged && controller.handleAcknowledge(c)} 
+                    disabled={c.is_acknowledged}
+                  >
+                    {c.is_acknowledged ? (
+                      <>
+                        <CheckCircle size={18} />
+                        <span>موقع بالاستلام {c.acknowledged_at ? `في ${new Date(c.acknowledged_at).toLocaleDateString('ar-DZ')}` : ''}</span>
+                      </>
+                    ) : (
+                      <>
+                        <PenTool size={18} />
+                        <span>توقيع اللاعب بالاستلام</span>
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
               
               <div className="card-footer-premium">
-                <div className="status-control-modern">
+                <div className="status-control-modern" style={{ opacity: hasAccess(permissions.disciplinary.changeStatus) ? 1 : 0.6, pointerEvents: hasAccess(permissions.disciplinary.changeStatus) ? 'auto' : 'none' }}>
                   <StatusDropdown 
                     value={c.status} 
                     onChange={(val) => controller.handleUpdateStatus(c.id, val as any)} 
                   />
                 </div>
                 <div className="card-actions-premium">
-                  <button className="btn-action-premium edit-btn" onClick={() => controller.openEditDialog(c)} title="تعديل">
-                    <Edit2 size={16} />
-                  </button>
-                  <button className="btn-action-premium delete-btn" onClick={() => controller.handleDelete(c.id)} title="حذف">
-                    <Trash2 size={16} />
-                  </button>
+                  {!['تنبيه', 'إنذار'].includes(c.actionType) && hasAccess(permissions.disciplinary.viewReply) && (
+                    <button className="btn-action-premium respond-btn" onClick={() => setViewingReplyItem(c)} title="عرض الرد والقرارات">
+                      <MessageSquare size={16} />
+                    </button>
+                  )}
+                  {hasAccess(permissions.disciplinary.view) && (
+                    <button className="btn-action-premium view-btn" onClick={() => setViewingItem(c)} title="عرض التفاصيل">
+                      <Eye size={16} />
+                    </button>
+                  )}
+                  {hasAccess(permissions.disciplinary.edit) && (
+                    <button className="btn-action-premium edit-btn" onClick={() => controller.openEditDialog(c)} title="تعديل">
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                  {hasAccess(permissions.disciplinary.delete) && (
+                    <button className="btn-action-premium delete-btn" onClick={() => controller.handleDelete(c.id)} title="حذف">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -198,6 +258,50 @@ export const Disciplinary: React.FC = () => {
         onClose={controller.closeDialog}
         onSave={controller.handleSave}
         editingItem={controller.editingItem}
+        members={controller.members}
+      />
+
+      <IncidentDecisionDialog
+        isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'واقعة'}
+        onClose={controller.closeDialog}
+        onSave={controller.handleSave}
+        editingItem={controller.editingItem}
+      />
+      
+      <ClarificationResponseDialog
+        isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'طلب توضيح'}
+        onClose={controller.closeDialog}
+        onSave={controller.handleSave}
+        editingItem={controller.editingItem}
+      />
+
+      <HearingResponseDialog
+        isOpen={controller.isResponseDialogOpen && ['استدعاء جلسة', 'إحالة على الجهة التأديبية المختصة'].includes(controller.editingItem?.actionType || '')}
+        onClose={controller.closeDialog}
+        onSave={controller.handleSave}
+        editingItem={controller.editingItem}
+      />
+
+      <DisciplinaryDetailsDialog
+        isOpen={!!viewingItem}
+        onClose={() => setViewingItem(null)}
+        item={viewingItem}
+      />
+
+      <ViewReplyDialog
+        isOpen={!!viewingReplyItem}
+        onClose={() => setViewingReplyItem(null)}
+        item={viewingReplyItem}
+        onEdit={(item) => {
+          setViewingReplyItem(null);
+          controller.openResponseDialog(item);
+        }}
+      />
+
+      <IncidentPrintDialog 
+        isOpen={!!printingIncident}
+        onClose={() => setPrintingIncident(null)}
+        incident={printingIncident}
       />
     </div>
   );
