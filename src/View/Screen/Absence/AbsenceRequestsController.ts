@@ -17,7 +17,7 @@ export interface AbsenceRecord {
   duration?: string;
   reason: string;
   is_justified: boolean;
-  justification_status: 'none' | 'pending' | 'accepted' | 'rejected';
+  justification_status: 'لا_يوجد' | 'قيد_الدراسة' | 'مقبول' | 'مرفوض' | 'none' | 'pending' | 'accepted' | 'rejected';
   record_source: string;
 }
 
@@ -137,7 +137,7 @@ export const useAbsenceRequestsController = () => {
 
   const submitJustification = async (text: string, _file: File | null) => {
     if (selectedAbsenceId !== null) {
-      await handleUpdateJustification(selectedAbsenceId, 'pending', text);
+      await handleUpdateJustification(selectedAbsenceId, 'قيد_الدراسة', text);
     }
     closeJustificationDialog();
   };
@@ -195,10 +195,12 @@ export const useAbsenceRequestsController = () => {
 
   const stats = {
     total: absences.length,
-    late: absences.filter(a => a.absence_type === 'متأخر').length,
-    absent: absences.filter(a => a.absence_type === 'غائب غير مبرر').length,
-    justified: absences.filter(a => a.absence_type === 'غائب مبرر' || a.is_justified).length,
-    pending: absences.filter(a => a.justification_status === 'pending').length,
+    late: absences.filter(a => a.absence_type === 'تأخر').length,
+    absent: absences.filter(a => a.absence_type === 'غياب').length,
+    leaves: absences.filter(a => a.absence_type === 'مغادرة').length,
+    requests: absences.filter(a => a.absence_type === 'طلب عطلة').length,
+    justified: absences.filter(a => a.justification_status === 'مقبول').length,
+    pending: absences.filter(a => a.justification_status === 'قيد_الدراسة').length,
   };
 
   return {

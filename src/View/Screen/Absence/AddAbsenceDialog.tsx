@@ -16,7 +16,7 @@ interface AddAbsenceDialogProps {
 
 export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onClose, onSubmit, defaultPlayerId, isMultiMode = false }) => {
   const [players, setPlayers] = useState<any[]>([]);
-  const [recordMode, setRecordMode] = useState<'record' | 'late' | 'request'>('record');
+  const [recordMode, setRecordMode] = useState<'record' | 'late' | 'request' | 'leave'>('record');
   const [formData, setFormData] = useState<{
     player_ids: string[];
     absence_type: string;
@@ -27,7 +27,7 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
     record_source: string;
   }>({
     player_ids: [],
-    absence_type: 'غير مبرر',
+    absence_type: 'غياب',
     event_category: 'تدريب',
     event_date: new Date().toISOString().split('T')[0],
     duration: '',
@@ -61,12 +61,16 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
     }
   };
 
-  const handleModeChange = (mode: 'record' | 'late' | 'request') => {
+  const handleModeChange = (mode: 'record' | 'late' | 'request' | 'leave') => {
     setRecordMode(mode);
     if (mode === 'request') {
-      setFormData(prev => ({ ...prev, absence_type: 'مبرر' }));
+      setFormData(prev => ({ ...prev, absence_type: 'طلب عطلة' }));
+    } else if (mode === 'late') {
+      setFormData(prev => ({ ...prev, absence_type: 'تأخر' }));
+    } else if (mode === 'leave') {
+      setFormData(prev => ({ ...prev, absence_type: 'مغادرة' }));
     } else {
-      setFormData(prev => ({ ...prev, absence_type: 'غير مبرر' }));
+      setFormData(prev => ({ ...prev, absence_type: 'غياب' }));
     }
   };
 
@@ -92,7 +96,7 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
       // Reset form
       setFormData({
         player_ids: [],
-        absence_type: 'غير مبرر',
+        absence_type: 'غياب',
         event_category: 'تدريب',
         event_date: new Date().toISOString().split('T')[0],
         duration: '',
@@ -117,8 +121,9 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
       <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '650px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={(e) => e.stopPropagation()}>
         <div className="task-dialog-header">
           <h2>
-            {recordMode === 'request' ? 'تقديم طلب إذن غياب' :
+            {recordMode === 'request' ? 'تقديم طلب عطلة' :
               recordMode === 'late' ? 'تسجيل حالة تأخر' :
+              recordMode === 'leave' ? 'تسجيل حالة مغادرة' :
                 'تسجيل حالة غياب'}
           </h2>
           <button type="button" className="close-btn" onClick={onClose}><X size={20} /></button>
@@ -147,9 +152,16 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
                 onClick={() => handleModeChange('request')}
                 style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: recordMode === 'request' ? '#fff' : 'transparent', color: recordMode === 'request' ? 'var(--accent-secondary, #8b5cf6)' : '#64748b', fontWeight: recordMode === 'request' ? '700' : '600', boxShadow: recordMode === 'request' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' }}
               >
-                طلب إذن
+                طلب عطلة
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => handleModeChange('leave')}
+              style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: recordMode === 'leave' ? '#fff' : 'transparent', color: recordMode === 'leave' ? '#f97316' : '#64748b', fontWeight: recordMode === 'leave' ? '700' : '600', boxShadow: recordMode === 'leave' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' }}
+            >
+              مغادرة
+            </button>
           </div>
 
           <div style={{ marginBottom: '16px' }}>
@@ -186,7 +198,7 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
               options={[
                 { value: 'تدريب', label: 'تدريب' },
                 { value: 'مباراة', label: 'مباراة' },
-                { value: 'عيادة', label: 'عيادة طبية' },
+                { value: 'اجتماع', label: 'اجتماع' },
                 { value: 'أخرى', label: 'أخرى' }
               ]}
             />
@@ -202,7 +214,7 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
             )}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: recordMode === 'request' ? '1fr 1fr' : '1fr', gap: '16px', marginTop: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: (recordMode === 'request' || recordMode === 'late') ? '1fr 1fr' : '1fr', gap: '16px', marginTop: '16px' }}>
             <CustomInput
               type="date"
               label="التاريخ *"
@@ -210,46 +222,18 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
               onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
               required
             />
-            {recordMode === 'request' && (
+            {(recordMode === 'request' || recordMode === 'late') && (
               <CustomInput
                 type="text"
-                label="المدة (اختياري)"
-                placeholder="مثال: يومان، ساعتان..."
+                label={recordMode === 'late' ? "مدة التأخر (اختياري)" : "المدة (اختياري)"}
+                placeholder={recordMode === 'late' ? "مثال: 15 دقيقة..." : "مثال: يومان، ساعتان..."}
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
               />
             )}
           </div>
 
-          {formData.player_ids.length > 0 && (
-            <div className="form-group" style={{ marginTop: '24px' }}>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px', color: 'var(--text-h, #1f2937)' }}>
-                <FileText size={18} /> الملاحظات الخاصة بكل عضو ({formData.player_ids.length})
-              </label>
-              <div style={{ maxHeight: '260px', overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {formData.player_ids.map(id => {
-                  const player = players.find(p => p.id.toString() === id);
-                  return (
-                    <div key={id} style={{ padding: '16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', fontWeight: 600, color: 'var(--accent, #3b82f6)' }}>
-                        <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <User size={14} color="#3b82f6" />
-                        </div>
-                        {player ? `${player.first_name} ${player.last_name}` : ''}
-                      </div>
-                      <textarea
-                        value={memberReasons[id] || ''}
-                        onChange={(e) => setMemberReasons({ ...memberReasons, [id]: e.target.value })}
-                        placeholder={recordMode === 'request' ? "يرجى توضيح سبب طلب الإذن بالغياب..." : "ملاحظات إضافية حول الغياب..."}
-                        className="form-control"
-                        style={{ minHeight: '60px', resize: 'vertical', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px', fontSize: '0.9rem', width: '100%', fontFamily: 'inherit' }}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+
 
           <div className="form-actions" style={{ marginTop: '24px' }}>
             <button type="button" className="btn-cancel" onClick={onClose} disabled={isSubmitting}>إلغاء</button>
@@ -257,7 +241,8 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
               {isSubmitting ? 'جاري الحفظ...' :
                 recordMode === 'request' ? 'إرسال الطلب' :
                   recordMode === 'late' ? 'تسجيل التأخر' :
-                    'حفظ الغياب'}
+                    recordMode === 'leave' ? 'تسجيل المغادرة' :
+                      'حفظ الغياب'}
             </button>
           </div>
         </form>

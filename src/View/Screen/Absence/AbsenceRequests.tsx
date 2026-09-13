@@ -140,8 +140,8 @@ export const AbsenceRequests: React.FC = () => {
               {controller.absences.map(abs => (
                 <div key={`abs-${abs.id}`} className="absence-card premium-card">
                   <div className="card-top-bar">
-                    <span className={`status-pill ${abs.justification_status === 'accepted' ? 'accepted' : abs.justification_status === 'rejected' ? 'rejected' : abs.justification_status === 'pending' ? 'pending' : 'rejected'}`}>
-                      {abs.justification_status === 'accepted' ? 'غياب مبرر' : abs.justification_status === 'rejected' ? 'تبرير مرفوض' : abs.justification_status === 'pending' ? 'قيد مراجعة التبرير' : 'غياب غير مبرر'}
+                    <span className={`status-pill ${(abs.justification_status === 'مقبول' || abs.justification_status === 'accepted') ? 'accepted' : (abs.justification_status === 'مرفوض' || abs.justification_status === 'rejected') ? 'rejected' : (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'pending' : 'rejected'}`}>
+                      {(abs.justification_status === 'مقبول' || abs.justification_status === 'accepted') ? 'غياب مبرر' : (abs.justification_status === 'مرفوض' || abs.justification_status === 'rejected') ? 'تبرير مرفوض' : (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'قيد مراجعة التبرير' : (abs.absence_type || 'غياب')}
                     </span>
                     <span className="time-ago" style={{ fontWeight: '600' }}>{abs.event_date || abs.session_date}</span>
                   </div>
@@ -152,38 +152,39 @@ export const AbsenceRequests: React.FC = () => {
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{abs.player_name}</h3>
-                      <span className="req-type" style={{ background: 'var(--bg, #f3f4f6)', color: 'var(--text-p, #4b5563)' }}>{abs.absence_type}</span>
                     </div>
                   </div>
 
-                  <div className="details-list" style={{ flex: 1, background: abs.justification_status === 'pending' ? 'rgba(245, 158, 11, 0.05)' : 'var(--bg, #f9fafb)', border: abs.justification_status === 'pending' ? '1px solid rgba(245, 158, 11, 0.3)' : 'none' }}>
-                    <div className="detail-row">
-                      <FileWarning size={16} color={abs.is_justified ? '#10b981' : '#ef4444'} />
-                      <span>الحالة: <strong style={{ color: abs.is_justified ? '#10b981' : '#ef4444' }}>
-                        {abs.is_justified ? 'تم قبول التبرير' : 'لا يوجد تبرير مقبول'}
-                      </strong></span>
-                    </div>
-                    {abs.reason && (
-                      <div className="detail-row reason-box" style={{ borderColor: abs.justification_status === 'pending' ? 'rgba(245, 158, 11, 0.3)' : 'var(--border, #e5e7eb)' }}>
-                        <FileText size={16} color={abs.justification_status === 'pending' ? '#d97706' : '#9ca3af'} />
-                        <p>التبرير: <span style={{ color: abs.justification_status === 'pending' ? '#b45309' : 'var(--text-h, #1f2937)' }}>{abs.reason}</span></p>
+                  {abs.justification_status !== 'لا_يوجد' && abs.justification_status !== 'none' && (
+                    <div className="details-list" style={{ flex: 1, background: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'rgba(245, 158, 11, 0.05)' : 'var(--bg, #f9fafb)', border: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? '1px solid rgba(245, 158, 11, 0.3)' : 'none' }}>
+                      <div className="detail-row">
+                        <FileWarning size={16} color={abs.is_justified ? '#10b981' : '#ef4444'} />
+                        <span>الحالة: <strong style={{ color: abs.is_justified ? '#10b981' : '#ef4444' }}>
+                          {abs.is_justified ? 'تم قبول التبرير' : 'لا يوجد تبرير مقبول'}
+                        </strong></span>
                       </div>
-                    )}
-                  </div>
+                      {abs.reason && (
+                        <div className="detail-row reason-box" style={{ borderColor: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'rgba(245, 158, 11, 0.3)' : 'var(--border, #e5e7eb)' }}>
+                          <FileText size={16} color={(abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? '#d97706' : '#9ca3af'} />
+                          <p>التبرير: <span style={{ color: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? '#b45309' : 'var(--text-h, #1f2937)' }}>{abs.reason}</span></p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
-                  {abs.justification_status === 'none' && (
+                  {(abs.justification_status === 'لا_يوجد' || abs.justification_status === 'none') && (
                     <div className="action-buttons-row" style={{ marginTop: '16px' }}>
                       <button className="btn-accept" style={{ background: 'linear-gradient(135deg, var(--accent, #3b82f6) 0%, var(--accent-secondary, #8b5cf6) 100%)', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', width: '100%' }} onClick={() => controller.openJustificationDialog(abs.id)}>
                         <FileText size={18} /> تقديم تبرير
                       </button>
                     </div>
                   )}
-                  {abs.justification_status === 'pending' && (
+                  {(abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') && (
                     <div className="action-buttons-row" style={{ marginTop: '16px' }}>
-                      <button className="btn-accept" onClick={() => controller.handleUpdateJustification(abs.id, 'accepted')}>
+                      <button className="btn-accept" onClick={() => controller.handleUpdateJustification(abs.id, 'مقبول')}>
                         <Check size={18} /> قبول التبرير
                       </button>
-                      <button className="btn-reject" onClick={() => controller.handleUpdateJustification(abs.id, 'rejected')}>
+                      <button className="btn-reject" onClick={() => controller.handleUpdateJustification(abs.id, 'مرفوض')}>
                         <X size={18} /> رفض التبرير
                       </button>
                     </div>
@@ -199,11 +200,11 @@ export const AbsenceRequests: React.FC = () => {
           <div className="absence-section">
             <div className="absence-grid">
               {/* Render Justifications */}
-              {controller.absences.filter(a => a.justification_status === 'pending').map(just => (
+              {controller.absences.filter(a => a.justification_status === 'قيد_الدراسة').map(just => (
                 <div key={`just-${just.id}`} className="absence-card premium-card">
                   <div className="card-top-bar">
-                    <span className={`status-pill ${just.justification_status === 'accepted' ? 'accepted' : just.justification_status === 'rejected' ? 'rejected' : 'pending'}`}>
-                      {just.justification_status === 'accepted' ? 'مقبول' : just.justification_status === 'rejected' ? 'مرفوض' : 'قيد الانتظار'}
+                    <span className={`status-pill ${just.justification_status === 'مقبول' ? 'accepted' : just.justification_status === 'مرفوض' ? 'rejected' : 'pending'}`}>
+                      {just.justification_status === 'مقبول' ? 'مقبول' : just.justification_status === 'مرفوض' ? 'مرفوض' : 'قيد الانتظار'}
                     </span>
                     <span className="time-ago" style={{ fontWeight: '600' }}>{just.event_date || just.session_date}</span>
                   </div>
@@ -232,19 +233,19 @@ export const AbsenceRequests: React.FC = () => {
                     </div>
                   </div>
 
-                  {just.justification_status === 'pending' && (
+                  {just.justification_status === 'قيد_الدراسة' && (
                     <div className="action-buttons-row" style={{ marginTop: '16px' }}>
-                      <button className="btn-accept" onClick={() => controller.handleUpdateJustification(just.id, 'accepted')}>
+                      <button className="btn-accept" onClick={() => controller.handleUpdateJustification(just.id, 'مقبول')}>
                         <Check size={18} /> قبول
                       </button>
-                      <button className="btn-reject" onClick={() => controller.handleUpdateJustification(just.id, 'rejected')}>
+                      <button className="btn-reject" onClick={() => controller.handleUpdateJustification(just.id, 'مرفوض')}>
                         <X size={18} /> رفض
                       </button>
                     </div>
                   )}
                 </div>
               ))}
-              {controller.absences.filter(a => a.justification_status === 'pending').length === 0 && (
+              {controller.absences.filter(a => a.justification_status === 'قيد_الدراسة').length === 0 && (
                 <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-p)' }}>
                   لا توجد طلبات تبرير معلقة حالياً.
                 </div>

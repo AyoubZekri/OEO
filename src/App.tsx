@@ -1,4 +1,4 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,7 @@ import { Disciplinary } from './View/Screen/Disciplinary/Disciplinary';
 import TrainingSessions from './View/Screen/TrainingSessions/TrainingSessions';
 import { TakeAttendance } from './View/Screen/TrainingSessions/Attendance/TakeAttendance';
 import { AbsenceRequests } from './View/Screen/Absence/AbsenceRequests';
+import { Matches } from './View/Screen/Matches/Matches';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
@@ -58,6 +59,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.TrainingSessions} element={<TrainingSessions />} />
             <Route path={Approutes.TakeAttendance} element={<TakeAttendance />} />
             <Route path={Approutes.AbsenceRequests} element={<AbsenceRequests />} />
+            <Route path={Approutes.Matches} element={<Matches />} />
             {/* Add more routes here as needed */}
           </Routes>
         </div>
@@ -81,4 +83,5 @@ function App() {
 }
 
 export default App;
+
 

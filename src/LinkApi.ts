@@ -112,5 +112,24 @@ export class Applink {
   static readonly updateContractReview: string = `${Applink.server}/contract-reviews/update`;
   static readonly deleteContractReview: string = `${Applink.server}/contract-reviews/delete`;
 
+//  =============================Matches============================== //
+
+  static readonly matches: string = `${Applink.server}/matches`;
+  static readonly createMatch: string = `${Applink.server}/matches/create`;
+  static readonly updateMatch: string = `${Applink.server}/matches/update`;
+  static readonly deleteMatch: string = `${Applink.server}/matches/delete`;
+
+//  =============================Match Callups============================== //
+
+  static matchCallups(matchId: number): string {
+    return `${Applink.server}/matches/callups/${matchId}`;
+  }
+  static readonly createMatchCallup: string = `${Applink.server}/matches/callups/create`;
+  static readonly updateMatchCallup: string = `${Applink.server}/matches/callups/update`;
+  static readonly deleteMatchCallup: string = `${Applink.server}/matches/callups/delete`;
+
 }
+
+
+
 

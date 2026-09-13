@@ -139,6 +139,14 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'sidebar.absence_requests',
           route: Approutes.AbsenceRequests,
         }] : []),
+        ...(hasAccess(true) ? [{
+          name: 'Matches',
+          icon: Calendar,
+          isDropdown: false,
+          label: 'المباريات',
+          route: Approutes.Matches,
+        }] : []),
+        
         ...(hasAccess(permissions.contracts.view) ? [{
           name: 'Contracts',
           icon: FileText,
@@ -228,3 +236,5 @@ export const useSaidparController = (onLogout?: () => void) => {
     handleLogout,
   };
 };
+
+
