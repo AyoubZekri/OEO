@@ -15,6 +15,16 @@ export const useMatchesController = () => {
   // View callups list state
   const [isViewCallupsDialogOpen, setIsViewCallupsDialogOpen] = useState(false);
   const [selectedMatchForViewCallups, setSelectedMatchForViewCallups] = useState<Match | null>(null);
+  const [isAdministrativeReportDialogOpen, setIsAdministrativeReportDialogOpen] = useState(false);
+  const [selectedMatchForAdministrativeReport, setSelectedMatchForAdministrativeReport] = useState<Match | null>(null);
+
+  // View administrative report state
+  const [isViewAdministrativeReportDialogOpen, setIsViewAdministrativeReportDialogOpen] = useState(false);
+  const [selectedMatchForViewAdministrativeReport, setSelectedMatchForViewAdministrativeReport] = useState<Match | null>(null);
+
+  // Set match result state
+  const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
+  const [selectedMatchForResult, setSelectedMatchForResult] = useState<Match | null>(null);
 
   const fetchMatches = async () => {
     try {
@@ -82,6 +92,36 @@ export const useMatchesController = () => {
     setSelectedMatchForViewCallups(null);
   };
 
+  const openAdministrativeReportDialog = (match: Match) => {
+    setSelectedMatchForAdministrativeReport(match);
+    setIsAdministrativeReportDialogOpen(true);
+  };
+
+  const closeAdministrativeReportDialog = () => {
+    setIsAdministrativeReportDialogOpen(false);
+    setSelectedMatchForAdministrativeReport(null);
+  };
+
+  const openViewAdministrativeReportDialog = (match: Match) => {
+    setSelectedMatchForViewAdministrativeReport(match);
+    setIsViewAdministrativeReportDialogOpen(true);
+  };
+
+  const closeViewAdministrativeReportDialog = () => {
+    setIsViewAdministrativeReportDialogOpen(false);
+    setSelectedMatchForViewAdministrativeReport(null);
+  };
+
+  const openResultDialog = (match: Match) => {
+    setSelectedMatchForResult(match);
+    setIsResultDialogOpen(true);
+  };
+
+  const closeResultDialog = () => {
+    setIsResultDialogOpen(false);
+    setSelectedMatchForResult(null);
+  };
+
   return {
     matches,
     isDialogOpen,
@@ -98,6 +138,18 @@ export const useMatchesController = () => {
     openCallupsDialog,
     closeCallupsDialog,
     openViewCallupsDialog,
-    closeViewCallupsDialog
+    closeViewCallupsDialog,
+    isAdministrativeReportDialogOpen,
+    selectedMatchForAdministrativeReport,
+    openAdministrativeReportDialog,
+    closeAdministrativeReportDialog,
+    isViewAdministrativeReportDialogOpen,
+    selectedMatchForViewAdministrativeReport,
+    openViewAdministrativeReportDialog,
+    closeViewAdministrativeReportDialog,
+    isResultDialogOpen,
+    selectedMatchForResult,
+    openResultDialog,
+    closeResultDialog
   };
 };

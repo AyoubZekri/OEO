@@ -1,4 +1,4 @@
-﻿export interface Match {
+export interface Match {
   id: number;
   competition?: string;
   opponent?: string;
@@ -10,6 +10,9 @@
   coach_id?: any;
   admin_id?: any;
   team_id?: number;
+  team_score?: number | null;
+  opponent_score?: number | null;
+  match_status?: string | null;
   team?: {
     id: number;
     name: string;

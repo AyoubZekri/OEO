@@ -1,40 +1,44 @@
+﻿import os
 import re
 
-file_path = r'd:\MyProject\KaidNews\OlympicOEOBakand\app\Http\Controllers\Api\DisciplinaryController.php'
+file_path = 'src/View/Screen/Matches/MatchesController.ts'
 with open(file_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
-# First, let's remove any previous bad injects from cases if they exist
-content = re.sub(r"\'is_acknowledged\' => \(bool\) \$case->is_acknowledged,\s*\'acknowledged_at\' => \$case->acknowledged_at,", "", content)
-content = re.sub(r"\'is_acknowledged\' => \$request->has\(\'is_acknowledged\'\) \? \$request->is_acknowledged : \$case->is_acknowledged,\s*\'acknowledged_at\' => \$request->has\(\'acknowledged_at\'\) \? \$request->acknowledged_at : \$case->acknowledged_at,", "", content)
-content = re.sub(r"\'is_acknowledged\' => \$action \? \(bool\) \$action->is_acknowledged : false,\s*\'acknowledged_at\' => \$action \? \$action->acknowledged_at : null,", "", content)
-content = re.sub(r"\'is_acknowledged\' => \$request->has\(\'is_acknowledged\'\) \? \$request->is_acknowledged : \(\$action \? \$action->is_acknowledged : false\),\s*\'acknowledged_at\' => \$request->has\(\'acknowledged_at\'\) \? \$request->acknowledged_at : \(\$action \? \$action->acknowledged_at : null\),", "", content)
-content = re.sub(r"\'is_acknowledged\' => \$request->has\(\'is_acknowledged\'\) \? \$request->is_acknowledged : false,\s*\'acknowledged_at\' => \$request->has\(\'acknowledged_at\'\) \? \$request->acknowledged_at : null,", "", content)
-
-# Now inject proper lines
+# Add states
 content = content.replace(
-    "'status' => $case->case_status ?? 'مفتوح',",
-    "'status' => $case->case_status ?? 'مفتوح',\n                'is_acknowledged' => $action ? (bool) $action->is_acknowledged : false,\n                'acknowledged_at' => $action ? $action->acknowledged_at : null,"
+    "const [selectedMatchForViewCallups, setSelectedMatchForViewCallups] = useState<Match | null>(null);",
+    "const [selectedMatchForViewCallups, setSelectedMatchForViewCallups] = useState<Match | null>(null);\n  const [isAdministrativeReportDialogOpen, setIsAdministrativeReportDialogOpen] = useState(false);\n  const [selectedMatchForAdministrativeReport, setSelectedMatchForAdministrativeReport] = useState<Match | null>(null);"
 )
 
-# For updates (action exists)
+# Add functions
+functions = '''  const closeViewCallupsDialog = () => {
+    setIsViewCallupsDialogOpen(false);
+    setSelectedMatchForViewCallups(null);
+  };
+
+  const openAdministrativeReportDialog = (match: Match) => {
+    setSelectedMatchForAdministrativeReport(match);
+    setIsAdministrativeReportDialogOpen(true);
+  };
+
+  const closeAdministrativeReportDialog = () => {
+    setIsAdministrativeReportDialogOpen(false);
+    setSelectedMatchForAdministrativeReport(null);
+  };'''
+
 content = content.replace(
-    "'effective_date' => $validated['effective_date'] ?? null,\n                ]);\n            } else {",
-    "'effective_date' => $validated['effective_date'] ?? null,\n                    'is_acknowledged' => $request->has('is_acknowledged') ? $request->is_acknowledged : ($action ? $action->is_acknowledged : false),\n                    'acknowledged_at' => $request->has('acknowledged_at') ? $request->acknowledged_at : ($action ? $action->acknowledged_at : null),\n                ]);\n            } else {"
+    "  const closeViewCallupsDialog = () => {\n    setIsViewCallupsDialogOpen(false);\n    setSelectedMatchForViewCallups(null);\n  };",
+    functions
 )
 
-# For creation (no action exists)
-content = content.replace(
-    "'effective_date' => $validated['effective_date'] ?? null,\n                    'added_by' => auth()->id() ?? 1,\n                ]);\n            }\n\n            DB::commit();",
-    "'effective_date' => $validated['effective_date'] ?? null,\n                    'is_acknowledged' => $request->has('is_acknowledged') ? $request->is_acknowledged : false,\n                    'acknowledged_at' => $request->has('acknowledged_at') ? $request->acknowledged_at : null,\n                    'added_by' => auth()->id() ?? 1,\n                ]);\n            }\n\n            DB::commit();"
-)
-
-# For initial store
-content = content.replace(
-    "'effective_date' => $validated['effective_date'] ?? null,\n                'added_by' => auth()->id() ?? 1,\n            ]);\n\n            DB::commit();",
-    "'effective_date' => $validated['effective_date'] ?? null,\n                'is_acknowledged' => $request->has('is_acknowledged') ? $request->is_acknowledged : false,\n                'acknowledged_at' => $request->has('acknowledged_at') ? $request->acknowledged_at : null,\n                'added_by' => auth()->id() ?? 1,\n            ]);\n\n            DB::commit();"
-)
+# Add to return
+returns_match = re.search(r'return \{([\s\S]*?)\};', content)
+if returns_match:
+    old_returns = returns_match.group(1)
+    new_returns = old_returns + ",\n    isAdministrativeReportDialogOpen,\n    selectedMatchForAdministrativeReport,\n    openAdministrativeReportDialog,\n    closeAdministrativeReportDialog"
+    content = content.replace(old_returns, new_returns)
 
 with open(file_path, 'w', encoding='utf-8') as f:
     f.write(content)
-print("Updated successfully!")
+print("Done")

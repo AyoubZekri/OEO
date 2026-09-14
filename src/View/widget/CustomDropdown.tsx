@@ -14,6 +14,7 @@ interface CustomDropdownProps<T extends string> {
   onChange: (value: T) => void;
   placeholder?: string;
   error?: string | null;
+  required?: boolean;
 }
 
 export const CustomDropdown = <T extends string>({
@@ -22,7 +23,8 @@ export const CustomDropdown = <T extends string>({
   options,
   onChange,
   placeholder,
-  error
+  error,
+  required
 }: CustomDropdownProps<T>) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,7 +49,12 @@ export const CustomDropdown = <T extends string>({
 
   return (
     <div className="modern-form-group" style={{ position: 'relative' }} ref={dropdownRef}>
-      {label && <label style={{ marginBottom: '8px', display: 'block', fontWeight: 600, color: 'var(--text-h, #1f2937)' }}>{label}</label>}
+      {label && (
+        <label style={{ marginBottom: '8px', display: 'block', fontWeight: 600, color: 'var(--text-h, #1f2937)' }}>
+          {label}
+          {required && <span style={{ color: '#ef4444', marginInlineStart: '4px' }}>*</span>}
+        </label>
+      )}
       <div 
         onClick={() => setIsOpen(!isOpen)}
         style={{ 

@@ -1,9 +1,13 @@
 import React from 'react';
-import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle } from 'lucide-react';
 import { AddMatchDialog } from './AddMatchDialog';
 import { MatchCallupsDialog } from './MatchCallupsDialog';
 import { ViewMatchCallupsDialog } from './ViewMatchCallupsDialog';
+import { AdministrativeReportDialog } from './AdministrativeReportDialog';
+import { ViewAdministrativeReportDialog } from './ViewAdministrativeReportDialog';
+import { SetMatchResultDialog } from './SetMatchResultDialog';
 import { useMatchesController } from './MatchesController';
+import {type Match } from './match_model';
 import '../Members/Members.css';
 import './Matches.css';
 
@@ -24,8 +28,21 @@ export const Matches = () => {
     isViewCallupsDialogOpen,
     closeViewCallupsDialog,
     selectedMatchForViewCallups,
-    openViewCallupsDialog
+    openViewCallupsDialog,
+    isAdministrativeReportDialogOpen,
+    selectedMatchForAdministrativeReport,
+    openAdministrativeReportDialog,
+    closeAdministrativeReportDialog,
+    isViewAdministrativeReportDialogOpen,
+    selectedMatchForViewAdministrativeReport,
+    openViewAdministrativeReportDialog,
+    closeViewAdministrativeReportDialog,
+    isResultDialogOpen,
+    selectedMatchForResult,
+    openResultDialog,
+    closeResultDialog
   } = useMatchesController();
+
 
   return (
     <div className="members-container" style={{ margin: '0' }}>
@@ -72,8 +89,27 @@ export const Matches = () => {
               </div>
 
               <div className="mc-vs-center">
-                <div className="mc-vs-circle">VS</div>
-                <div className="mc-vs-text">مواجهة قادمة</div>
+                {match.match_status === 'مؤجلة' ? (
+                  <>
+                    <div className="mc-vs-circle" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', width: 'auto', padding: '4px 16px', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                      مؤجلة
+                    </div>
+                  </>
+                ) : match.team_score !== undefined && match.team_score !== null && match.opponent_score !== undefined && match.opponent_score !== null ? (
+                  <>
+                    <div className="mc-vs-circle" style={{ background: 'var(--primary)', color: 'white', width: 'auto', padding: '0 16px', borderRadius: '16px', fontSize: '1.4rem', letterSpacing: '4px' }}>
+                      {match.team_score} - {match.opponent_score}
+                    </div>
+                    <div className="mc-vs-text" style={{ color: match.team_score > match.opponent_score ? '#10b981' : match.team_score < match.opponent_score ? '#ef4444' : '#64748b', fontWeight: 'bold' }}>
+                      {match.team_score > match.opponent_score ? 'فوز' : match.team_score < match.opponent_score ? 'خسارة' : 'تعادل'}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mc-vs-circle">VS</div>
+                    <div className="mc-vs-text">مواجهة قادمة</div>
+                  </>
+                )}
               </div>
 
               <div className="mc-team">
@@ -148,12 +184,25 @@ export const Matches = () => {
 
 
             {/* Actions */}
-            <div className="mc-bottom-actions">
-              <button className="mc-btn mc-btn-primary" onClick={() => openCallupsDialog(match)}>
-                <Users size={18} /> استدعاء اللاعبين
-              </button>
-              <button className="mc-btn mc-btn-secondary" onClick={() => openViewCallupsDialog(match)}>
-                <List size={18} /> القائمة والتشكيلة
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
+              <div className="mc-bottom-actions" style={{ marginTop: 0 }}>
+                <button className="mc-btn mc-btn-primary" onClick={() => openCallupsDialog(match)}>
+                  <Users size={18} /> الاستدعاء
+                </button>
+                <button className="mc-btn mc-btn-secondary" onClick={() => openViewCallupsDialog(match)}>
+                  <List size={18} /> التشكيلة
+                </button>
+              </div>
+              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                <button className="mc-btn mc-btn-secondary" onClick={() => openAdministrativeReportDialog(match)} style={{ color: '#0ea5e9', borderColor: 'rgba(14, 165, 233, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعديل التقرير">
+                  <FileText size={18} /> إضافة التقرير
+                </button>
+                <button className="mc-btn mc-btn-secondary" onClick={() => openViewAdministrativeReportDialog(match)} style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="عرض التقرير الإداري">
+                  <FileText size={18} /> عرض التقرير
+                </button>
+              </div>
+              <button className="mc-btn mc-btn-secondary" onClick={() => openResultDialog(match)} style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعيين النتيجة">
+                <CheckCircle size={18} /> تعيين النتيجة
               </button>
             </div>
 
@@ -185,6 +234,25 @@ export const Matches = () => {
         isOpen={isViewCallupsDialogOpen}
         onClose={closeViewCallupsDialog}
         matchData={selectedMatchForViewCallups}
+      />
+
+      <AdministrativeReportDialog
+        isOpen={isAdministrativeReportDialogOpen}
+        onClose={closeAdministrativeReportDialog}
+        matchData={selectedMatchForAdministrativeReport}
+      />
+
+      <ViewAdministrativeReportDialog
+        isOpen={isViewAdministrativeReportDialogOpen}
+        onClose={closeViewAdministrativeReportDialog}
+        matchData={selectedMatchForViewAdministrativeReport}
+      />
+
+      <SetMatchResultDialog
+        isOpen={isResultDialogOpen}
+        onClose={closeResultDialog}
+        onSave={fetchMatches}
+        matchData={selectedMatchForResult}
       />
     </div>
   );

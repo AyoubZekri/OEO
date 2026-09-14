@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 
@@ -147,6 +147,13 @@ export const useSaidparController = (onLogout?: () => void) => {
           route: Approutes.Matches,
         }] : []),
         
+        ...(hasAccess(true) ? [{
+          name: 'MedicalRecords',
+          icon: Stethoscope,
+          isDropdown: false,
+          label: 'التقرير الطبي',
+          route: Approutes.MedicalRecords,
+        }] : []),
         ...(hasAccess(permissions.contracts.view) ? [{
           name: 'Contracts',
           icon: FileText,
@@ -236,5 +243,7 @@ export const useSaidparController = (onLogout?: () => void) => {
     handleLogout,
   };
 };
-
-
+
+
+
+

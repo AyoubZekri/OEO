@@ -16,5 +16,5 @@ export class Approutes {
   static readonly TakeAttendance = "/training-sessions/:id/attendance";
   static readonly AbsenceRequests = "/absence-requests";
   static readonly Matches = "/matches";
+  static readonly MedicalRecords = "/medical";
 }
-

@@ -128,8 +128,14 @@ export class Applink {
   static readonly updateMatchCallup: string = `${Applink.server}/matches/callups/update`;
   static readonly deleteMatchCallup: string = `${Applink.server}/matches/callups/delete`;
 
+  //  =============================Administrative Match Reports============================== //
+  static readonly getAdministrativeReport = (matchId: number) => `${Applink.server}/administrative-reports/${matchId}`;
+  static readonly saveAdministrativeReport: string = `${Applink.server}/administrative-reports/save`;
+
+  //  =============================Medical Records============================== //
+  static readonly medicalRecords = `${Applink.server}/medical-records`;
+  static readonly createMedicalRecord = `${Applink.server}/medical-records/create`;
+  static readonly updateMedicalRecord = (id: number) => `${Applink.server}/medical-records/update/${id}`;
+  static readonly deleteMedicalRecord = (id: number) => `${Applink.server}/medical-records/delete/${id}`;
+
 }
-
-
-
-

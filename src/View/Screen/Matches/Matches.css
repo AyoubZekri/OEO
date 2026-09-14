@@ -342,3 +342,198 @@
   align-items: center;
   gap: 12px;
 }
+
+/* Dark Mode Overrides for Matches Feature */
+body.dark-mode .match-card-new {
+  background: var(--card-bg);
+  border-color: var(--border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .match-card-new:hover {
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .mc-icon-btn {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+body.dark-mode .mc-icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-h);
+}
+
+body.dark-mode .mc-team-name {
+  color: var(--text-h);
+}
+
+body.dark-mode .mc-detail-row, 
+body.dark-mode .mc-detail-half {
+  background: var(--bg);
+}
+
+body.dark-mode .mc-detail-value {
+  color: var(--text-h);
+}
+
+body.dark-mode .mc-btn-secondary {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body.dark-mode .mc-btn-secondary:hover {
+  background: var(--bg-hover);
+  color: var(--text-h);
+}
+
+body.dark-mode .no-matches {
+  background: var(--card-bg);
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+/* Mobile Responsiveness (Down to 320px) */
+@media (max-width: 480px) {
+  .matches-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .mc-banner {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .mc-detail-split,
+  .mc-bottom-actions {
+    grid-template-columns: 1fr;
+  }
+  
+  .mc-top-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .mc-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
+.responsive-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.responsive-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 576px) {
+  .responsive-grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .responsive-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .task-dialog {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 0 !important;
+    min-height: 100vh;
+  }
+}
+
+.callup-player-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .callup-player-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dialog-app-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #1e293b, #0f172a);
+  color: white;
+}
+
+.dialog-toolbar {
+  padding: 20px 32px;
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.dialog-search-input {
+  width: 100%;
+  padding: 14px 44px 14px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-h);
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.dialog-search-input:focus {
+  border-color: #f97316;
+}
+
+@media (max-width: 576px) {
+  .dialog-app-bar {
+    padding: 10px 16px;
+    border-radius: 0 !important;
+  }
+  
+  .dialog-app-bar h2 {
+    font-size: 1rem !important;
+  }
+  
+  .dialog-app-bar svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .dialog-app-bar .icon-container {
+    padding: 6px !important;
+  }
+
+  .dialog-toolbar {
+    padding: 10px 16px !important;
+    gap: 8px !important;
+  }
+  
+  .dialog-search-input {
+    padding: 10px 36px 10px 12px !important;
+    font-size: 0.85rem !important;
+    border-radius: 8px !important;
+  }
+
+  .hide-on-mobile {
+    display: none !important;
+  }
+}
