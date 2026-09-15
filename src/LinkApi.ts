@@ -138,4 +138,10 @@ export class Applink {
   static readonly updateMedicalRecord = (id: number) => `${Applink.server}/medical-records/update/${id}`;
   static readonly deleteMedicalRecord = (id: number) => `${Applink.server}/medical-records/delete/${id}`;
 
+  //  =============================Player Clearance============================== //
+  static readonly getPlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}`;
+  static readonly savePlayerClearance = `${Applink.server}/player-clearance`;
+  static readonly deletePlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}`;
+
 }
+

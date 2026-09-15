@@ -1,43 +1,35 @@
 ﻿import os
 import re
 
-file_path = 'src/View/Screen/Matches/MatchesController.ts'
+file_path = 'src/View/Screen/Members/MembersController.ts'
 with open(file_path, 'r', encoding='utf-8') as f:
     content = f.read()
 
 # Add states
-content = content.replace(
-    "const [selectedMatchForViewCallups, setSelectedMatchForViewCallups] = useState<Match | null>(null);",
-    "const [selectedMatchForViewCallups, setSelectedMatchForViewCallups] = useState<Match | null>(null);\n  const [isAdministrativeReportDialogOpen, setIsAdministrativeReportDialogOpen] = useState(false);\n  const [selectedMatchForAdministrativeReport, setSelectedMatchForAdministrativeReport] = useState<Match | null>(null);"
-)
+states = '''  const [isClearanceDialogOpen, setIsClearanceDialogOpen] = useState(false);
+  const [selectedMemberForClearance, setSelectedMemberForClearance] = useState<any>(null);'''
+
+content = content.replace("const [selectedMemberForAction, setSelectedMemberForAction] = useState<any>(null);", "const [selectedMemberForAction, setSelectedMemberForAction] = useState<any>(null);\n" + states)
 
 # Add functions
-functions = '''  const closeViewCallupsDialog = () => {
-    setIsViewCallupsDialogOpen(false);
-    setSelectedMatchForViewCallups(null);
+functions = '''  const openClearanceDialog = (member: any) => {
+    setSelectedMemberForClearance(member);
+    setIsClearanceDialogOpen(true);
   };
-
-  const openAdministrativeReportDialog = (match: Match) => {
-    setSelectedMatchForAdministrativeReport(match);
-    setIsAdministrativeReportDialogOpen(true);
-  };
-
-  const closeAdministrativeReportDialog = () => {
-    setIsAdministrativeReportDialogOpen(false);
-    setSelectedMatchForAdministrativeReport(null);
+  const closeClearanceDialog = () => {
+    setIsClearanceDialogOpen(false);
+    setSelectedMemberForClearance(null);
   };'''
 
-content = content.replace(
-    "  const closeViewCallupsDialog = () => {\n    setIsViewCallupsDialogOpen(false);\n    setSelectedMatchForViewCallups(null);\n  };",
-    functions
-)
+content = content.replace("const handleFilterChange = (key: string, value: string) => {", functions + "\n\n  const handleFilterChange = (key: string, value: string) => {")
 
 # Add to return
-returns_match = re.search(r'return \{([\s\S]*?)\};', content)
-if returns_match:
-    old_returns = returns_match.group(1)
-    new_returns = old_returns + ",\n    isAdministrativeReportDialogOpen,\n    selectedMatchForAdministrativeReport,\n    openAdministrativeReportDialog,\n    closeAdministrativeReportDialog"
-    content = content.replace(old_returns, new_returns)
+returns = '''    isClearanceDialogOpen,
+    selectedMemberForClearance,
+    openClearanceDialog,
+    closeClearanceDialog,'''
+
+content = content.replace("openActionDialog,", "openActionDialog,\n" + returns)
 
 with open(file_path, 'w', encoding='utf-8') as f:
     f.write(content)

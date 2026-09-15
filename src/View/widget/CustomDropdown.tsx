@@ -48,7 +48,7 @@ export const CustomDropdown = <T extends string>({
   );
 
   return (
-    <div className="modern-form-group" style={{ position: 'relative' }} ref={dropdownRef}>
+    <div className="modern-form-group" style={{ position: 'relative', zIndex: isOpen ? 999 : 1 }} ref={dropdownRef}>
       {label && (
         <label style={{ marginBottom: '8px', display: 'block', fontWeight: 600, color: 'var(--text-h, #1f2937)' }}>
           {label}
@@ -77,7 +77,7 @@ export const CustomDropdown = <T extends string>({
         <div style={{ 
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: '100%', 
           background: 'var(--bg, #fff)', border: '1px solid #e2e8f0', 
-          borderRadius: '16px', zIndex: 50, 
+          borderRadius: '16px', zIndex: 1000, 
           boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', 
           overflow: 'hidden', display: 'flex', flexDirection: 'column'
         }}>

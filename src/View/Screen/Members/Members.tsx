@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash, Shirt, Scale } from 'lucide-react';
+import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash, Shirt, Scale, LogOut } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
+import { ClearanceDialog } from './ClearanceDialog';
 
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
@@ -122,6 +123,10 @@ export const Members: React.FC = () => {
     handleDeleteMember,
     openExpensesDialog, 
     closeDialog, 
+    isClearanceDialogOpen,
+    selectedClearanceMember,
+    openClearanceDialog,
+    closeClearanceDialog,
     formatCurrency
   } = controller;
 
@@ -151,7 +156,9 @@ export const Members: React.FC = () => {
     { value: 'coach', label: 'مدرب' },
     { value: 'assistant_coach', label: 'مساعد مدرب' },
     { value: 'goalkeeper_coach', label: 'مدرب حراس' },
-    { value: 'employee', label: 'موظف / إداري / طبيب' }
+    { value: 'employee', label: 'موظف' },
+    { value: 'admin', label: 'إداري' },
+    { value: 'doctor', label: 'طبيب' }
   ];
 
   const formTeamOptions = [
@@ -229,7 +236,7 @@ export const Members: React.FC = () => {
                     {member.first_name} {member.last_name}
                   </td>
                   <td data-label={t('members.type', 'المنصب')}>
-                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'موظف/إداري'}
+                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : member.type}
                   </td>
                   <td data-label={t('members.jersey', 'رقم القميص')} className="jersey-cell">
                     {member.Shirt_number ? <span className="jersey-number">{member.Shirt_number}</span> : '-'}
@@ -286,6 +293,11 @@ export const Members: React.FC = () => {
                       {hasAccess(permissions.members.edit) && (
                         <button className="btn-action edit-btn" onClick={() => openEditMemberDialog(member)} title="تعديل">
                           <Edit2 size={18} />
+                        </button>
+                      )}
+                      {hasAccess(permissions.members.edit) && (
+                        <button className="btn-action delete-btn" onClick={() => openClearanceDialog(member)} title="تسريح / مغادرة">
+                          <LogOut size={18} />
                         </button>
                       )}
                       {hasAccess(permissions.members.delete) && (
@@ -850,6 +862,14 @@ export const Members: React.FC = () => {
           onClose={controller.closeEvalHistory}
           onEdit={(ev) => setEditingEvaluation({ player: controller.evalHistoryMember!, data: ev })}
           onDelete={(id) => controller.deleteEvaluation(id)}
+        />
+      )}
+
+      {isClearanceDialogOpen && selectedClearanceMember && (
+        <ClearanceDialog
+          isOpen={isClearanceDialogOpen}
+          onClose={closeClearanceDialog}
+          player={selectedClearanceMember}
         />
       )}
 

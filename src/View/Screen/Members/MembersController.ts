@@ -20,6 +20,8 @@ export const useMembersController = () => {
   const [selectedMember, setSelectedMember] = useState<MemberModel | null>(null);
   const [evalHistoryMember, setEvalHistoryMember] = useState<MemberModel | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isClearanceDialogOpen, setIsClearanceDialogOpen] = useState(false);
+  const [selectedClearanceMember, setSelectedClearanceMember] = useState<MemberModel | null>(null);
   
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false);
   const [memberToEdit, setMemberToEdit] = useState<MemberModel | null>(null);
@@ -217,6 +219,16 @@ export const useMembersController = () => {
     setSelectedMember(null);
   };
 
+  const openClearanceDialog = (member: MemberModel) => {
+    setSelectedClearanceMember(member);
+    setIsClearanceDialogOpen(true);
+  };
+
+  const closeClearanceDialog = () => {
+    setIsClearanceDialogOpen(false);
+    setSelectedClearanceMember(null);
+  };
+
   const formatCurrency = (amount: number) => {
     const numStr = (amount || 0).toLocaleString('en-US', { 
       minimumFractionDigits: 2, 
@@ -294,7 +306,7 @@ export const useMembersController = () => {
 
   const filteredMembers = members.filter(member => {
     const searchLower = searchQuery.toLowerCase();
-    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'موظف إداري';
+    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : 'موظف';
     
     const matchesSearch = 
       member.first_name.toLowerCase().includes(searchLower) ||
@@ -384,6 +396,10 @@ export const useMembersController = () => {
     handlePrintMember,
     openExpensesDialog,
     closeDialog,
+    isClearanceDialogOpen,
+    selectedClearanceMember,
+    openClearanceDialog,
+    closeClearanceDialog,
     formatCurrency,
     getContractsForMember,
     getContractValue,
