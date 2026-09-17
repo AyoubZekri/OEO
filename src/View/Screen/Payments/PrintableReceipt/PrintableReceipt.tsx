@@ -210,24 +210,26 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
   };
 
   return (
-    <div className="receipt-wrapper" ref={ref}>
-      <img src={receiptBg} alt="Receipt Background" className="receipt-bg-image" />
-      <div
-        className="season-overlay"
-        style={{
-          position: 'absolute',
-          top: '18mm',
-          right: '5mm', /* Adjust to fit exactly where the old text was */
-          color: 'white',
-          fontWeight: 'bold',
-          fontSize: '16px',
-          zIndex: 10,
-          whiteSpace: 'nowrap'
-        }}
-      >
-        الموسم الرياضي 2026-2027
-      </div>
-      <div className="receipt-content">
+    <div ref={ref}>
+      {/* Page 1 */}
+      <div className="receipt-wrapper">
+        <img src={receiptBg} alt="Receipt Background" className="receipt-bg-image" />
+        <div
+          className="season-overlay"
+          style={{
+            position: 'absolute',
+            top: '18mm',
+            right: '5mm',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            zIndex: 10,
+            whiteSpace: 'nowrap'
+          }}
+        >
+          الموسم الرياضي 2026-2027
+        </div>
+        <div className="receipt-content">
         <div className="receipt-main-title">
           سند صرف وإقرار باستلام مبلغ مالي
         </div>
@@ -332,29 +334,52 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
           أقر باستلام المبلغ المبين أعلاه فعليا وكاملا بالنسبة للقيمة المحددة في هذا الوصل، ويعد هذا الوصل إثباتا لاستلام هذا المبلغ فقط وفي حدود طبيعته وفترته المبينتين أعلاه. ولا يعد التوقيع عليه إبراء شاملا لبقية المستحقات أو تنازلا عن حقوق أخرى، إلا إذا تم اختيار «تسويـــــة نهائية» وبيان نطاقها صراحة. كما أقر بصحة البيانات وبأن أي شطب أو إضافة أو تعديل لا يعتمد إلا إذا صودق عليه بتوقيع الطرفين.
         </div>
 
-        <div className="handwriting-box">
-          <div className="handwriting-title">إعادة كتابة العبارة بخط يد المستفيد: "استلمت المبلغ المذكور أعلاه"</div>
-          <div className="handwriting-line"></div>
-          <div className="handwriting-footer">كمــــا يــــرفق بهــذا الإقــــرار نسخة من بطاقة الهويـــــة</div>
         </div>
+      </div>
 
-        <div className="section-title">التوقيعــــــات</div>
-        <table className="signature-table">
-          <thead>
-            <tr>
-              <th>اسم وتوقيع رئيس الفرع</th>
-              <th>اسم وتوقيع أمين المال</th>
-              <th>اسم وتوقيع المستفيد</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td></td>
-              <td></td>
-              <td></td>
-            </tr>
-          </tbody>
-        </table>
+      {/* Page 2 */}
+      <div className="receipt-wrapper" style={{ pageBreakBefore: 'always' }}>
+        <img src={receiptBg} alt="Receipt Background" className="receipt-bg-image" />
+        <div
+          className="season-overlay"
+          style={{
+            position: 'absolute',
+            top: '18mm',
+            right: '5mm',
+            color: 'white',
+            fontWeight: 'bold',
+            fontSize: '16px',
+            zIndex: 10,
+            whiteSpace: 'nowrap'
+          }}
+        >
+          الموسم الرياضي 2026-2027
+        </div>
+        <div className="receipt-content">
+          <div className="handwriting-box" style={{ marginTop: '15px' }}>
+            <div className="handwriting-title">إعادة كتابة العبارة بخط يد المستفيد: "استلمت المبلغ المذكور أعلاه"</div>
+            <div className="handwriting-line"></div>
+            <div className="handwriting-footer">كمــــا يــــرفق بهــذا الإقــــرار نسخة من بطاقة الهويـــــة</div>
+          </div>
+
+          <div className="section-title">التوقيعــــــات</div>
+          <table className="signature-table">
+            <thead>
+              <tr>
+                <th>اسم وتوقيع رئيس الفرع</th>
+                <th>اسم وتوقيع أمين المال</th>
+                <th>اسم وتوقيع المستفيد</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -1,52 +1,167 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
-import { X, Save, CheckCircle, Package, FileText, UserCheck, Stethoscope, Banknote, PenTool, LogOut, Trash2, Edit2 } from 'lucide-react';
-import { CustomDropdown } from '../../widget/CustomDropdown';
-import { CustomInput } from '../../widget/CustomInput';
+import { 
+  X, CheckCircle, User, Stethoscope, Banknote, PenTool, LogOut, Trash2, 
+  ShieldCheck, Trophy, Package, AlertTriangle, Printer, Lock, ChevronLeft, Save, Calendar
+} from 'lucide-react';
 import type { PlayerClearance } from './member_model';
+import { useAuth } from '../../../core/context/AuthContext';
+import { CustomInput } from '../../widget/CustomInput';
+import { CustomDropdown } from '../../widget/CustomDropdown';
 
 interface ClearanceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   player: any;
+  onUpdate?: () => void;
 }
 
-export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClose, player }) => {
+const REASON_OPTIONS = [
+  { value: 'انتهاء العقد بالتراضي', label: 'انتهاء العقد بالتراضي' },
+  { value: 'إعارة', label: 'إعارة' },
+  { value: 'انتقال', label: 'انتقال' },
+  { value: 'فسخ عقد', label: 'فسخ عقد' },
+];
+
+const STAGES = [
+  { id: 'general', label: 'البيانات الأساسية', icon: <LogOut size={20} /> },
+  { id: 'admin', label: 'الشؤون الإدارية', icon: <ShieldCheck size={20} /> },
+  { id: 'sporting', label: 'الإدارة الرياضية', icon: <Trophy size={20} /> },
+  { id: 'medical', label: 'القسم الطبي', icon: <Stethoscope size={20} /> },
+  { id: 'financial', label: 'الإدارة المالية', icon: <Banknote size={20} /> },
+  { id: 'equipment', label: 'مخزن العتاد', icon: <Package size={20} /> },
+  { id: 'player', label: 'إقرار اللاعب', icon: <PenTool size={20} /> },
+];
+
+const modalStyles = `
+  .cl-overlay {
+    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.2s ease;
+  }
+  .cl-modal {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    color: var(--text-h);
+    animation: slideUp 0.3s ease;
+  }
+  .cl-sidebar {
+    background: var(--card-bg);
+    border-left: 1px solid var(--border);
+  }
+  .cl-content {
+    background: var(--bg);
+  }
+  .stage-btn {
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--text-h);
+  }
+  .stage-btn:hover:not(:disabled):not(.active) {
+    background: var(--border);
+  }
+  .stage-btn.active {
+    background: #f97316;
+    color: white;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.2);
+  }
+  .stage-btn.completed {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+  }
+  .stage-btn.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+  }
+  .stage-btn.danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+  .cl-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-h);
+    padding: 12px 16px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .cl-input:focus {
+    border-color: #f97316;
+  }
+  .cl-btn-primary {
+    background: #f97316;
+    border: none;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .cl-btn-primary:hover:not(:disabled) {
+    background: #ea580c;
+  }
+  .cl-btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+  .cl-btn-secondary {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    color: var(--text-h);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .cl-btn-secondary:hover {
+    background: var(--border);
+  }
+  .cl-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+`;
+
+export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClose, player, onUpdate }) => {
+  const { user, permissions, isFullAccess } = useAuth();
   const [formData, setFormData] = useState<Partial<PlayerClearance>>({
     player_id: player?.id,
     exit_date: '',
     exit_reason: '',
-    equipment_status: 'غير مكتمل',
-    equipment_notes: '',
-    equipment_manager_id: '',
-    equipment_cleared_at: '',
-    admin_status: 'غير مكتمل',
-    admin_id: '',
-    admin_cleared_at: '',
-    sporting_status: 'غير مكتمل',
-    sporting_director_id: '',
-    sporting_cleared_at: '',
-    financial_status: 'غير مكتمل',
-    finance_manager_id: '',
-    finance_cleared_at: '',
-    medical_status: 'غير مكتمل',
-    medical_staff_id: '',
-    medical_cleared_at: '',
     general_notes: '',
-    player_signature: false,
-    player_signed_at: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [mode, setMode] = useState<'create' | 'view' | 'edit'>('create');
+  const [activeTab, setActiveTab] = useState('general');
   const [staffList, setStaffList] = useState<any[]>([]);
+  const [equipmentData, setEquipmentData] = useState<any[]>([]);
+  const [loansData, setLoansData] = useState<any[]>([]);
+  const [remainingPayments, setRemainingPayments] = useState<any[]>([]);
 
   useEffect(() => {
     if (isOpen && player) {
+      setActiveTab('general');
       fetchClearanceData();
       fetchStaffList();
+      fetchExtraData();
     }
   }, [isOpen, player]);
 
@@ -74,9 +189,8 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
           finance_manager_id: data.finance_manager_id?.toString() || '',
           medical_staff_id: data.medical_staff_id?.toString() || '',
         });
-        setMode('view');
       } else {
-        setMode('create');
+        setFormData({ player_id: player?.id, exit_date: '', exit_reason: '', general_notes: '' });
       }
     } catch (error) {
       console.error('Error fetching clearance data:', error);
@@ -101,32 +215,148 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
     }
   };
 
-  const handleSave = async () => {
+  const fetchExtraData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [eqRes, payRes] = await Promise.allSettled([
+        axios.get(`${Applink.equipmentOperations}?player_id=${player.id}`, { headers }),
+        axios.get(`${Applink.payments}?player_id=${player.id}`, { headers }),
+      ]);
+
+      if (eqRes.status === 'fulfilled') {
+        const rawEqData = eqRes.value.data?.data || eqRes.value.data || [];
+        const eqData = Array.isArray(rawEqData) ? rawEqData.filter((op: any) => String(op.member_id) === String(player.id) || String(op.individual_id) === String(player.id)) : [];
+        setEquipmentData(eqData);
+      }
+
+      if (payRes.status === 'fulfilled') {
+        const payData = payRes.value.data?.data || payRes.value.data || [];
+        if (Array.isArray(payData)) {
+          const loans = payData.filter((p: any) => p.type === 'سلفة' || p.type === 'loan' || p.category === 'loan');
+          const remaining = payData.filter((p: any) => p.status === 'متبقي' || p.status === 'pending' || p.status === 'unpaid');
+          setLoansData(loans);
+          setRemainingPayments(remaining);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching extra data:', error);
+    }
+  };
+
+  const checkIsComplete = (stageId: string) => {
+    if (stageId === 'general') return !!formData.exit_date;
+    if (stageId === 'admin') return formData.admin_status === 'مكتمل';
+    if (stageId === 'sporting') return formData.sporting_status === 'مكتمل';
+    if (stageId === 'medical') return formData.medical_status === 'مكتمل';
+    if (stageId === 'financial') return formData.financial_status === 'مكتمل';
+    if (stageId === 'equipment') return formData.equipment_status === 'مكتمل';
+    if (stageId === 'player') return !!formData.player_signature;
+    return false;
+  };
+
+  const hasCard = !!formData.exit_date || !!(formData as any).id;
+  const completedCount = STAGES.filter(s => checkIsComplete(s.id)).length;
+  const progressPercent = Math.round((completedCount / STAGES.length) * 100);
+
+  const handleSign = async (department: string) => {
+    if (department === 'general' && (!formData.exit_date || !formData.exit_reason)) {
+      alert('الرجاء تعبئة تاريخ وسبب المغادرة');
+      return;
+    }
+
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      await axios.post(Applink.savePlayerClearance, { ...formData, player_id: player.id }, {
+      const now = new Date().toISOString().split('T')[0];
+      const updates: any = { player_id: player.id };
+
+      if (department === 'general') {
+        updates.exit_date = formData.exit_date;
+        updates.exit_reason = formData.exit_reason;
+        updates.general_notes = formData.general_notes;
+      } else if (department === 'admin') {
+        updates.admin_status = 'مكتمل';
+        updates.admin_id = user?.id ? parseInt(user.id) : null;
+        updates.admin_cleared_at = now;
+      } else if (department === 'sporting') {
+        updates.sporting_status = 'مكتمل';
+        updates.sporting_director_id = user?.id ? parseInt(user.id) : null;
+        updates.sporting_cleared_at = now;
+      } else if (department === 'medical') {
+        updates.medical_status = 'مكتمل';
+        updates.medical_staff_id = user?.id ? parseInt(user.id) : null;
+        updates.medical_cleared_at = now;
+      } else if (department === 'financial') {
+        updates.financial_status = 'مكتمل';
+        updates.finance_manager_id = user?.id ? parseInt(user.id) : null;
+        updates.finance_cleared_at = now;
+      } else if (department === 'equipment') {
+        updates.equipment_status = 'مكتمل';
+        updates.equipment_manager_id = user?.id ? parseInt(user.id) : null;
+        updates.equipment_cleared_at = now;
+      } else if (department === 'player') {
+        updates.player_signature = true;
+        updates.player_signed_at = now;
+      }
+
+      console.log('Signing with user.id:', user?.id);
+      console.log('Is user.id in staffList?', staffList.some(s => s.id?.toString() === user?.id?.toString()));
+      console.log('Updates payload:', updates);
+
+      await axios.post(Applink.savePlayerClearance, updates, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      alert('تم حفظ بطاقة إخلاء الطرف بنجاح');
-      onClose();
-    } catch (error) {
-      console.error('Error saving clearance:', error);
-      alert('حدث خطأ أثناء حفظ بطاقة إخلاء الطرف');
+
+      if (department === 'player') {
+        try {
+          await axios.post(Applink.updateIndividual, { id: player.id, status: 'inactive' }, {
+            headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+          });
+          if (onUpdate) onUpdate();
+        } catch (e) {
+          console.error('Failed to change member status to inactive', e);
+        }
+      }
+
+      if (department === 'general') {
+        setActiveTab('admin');
+      } else {
+        alert('تم التوقيع بنجاح');
+      }
+      
+      fetchClearanceData();
+    } catch (error: any) {
+      if (error.response?.data?.errors) {
+        console.error('Validation Error Details:', error.response.data.errors);
+      } else {
+        console.error('Error signing clearance:', error);
+      }
+      alert(error.response?.data?.message || 'حدث خطأ أثناء الحفظ');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('هل أنت متأكد من حذف بطاقة الإخلاء؟')) return;
+    if (!window.confirm('هل أنت متأكد من حذف بطاقة الإخلاء بالكامل؟ (لا يمكن التراجع)')) return;
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
       await axios.delete(Applink.deletePlayerClearance(player.id), {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
       });
-      alert('تم حذف بطاقة الإخلاء بنجاح');
+
+      try {
+        await axios.post(Applink.updateIndividual, { id: player.id, status: 'active' }, {
+          headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' }
+        });
+        if (onUpdate) onUpdate();
+      } catch (e) {
+        console.error('Failed to restore member status to active', e);
+      }
+
       onClose();
     } catch (error) {
       console.error('Error deleting clearance:', error);
@@ -136,153 +366,277 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
     }
   };
 
-  if (!isOpen) return null;
-
-  const getStatusColor = (status: string) => {
-    if (status === 'مكتمل') return '#10b981';
-    if (status === 'قيد الإجراء' || status === 'معلق') return '#f59e0b';
-    return '#ef4444';
+  const getSigneeName = (id: string | undefined | null) => {
+    if (!id) return '—';
+    return staffList.find(s => s.id.toString() === id.toString())?.name || id;
   };
 
-  const renderField = (label: string, value: any) => (
-    <div style={{ marginBottom: '12px' }}>
-      <label style={{ display: 'block', color: 'var(--text-p)', fontSize: '0.85rem', marginBottom: '4px' }}>{label}</label>
-      <div style={{ fontWeight: 600, color: 'var(--text-h)', fontSize: '1rem', background: 'var(--bg)', padding: '10px 14px', borderRadius: '8px' }}>
-        {value || '—'}
-      </div>
-    </div>
-  );
-
-  const renderSection = (title: string, icon: any, statusField: keyof PlayerClearance, idField: keyof PlayerClearance, dateField: keyof PlayerClearance, notesField?: keyof PlayerClearance) => (
-    <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ background: 'var(--bg)', padding: '10px', borderRadius: '12px', color: 'var(--primary)' }}>{icon}</div>
-        <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-h)', fontWeight: 800 }}>{title}</h3>
-      </div>
-      <div className="responsive-grid-2">
-        <CustomDropdown<string>
-          label="القرار / الحالة"
-          value={formData[statusField]?.toString() || 'غير مكتمل'}
-          onChange={(val) => setFormData({ ...formData, [statusField]: val })}
-          options={[
-            { value: 'غير مكتمل', label: 'غير مكتمل' },
-            { value: 'معلق', label: 'معلق (ملاحظات)' },
-            { value: 'مكتمل', label: 'مكتمل' }
-          ]}
-        />
-        <CustomDropdown<string>
-          label="المسؤول المفوّض"
-          value={formData[idField]?.toString() || ''}
-          onChange={(val) => setFormData({ ...formData, [idField]: val })}
-          options={staffList.map(s => ({ value: s.id.toString(), label: s.name || '' }))}
-        />
-      </div>
-      <div className="responsive-grid-2">
-        <CustomInput label="تاريخ التوقيع / الإخلاء" type="date" value={formData[dateField]?.toString() || ''} onChange={(e) => setFormData({ ...formData, [dateField]: e.target.value })} />
-        {notesField && (
-          <CustomInput label="ملاحظات (إن وجدت)" type="text" value={formData[notesField]?.toString() || ''} onChange={(e) => setFormData({ ...formData, [notesField]: e.target.value })} />
-        )}
-      </div>
-    </div>
-  );
+  if (!isOpen) return null;
 
   return (
-    <div className="task-dialog-overlay" onClick={onClose} style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000 }}>
-      <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '900px', width: '95%', borderRadius: '24px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: 0 }} onClick={(e) => e.stopPropagation()}>
+    <div className="cl-overlay" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--sans)' }}>
+      <style>{modalStyles}</style>
+      
+      <div className="cl-modal" onClick={(e) => e.stopPropagation()} style={{ width: '90vw', maxWidth: '1000px', height: '85vh', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
         
         {/* Header */}
-        <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <div style={{ background: 'var(--bg)', padding: '12px', borderRadius: '50%', color: 'var(--primary)' }}><CheckCircle size={28} /></div>
-            <div>
-              <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>بطاقة إخلاء الطرف والتسوية</h2>
-              <p style={{ margin: '4px 0 0', color: 'var(--text-p)', fontSize: '0.9rem' }}>{player?.first_name} {player?.last_name}</p>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-p)' }}>
+              <User size={24} />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800 }}>بطاقة الإخلاء والمغادرة</h2>
+              <div style={{ display: 'flex', gap: '12px', color: 'var(--text-p)', fontSize: '0.9rem' }}>
+                <span style={{ fontWeight: 'bold' }}>{player?.first_name} {player?.last_name}</span>
+              </div>
             </div>
           </div>
-          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-h)' }}><X size={24} /></button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-p)' }}>نسبة الاكتمال</span>
+              <span style={{ color: '#10b981', fontWeight: 'bold' }}>{progressPercent}% ({completedCount} من {STAGES.length})</span>
+            </div>
+            
+            <button onClick={() => window.print()} className="cl-btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Printer size={18} /> طباعة
+            </button>
+            <button onClick={onClose} className="cl-btn-secondary" style={{ padding: '10px' }}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div style={{ padding: '32px', overflowY: 'auto', flexGrow: 1 }}>
-          {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '40px' }}>جاري التحميل...</div>
-          ) : (
-            <div>
-              {/* الأساسيات */}
-              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <div style={{ background: 'var(--bg)', padding: '10px', borderRadius: '12px', color: 'var(--primary)' }}><LogOut size={22} /></div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-h)', fontWeight: 800 }}>معلومات المغادرة</h3>
-                </div>
-                  {mode === 'view' ? (
-                    <>
-                      {renderField("تاريخ المغادرة", formData.exit_date)}
-                      {renderField("سبب المغادرة", formData.exit_reason)}
-                    </>
-                  ) : (
-                    <>
-                      <CustomInput label="تاريخ المغادرة" type="date" value={formData.exit_date} onChange={(e) => setFormData({ ...formData, exit_date: e.target.value })} />
-                      <CustomInput label="سبب المغادرة" type="text" value={formData.exit_reason} onChange={(e) => setFormData({ ...formData, exit_reason: e.target.value })} placeholder="فسخ عقد، إعارة، نهاية ارتباط..." />
-                    </>
-                  )}
-              </div>
-
+        {/* Body Container */}
+        <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+          
+          {/* Sidebar */}
+          <div className="cl-sidebar" style={{ width: '280px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
+            
+            {STAGES.map((stage) => {
+              const isActive = activeTab === stage.id;
+              const isComplete = checkIsComplete(stage.id);
+              const isLocked = !hasCard && stage.id !== 'general';
               
-              <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '16px', padding: '20px', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                  <div style={{ background: 'var(--bg)', padding: '10px', borderRadius: '12px', color: 'var(--primary)' }}><PenTool size={22} /></div>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-h)', fontWeight: 800 }}>المصادقة النهائية للاعب</h3>
+              let statusClass = '';
+              let statusIcon = null;
+              
+              if (isActive) statusClass = 'active';
+              else if (isComplete) {
+                statusClass = 'completed';
+                statusIcon = <CheckCircle size={16} />;
+              } else if (stage.id === 'financial' && (loansData.length > 0 || remainingPayments.length > 0)) {
+                statusClass = 'warning';
+                statusIcon = <AlertTriangle size={16} />;
+              } else if (stage.id === 'equipment' && equipmentData.length > 0) {
+                statusClass = 'danger';
+                statusIcon = <AlertTriangle size={16} />;
+              } else if (isLocked) {
+                statusIcon = <Lock size={16} />;
+              }
+
+              return (
+                <button
+                  key={stage.id}
+                  onClick={() => !isLocked && setActiveTab(stage.id)}
+                  disabled={isLocked}
+                  className={`stage-btn ${statusClass}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderRadius: '12px', cursor: isLocked ? 'not-allowed' : 'pointer', width: '100%', textAlign: 'right',
+                    opacity: isLocked ? 0.6 : 1,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {stage.icon}
+                    <span style={{ fontWeight: isActive ? 700 : 600, fontSize: '0.95rem' }}>{stage.label}</span>
+                  </div>
+                  {statusIcon}
+                </button>
+              );
+            })}
+            
+            <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
+              <button onClick={handleDelete} disabled={isSaving || !hasCard} className="cl-btn-secondary" style={{ width: '100%', color: '#ef4444', borderColor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <Trash2 size={18} /> إلغاء الإخلاء وحذف البطاقة
+              </button>
+            </div>
+          </div>
+
+          {/* Main Content Area */}
+          <div className="cl-content" style={{ flex: 1, padding: '32px', overflowY: 'auto' }}>
+            
+            {activeTab === 'general' && (
+              <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1.4rem' }}>البيانات الأساسية</h3>
+                  <p style={{ margin: 0, color: 'var(--text-p)' }}>معلومات فك الارتباط والمغادرة.</p>
                 </div>
-                {mode === 'view' ? (
-                  <>
-                    <div style={{ marginBottom: '16px' }}>
-                      <label style={{ display: 'block', color: 'var(--text-p)', fontSize: '0.85rem', marginBottom: '4px' }}>حالة المصادقة</label>
-                      <div style={{ fontWeight: 600, color: formData.player_signature ? '#10b981' : '#f59e0b', fontSize: '1rem', background: 'var(--bg)', padding: '10px 14px', borderRadius: '8px' }}>
-                        {formData.player_signature ? 'تمت المصادقة وتسلم المستحقات' : 'لم يوقع بعد'}
+
+                <div className="cl-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <CustomInput 
+                    label="تاريخ المغادرة *" 
+                    type="date" 
+                    value={formData.exit_date || ''} 
+                    onChange={(e) => setFormData({ ...formData, exit_date: e.target.value })} 
+                  />
+                  
+                  <CustomDropdown
+                    label="السبب *"
+                    value={formData.exit_reason || ''}
+                    onChange={(val) => setFormData({ ...formData, exit_reason: val })}
+                    options={REASON_OPTIONS}
+                    placeholder="اختر السبب..."
+                  />
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
+                    <label style={{ fontWeight: 600, color: 'var(--text-h, #1f2937)' }}>ملاحظات</label>
+                    <textarea className="cl-input" rows={4} value={formData.general_notes || ''} onChange={(e) => setFormData({ ...formData, general_notes: e.target.value })} placeholder="أضف أية ملاحظات..."></textarea>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => handleSign('general')}
+                  disabled={isSaving}
+                  className="cl-btn-primary"
+                  style={{ display: 'flex', gap: '8px', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <Save size={20} /> {isSaving ? 'جاري الحفظ...' : 'حفظ البيانات'}
+                </button>
+              </div>
+            )}
+            
+            {['admin', 'sporting', 'medical', 'financial', 'equipment', 'player'].includes(activeTab) && (
+              <div style={{ maxWidth: '600px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1.4rem' }}>{STAGES.find(s => s.id === activeTab)?.label}</h3>
+                  <p style={{ margin: 0, color: 'var(--text-p)' }}>مراجعة وتوقيع قسم {STAGES.find(s => s.id === activeTab)?.label}.</p>
+                </div>
+
+                {activeTab === 'financial' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div className="cl-card" style={{ padding: '16px', background: loansData.length > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)', borderColor: loansData.length > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                        <span style={{ fontWeight: 800, fontSize: '1.8rem', color: loansData.length > 0 ? '#ef4444' : '#10b981' }}>{loansData.length}</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-p)' }}>سلف غير مسددة</span>
+                      </div>
+                      <div className="cl-card" style={{ padding: '16px', background: remainingPayments.length > 0 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(16, 185, 129, 0.05)', borderColor: remainingPayments.length > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                        <span style={{ fontWeight: 800, fontSize: '1.8rem', color: remainingPayments.length > 0 ? '#f59e0b' : '#10b981' }}>{remainingPayments.length}</span>
+                        <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-p)' }}>دفعات متبقية</span>
                       </div>
                     </div>
-                    {renderField("ملاحظات عامة", formData.general_notes)}
-                  </>
-                ) : (
-                  <>
-                    <div style={{ alignItems: 'center', marginBottom: '16px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', fontWeight: 700 }}>
-                        <input type="checkbox" checked={formData.player_signature || false} onChange={(e) => setFormData({ ...formData, player_signature: e.target.checked })} style={{ width: '20px', height: '20px' }} />
-                        يقر اللاعب بتسلم كافة مستحقاته وإخلاء طرفه
-                      </label>
-                    </div>
-                    <div style={{ marginTop: '16px' }}>
-                      <CustomInput label="ملاحظات عامة" type="text" value={formData.general_notes} onChange={(e) => setFormData({ ...formData, general_notes: e.target.value })} />
-                    </div>
-                  </>
+                    {(loansData.length > 0 || remainingPayments.length > 0) && (
+                      <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', color: '#ef4444', fontSize: '0.9rem', fontWeight: 600, display: 'flex', gap: '10px', alignItems: 'center' }}>
+                        <AlertTriangle size={20} /> 
+                        تنبيه: يجب على المسؤول المالي تسوية المستحقات والسلف قبل توقيع إخلاء الطرف المالي.
+                      </div>
+                    )}
+                  </div>
                 )}
+
+                {activeTab === 'equipment' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    {(() => {
+                      // Extract all movements from all operations
+                      const allMovements = equipmentData.flatMap(op => op.movements || []);
+                      const returnedMovements = allMovements.filter(mov => !!mov.return_date);
+                      const unreturnedMovements = allMovements.filter(mov => !mov.return_date);
+
+                      return (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+                            <div className="cl-card" style={{ padding: '12px', textAlign: 'center', background: 'rgba(59, 130, 246, 0.05)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: '#3b82f6' }}>{allMovements.length}</div>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-p)' }}>إجمالي المستلم</div>
+                            </div>
+                            <div className="cl-card" style={{ padding: '12px', textAlign: 'center', background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: '#10b981' }}>{returnedMovements.length}</div>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-p)' }}>تم إرجاعه</div>
+                            </div>
+                            <div className="cl-card" style={{ padding: '12px', textAlign: 'center', background: unreturnedMovements.length > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)', borderColor: unreturnedMovements.length > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)' }}>
+                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: unreturnedMovements.length > 0 ? '#ef4444' : '#10b981' }}>{unreturnedMovements.length}</div>
+                              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-p)' }}>لم يُعد</div>
+                            </div>
+                          </div>
+
+                          {unreturnedMovements.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 700, fontSize: '0.95rem' }}>
+                                <AlertTriangle size={20} />
+                                اللاعب يمتلك {unreturnedMovements.length} عنصر لم يرجعه بعد!
+                              </div>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                {unreturnedMovements.map((mov: any, i: number) => (
+                                  <div key={i} className="cl-card" style={{ padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                      <span style={{ fontWeight: 700, color: 'var(--text-h)' }}>
+                                        {mov.equipment?.name || mov.equipment_name || mov.name || `عتاد #${i + 1}`}
+                                      </span>
+                                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                                        الكمية: {mov.quantity || 1}
+                                      </span>
+                                    </div>
+                                    <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 700, fontSize: '0.8rem' }}>لم يُعد</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '16px', borderRadius: '12px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', justifyContent: 'center' }}>
+                              <CheckCircle size={24} />
+                              <span style={{ fontWeight: 700, fontSize: '1rem' }}>اللاعب أرجع جميع العتاد</span>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                )}
+
+                <div className="cl-card" style={{ textAlign: 'center', padding: '40px 24px' }}>
+                  {checkIsComplete(activeTab) ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                      <CheckCircle size={48} color="#10b981" />
+                      <div>
+                        <h4 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '1.2rem' }}>تم التوقيع بنجاح</h4>
+                        <p style={{ margin: 0, color: 'var(--text-p)' }}>بواسطة: {getSigneeName(
+                          formData[(
+                            activeTab === 'admin' ? 'admin_id' :
+                            activeTab === 'sporting' ? 'sporting_director_id' :
+                            activeTab === 'financial' ? 'finance_manager_id' :
+                            activeTab === 'equipment' ? 'equipment_manager_id' :
+                            activeTab === 'medical' ? 'medical_staff_id' : ''
+                          ) as keyof PlayerClearance]?.toString()
+                        ) || 'المسؤول'}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
+                      <PenTool size={48} color="var(--text-p)" />
+                      <div>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>بانتظار التوقيع</h4>
+                        <p style={{ margin: 0, color: 'var(--text-p)' }}>يرجى مراجعة حالة اللاعب قبل التوقيع.</p>
+                      </div>
+
+                      <button 
+                        onClick={() => handleSign(activeTab)}
+                        disabled={isSaving}
+                        className="cl-btn-primary"
+                        style={{ marginTop: '16px', display: 'flex', gap: '8px', alignItems: 'center' }}
+                      >
+                        <PenTool size={20} /> {isSaving ? 'جاري التوقيع...' : 'توقيع القسم'}
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
 
-        {/* Footer */}
-        <div style={{ padding: '20px 32px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '12px', background: 'var(--card-bg)', borderRadius: '0 0 24px 24px' }}>
-          {mode === 'view' ? (
-            <>
-              <button type="button" onClick={() => handleDelete()} disabled={isSaving} className="mc-btn" style={{ padding: '12px 24px', background: '#fef2f2', color: '#ef4444', border: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Trash2 size={20} /> حذف
-              </button>
-              <button type="button" onClick={() => setMode('edit')} className="mc-btn mc-btn-primary" style={{ padding: '12px 24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Edit2 size={20} /> تعديل
-              </button>
-              <button type="button" onClick={onClose} className="mc-btn mc-btn-secondary" style={{ padding: '12px 24px' }}>إغلاق</button>
-            </>
-          ) : (
-            <>
-              <button type="button" onClick={onClose} className="mc-btn mc-btn-secondary" style={{ padding: '12px 24px' }}>إلغاء</button>
-              <button type="button" onClick={handleSave} disabled={isSaving} className="mc-btn mc-btn-primary" style={{ padding: '12px 32px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Save size={20} /> {isSaving ? 'جاري الحفظ...' : 'حفظ المخالصة'}
-              </button>
-            </>
-          )}
+          </div>
         </div>
-
       </div>
     </div>
   );

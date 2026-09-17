@@ -870,6 +870,7 @@ export const Members: React.FC = () => {
           isOpen={isClearanceDialogOpen}
           onClose={closeClearanceDialog}
           player={selectedClearanceMember}
+          onUpdate={controller.fetchMembers}
         />
       )}
 

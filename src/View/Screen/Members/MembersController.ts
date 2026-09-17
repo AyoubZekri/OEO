@@ -415,6 +415,7 @@ export const useMembersController = () => {
     saveEvaluation,
     updateEvaluation,
     deleteEvaluation,
+    fetchMembers,
   };
 };
 

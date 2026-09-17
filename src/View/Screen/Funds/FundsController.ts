@@ -1,25 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Crud } from '../../../core/class/Crud';
 import { FundsData } from './funds_data';
-
-export interface Fund {
-  id: string;
-  name: string;
-  icon: 'bank' | 'mail' | 'wallet' | 'default';
-  initialBalance: number;
-}
-
-export type TransactionType = 'إيداع' | 'سحب' | 'تحويل';
-
-export interface FundTransaction {
-  id: string;
-  fundId: string;
-  type: TransactionType;
-  amount: number;
-  date: string;
-  description: string;
-  toFundId?: string; // Only used if type === 'تحويل'
-}
+import type { Fund, TransactionType, FundTransaction } from './fund_model';
 
 export const useFundsController = () => {
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -124,14 +106,6 @@ export const useFundsController = () => {
   };
 
   const addTransaction = async (transaction: Omit<FundTransaction, 'id'>) => {
-    if (transaction.type === 'تحويل' || transaction.type === 'سحب') {
-      const balance = getBalance(transaction.fundId);
-      if (Number(transaction.amount) > balance) {
-        alert('الرصيد المتوفر لا يكفي لإتمام هذه العملية.');
-        return;
-      }
-    }
-
     const response = await fundsData.createTransaction(transaction);
     if (response) {
       if (response.error) {

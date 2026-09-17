@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 
@@ -145,6 +145,24 @@ export const useSaidparController = (onLogout?: () => void) => {
           isDropdown: false,
           label: 'المباريات',
           route: Approutes.Matches,
+        }] : []),
+        ...(hasAccess(true) ? [{
+          name: 'MeetingsGroup',
+          icon: Briefcase,
+          isDropdown: true,
+          label: 'إدارة الاجتماعات',
+          subItems: [
+            {
+              name: 'Meetings',
+              label: 'الاجتماعات',
+              route: Approutes.Meetings,
+            },
+            {
+              name: 'Decisions',
+              label: 'القرارات',
+              route: Approutes.Decisions,
+            }
+          ]
         }] : []),
         
         ...(hasAccess(true) ? [{

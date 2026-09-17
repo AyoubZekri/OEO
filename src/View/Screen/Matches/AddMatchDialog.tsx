@@ -46,7 +46,10 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           gathering_location: matchData.gathering_location || '',
           coach_id: matchData.coach_id?.id ? matchData.coach_id.id.toString() : (matchData.coach_id ? matchData.coach_id.toString() : ''),
           admin_id: matchData.admin_id?.id ? matchData.admin_id.id.toString() : (matchData.admin_id ? matchData.admin_id.toString() : ''),
-          team_id: matchData.team_id?.id ? matchData.team_id.id.toString() : (matchData.team_id ? matchData.team_id.toString() : (matchData.team?.id ? matchData.team.id.toString() : ''))
+          team_id: matchData.team_id?.id ? matchData.team_id.id.toString() : (matchData.team_id ? matchData.team_id.toString() : (matchData.team?.id ? matchData.team.id.toString() : '')),
+          team_score: matchData.team_score || '',
+          opponent_score: matchData.opponent_score || '',
+          match_status: matchData.match_status || 'upcoming'
         });
       } else {
         setFormData({

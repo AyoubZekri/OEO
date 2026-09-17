@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportsController } from './ReportsController';
-import type { ReportCategory, IndividualReportType } from './ReportsController';
+import type { ReportCategory, IndividualReportType } from './report_model';
 import { 
-  FileText, Printer, Users, CreditCard, Briefcase, Landmark, SearchX, AlertCircle, List
+  FileText, Printer, Users, CreditCard, Briefcase, Landmark, SearchX, AlertCircle, List, Trash2
 } from 'lucide-react';
 
 import { CustomDropdown } from '../../widget/CustomDropdown';
@@ -634,6 +634,7 @@ export const Reports: React.FC = () => {
                         <th>النوع</th>
                         <th>المبلغ</th>
                         <th>البيان</th>
+                        <th>الإجراءات</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -642,7 +643,7 @@ export const Reports: React.FC = () => {
                             if (summary.transactions.length === 0) {
                               return (
                                 <tr>
-                                  <td colSpan={5} className="text-center py-4 text-muted">
+                                  <td colSpan={6} className="text-center py-4 text-muted">
                                     {t('reports.no_data', 'لا توجد بيانات')}
                                   </td>
                                 </tr>
@@ -671,6 +672,18 @@ export const Reports: React.FC = () => {
                                     {controller.formatCurrency(tx.amount)}
                                   </td>
                                   <td data-label={t('reports.description', 'البيان')}>{tx.description}</td>
+                                  <td data-label={t('reports.actions', 'الإجراءات')}>
+                                    {hasAccess(permissions.funds.delete) && (
+                                      <button 
+                                        className="btn-action delete-btn" 
+                                        onClick={() => controller.deleteFundTransaction(tx.id)}
+                                        title={t('reports.delete', 'حذف')}
+                                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc3545', padding: '4px' }}
+                                      >
+                                        <Trash2 size={18} />
+                                      </button>
+                                    )}
+                                  </td>
                                 </tr>
                               );
                             });

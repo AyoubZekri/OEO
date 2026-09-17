@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CustomDropdown } from '../../widget/CustomDropdown';
-import { useFundsController, type Fund, type TransactionType } from './FundsController';
+import { useFundsController } from './FundsController';
+import type { Fund, TransactionType } from './fund_model';
 import { Wallet, Landmark, Mail, ArrowRightLeft, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';

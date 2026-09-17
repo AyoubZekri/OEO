@@ -5,15 +5,10 @@ import { MemberModel } from '../Members/member_model';
 import { ContractsData } from '../Contracts/contracts_data';
 import { ContractModel } from '../Contracts/contract_model';
 import { PaymentsData } from '../Payments/payments_data';
-import type { PaymentRecord } from '../Payments/PaymentsController';
+import type { PaymentRecord } from '../Payments/payment_model';
 import { FundsData } from '../Funds/funds_data';
-import type { Fund, FundTransaction } from '../Funds/FundsController';
-
-export type ReportCategory = 'individuals' | 'expenses' | 'contracts' | 'funds';
-export type IndividualReportType = 'player' | 'coach' | 'assistant_coach' | 'goalkeeper_coach' | 'employee';
-export type ExpenseReportType = 'daily' | 'monthly' | 'seasonal' | 'byType' | 'byTeam';
-export type ContractReportType = 'total' | 'paid' | 'remaining' | 'upcoming';
-export type FundReportType = 'fundMovement' | 'bankMovement' | 'transfers' | 'balance';
+import type { Fund, FundTransaction } from '../Funds/fund_model';
+import type { ReportCategory, IndividualReportType, ExpenseReportType, ContractReportType, FundReportType } from './report_model';
 
 export const useReportsController = () => {
   const [activeCategory, setActiveCategory] = useState<ReportCategory>('individuals');
@@ -167,20 +162,35 @@ export const useReportsController = () => {
   // Calculations for Individuals Report
   const getIndividualSummary = () => {
     let relevantContracts = [...contracts];
-    let relevantPayments = [...payments];
+    let allMemberPayments = [...payments];
 
     // Filter by member/type
     if (selectedMember && selectedMember !== '') {
       relevantContracts = relevantContracts.filter(c => c.individuals_id === selectedMember);
-      relevantPayments = relevantPayments.filter(p => p.memberId === selectedMember);
+      allMemberPayments = allMemberPayments.filter(p => p.memberId === selectedMember);
     } else {
       // Filter by type (player, coach, employee)
       const filteredMembers = members.filter(m => m.type === activeIndividualTab).map(m => m.id);
       relevantContracts = relevantContracts.filter(c => filteredMembers.includes(c.individuals_id));
-      relevantPayments = relevantPayments.filter(p => p.memberId && filteredMembers.includes(p.memberId));
+      allMemberPayments = allMemberPayments.filter(p => p.memberId && filteredMembers.includes(p.memberId));
     }
 
-    // Filter payments by date range
+    const contractValue = relevantContracts.reduce((sum, c) => sum + (Number(c.contractValue) || 0), 0);
+    const dueTillToday = relevantContracts.reduce((sum, c) => sum + (Number(c.contractValue) || 0), 0); // Simplified, adjust if needed
+    
+    // Calculate global contract paid (BEFORE any date/type filters)
+    let globalContractPaid = 0;
+    allMemberPayments.forEach(p => {
+      if (p.amountNature === 'رقم دفعة') {
+        globalContractPaid += (Number(p.amount) || 0);
+      }
+    });
+    
+    // Remaining is calculated using all payments, so it doesn't change with date filters
+    const remaining = contractValue - globalContractPaid;
+
+    // Filter payments by date range for the displayed report
+    let relevantPayments = [...allMemberPayments];
     if (fromDate) {
       relevantPayments = relevantPayments.filter(p => p.paymentDate >= fromDate);
     }
@@ -193,9 +203,6 @@ export const useReportsController = () => {
       relevantPayments = relevantPayments.filter(p => p.amountNature === individualPaymentTypeFilter);
     }
 
-    const contractValue = relevantContracts.reduce((sum, c) => sum + (Number(c.contractValue) || 0), 0);
-    const dueTillToday = relevantContracts.reduce((sum, c) => sum + (Number(c.contractValue) || 0), 0); // Simplified, adjust if needed
-    
     let paid = 0;
     let deductions = 0;
     let advances = 0;
@@ -208,12 +215,10 @@ export const useReportsController = () => {
         advances -= amount;
       } else if (p.amountNature === 'استقطاع' || p.amountNature === 'خصم') {
         deductions += amount;
-      } else if (p.amountNature === 'رقم دفعة') {
+      } else if (p.amountNature === 'رقم دفعة' || p.amountNature === 'راتب شهري') {
         paid += amount;
       }
     });
-
-    const remaining = contractValue - paid;
 
     return {
       contractValue,
@@ -303,24 +308,52 @@ export const useReportsController = () => {
     let totalPaid = 0;
     let totalRemaining = 0;
 
+    // Calculate totalPaid from payments table directly (including deleted contracts)
+    let paymentsForTotal = [...payments];
+    if (selectedMember && selectedMember !== '') {
+      paymentsForTotal = paymentsForTotal.filter(p => p.memberId === selectedMember);
+    }
+    if (fromDate) {
+      paymentsForTotal = paymentsForTotal.filter(p => p.paymentDate && p.paymentDate >= fromDate);
+    }
+    if (toDate) {
+      paymentsForTotal = paymentsForTotal.filter(p => p.paymentDate && p.paymentDate <= toDate);
+    }
+
+    paymentsForTotal.forEach(p => {
+      const nature = p.amountNature || '';
+      if (nature === 'رقم دفعة') {
+        totalPaid += (Number(p.amount) || 0);
+      }
+    });
+
     const enrichedContracts = relevantContracts.map(contract => {
       const memberPayments = payments.filter(p => p.memberId === contract.individuals_id);
       
-      let contractPaid = 0;
+      let allTimeContractPaid = 0;
 
       memberPayments.forEach(p => {
         const amount = Number(p.amount) || 0;
-        if (p.amountNature === 'رقم دفعة') {
-          contractPaid += amount;
+        const nature = p.amountNature || '';
+        
+        if (nature === 'رقم دفعة') {
+          // Add extra check to make sure it belongs to the contract if possible
+          // to perfectly match MembersController behavior
+          let belongsToContract = true;
+          if (p.contract_id && String(p.contract_id) !== String(contract.id)) {
+             belongsToContract = false;
+          }
+          
+          if (belongsToContract) {
+            allTimeContractPaid += amount;
+          }
         }
       });
 
-      const netPaid = contractPaid;
-      const remaining = contract.contractValue - netPaid;
+      const netPaid = allTimeContractPaid;
+      const remaining = contract.contractValue - allTimeContractPaid;
       
       totalValue += contract.contractValue;
-      totalPaid += netPaid;
-      totalRemaining += remaining;
 
       return {
         ...contract,
@@ -328,6 +361,8 @@ export const useReportsController = () => {
         remaining
       };
     });
+
+    totalRemaining = totalValue - totalPaid;
 
     return {
       totalValue,
@@ -407,6 +442,15 @@ export const useReportsController = () => {
     };
   };
 
+  const deleteFundTransaction = async (id: string) => {
+    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة؟')) {
+      const response = await fundsData.deleteTransaction({ id });
+      if (response) {
+        setFundTransactions(prev => prev.filter(t => t.id !== id));
+      }
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     const numStr = (amount || 0).toLocaleString('en-US', { 
       minimumFractionDigits: 2, 
@@ -457,6 +501,7 @@ export const useReportsController = () => {
     getExpenseSummary,
     getContractsSummary,
     getFundsSummary,
+    deleteFundTransaction,
     formatCurrency,
 
     handlePrint,
