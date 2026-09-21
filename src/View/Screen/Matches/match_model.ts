@@ -13,10 +13,29 @@ export interface Match {
   team_score?: number | null;
   opponent_score?: number | null;
   match_status?: string | null;
+  opponent_club_id?: number | null;
+  opponent_club?: {
+    id: number;
+    name: string;
+    symbol: string;
+    logo: string;
+  };
+  opponentClub?: {
+    id: number;
+    name: string;
+    symbol: string;
+    logo: string;
+  };
   team?: {
     id: number;
     name: string;
     category: string;
   };
+  attendance_stats?: {
+    total: number;
+    present: number;
+    absent: number;
+  };
+  formation?: string;
   created_at?: string;
 }

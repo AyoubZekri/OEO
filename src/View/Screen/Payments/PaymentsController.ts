@@ -157,7 +157,7 @@ export const usePaymentsController = () => {
 
   const savePayment = async (payment: Omit<PaymentRecord, 'id'>) => {
     setIsLoading(true);
-    let payload: any = { ...payment };
+    const payload: any = { ...payment };
 
     if (payload.fundId) {
       payload.fund_id = payload.fundId; // Add for backend

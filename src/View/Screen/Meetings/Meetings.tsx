@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, Check, CalendarX, FolderOpen } from 'lucide-react';
 import { useMeetingsController } from './MeetingsController';
 import type { Attendee, Meeting } from './meeting_model';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../../../core/context/AuthContext';
 import './Meetings.css';
 
 export const Meetings: React.FC = () => {
@@ -23,7 +24,7 @@ export const Meetings: React.FC = () => {
     handleSave,
     handleDelete,
     changeAttendeeStatus,
-    mockEmployees,
+    appMembers,
     
     newAttendeeName, setNewAttendeeName,
     newPoint, setNewPoint,
@@ -37,272 +38,401 @@ export const Meetings: React.FC = () => {
     submitAbsence
   } = useMeetingsController();
 
+  const { permissions, isFullAccess } = useAuth();
+  const hasAccess = (check: boolean) => isFullAccess || check;
+
   return (
     <div className="visits-tab-container fade-in">
       {/* Header Section */}
-      <div className="mission-orders-header" style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2 style={{ fontSize: '1.6rem', color: 'var(--text-h)', marginBottom: '4px' }}>{t('admin_docs.meetings', 'الاجتماعات')}</h2>
-        </div>
-        <button 
-          className="premium-btn" 
-          onClick={openAdd}
-        >
-          <Plus size={18} />
-          {t('admin_docs.add_meeting', 'إضافة إجتماع')}
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
+        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <Users size={28} style={{ color: 'var(--primary)' }} /> {t('admin_docs.meetings_title', 'الاجتماعات الدورية')}
+        </h2>
+        {hasAccess(permissions.meetings.add) && (
+          <button className="add-eq-btn" onClick={() => openAdd()}>
+            <Plus size={20} />
+            <span>{t('admin_docs.add_meeting', 'إضافة اجتماع')}</span>
+          </button>
+        )}
       </div>
 
       {/* Grid Section */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px' }}>
+      {/* Grid Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))', gap: '24px' }}>
         {meetings.map(meeting => (
           <div 
             key={meeting.id} 
             className="premium-card fade-in"
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              padding: 0,
+              borderRadius: '20px',
+              border: '1px solid rgba(59, 130, 246, 0.1)',
+              background: 'var(--card-bg)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--text-h)', fontWeight: 'bold' }}>{meeting.topic}</h3>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button onClick={() => openEdit(meeting)} className="premium-icon-btn" title={t('admin_docs.edit', 'تعديل')}>
-                  <Edit2 size={16} />
-                </button>
-                <button onClick={() => handleDelete(meeting.id)} className="premium-icon-btn delete" title={t('admin_docs.delete', 'حذف')}>
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px', fontSize: '0.9rem', color: 'var(--text)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={16} color="var(--text-muted)" />
-                <span>{meeting.date}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Clock size={16} color="var(--text-muted)" />
-                <span>{meeting.time}</span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <MapPin size={16} color="var(--text-muted)" />
-                <span>{meeting.location}</span>
-              </div>
-            </div>
-
-            <button 
-              onClick={() => setExpandedMeetingId(expandedMeetingId === meeting.id ? null : meeting.id)}
-              style={{ background: 'var(--bg)', border: '1px dashed var(--border)', padding: '8px', borderRadius: '8px', width: '100%', color: 'var(--text)', cursor: 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', fontWeight: '600' }}
-            >
-              <Users size={16} /> 
-              {expandedMeetingId === meeting.id ? t('admin_docs.hide_details', 'إخفاء التفاصيل') : t('admin_docs.show_details', 'عرض الحضور والنقاط')}
-            </button>
-
-            {expandedMeetingId === meeting.id && (
-              <div style={{ marginTop: '12px', paddingTop: '12px', animation: 'fadeInDown 0.2s ease-out' }}>
-                <div style={{ marginBottom: '16px' }}>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <List size={14} /> {t('admin_docs.agenda_points', 'نقاط الإجتماع')}
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {meeting.points.length > 0 ? meeting.points.map((pt, i) => (
-                      <div key={i} style={{ 
-                        display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--card-bg)', 
-                        padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)', 
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.02)', overflow: 'hidden' 
-                      }}>
-                        <div style={{ 
-                          background: '#fef2f2', color: 'var(--accent)', width: '28px', height: '28px', 
-                          borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                          fontWeight: 'bold', fontSize: '0.9rem', flexShrink: 0 
-                        }}>
-                          {i + 1}
-                        </div>
-                        <div style={{ flex: 1, fontSize: '0.95rem', color: 'var(--text)', fontWeight: '500' }}>
-                          {pt}
-                        </div>
-                      </div>
-                    )) : <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{t('admin_docs.no_points', 'لا توجد نقاط محددة')}</div>}
+            {/* Top decorative gradient bar */}
+            <div style={{ height: '6px', background: 'linear-gradient(90deg, var(--primary), #8b5cf6)' }}></div>
+            
+            <div style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <h3 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-h)', fontWeight: '800', lineHeight: '1.4' }}>{meeting.topic}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '6px 12px', borderRadius: '30px', fontWeight: '500' }}>
+                      <Calendar size={14} style={{ color: 'var(--primary)' }} />
+                      <span>{meeting.date}</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '6px 12px', borderRadius: '30px', fontWeight: '500' }}>
+                      <Clock size={14} style={{ color: '#f59e0b' }} />
+                      <span>{meeting.time}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div>
-                  <h4 style={{ margin: '0 0 8px 0', fontSize: '0.9rem', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Users size={14} /> {t('admin_docs.attendees', 'قائمة الحضور')}
-                  </h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {meeting.attendees.length > 0 ? meeting.attendees.map(a => (
-                      <div key={a.id} style={{ 
-                        display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                        background: 'var(--card-bg)', padding: '12px 16px', borderRadius: '12px', 
-                        border: '1px solid var(--border)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
-                      }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <div style={{ 
-                            width: '40px', height: '40px', borderRadius: '50%', 
-                            background: 'var(--bg-hover)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            color: 'var(--text-muted)', fontWeight: 'bold', fontSize: '1.2rem'
-                          }}>
-                            {a.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div style={{ fontWeight: '600', color: 'var(--text-h)', fontSize: '1rem' }}>{a.name}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-                              {a.status === 'pending' && <span style={{ fontSize: '0.75rem', color: '#d97706', background: 'var(--bg-hover)', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' }}>{t('admin_docs.status_pending', 'قيد الانتظار')}</span>}
-                              {a.status === 'confirmed' && <span style={{ fontSize: '0.75rem', color: '#059669', background: 'var(--bg-hover)', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' }}>{t('admin_docs.status_confirmed', 'مؤكد')}</span>}
-                              {a.status === 'absent' && <span style={{ fontSize: '0.75rem', color: '#dc2626', background: 'var(--bg-hover)', padding: '2px 8px', borderRadius: '12px', fontWeight: '500' }}>{t('admin_docs.status_absent', 'غائب')}</span>}
-                              {a.reason && <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>- {a.reason}</span>}
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button onClick={() => changeAttendeeStatus(meeting.id, a.id, 'confirmed')} style={{ 
-                            background: a.status === 'confirmed' ? '#10b981' : 'var(--bg)', color: a.status === 'confirmed' ? 'var(--card-bg)' : '#10b981', 
-                            border: `1px solid ${a.status === 'confirmed' ? '#10b981' : 'var(--border)'}`, padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' 
-                          }} title={t('admin_docs.confirm_attendance', 'تأكيد الحضور')}>
-                            <Check size={16} strokeWidth={a.status === 'confirmed' ? 3 : 2} />
-                          </button>
-                          <button onClick={() => setActiveReasonModal({ meetingId: meeting.id, attendeeId: a.id })} style={{ 
-                            background: a.status === 'absent' ? 'var(--accent)' : 'var(--bg)', color: a.status === 'absent' ? 'var(--card-bg)' : 'var(--accent)', 
-                            border: `1px solid ${a.status === 'absent' ? 'var(--accent)' : 'var(--border)'}`, padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s' 
-                          }} title={t('admin_docs.mark_absent', 'غياب')}>
-                            <X size={16} strokeWidth={a.status === 'absent' ? 3 : 2} />
-                          </button>
-                        </div>
-                      </div>
-                    )) : <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', textAlign: 'center', padding: '16px', background: 'var(--bg)', borderRadius: '8px' }}>{t('admin_docs.no_attendees', 'لا يوجد حضور محددين')}</div>}
-                  </div>
+                <div style={{ display: 'flex', gap: '6px', background: 'var(--bg)', padding: '4px', borderRadius: '12px' }}>
+                  <button onClick={() => openEdit(meeting)} className="premium-icon-btn" style={{ width: '32px', height: '32px' }} title={t('admin_docs.edit', 'تعديل')}>
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => handleDelete(meeting.id)} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-            )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '24px', fontSize: '0.95rem', color: 'var(--text-muted)', background: 'rgba(59, 130, 246, 0.04)', padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(59, 130, 246, 0.1)' }}>
+                <MapPin size={18} style={{ color: 'var(--primary)' }} />
+                <span style={{ fontWeight: '500' }}>{meeting.location}</span>
+              </div>
+
+              <button 
+                className="premium-btn-outline"
+                onClick={() => setExpandedMeetingId(meeting.id)}
+                style={{ 
+                  width: '100%', 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  alignItems: 'center', 
+                  gap: '8px', 
+                  padding: '12px',
+                  marginTop: '10px'
+                }}
+              >
+                <Users size={18} /> 
+                {t('admin_docs.show_details', 'عرض الحضور والنقاط')}
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {meetings.length === 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 20px', background: 'var(--card-bg)', borderRadius: '16px', border: '1px dashed var(--border)', marginTop: '24px' }}>
-          <div style={{ background: 'var(--bg-hover)', padding: '20px', borderRadius: '50%', marginBottom: '16px' }}>
-            <Users size={48} color="var(--text-muted)" />
+        {meetings.length === 0 && (
+          <div style={{
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
+            borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
+            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+              padding: '24px', borderRadius: '50%', marginBottom: '20px',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)'
+            }}>
+              <FolderOpen size={56} color="var(--primary)" style={{ opacity: 0.8 }} />
+            </div>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
+              لا توجد اجتماعات حالياً
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
+              لم يتم جدولة أي اجتماعات حتى الآن. يمكنك إضافة اجتماع جديد للبدء في تنظيم فريقك ومناقشة النقاط الهامة.
+            </p>
+            {hasAccess(permissions.meetings.add) && (
+              <button 
+                className="add-eq-btn" 
+                style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem' }}
+                onClick={() => openAdd()}
+              >
+                <Plus size={22} />
+                <span>إضافة اجتماع جديد</span>
+              </button>
+            )}
           </div>
-          <h3 style={{ fontSize: '1.2rem', color: 'var(--text)', marginBottom: '8px' }}>{t('admin_docs.no_meetings', 'لا توجد اجتماعات حالياً')}</h3>
-        </div>
-      )}
+        )}
 
       {/* Editor Modal */}
       {isEditorOpen && (
-        <div className="premium-modal-overlay" onClick={closeEditor}>
-          <div className="premium-modal" onClick={e => e.stopPropagation()}>
-            <form onSubmit={handleSave}>
-              <div style={{ background: 'var(--bg)', padding: '20px 24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-h)', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  {editingId ? <><Edit2 size={20} color="var(--accent)" /> {t('admin_docs.edit_meeting', 'تعديل الإجتماع')}</> : <><Plus size={20} color="var(--accent)" /> {t('admin_docs.add_meeting', 'إضافة إجتماع')}</>}
-                </h3>
-                <button type="button" onClick={closeEditor} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                  <XCircle size={24} />
-                </button>
-              </div>
-              
-              <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_topic', 'سبب الإجتماع')} *</label>
-                  <input type="text" value={topic} onChange={e => setTopic(e.target.value)} required className="premium-input" />
+        <div className="wow-modal-overlay" onClick={closeEditor}>
+          <div className="wow-modal" onClick={e => e.stopPropagation()}>
+            
+            {/* Modal Header */}
+            <div className="wow-modal-header">
+              <h3 className="wow-modal-title">
+                <div className="wow-modal-icon-bg">
+                  {editingId ? <Edit2 size={24} color="var(--accent)" /> : <Plus size={24} color="var(--accent)" />}
                 </div>
+                {editingId ? t('admin_docs.edit_meeting', 'تعديل الإجتماع') : t('admin_docs.add_meeting', 'إضافة إجتماع')}
+              </h3>
+              <button type="button" onClick={closeEditor} style={{ background: 'var(--bg-hover)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--border)'} onMouseOut={e => e.currentTarget.style.background = 'var(--bg-hover)'}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ flex: 1, overflowY: 'auto', padding: '28px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+              <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
                 
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_date', 'التاريخ')} *</label>
-                    <input type="date" value={date} onChange={e => setDate(e.target.value)} required style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '0.95rem', outline: 'none' }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_time', 'الوقت')} *</label>
-                    <input type="time" value={time} onChange={e => setTime(e.target.value)} required className="premium-input" />
+                {/* Section 1: Basic Info */}
+                <div className="wow-section-card">
+                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                    <div style={{ width: '4px', height: '18px', background: 'linear-gradient(to bottom, var(--accent), #fca5a5)', borderRadius: '4px' }}></div>
+                    المعلومات الأساسية
+                  </h4>
+                  
+                  <div style={{ display: 'grid', gap: '20px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_topic', 'سبب الإجتماع')} *</label>
+                      <input type="text" value={topic} onChange={e => setTopic(e.target.value)} required className="premium-input" />
+                    </div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_date', 'التاريخ')} *</label>
+                        <input type="date" value={date} onChange={e => setDate(e.target.value)} required style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '0.95rem', outline: 'none' }} />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_time', 'الوقت')} *</label>
+                        <input type="time" value={time} onChange={e => setTime(e.target.value)} required className="premium-input" />
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_location', 'مكان الإجتماع')} *</label>
+                      <input type="text" value={location} onChange={e => setLocation(e.target.value)} required placeholder="مثال: المقر الرئيسي" className="premium-input" />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_location', 'مكان الإجتماع')} *</label>
-                  <input type="text" value={location} onChange={e => setLocation(e.target.value)} required placeholder="مثال: المقر الرئيسي" className="premium-input" />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.agenda_points', 'نقاط الإجتماع')}</label>
-                  <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
-                    <input type="text" value={newPoint} onChange={e => setNewPoint(e.target.value)} placeholder={t('admin_docs.add_point_placeholder', 'اكتب نقطة للمناقشة...')} className="premium-input" style={{ flex: 1 }} onKeyPress={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddPoint(); }}} />
-                    <button type="button" onClick={handleAddPoint} className="premium-btn-outline" style={{ padding: '0 24px' }}>{t('admin_docs.add_point', 'إضافة نقطة')}</button>
+                {/* Section 2: Agenda Points */}
+                <div className="wow-section-card">
+                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                    <div style={{ width: '4px', height: '18px', background: 'linear-gradient(to bottom, #3b82f6, #93c5fd)', borderRadius: '4px' }}></div>
+                    {t('admin_docs.agenda_points', 'نقاط الإجتماع')}
+                  </h4>
+                  
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                    <input type="text" value={newPoint} onChange={e => setNewPoint(e.target.value)} placeholder={t('admin_docs.add_point_placeholder', 'اكتب نقطة للمناقشة...')} className="premium-input" style={{ flex: '1 1 250px' }} onKeyPress={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddPoint(); }}} />
+                    <button type="button" onClick={handleAddPoint} className="premium-btn" style={{ padding: '0 24px', whiteSpace: 'nowrap' }}>{t('admin_docs.add_point', 'إضافة نقطة')}</button>
                   </div>
-                  {points.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  
+                  {points.length > 0 ? (
+                    <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {points.map((pt, i) => (
-                        <div key={i} style={{ 
-                          display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--card-bg)', 
-                          padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--border)', 
-                          boxShadow: '0 2px 4px rgba(0,0,0,0.02)', overflow: 'hidden' 
-                        }}>
-                          <div style={{ 
-                            background: '#fef2f2', color: 'var(--accent)', width: '28px', height: '28px', 
-                            borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                            fontWeight: 'bold', fontSize: '0.9rem', flexShrink: 0 
-                          }}>
-                            {i + 1}
+                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--bg-hover)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>{i + 1}</div>
+                            <span style={{ fontSize: '0.95rem', color: 'var(--text-h)', fontWeight: '500' }}>{pt}</span>
                           </div>
-                          <div style={{ flex: 1, fontSize: '0.95rem', color: 'var(--text)', fontWeight: '500' }}>
-                            {pt}
-                          </div>
-                          <button type="button" onClick={() => handleRemovePoint(i)} style={{ 
-                            background: '#fef2f2', border: 'none', color: 'var(--accent)', borderRadius: '8px', 
-                            width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                            cursor: 'pointer', transition: 'all 0.2s ease'
-                          }}>
-                            <X size={16} />
+                          <button type="button" onClick={() => handleRemovePoint(i)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: '6px', borderRadius: '8px', display: 'flex', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'transparent'} onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}>
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       ))}
                     </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '30px', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
+                      <List size={32} style={{ opacity: 0.5, marginBottom: '8px' }} />
+                      <p style={{ margin: 0, fontSize: '0.9rem' }}>لا توجد نقاط مضافة بعد. أضف النقاط التي سيتم مناقشتها.</p>
+                    </div>
                   )}
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.attendees', 'قائمة الحضور')}</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '10px', background: 'var(--bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', maxHeight: '200px', overflowY: 'auto' }}>
-                    {mockEmployees.map(emp => {
+                {/* Section 3: Attendees */}
+                <div className="wow-section-card">
+                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
+                    <div style={{ width: '4px', height: '18px', background: 'linear-gradient(to bottom, #10b981, #6ee7b7)', borderRadius: '4px' }}></div>
+                    {t('admin_docs.attendees', 'قائمة الحضور')}
+                  </h4>
+                  
+                  <div className="wow-assignee-grid" style={{ maxHeight: '250px', overflowY: 'auto', padding: '4px' }}>
+                    {appMembers.map(emp => {
                       const isSelected = attendees.some(a => a.id === emp.id);
                       return (
                         <div 
                           key={emp.id} 
                           onClick={() => toggleEmployee(emp.id, emp.name)}
-                          style={{ 
-                            display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', 
-                            background: isSelected ? '#fef2f2' : 'var(--card-bg)', 
-                            border: `1px solid ${isSelected ? '#fca5a5' : 'var(--border)'}`, 
-                            borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s ease' 
-                          }}
+                          className={`wow-assignee-chip ${isSelected ? 'selected' : ''}`}
                         >
-                          <div style={{ 
-                            width: '20px', height: '20px', borderRadius: '4px', 
-                            border: `2px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`, 
-                            background: isSelected ? 'var(--accent)' : 'transparent',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center'
-                          }}>
-                            {isSelected && <Check size={14} color="var(--card-bg)" strokeWidth={3} />}
+                          <div className="wow-assignee-avatar">
+                            {emp.name.charAt(0)}
+                            {isSelected && (
+                              <div className="wow-assignee-check">
+                                <Check size={10} strokeWidth={4} />
+                              </div>
+                            )}
                           </div>
-                          <div>
-                            <div style={{ fontSize: '0.9rem', fontWeight: '600', color: isSelected ? '#991b1b' : 'var(--text)' }}>{emp.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: isSelected ? 'var(--accent)' : 'var(--text-muted)' }}>{emp.role}</div>
+                          <div className="wow-assignee-info">
+                            <span className="wow-assignee-name">{emp.name}</span>
+                            <span className="wow-assignee-role">{emp.role}</span>
                           </div>
                         </div>
                       );
                     })}
                   </div>
                 </div>
-              </div>
-              
-              <div style={{ background: 'var(--bg)', padding: '20px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: '12px', position: 'sticky', bottom: 0, zIndex: 10 }}>
-                <button type="button" onClick={closeEditor} className="premium-btn-outline">{t('admin_docs.cancel', 'إلغاء')}</button>
-                <button type="submit" className="premium-btn">{t('admin_docs.save_meeting', 'حفظ الإجتماع')}</button>
-              </div>
-            </form>
+
+                {/* Submit Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
+                  <button type="button" onClick={closeEditor} className="wow-btn-cancel">{t('admin_docs.cancel', 'إلغاء')}</button>
+                  <button type="submit" className="wow-btn-submit">{t('admin_docs.save_meeting', 'حفظ الإجتماع')}</button>
+                </div>
+
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Meeting Details Modal */}
+      {expandedMeetingId && meetings.find(m => m.id === expandedMeetingId) && (
+        <div className="premium-modal-overlay" onClick={() => setExpandedMeetingId(null)}>
+          <div className="premium-modal fade-in" onClick={e => e.stopPropagation()} style={{ maxWidth: '650px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ background: 'var(--bg)', padding: '24px', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 10 }}>
+              <h2 style={{ margin: 0, fontSize: '1.4rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <List size={24} style={{ color: 'var(--primary)' }} />
+                {t('admin_docs.meeting_details', 'تفاصيل الإجتماع')}
+              </h2>
+              <button onClick={() => setExpandedMeetingId(null)} className="premium-icon-btn">
+                <X size={20} />
+              </button>
+            </div>
+            
+            <div style={{ padding: '24px', overflowY: 'auto' }}>
+              {(() => {
+                const meeting = meetings.find(m => m.id === expandedMeetingId)!;
+                return (
+                  <>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '28px' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.6rem', color: 'var(--text-h)', fontWeight: '800' }}>{meeting.topic}</h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginTop: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '8px 14px', borderRadius: '30px', fontWeight: '600', border: '1px solid var(--border)' }}>
+                          <Calendar size={16} style={{ color: 'var(--primary)' }} />
+                          <span>{meeting.date}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '8px 14px', borderRadius: '30px', fontWeight: '600', border: '1px solid var(--border)' }}>
+                          <Clock size={16} style={{ color: '#f59e0b' }} />
+                          <span>{meeting.time}</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.95rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '8px 14px', borderRadius: '30px', fontWeight: '600', border: '1px solid var(--border)' }}>
+                          <MapPin size={16} style={{ color: '#8b5cf6' }} />
+                          <span>{meeting.location}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Points Section */}
+                    <div style={{ marginBottom: '36px' }}>
+                      <h4 style={{ margin: '0 0 16px 0', fontSize: '1.15rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
+                        <div style={{ padding: '6px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '8px' }}>
+                          <List size={20} style={{ color: '#8b5cf6' }} />
+                        </div>
+                        {t('admin_docs.agenda_points', 'نقاط الإجتماع')}
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {meeting.points.length > 0 ? meeting.points.map((pt, i) => (
+                          <div key={i} style={{ 
+                            display: 'flex', alignItems: 'flex-start', gap: '16px', background: 'var(--bg)', 
+                            padding: '16px', borderRadius: '16px',
+                            borderLeft: '4px solid #8b5cf6',
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                          }}>
+                            <div style={{ 
+                              background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', width: '32px', height: '32px', 
+                              borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                              fontWeight: 'bold', fontSize: '1rem', flexShrink: 0
+                            }}>
+                              {i + 1}
+                            </div>
+                            <div style={{ flex: 1, fontSize: '1.05rem', color: 'var(--text)', lineHeight: '1.6', marginTop: '2px' }}>
+                              {pt}
+                            </div>
+                          </div>
+                        )) : <div style={{ fontSize: '1rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '20px', borderRadius: '12px', textAlign: 'center', fontStyle: 'italic', border: '1px dashed var(--border)' }}>{t('admin_docs.no_points', 'لا توجد نقاط محددة')}</div>}
+                      </div>
+                    </div>
+
+                    {/* Attendees Section */}
+                    <div>
+                      <h4 style={{ margin: '0 0 16px 0', fontSize: '1.15rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
+                        <div style={{ padding: '6px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+                          <Users size={20} style={{ color: 'var(--primary)' }} />
+                        </div>
+                        {t('admin_docs.attendees', 'قائمة الحضور')}
+                      </h4>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {meeting.attendees.length > 0 ? meeting.attendees.map(a => (
+                          <div key={a.id} className="attendee-item" style={{ 
+                            display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px',
+                            background: 'var(--bg)', padding: '16px', borderRadius: '16px', 
+                            border: '1px solid var(--border)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                              <div style={{ 
+                                width: '52px', height: '52px', borderRadius: '14px', 
+                                background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.4rem',
+                                border: '1px solid rgba(59,130,246,0.2)'
+                              }}>
+                                {a.name.charAt(0)}
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: '800', color: 'var(--text-h)', fontSize: '1.1rem', marginBottom: '6px' }}>{a.name}</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                    {a.status === 'pending' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <Clock size={14} /> {t('admin_docs.status_pending', 'قيد الانتظار')}
+                                    </span>}
+                                    {a.status === 'confirmed' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <CheckCircle size={14} /> {t('admin_docs.status_confirmed', 'مؤكد')}
+                                    </span>}
+                                    {a.status === 'absent' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <XCircle size={14} /> {t('admin_docs.status_absent', 'غائب')}
+                                    </span>}
+                                  {a.reason && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--card-bg)', padding: '4px 10px', borderRadius: '8px', border: '1px solid var(--border)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.reason}>{a.reason}</span>}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', background: 'var(--card-bg)', padding: '6px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                              <button onClick={() => changeAttendeeStatus(meeting.id, a.id, 'confirmed')} style={{ 
+                                background: a.status === 'confirmed' ? '#10b981' : 'transparent', color: a.status === 'confirmed' ? '#fff' : '#10b981', 
+                                border: 'none', padding: '10px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' 
+                              }} title={t('admin_docs.confirm_attendance', 'تأكيد الحضور')}>
+                                <Check size={20} strokeWidth={3} />
+                              </button>
+                              <button onClick={() => setActiveReasonModal({ meetingId: meeting.id, attendeeId: a.id })} style={{ 
+                                background: a.status === 'absent' ? '#ef4444' : 'transparent', color: a.status === 'absent' ? '#fff' : '#ef4444', 
+                                border: 'none', padding: '10px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' 
+                              }} title={t('admin_docs.mark_absent', 'غياب')}>
+                                <X size={20} strokeWidth={3} />
+                              </button>
+                            </div>
+                          </div>
+                        )) : <div style={{ fontSize: '1rem', color: 'var(--text-muted)', textAlign: 'center', padding: '24px', background: 'var(--bg)', borderRadius: '12px', fontStyle: 'italic', border: '1px dashed var(--border)' }}>{t('admin_docs.no_attendees', 'لا يوجد حضور محددين')}</div>}
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           </div>
         </div>
       )}
 
       {/* Absence Reason Modal */}
+
       {activeReasonModal && (
         <div className="premium-modal-overlay">
           <div className="premium-modal" style={{ maxWidth: '400px' }}>

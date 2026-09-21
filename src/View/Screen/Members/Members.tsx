@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { Applink } from '../../../LinkApi';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash, Shirt, Scale, LogOut } from 'lucide-react';
+import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash, Shirt, Scale, LogOut, UploadCloud } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
@@ -115,6 +116,12 @@ export const Members: React.FC = () => {
     setFormData,
     photoFile,
     setPhotoFile,
+    nationalIdFile,
+    setNationalIdFile,
+    medicalFile,
+    setMedicalFile,
+    insuranceFile,
+    setInsuranceFile,
     handleFormDataChange,
     handleSaveMember,
     openAddMemberDialog,
@@ -156,6 +163,7 @@ export const Members: React.FC = () => {
     { value: 'coach', label: 'مدرب' },
     { value: 'assistant_coach', label: 'مساعد مدرب' },
     { value: 'goalkeeper_coach', label: 'مدرب حراس' },
+    { value: 'physical_trainer', label: 'محضر بدني' },
     { value: 'employee', label: 'موظف' },
     { value: 'admin', label: 'إداري' },
     { value: 'doctor', label: 'طبيب' }
@@ -236,7 +244,7 @@ export const Members: React.FC = () => {
                     {member.first_name} {member.last_name}
                   </td>
                   <td data-label={t('members.type', 'المنصب')}>
-                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : member.type}
+                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'physical_trainer' ? 'محضر بدني' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : member.type}
                   </td>
                   <td data-label={t('members.jersey', 'رقم القميص')} className="jersey-cell">
                     {member.Shirt_number ? <span className="jersey-number">{member.Shirt_number}</span> : '-'}
@@ -344,121 +352,266 @@ export const Members: React.FC = () => {
             
             <div className="dialog-body">
               <form id="memberForm" onSubmit={handleSaveMember} className="add-member-form">
-                <div className="photo-upload-container">
-                  <div className="photo-upload-card" onClick={() => document.getElementById('photo-upload-input')?.click()} title="اختيار صورة">
-                    <input 
-                      id="photo-upload-input"
-                      type="file" 
-                      accept="image/*,image/heic,image/heif,.heic,.heif,.HEIC,.HEIF" 
-                      style={{ display: 'none' }}
-                      onChange={async (e) => {
-                        if (e.target.files && e.target.files.length > 0) {
-                          const file = e.target.files[0];
-                          setIsProcessingImage(true);
-                          try {
-                            const processedFile = await processImage(file, 5000); // 5000 KB to be safely under 5120
-                            setPhotoFile(processedFile);
-                          } catch (err) {
-                            console.error(err);
-                          } finally {
-                            setIsProcessingImage(false);
+                
+                {/* Basic Info Section */}
+                <div className="form-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
+                  <div className="photo-upload-container" style={{ margin: 0, flexShrink: 0 }}>
+                    <div className={`photo-upload-card ${photoFile || (memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default')) ? 'has-image' : ''}`} onClick={() => document.getElementById('photo-upload-input')?.click()} title="اختيار صورة">
+                      <input 
+                        id="photo-upload-input"
+                        type="file" 
+                        accept="image/*,image/heic,image/heif,.heic,.heif,.HEIC,.HEIF" 
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          if (e.target.files && e.target.files.length > 0) {
+                            const file = e.target.files[0];
+                            setIsProcessingImage(true);
+                            try {
+                              const processedFile = await processImage(file, 5000); // 5000 KB to be safely under 5120
+                              setPhotoFile(processedFile);
+                            } catch (err) {
+                              console.error(err);
+                            } finally {
+                              setIsProcessingImage(false);
+                            }
+                          } else {
+                            setPhotoFile(null);
                           }
-                        } else {
-                          setPhotoFile(null);
-                        }
-                      }} 
-                    />
-                    {isProcessingImage ? (
-                      <div className="photo-placeholder-ui">
-                        <RefreshCw size={32} className="photo-placeholder-icon" style={{ animation: 'spin 1s linear infinite', color: '#f97316' }} />
-                        <span style={{ color: '#f97316' }}>جاري المعالجة...</span>
-                        <style>{`
-                          @keyframes spin { 100% { transform: rotate(360deg); } }
-                        `}</style>
-                      </div>
-                    ) : photoFile ? (
-                      <img src={URL.createObjectURL(photoFile)} alt="Preview" className="photo-preview-image" />
-                    ) : memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default') ? (
-                      <img src={memberToEdit.photo} alt="Current" className="photo-preview-image" />
-                    ) : (
-                      <div className="photo-placeholder-ui">
-                        <Camera size={32} className="photo-placeholder-icon" />
-                        <span>الصورة</span>
-                      </div>
+                        }} 
+                      />
+                      {isProcessingImage ? (
+                        <div className="photo-placeholder-ui">
+                          <RefreshCw size={32} className="photo-placeholder-icon" style={{ animation: 'spin 1s linear infinite', color: '#3b82f6' }} />
+                          <span style={{ color: '#3b82f6' }}>جاري المعالجة...</span>
+                          <style>{`
+                            @keyframes spin { 100% { transform: rotate(360deg); } }
+                          `}</style>
+                        </div>
+                      ) : photoFile ? (
+                        <>
+                          <img src={URL.createObjectURL(photoFile)} alt="Preview" className="photo-preview-image" />
+                          <Camera size={32} className="hover-edit-icon" />
+                        </>
+                      ) : memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default') ? (
+                        <>
+                          <img src={memberToEdit.photo} alt="Current" className="photo-preview-image" />
+                          <Camera size={32} className="hover-edit-icon" />
+                        </>
+                      ) : (
+                        <div className="photo-placeholder-ui">
+                          <Camera size={36} className="photo-placeholder-icon" />
+                          <span>رفع صورة</span>
+                        </div>
+                      )}
+                    </div>
+                    {(photoFile || (memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default'))) && (
+                      <button type="button" className="btn-remove-photo" onClick={(e) => { e.stopPropagation(); setPhotoFile(null); if (memberToEdit) memberToEdit.photo = ''; }}>
+                        <X size={14} /> إزالة
+                      </button>
                     )}
                   </div>
-                  {(photoFile || (memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default'))) && (
-                    <button type="button" className="btn-remove-photo" onClick={(e) => { e.stopPropagation(); setPhotoFile(null); if (memberToEdit) memberToEdit.photo = ''; }}>
-                      <X size={14} /> إزالة
-                    </button>
-                  )}
-                </div>
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t('members.form_firstname', 'الاسم')} *</label>
-                    <input type="text" name="first_name" required value={formData.first_name} onChange={handleFormDataChange} className="form-control" />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('members.form_lastname', 'اللقب')} *</label>
-                    <input type="text" name="last_name" required value={formData.last_name} onChange={handleFormDataChange} className="form-control" />
+
+                  <div className="form-grid" style={{ width: '100%' }}>
+                    <div className="form-group">
+                      <label>{t('members.form_firstname', 'الاسم')} <span className="text-red-500">*</span></label>
+                      <input type="text" name="first_name" required value={formData.first_name} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('members.form_lastname', 'اللقب')} <span className="text-red-500">*</span></label>
+                      <input type="text" name="last_name" required value={formData.last_name} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('members.form_id_number', 'رقم الهوية الوطنية')}</label>
+                      <input type="text" name="national_id" value={formData.national_id} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('members.form_phone', 'رقم الهاتف')}</label>
+                      <input type="tel" name="phone" value={formData.phone} onChange={handleFormDataChange} className="form-control" dir="ltr" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t('members.form_id_number', 'رقم الهوية الوطنية')}</label>
-                    <input type="text" name="national_id" value={formData.national_id} onChange={handleFormDataChange} className="form-control" />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('members.form_phone', 'رقم الهاتف')}</label>
-                    <input type="tel" name="phone" value={formData.phone} onChange={handleFormDataChange} className="form-control" dir="ltr" />
-                  </div>
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group">
-                    <label>{t('members.form_dob', 'تاريخ الميلاد')}</label>
-                    <input type="date" name="birth_date" value={formData.birth_date} onChange={handleFormDataChange} className="form-control" />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('members.form_pob', 'مكان الميلاد')}</label>
-                    <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleFormDataChange} className="form-control" />
-                  </div>
-                </div>
-                
-                <div className="form-row">
-                  <div className="form-group" style={{ zIndex: 3 }}>
-                    <CustomDropdown<string>
-                      label={t('members.form_type', 'المنصب / نوع العقد') + ' *'}
-                      value={formData.type}
-                      options={typeOptions}
-                      onChange={(val) => setFormData((prev: any) => ({ ...prev, type: val }))}
-                    />
-                  </div>
-                  <div className="form-group" style={{ zIndex: 3 }}>
-                    <CustomDropdown<string>
-                      label={t('members.form_team', 'الفريق')}
-                      value={formData.team_id?.toString() || ''}
-                      options={formTeamOptions}
-                      onChange={(val) => setFormData((prev: any) => ({ ...prev, team_id: val }))}
-                    />
+                {/* Professional Info Section */}
+                <div className="form-section">
+                  <h3 className="form-section-title">المعلومات الرياضية والمهنية</h3>
+                  <div className="form-grid">
+                    <div className="form-group" style={{ zIndex: 4 }}>
+                      <CustomDropdown<string>
+                        label={t('members.form_type', 'المنصب / نوع العقد') + ' *'}
+                        value={formData.type}
+                        options={typeOptions}
+                        onChange={(val) => setFormData((prev: any) => ({ ...prev, type: val }))}
+                      />
+                    </div>
+                    <div className="form-group" style={{ zIndex: 4 }}>
+                      <CustomDropdown<string>
+                        label="المركز"
+                        value={formData.position || ''}
+                        options={[
+                          { value: '', label: '-- بدون مركز --' },
+                          { value: 'GK', label: 'GK — حارس مرمى' },
+                          { value: 'CB', label: 'CB — قلب دفاع' },
+                          { value: 'SW', label: 'SW — ليبرو (قشاش)' },
+                          { value: 'RB', label: 'RB — ظهير أيمن' },
+                          { value: 'LB', label: 'LB — ظهير أيسر' },
+                          { value: 'RWB', label: 'RWB — ظهير جناح أيمن' },
+                          { value: 'LWB', label: 'LWB — ظهير جناح أيسر' },
+                          { value: 'CDM', label: 'CDM — وسط دفاعي (ارتكاز)' },
+                          { value: 'CM', label: 'CM — وسط محوري' },
+                          { value: 'CAM', label: 'CAM — صانع ألعاب (وسط هجومي)' },
+                          { value: 'RM', label: 'RM — وسط أيمن' },
+                          { value: 'LM', label: 'LM — وسط أيسر' },
+                          { value: 'RW', label: 'RW — جناح أيمن' },
+                          { value: 'LW', label: 'LW — جناح أيسر' },
+                          { value: 'SS', label: 'SS — مهاجم ثانٍ' },
+                          { value: 'CF', label: 'CF — قلب هجوم' },
+                          { value: 'ST', label: 'ST — رأس حربة' }
+                        ]}
+                        onChange={(val) => setFormData((prev: any) => ({ ...prev, position: val }))}
+                      />
+                    </div>
+                    <div className="form-group" style={{ zIndex: 3 }}>
+                      <CustomDropdown<string>
+                        label={t('members.form_team', 'الفريق')}
+                        value={formData.team_id?.toString() || ''}
+                        options={formTeamOptions}
+                        onChange={(val) => setFormData((prev: any) => ({ ...prev, team_id: val }))}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('members.form_jersey', 'رقم القميص (اختياري)')}</label>
+                      <input type="number" name="Shirt_number" value={formData.Shirt_number || ''} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group" style={{ zIndex: 2 }}>
+                      <CustomDropdown<string>
+                        label="القدم المفضلة"
+                        value={formData.preferred_foot || ''}
+                        options={[
+                          { value: '', label: '-- اختر القدم المفضلة --' },
+                          { value: 'يمين', label: 'يمين' },
+                          { value: 'يسار', label: 'يسار' },
+                          { value: 'كلتاهما', label: 'كلتاهما' }
+                        ]}
+                        onChange={(val) => setFormData((prev: any) => ({ ...prev, preferred_foot: val }))}
+                      />
+                    </div>
+                    <div className="form-group" style={{ zIndex: 1 }}>
+                      <CustomDropdown<string>
+                        label={t('members.form_status', 'الحالة') + ' *'}
+                        value={formData.status}
+                        options={statusOptions}
+                        onChange={(val) => setFormData((prev: any) => ({ ...prev, status: val }))}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="form-row">
-                  <div className="form-group" style={{ zIndex: 2 }}>
-                    <CustomDropdown<string>
-                      label={t('members.form_status', 'الحالة') + ' *'}
-                      value={formData.status}
-                      options={statusOptions}
-                      onChange={(val) => setFormData((prev: any) => ({ ...prev, status: val }))}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>{t('members.form_jersey', 'رقم القميص (اختياري للأنواع الأخرى)')}</label>
-                    <input type="number" name="Shirt_number" value={formData.Shirt_number} onChange={handleFormDataChange} className="form-control" />
+                {/* Personal & Emergency Info Section */}
+                <div className="form-section">
+                  <h3 className="form-section-title">معلومات شخصية وطوارئ</h3>
+                  <div className="form-grid">
+                    <div className="form-group">
+                      <label>{t('members.form_dob', 'تاريخ الميلاد')}</label>
+                      <input type="date" name="birth_date" value={formData.birth_date} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group">
+                      <label>{t('members.form_pob', 'مكان الميلاد')}</label>
+                      <input type="text" name="place_of_birth" value={formData.place_of_birth} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group">
+                      <label>البريد الإلكتروني</label>
+                      <input type="email" name="email" value={formData.email || ''} onChange={handleFormDataChange} className="form-control" dir="ltr" />
+                    </div>
+                    <div className="form-group">
+                      <label>شخص للاتصال عند الضرورة</label>
+                      <input type="text" name="emergency_contact_name" value={formData.emergency_contact_name || ''} onChange={handleFormDataChange} className="form-control" />
+                    </div>
+                    <div className="form-group">
+                      <label>هاتف حالة الطوارئ</label>
+                      <input type="tel" name="emergency_contact_phone" value={formData.emergency_contact_phone || ''} onChange={handleFormDataChange} className="form-control" dir="ltr" />
+                    </div>
+                    <div className="form-group">
+                      <label>رقم الحساب الجاري (CCP)</label>
+                      <input type="text" name="bank_account_number" value={formData.bank_account_number || ''} onChange={handleFormDataChange} className="form-control" dir="ltr" />
+                    </div>
                   </div>
                 </div>
+
+                {/* Documents Section */}
+                <div className="form-section">
+                  <h3 className="form-section-title">المستندات والوثائق</h3>
+                  <div className="form-grid">
+                    {/* National ID */}
+                    <div className="form-group">
+                      <label>البطاقة الوطنية (PDF/صورة)</label>
+                      <div className="modern-upload-box">
+                        <UploadCloud size={32} className="upload-icon" />
+                        <span>{nationalIdFile ? nationalIdFile.name : 'اسحب أو اضغط لرفع الملف'}</span>
+                        <input type="file" onChange={(e) => setNationalIdFile(e.target.files ? e.target.files[0] : null)} accept="image/*,.pdf" />
+                      </div>
+                      {memberToEdit && memberToEdit.national_id_document && !nationalIdFile && (
+                        <div className="uploaded-file-card">
+                          <div className="uploaded-file-info">
+                            <CheckCircle2 size={18} />
+                            <span>ملف مرفق مسبقاً</span>
+                          </div>
+                          <div className="uploaded-file-actions">
+                            <a href={`${Applink.image}/${memberToEdit.national_id_document}`} target="_blank" rel="noreferrer" className="action-icon-btn" title="عرض">
+                              <Eye size={16} />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Medical Certificate */}
+                    <div className="form-group">
+                      <label>الشهادة الطبية (PDF/صورة)</label>
+                      <div className="modern-upload-box">
+                        <UploadCloud size={32} className="upload-icon" />
+                        <span>{medicalFile ? medicalFile.name : 'اسحب أو اضغط لرفع الملف'}</span>
+                        <input type="file" onChange={(e) => setMedicalFile(e.target.files ? e.target.files[0] : null)} accept="image/*,.pdf" />
+                      </div>
+                      {memberToEdit && memberToEdit.medical_certificate && !medicalFile && (
+                        <div className="uploaded-file-card">
+                          <div className="uploaded-file-info">
+                            <CheckCircle2 size={18} />
+                            <span>ملف مرفق مسبقاً</span>
+                          </div>
+                          <div className="uploaded-file-actions">
+                            <a href={`${Applink.image}/${memberToEdit.medical_certificate}`} target="_blank" rel="noreferrer" className="action-icon-btn" title="عرض">
+                              <Eye size={16} />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Insurance Certificate */}
+                    <div className="form-group">
+                      <label>شهادة التأمين (PDF/صورة)</label>
+                      <div className="modern-upload-box">
+                        <UploadCloud size={32} className="upload-icon" />
+                        <span>{insuranceFile ? insuranceFile.name : 'اسحب أو اضغط لرفع الملف'}</span>
+                        <input type="file" onChange={(e) => setInsuranceFile(e.target.files ? e.target.files[0] : null)} accept="image/*,.pdf" />
+                      </div>
+                      {memberToEdit && memberToEdit.insurance_document && !insuranceFile && (
+                        <div className="uploaded-file-card">
+                          <div className="uploaded-file-info">
+                            <CheckCircle2 size={18} />
+                            <span>ملف مرفق مسبقاً</span>
+                          </div>
+                          <div className="uploaded-file-actions">
+                            <a href={`${Applink.image}/${memberToEdit.insurance_document}`} target="_blank" rel="noreferrer" className="action-icon-btn" title="عرض">
+                              <Eye size={16} />
+                            </a>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
               </form>
             </div>
             <div className="dialog-footer">

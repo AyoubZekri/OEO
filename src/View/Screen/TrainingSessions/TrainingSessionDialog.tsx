@@ -13,6 +13,11 @@ export interface TrainingSessionModel {
   start: string;
   end: string;
   status: string;
+  attendance_stats?: {
+    total: number;
+    present: number;
+    absent: number;
+  };
 }
 
 interface TrainingSessionDialogProps {
@@ -144,20 +149,6 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
             </div>
           </div>
 
-          <div className="modern-form-group">
-            <CustomDropdown<string>
-              label="حالة الحصة"
-              value={status}
-              options={[
-                { value: 'مجدولة', label: 'مجدولة' },
-                { value: 'جارية', label: 'جارية الآن' },
-                { value: 'مكتملة', label: 'مكتملة' },
-                { value: 'ملغاة', label: 'ملغاة' }
-              ]}
-              onChange={(val) => setStatus(val)}
-              placeholder="اختر حالة الحصة"
-            />
-          </div>
 
         </form>
 

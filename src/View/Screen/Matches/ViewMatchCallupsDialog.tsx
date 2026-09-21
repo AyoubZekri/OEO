@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { X, Search, Calendar, MapPin, Clock, User, Users, Shield, CheckCircle } from 'lucide-react';
 import type { Match } from './match_model';
+import { FootballPitch } from './Lineup/FootballPitch';
+import { FORMATIONS } from './Lineup/FormationConfig';
 
 interface ViewMatchCallupsDialogProps {
   isOpen: boolean;
@@ -136,42 +138,61 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
 
           {isLoading ? (
             <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>جاري تحميل القائمة...</div>
-          ) : filteredPlayers.length === 0 ? (
+          ) : calledUpPlayers.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)', background: 'var(--bg)', borderRadius: '20px', border: '2px dashed var(--border)', fontSize: '1.1rem', fontWeight: 600 }}>
-              لم يتم استدعاء أي لاعبين لهذه المباراة بعد.
+              لم يتم استدعاء أي لاعبين لهذه المباراة بعد. الرجاء استدعاء اللاعبين أولاً.
             </div>
           ) : (
-            <div className="callup-player-grid">
-              {filteredPlayers.map((player, index) => {
-                const playerNumber = player.playerDetails.shirt_number || player.playerDetails.Shirt_number || '-';
-                return (
-                  <div key={player.id || index} style={{ 
-                    display: 'flex', flexDirection: 'column', padding: '16px', 
-                    borderRadius: '16px', border: '1px solid var(--border)',
-                    background: 'var(--card-bg)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                    transition: 'all 0.2s'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                      <div style={{ width: '50px', height: '50px', borderRadius: '14px', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-h)', fontWeight: 900, fontSize: '1.4rem', flexShrink: 0, border: '1px solid var(--border)' }}>
-                        {playerNumber}
-                      </div>
-                      <div style={{ flexGrow: 1 }}>
-                        <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-h)', fontWeight: 700 }}>{player.playerDetails.first_name} {player.playerDetails.last_name}</h4>
-                        <span style={{ fontSize: '0.8rem', color: 'var(--text)', background: 'var(--bg)', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', marginTop: '4px', fontWeight: 600 }}>
-                          {player.playerDetails.position || 'لاعب'}
-                        </span>
-                      </div>
-                    </div>
-                    
-                    {player.notes && (
-                      <div style={{ marginTop: '16px', borderTop: '1px dashed var(--border)', paddingTop: '12px', color: 'var(--text)', fontSize: '0.9rem', fontWeight: 600 }}>
-                        <span style={{ color: 'var(--text-muted)' }}>ملاحظات:</span> {player.notes}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+            <FootballPitch 
+              callups={calledUpPlayers.map(p => ({
+                player_id: p.player_id || p.individual_id || p.id,
+                name: `${p.playerDetails.first_name} ${p.playerDetails.last_name}`,
+                player: p.playerDetails,
+                notes: p.notes
+              }))}
+              initialFormation={matchData?.formation || "4-3-3"}
+              initialPlacements={
+                calledUpPlayers.reduce((acc, p) => {
+                  if (p.is_starter && p.position_x !== null && p.position_y !== null) {
+                    const formation = matchData?.formation || "4-3-3";
+                    const config = FORMATIONS[formation];
+                    if (config) {
+                      const pos = config.positions.find((pos: any) => 
+                        Math.abs(pos.x - parseFloat(p.position_x)) < 1 && 
+                        Math.abs(pos.y - parseFloat(p.position_y)) < 1
+                      );
+                      if (pos) {
+                        acc[pos.id] = p.player_id || p.individual_id || p.id;
+                      }
+                    }
+                  }
+                  return acc;
+                }, {} as Record<string, number>)
+              }
+              onSave={async (formation, starters) => {
+                setIsLoading(true);
+                try {
+                  const token = localStorage.getItem('token');
+                  await axios.post(
+                    Applink.server + '/matches/callups/lineup', 
+                    {
+                      match_id: matchData!.id,
+                      formation: formation,
+                      players: starters
+                    },
+                    { headers: { Authorization: `Bearer ${token}` } }
+                  );
+                  alert('تم حفظ التشكيلة بنجاح');
+                  fetchCalledUpPlayers(); // Reload
+                } catch (err) {
+                  console.error(err);
+                  alert('حدث خطأ أثناء حفظ التشكيلة');
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              isLoading={isLoading}
+            />
           )}
 
         </div>

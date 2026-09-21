@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import client from '../../../core/api/client';
 import type { Meeting, Attendee, AttendeeStatus } from './meeting_model';
-import { mockEmployees } from './meetings_data';
+import { Crud } from '../../../core/class/Crud';
+import { MembersData } from '../Members/members_data';
 
 export function useMeetingsController() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -20,6 +21,28 @@ export function useMeetingsController() {
   const [activeReasonModal, setActiveReasonModal] = useState<{meetingId: string, attendeeId: string} | null>(null);
   const [absenceReason, setAbsenceReason] = useState('');
   const [expandedMeetingId, setExpandedMeetingId] = useState<string | null>(null);
+  const [appMembers, setAppMembers] = useState<{id: string, name: string, role: string}[]>([]);
+
+  const fetchMembers = async () => {
+    try {
+      const crud = new Crud();
+      const membersData = new MembersData(crud);
+
+      const membersRes = await membersData.getMembers();
+
+      if (membersRes) {
+        let membersArr = Array.isArray(membersRes) ? membersRes : (membersRes.data || []);
+        const mapped = membersArr.map((m: any) => ({
+          id: m.id?.toString(),
+          name: `${m.first_name} ${m.last_name}`,
+          role: m.type || 'عضو'
+        }));
+        setAppMembers(mapped);
+      }
+    } catch (error) {
+      console.error('Error fetching app members:', error);
+    }
+  };
 
   const fetchMeetings = async () => {
     try {
@@ -32,6 +55,7 @@ export function useMeetingsController() {
 
   useEffect(() => {
     fetchMeetings();
+    fetchMembers();
   }, []);
 
   const openEditor = (meeting?: Meeting) => {
@@ -164,7 +188,7 @@ export function useMeetingsController() {
     handleSave,
     handleDelete,
     changeAttendeeStatus,
-    mockEmployees,
+    appMembers,
     
     newAttendeeName, setNewAttendeeName,
     newPoint, setNewPoint,

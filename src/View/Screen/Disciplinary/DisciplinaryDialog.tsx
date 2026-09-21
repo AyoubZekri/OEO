@@ -13,6 +13,7 @@ interface DisciplinaryDialogProps {
   onSave: (item: DisciplinaryModel) => void;
   editingItem: DisciplinaryModel | null;
   members: MemberModel[];
+  isSubmitting?: boolean;
 }
 
 export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
@@ -20,7 +21,8 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
   onClose,
   onSave,
   editingItem,
-  members
+  members,
+  isSubmitting = false
 }) => {
   const [formData, setFormData] = useState<Partial<DisciplinaryModel>>({
     memberId: '',
@@ -218,27 +220,16 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
             </>
           )}
 
-          <div className="modern-form-group">
-            <CustomDropdown
-              label="حالة الإجراء"
-              value={formData.status as any}
-              onChange={(val) => setFormData({ ...formData, status: val as any })}
-              options={[
-                { value: 'مفتوح', label: 'مفتوح' },
-                { value: 'منفذ', label: 'منفذ' },
-                { value: 'ملغى', label: 'ملغى' },
-              ]}
-            />
-          </div>
+          {/* Status dropdown removed as per user request to auto-manage it */}
         </form>
 
         <div className="modern-dialog-footer no-print">
-          <button type="button" className="modern-btn-secondary" onClick={onClose}>
+          <button type="button" className="modern-btn-secondary" onClick={onClose} disabled={isSubmitting}>
             إلغاء
           </button>
-          <button type="submit" className="modern-btn-primary" onClick={handleSubmit}>
+          <button type="submit" className="modern-btn-primary" onClick={handleSubmit} disabled={isSubmitting} style={{ opacity: isSubmitting ? 0.7 : 1 }}>
             <Save size={18} />
-            {editingItem ? 'حفظ التعديلات' : 'إضافة الإجراء'}
+            {isSubmitting ? 'جاري الحفظ...' : (editingItem ? 'حفظ التعديلات' : 'إضافة الإجراء')}
           </button>
         </div>
       </div>

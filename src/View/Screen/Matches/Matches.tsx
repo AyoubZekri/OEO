@@ -1,5 +1,7 @@
 import React from 'react';
-import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle, ClipboardList } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Applink } from '../../../LinkApi';
 import { AddMatchDialog } from './AddMatchDialog';
 import { MatchCallupsDialog } from './MatchCallupsDialog';
 import { ViewMatchCallupsDialog } from './ViewMatchCallupsDialog';
@@ -12,6 +14,7 @@ import '../Members/Members.css';
 import './Matches.css';
 
 export const Matches = () => {
+  const navigate = useNavigate();
   const {
     matches,
     isDialogOpen,
@@ -81,8 +84,8 @@ export const Matches = () => {
             {/* Banner */}
             <div className="mc-banner">
               <div className="mc-team">
-                <div className="mc-logo mc-logo-orange">
-                  <span>oeo</span>
+                <div className="mc-logo mc-logo-orange" style={{ border: 'none', padding: '0', overflow: 'hidden', background: 'transparent' }}>
+                  <img src="/LOGO.webp" alt="أولمبيك ليو" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                 </div>
                 <div className="mc-team-name">أولمبيك ليو</div>
                 {/* <div className="mc-team-sub">النادي</div> */}
@@ -113,10 +116,14 @@ export const Matches = () => {
               </div>
 
               <div className="mc-team">
-                <div className="mc-logo mc-logo-blue">
-                  <span style={{ fontSize: '14px', fontWeight: 'bold', textAlign: 'center', textTransform: 'uppercase' }}>
-                    {match.match_title || 'OPP'}
-                  </span>
+                <div className="mc-logo mc-logo-blue" style={{ border: (match.opponentClub?.logo || match.opponent_club?.logo) ? 'none' : undefined, background: (match.opponentClub?.logo || match.opponent_club?.logo) ? 'transparent' : undefined, padding: (match.opponentClub?.logo || match.opponent_club?.logo) ? '0' : undefined, overflow: 'hidden' }}>
+                  {(match.opponentClub?.logo || match.opponent_club?.logo) ? (
+                    <img src={match.opponentClub?.logo || match.opponent_club?.logo} alt={match.opponent} style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                  ) : (
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', textAlign: 'center', textTransform: 'uppercase' }}>
+                      {match.match_title || 'OPP'}
+                    </span>
+                  )}
                 </div>
                 <div className="mc-team-name">{match.opponent || 'خصم غير محدد'}</div>
                 {/* <div className="mc-team-sub">المنافس</div> */}
@@ -179,6 +186,26 @@ export const Matches = () => {
                   </div>
                 </div>
               </div>
+              {/* Attendance */}
+              <div className="sc-attendance" style={{ marginTop: '16px', background: 'var(--bg-light)', padding: '12px', borderRadius: '12px' }}>
+                <div className="sc-attendance-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-p)' }}>
+                  <span className="sc-attendance-label">الغياب/حضور</span>
+                  <span className="sc-attendance-check">
+                    {match.attendance_stats ? match.attendance_stats.present : 0}/
+                    {match.attendance_stats ? match.attendance_stats.total : 0}
+                  </span>
+                </div>
+                <div className="sc-progress-bar" style={{ height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div 
+                    className="sc-progress-fill" 
+                    style={{ 
+                      width: `${match.attendance_stats && match.attendance_stats.total > 0 ? (match.attendance_stats.present / match.attendance_stats.total) * 100 : 0}%`,
+                      height: '100%',
+                      background: 'var(--primary)'
+                    }}
+                  ></div>
+                </div>
+              </div>
             </div>
 
 
@@ -193,17 +220,27 @@ export const Matches = () => {
                   <List size={18} /> التشكيلة
                 </button>
               </div>
-              <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
-                <button className="mc-btn mc-btn-secondary" onClick={() => openAdministrativeReportDialog(match)} style={{ color: '#0ea5e9', borderColor: 'rgba(14, 165, 233, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعديل التقرير">
-                  <FileText size={18} /> إضافة التقرير
-                </button>
-                <button className="mc-btn mc-btn-secondary" onClick={() => openViewAdministrativeReportDialog(match)} style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="عرض التقرير الإداري">
-                  <FileText size={18} /> عرض التقرير
-                </button>
-              </div>
-              <button className="mc-btn mc-btn-secondary" onClick={() => openResultDialog(match)} style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعيين النتيجة">
-                <CheckCircle size={18} /> تعيين النتيجة
-              </button>
+              
+              {(!match.match_date || new Date(match.match_date) <= new Date()) && (
+                <>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                    <button className="mc-btn mc-btn-secondary" onClick={() => navigate(`/matches/${match.id}/attendance`)} style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="الغياب والحضور">
+                      <ClipboardList size={18} /> الغياب والحضور
+                    </button>
+                    <button className="mc-btn mc-btn-secondary" onClick={() => openResultDialog(match)} style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعيين النتيجة">
+                      <CheckCircle size={18} /> تعيين النتيجة
+                    </button>
+                  </div>
+                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                    <button className="mc-btn mc-btn-secondary" onClick={() => openAdministrativeReportDialog(match)} style={{ color: '#0ea5e9', borderColor: 'rgba(14, 165, 233, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعديل التقرير">
+                      <FileText size={18} /> إضافة التقرير
+                    </button>
+                    <button className="mc-btn mc-btn-secondary" onClick={() => openViewAdministrativeReportDialog(match)} style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="عرض التقرير الإداري">
+                      <FileText size={18} /> عرض التقرير
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
           </div>

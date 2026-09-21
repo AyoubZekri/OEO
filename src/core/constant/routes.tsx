@@ -19,4 +19,5 @@ export class Approutes {
   static readonly MedicalRecords = "/medical";
   static readonly Meetings = "/meetings";
   static readonly Decisions = "/decisions";
+  static readonly Clubs = "/clubs";
 }

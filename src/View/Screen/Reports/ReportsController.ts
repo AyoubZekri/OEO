@@ -41,8 +41,8 @@ export const useReportsController = () => {
       return `${year}-${month}-${day}`;
     };
 
-    let start = new Date(today);
-    let end = new Date(today);
+    const start = new Date(today);
+    const end = new Date(today);
 
     switch (preset) {
       case 'today':
@@ -244,7 +244,7 @@ export const useReportsController = () => {
       }
 
       relevantPayments = relevantPayments.filter(p => {
-        let tType = (
+        const tType = (
           p.transactionType || 
           (p as any).transaction_type || 
           (p as any).type || 
@@ -374,7 +374,7 @@ export const useReportsController = () => {
 
   // Calculations for Funds Report
   const getFundsSummary = () => {
-    let relevantFunds = [...funds];
+    const relevantFunds = [...funds];
     let relevantTransactions = [...fundTransactions];
 
     const fundsWithBalance = relevantFunds.map(fund => {
@@ -387,7 +387,7 @@ export const useReportsController = () => {
          txs = txs.filter(t => t.date <= toDate);
       }
       
-      let balance = Number(fund.initialBalance) || 0;
+      const balance = Number(fund.initialBalance) || 0;
       let totalDeposits = 0;
       let totalWithdrawals = 0;
 
@@ -431,7 +431,7 @@ export const useReportsController = () => {
        relevantTransactions = relevantTransactions.filter(t => t.type === fundTransactionTypeFilter);
     }
 
-    let filteredTransactions = relevantTransactions;
+    const filteredTransactions = relevantTransactions;
 
     const totalBalance = fundsWithBalance.reduce((sum, f) => sum + f.balance, 0);
 

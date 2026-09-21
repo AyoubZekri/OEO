@@ -5,9 +5,9 @@ import { MemberModel } from '../Members/member_model';
 import { ContractsData } from '../Contracts/contracts_data';
 import { ContractModel } from '../Contracts/contract_model';
 import { PaymentsData } from '../Payments/payments_data';
-import type { PaymentRecord } from '../Payments/PaymentsController';
+import type { PaymentRecord } from '../Payments/payment_model';
 import { FundsData } from '../Funds/funds_data';
-import type { Fund, FundTransaction } from '../Funds/FundsController';
+import type { Fund, FundTransaction } from '../Funds/fund_model';
 
 export interface FinancialMetrics {
   totalExpenses: number;

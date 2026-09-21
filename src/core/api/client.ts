@@ -5,6 +5,7 @@ const client = axios.create({
   baseURL: Applink.server,
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 

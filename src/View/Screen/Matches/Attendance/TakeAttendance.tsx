@@ -28,7 +28,7 @@ const getPhotoUrl = (photo?: string) => {
   return `${Applink.image}/${cleanPath}`;
 };
 
-export const TakeAttendance: React.FC = () => {
+export const MatchAttendance: React.FC = () => {
   const c = useTakeAttendanceController();
   const [search, setSearch] = useState('');
 
@@ -51,7 +51,7 @@ export const TakeAttendance: React.FC = () => {
       <div className="ta-container">
         <div className="ta-loading">
           <div className="ta-spinner" />
-          <p>جاري تحميل بيانات الحصة...</p>
+          <p>جاري تحميل بيانات المباراة...</p>
         </div>
       </div>
     );
@@ -90,12 +90,12 @@ export const TakeAttendance: React.FC = () => {
           </div>
           <div>
             <h1 className="ta-title">كشف الحضور والغياب</h1>
-            {c.sessionInfo && (
-              <div className="ta-session-meta">
-                <span><Users size={13} /> {c.sessionInfo.team_name}</span>
-                <span><Calendar size={13} /> {c.sessionInfo.session_date}</span>
-                <span><MapPin size={13} /> {c.sessionInfo.location}</span>
-                <span><Clock size={13} /> {c.sessionInfo.start_time} – {c.sessionInfo.end_time}</span>
+            {c.matchInfo && (
+              <div className="ta-match-meta">
+                <span><Users size={13} /> {c.matchInfo.team_name}</span>
+                <span><Calendar size={13} /> {c.matchInfo.match_date}</span>
+                <span><MapPin size={13} /> {c.matchInfo.location}</span>
+                <span><Clock size={13} /> {c.matchInfo.start_time} – {c.matchInfo.end_time}</span>
               </div>
             )}
           </div>

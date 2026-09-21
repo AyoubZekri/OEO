@@ -29,10 +29,10 @@ export const CurrencyInput: React.FC<CurrencyInputProps> = ({ name, value, onCha
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target;
-    let val = input.value;
+    const val = input.value;
     
     // Int part only (split by comma since comma is the decimal separator now)
-    let intPart = val.split(',')[0].replace(/\D/g, '');
+    const intPart = val.split(',')[0].replace(/\D/g, '');
     
     onChangeValue(intPart);
     setCursorPosition(input);

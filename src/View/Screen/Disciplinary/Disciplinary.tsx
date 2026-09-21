@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 
 import { useAuth } from '../../../core/context/AuthContext';
 
-import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, User, Calendar, ChevronDown, Check, Eye, PenTool, CheckCircle, Printer } from 'lucide-react';
+import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, User, Calendar, ChevronDown, Check, Eye, PenTool, CheckCircle, Printer, UploadCloud, FileText } from 'lucide-react';
 import { useDisciplinaryController } from './DisciplinaryController';
 import { DisciplinaryDialog } from './DisciplinaryDialog';
 import { IncidentDecisionDialog } from './Dialogs/IncidentDecisionDialog';
@@ -13,6 +13,8 @@ import { DisciplinaryDetailsDialog } from './Dialogs/DisciplinaryDetailsDialog';
 import { ViewReplyDialog } from './Dialogs/ViewReplyDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { IncidentPrintDialog } from './Dialogs/IncidentPrintDialog';
+import { UploadSignedDocumentDialog } from './Dialogs/UploadSignedDocumentDialog';
+import { ViewSignedDocumentDialog } from './Dialogs/ViewSignedDocumentDialog';
 
 
 import './Disciplinary.css';
@@ -36,6 +38,8 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
   const options = [
     { value: 'مفتوح', label: 'مفتوح', colorClass: 'pending' },
     { value: 'منفذ', label: 'منفذ', colorClass: 'delivered' },
+    { value: 'غير منفذ', label: 'غير منفذ', colorClass: 'not-delivered' },
+    { value: 'متأخر', label: 'متأخر', colorClass: 'late' },
     { value: 'ملغى', label: 'ملغى', colorClass: 'closed' }
   ];
 
@@ -80,6 +84,8 @@ export const Disciplinary: React.FC = () => {
   const [viewingItem, setViewingItem] = useState<any>(null);
   const [viewingReplyItem, setViewingReplyItem] = useState<any>(null);
   const [printingIncident, setPrintingIncident] = useState<any>(null);
+  const [uploadingSignedDocItem, setUploadingSignedDocItem] = useState<any>(null);
+  const [viewingSignedDocItem, setViewingSignedDocItem] = useState<any>(null);
   
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -102,6 +108,8 @@ export const Disciplinary: React.FC = () => {
     { value: 'الكل', label: 'جميع الحالات' },
     { value: 'مفتوح', label: 'مفتوح' },
     { value: 'منفذ', label: 'منفذ' },
+    { value: 'غير منفذ', label: 'غير منفذ' },
+    { value: 'متأخر', label: 'متأخر' },
     { value: 'ملغى', label: 'ملغى' }
   ];
 
@@ -190,25 +198,6 @@ export const Disciplinary: React.FC = () => {
                   <p>{c.reason}</p>
                 </div>
 
-                {hasAccess(permissions.disciplinary.sign) && (
-                  <button 
-                    className={`full-width-sign-btn ${c.is_acknowledged ? 'signed' : 'unsigned'}`}
-                    onClick={() => !c.is_acknowledged && controller.handleAcknowledge(c)} 
-                    disabled={c.is_acknowledged}
-                  >
-                    {c.is_acknowledged ? (
-                      <>
-                        <CheckCircle size={18} />
-                        <span>موقع بالاستلام {c.acknowledged_at ? `في ${new Date(c.acknowledged_at).toLocaleDateString('ar-DZ')}` : ''}</span>
-                      </>
-                    ) : (
-                      <>
-                        <PenTool size={18} />
-                        <span>توقيع اللاعب بالاستلام</span>
-                      </>
-                    )}
-                  </button>
-                )}
               </div>
               
               <div className="card-footer-premium">
@@ -224,6 +213,16 @@ export const Disciplinary: React.FC = () => {
                       <MessageSquare size={16} />
                     </button>
                   )}
+                  {hasAccess(permissions.disciplinary.edit) && (
+                    <button 
+                      className="btn-action-premium" 
+                      onClick={() => c.signed_document ? setViewingSignedDocItem(c) : setUploadingSignedDocItem(c)} 
+                      title={c.signed_document ? "عرض الوثيقة" : "رفع الوثيقة الممضاة"}
+                      style={{ color: c.signed_document ? 'var(--primary-color)' : 'inherit' }}
+                    >
+                      {c.signed_document ? <FileText size={16} /> : <UploadCloud size={16} />}
+                    </button>
+                  )}
                   {hasAccess(permissions.disciplinary.view) && (
                     <button className="btn-action-premium view-btn" onClick={() => setViewingItem(c)} title="عرض التفاصيل">
                       <Eye size={16} />
@@ -235,7 +234,13 @@ export const Disciplinary: React.FC = () => {
                     </button>
                   )}
                   {hasAccess(permissions.disciplinary.delete) && (
-                    <button className="btn-action-premium delete-btn" onClick={() => controller.handleDelete(c.id)} title="حذف">
+                    <button 
+                      className="btn-action-premium delete-btn" 
+                      onClick={() => controller.handleDelete(c.id)} 
+                      title="حذف"
+                      disabled={controller.deletingId === c.id}
+                      style={{ opacity: controller.deletingId === c.id ? 0.5 : 1 }}
+                    >
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -259,6 +264,7 @@ export const Disciplinary: React.FC = () => {
         onSave={controller.handleSave}
         editingItem={controller.editingItem}
         members={controller.members}
+        isSubmitting={controller.isSubmitting}
       />
 
       <IncidentDecisionDialog
@@ -303,7 +309,23 @@ export const Disciplinary: React.FC = () => {
         onClose={() => setPrintingIncident(null)}
         incident={printingIncident}
       />
+
+      <UploadSignedDocumentDialog
+        isOpen={!!uploadingSignedDocItem}
+        onClose={() => setUploadingSignedDocItem(null)}
+        onSave={controller.handleUploadSignedDocument}
+        item={uploadingSignedDocItem}
+      />
+
+      <ViewSignedDocumentDialog
+        isOpen={!!viewingSignedDocItem}
+        onClose={() => setViewingSignedDocItem(null)}
+        imageUrl={viewingSignedDocItem?.signed_document || ''}
+        onEdit={hasAccess(permissions.disciplinary.edit) ? () => {
+          setUploadingSignedDocItem(viewingSignedDocItem);
+          setViewingSignedDocItem(null);
+        } : undefined}
+      />
     </div>
   );
-
 };

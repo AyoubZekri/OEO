@@ -120,7 +120,7 @@ export const AdministrativeReportDialog: React.FC<AdministrativeReportDialogProp
     background: 'var(--bg)', 
     color: 'var(--text)', 
     outline: 'none', 
-    resize: 'vertical' as 'vertical', 
+    resize: 'vertical' as const, 
     minHeight: '110px', 
     fontFamily: 'inherit',
     fontSize: '0.95rem',
@@ -135,10 +135,10 @@ export const AdministrativeReportDialog: React.FC<AdministrativeReportDialogProp
     border: '1px solid var(--border)',
     boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
     display: 'flex',
-    flexDirection: 'column' as 'column',
+    flexDirection: 'column' as const,
     gap: '24px',
     flexShrink: 0,
-    position: 'relative' as 'relative',
+    position: 'relative' as const,
     transition: 'transform 0.3s ease, box-shadow 0.3s ease'
   };
 

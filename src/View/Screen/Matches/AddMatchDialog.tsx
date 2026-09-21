@@ -25,12 +25,14 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     admin_id: '',
       team_score: '',
       opponent_score: '',
-      match_status: ''
+      match_status: '',
+      opponent_club_id: ''
   });
   
   const [individuals, setIndividuals] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [clubs, setClubs] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,7 +51,8 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           team_id: matchData.team_id?.id ? matchData.team_id.id.toString() : (matchData.team_id ? matchData.team_id.toString() : (matchData.team?.id ? matchData.team.id.toString() : '')),
           team_score: matchData.team_score || '',
           opponent_score: matchData.opponent_score || '',
-          match_status: matchData.match_status || 'upcoming'
+          match_status: matchData.match_status || 'upcoming',
+          opponent_club_id: matchData.opponent_club_id || ''
         });
       } else {
         setFormData({
@@ -58,7 +61,8 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           coach_id: '', team_id: '', admin_id: '',
       team_score: '',
       opponent_score: '',
-      match_status: ''
+      match_status: '',
+      opponent_club_id: ''
         });
       }
       fetchDependencies();
@@ -69,11 +73,17 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-      const [indRes, usersRes, teamsRes] = await Promise.all([
+      const [indRes, usersRes, teamsRes, clubsRes] = await Promise.all([
         axios.get(Applink.individuals, { headers }),
         axios.get(Applink.users, { headers }),
-        axios.get(Applink.teams, { headers })
+        axios.get(Applink.teams, { headers }),
+        axios.get(Applink.clubs, { headers })
       ]);
+      if (clubsRes.data.status === 'success' || Array.isArray(clubsRes.data)) {
+        setClubs(Array.isArray(clubsRes.data) ? clubsRes.data : clubsRes.data.data || []);
+      } else if (clubsRes.data) {
+        setClubs(clubsRes.data.data || clubsRes.data);
+      }
       if (indRes.data.status === 'success') {
         const allowedRoles = ['مدرب', 'مساعد مدرب', 'مدرب حراس', 'موظف', 'إداري', 'طبيب'];
         const filtered = indRes.data.data.filter((ind: any) => 
@@ -141,23 +151,27 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
               onChange={e => setFormData({...formData, competition: e.target.value})}
               required
             />
-            <CustomInput
-              label="رمز الفريق المنافس (مثال: oeo)"
-              type="text"
-              value={formData.match_title}
-              onChange={e => setFormData({...formData, match_title: e.target.value})}
+            <CustomDropdown<string>
+              label="الفريق الخصم"
+              value={formData.opponent_club_id}
+              onChange={(val) => {
+                const selectedClub = clubs.find(c => c.id.toString() === val);
+                setFormData({
+                  ...formData, 
+                  opponent_club_id: val,
+                  opponent: selectedClub ? selectedClub.name : '',
+                  match_title: selectedClub ? selectedClub.symbol : ''
+                });
+              }}
+              options={[
+                { value: "", label: "-- اختر المنافس --" },
+                ...clubs.map(c => ({ value: c.id.toString(), label: c.name }))
+              ]}
               required
             />
           </div>
 
-          <div className="responsive-grid-2">
-            <CustomInput
-              label="الفريق الخصم"
-              type="text"
-              value={formData.opponent}
-              onChange={e => setFormData({...formData, opponent: e.target.value})}
-              required
-            />
+          <div style={{ marginBottom: '16px' }}>
             <CustomInput
               label="المكان / الملعب"
               type="text"

@@ -428,8 +428,8 @@ export const Payments: React.FC = () => {
                             const numMonths = payment.numberOfMonths || (payment as any).Number_of_months || 1;
                             
                             if (numMonths > 3) {
-                              let currentMonthNum = parseInt(mStr);
-                              let currentYearNum = parseInt(yStr);
+                              const currentMonthNum = parseInt(mStr);
+                              const currentYearNum = parseInt(yStr);
                               let endMonthNum = currentMonthNum + numMonths - 1;
                               let endYearNum = currentYearNum;
                               

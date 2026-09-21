@@ -43,7 +43,7 @@ export const PrintableIncidentReport = forwardRef<HTMLDivElement, PrintableIncid
           
           <div className="receipt-content">
             <div className="receipt-main-title">
-              محضر واقعة أو مخالفة — DIS-01
+              محضر معاينة واقعة
             </div>
 
             <div className="top-details">
@@ -51,60 +51,43 @@ export const PrintableIncidentReport = forwardRef<HTMLDivElement, PrintableIncid
               <div>رقم المحضر: {String(incident.id).padStart(4, '0')}</div>
             </div>
 
-            <div className="section-title">بيانات اللاعب وتفاصيل الواقعة</div>
-            <table className="receipt-table">
-              <tbody>
-                <tr>
-                  <td className="col-50">الاسم واللقب: <span style={{ fontWeight: 'normal' }}>{incident.memberName}</span></td>
-                  <td className="col-50">التاريخ والوقت: <span style={{ fontWeight: 'normal' }}>{dateStr} على الساعة {timeStr}</span></td>
-                </tr>
-                <tr>
-                  <td colSpan={2}>مكان الواقعة: <span style={{ fontWeight: 'normal' }}>{incident.incidentLocation || '................................................................'}</span></td>
-                </tr>
-              </tbody>
-            </table>
-
-            <div className="section-title">وصف دقيق ومحايد للواقعة</div>
-            <div className="declaration-text" style={{ minHeight: '60px', border: '1px solid #000', padding: '10px' }}>
-              {incident.reason || '................................................................'}
+            <div className="declaration-text" style={{ marginTop: '30px', fontSize: '1.1rem', lineHeight: '1.8' }}>
+              بتاريخ <strong>{dateStr}</strong> على الساعة <strong>{timeStr}</strong>، تمت معاينة الواقعة الآتية المتعلقة باللاعب: <strong>{incident.memberName}</strong>
             </div>
 
-            {incident.presentPeople && (
-              <>
-                <div className="section-title">الأشخاص الحاضرون</div>
-                <div className="declaration-text" style={{ minHeight: '40px', border: '1px solid #000', padding: '10px' }}>
-                  {incident.presentPeople}
-                </div>
-              </>
-            )}
+            <div className="declaration-text" style={{ fontSize: '1.1rem', lineHeight: '1.8' }}>
+              مكان الواقعة: <strong>{incident.incidentLocation || '................................................................'}</strong>
+            </div>
 
-            {incident.attachments && (
-              <>
-                <div className="section-title">الوثائق أو الأدلة المرفقة</div>
-                <div className="declaration-text" style={{ minHeight: '40px', border: '1px solid #000', padding: '10px' }}>
-                  {incident.attachments}
-                </div>
-              </>
-            )}
+            <div className="declaration-text" style={{ marginTop: '20px', fontWeight: 'bold' }}>وصف دقيق ومحايد للواقعة:</div>
+            <div className="declaration-text" style={{ minHeight: '80px', padding: '10px 0', fontSize: '1.1rem', lineHeight: '1.8' }}>
+              {incident.reason || '................................................................\n................................................................'}
+            </div>
 
-            <div className="declaration-text" style={{ marginTop: '15px' }}>
+            <div className="declaration-text" style={{ marginTop: '20px', fontWeight: 'bold' }}>الأشخاص الحاضرون إن وجدوا:</div>
+            <div className="declaration-text" style={{ minHeight: '40px', padding: '10px 0', fontSize: '1.1rem', lineHeight: '1.8' }}>
+              {incident.presentPeople || '................................................................'}
+            </div>
+
+            <div className="declaration-text" style={{ marginTop: '20px', fontWeight: 'bold' }}>الوثائق أو الأدلة المرفقة إن وجدت:</div>
+            <div className="declaration-text" style={{ minHeight: '40px', padding: '10px 0', fontSize: '1.1rem', lineHeight: '1.8' }}>
+              {incident.attachments || '................................................................'}
+            </div>
+
+            <div className="declaration-text" style={{ marginTop: '40px', fontSize: '1.1rem', fontWeight: 'bold', textAlign: 'justify' }}>
               حرر هذا المحضر لإثبات الواقعة وإحالته إلى الجهة المختصة دون أن يشكل في حد ذاته قرارا تأديبيا.
             </div>
 
-            <table className="signature-table">
-              <thead>
-                <tr>
-                  <th style={{ width: '50%' }}>محرر المحضر (الصفة)</th>
-                  <th style={{ width: '50%' }}>الإمضاء</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><br />...................................................</td>
-                  <td></td>
-                </tr>
-              </tbody>
-            </table>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', padding: '0 20px', fontSize: '1.1rem', fontWeight: 'bold' }}>
+              <div style={{ textAlign: 'right' }}>
+                محرر المحضر (الصفة): <br /><br />
+                <span style={{ fontWeight: 'normal' }}>...................................................</span>
+              </div>
+              <div style={{ textAlign: 'left', minWidth: '150px' }}>
+                الإمضاء: <br /><br />
+                <span style={{ fontWeight: 'normal' }}>...................................................</span>
+              </div>
+            </div>
           </div>
         </div>
       )}

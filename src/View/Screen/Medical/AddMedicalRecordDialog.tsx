@@ -81,8 +81,8 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
       
       const allInds = Array.isArray(res.data) ? res.data : (res.data.data || []);
       
-      let playerList = allInds.filter((ind: any) => ind.type === 'لاعب' || ind.type === 'player' || !ind.type || ind.role?.name?.trim() === 'لاعب');
-      let doctorList = allInds.filter((ind: any) => {
+      const playerList = allInds.filter((ind: any) => ind.type === 'لاعب' || ind.type === 'player' || !ind.type || ind.role?.name?.trim() === 'لاعب');
+      const doctorList = allInds.filter((ind: any) => {
         const type = ind.type?.trim();
         const role = ind.role?.name?.trim();
         return (
@@ -170,7 +170,7 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
     background: 'var(--bg)', 
     color: 'var(--text)', 
     outline: 'none', 
-    resize: 'vertical' as 'vertical', 
+    resize: 'vertical' as const, 
     minHeight: '110px', 
     fontFamily: 'inherit',
     fontSize: '0.95rem',
@@ -185,10 +185,10 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
     border: '1px solid var(--border)',
     boxShadow: '0 8px 30px rgba(0,0,0,0.04)',
     display: 'flex',
-    flexDirection: 'column' as 'column',
+    flexDirection: 'column' as const,
     gap: '24px',
     flexShrink: 0,
-    position: 'relative' as 'relative',
+    position: 'relative' as const,
     transition: 'transform 0.3s ease, box-shadow 0.3s ease'
   };
 

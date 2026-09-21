@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Calendar, Clock, FileText, Check, AlertCircle, FileWarning } from 'lucide-react';
+import { X, Calendar, Clock, FileText, Check, AlertCircle, FileWarning, Trash2 } from 'lucide-react';
 import type { AbsenceRecord } from './AbsenceRequestsController';
 
 interface MemberAbsenceHistoryDialogProps {
@@ -9,6 +9,7 @@ interface MemberAbsenceHistoryDialogProps {
   absences: AbsenceRecord[];
   onUpdateJustification: (id: number, status: AbsenceRecord['justification_status'], text?: string) => void;
   openJustificationDialog: (id: number) => void;
+  onDelete: (id: number) => void;
 }
 
 export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProps> = ({
@@ -17,7 +18,8 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
   member,
   absences,
   onUpdateJustification,
-  openJustificationDialog
+  openJustificationDialog,
+  onDelete
 }) => {
   if (!isOpen || !member) return null;
 
@@ -59,11 +61,16 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
 
               return (
               <div key={`abs-${abs.id}`} className="absence-card premium-card" style={{ marginBottom: '0' }}>
-                <div className="card-top-bar">
-                  <span className={`status-pill ${(effectiveStatus === 'مقبول' || effectiveStatus === 'accepted') ? 'accepted' : (effectiveStatus === 'مرفوض' || effectiveStatus === 'rejected') ? 'rejected' : (effectiveStatus === 'قيد_الدراسة' || effectiveStatus === 'pending') ? 'pending' : 'rejected'}`}>
-                    {(effectiveStatus === 'مقبول' || effectiveStatus === 'accepted') ? (isRequest ? 'طلب مقبول' : 'غياب مبرر') : (effectiveStatus === 'مرفوض' || effectiveStatus === 'rejected') ? (isRequest ? 'طلب مرفوض' : 'تبرير مرفوض') : (effectiveStatus === 'قيد_الدراسة' || effectiveStatus === 'pending') ? 'قيد المراجعة' : (isRequest ? 'طلب مرفوض' : (abs.absence_type || 'غياب'))}
-                  </span>
-                  <span className="time-ago" style={{ fontWeight: '600' }}>{abs.event_date || abs.session_date}</span>
+                <div className="card-top-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className={`status-pill ${(effectiveStatus === 'مقبول' || effectiveStatus === 'accepted') ? 'accepted' : (effectiveStatus === 'مرفوض' || effectiveStatus === 'rejected') ? 'rejected' : (effectiveStatus === 'قيد_الدراسة' || effectiveStatus === 'pending') ? 'pending' : 'rejected'}`}>
+                      {(effectiveStatus === 'مقبول' || effectiveStatus === 'accepted') ? (isRequest ? 'طلب مقبول' : 'غياب مبرر') : (effectiveStatus === 'مرفوض' || effectiveStatus === 'rejected') ? (isRequest ? 'طلب مرفوض' : 'تبرير مرفوض') : (effectiveStatus === 'قيد_الدراسة' || effectiveStatus === 'pending') ? 'قيد المراجعة' : (isRequest ? 'طلب مرفوض' : (abs.absence_type || 'غياب'))}
+                    </span>
+                    <span className="time-ago" style={{ fontWeight: '600' }}>{abs.event_date || abs.session_date}</span>
+                  </div>
+                  <button className="btn-icon delete no-print" onClick={() => onDelete(abs.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+                    <Trash2 size={20} />
+                  </button>
                 </div>
 
                 <div className="details-list" style={{ flex: 1, background: 'var(--bg, #f9fafb)', border: '1px solid var(--border, #e5e7eb)', borderRadius: '8px', padding: '16px' }}>

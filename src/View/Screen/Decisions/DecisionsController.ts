@@ -34,8 +34,11 @@ export function useDecisionsController() {
       };
       await client.post('/decisions', payload);
       fetchDecisions();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding decision:', error);
+      if (error.response) {
+        console.error('Backend validation error:', error.response.data);
+      }
     }
   };
 
@@ -48,8 +51,11 @@ export function useDecisionsController() {
       
       await client.put(`/decisions/${id}`, payload);
       setDecisions(decisions.map(d => d.id === id ? { ...d, ...updatedFields } : d));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating decision:', error);
+      if (error.response) {
+        console.error('Backend validation error:', error.response.data);
+      }
     }
   };
 

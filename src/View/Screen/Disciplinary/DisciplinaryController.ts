@@ -27,7 +27,31 @@ export const useDisciplinaryController = () => {
       const response = await axios.get(DISCIPLINARY, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setDisciplinaryList(response.data);
+      
+      const processedData = response.data.map((item: DisciplinaryModel) => {
+        // If there is a decision outcome, it's considered executed
+        const hasDecision = !!(item.decision_outcome?.trim() || item.admin_notes?.trim() || item.decision_reasons?.trim());
+        
+        if (hasDecision && item.status !== 'ملغى' && item.status !== 'منفذ') {
+          return { ...item, status: 'منفذ' };
+        }
+        
+        // Otherwise, check if the deadline has passed (only for open items)
+        if (item.status === 'مفتوح' && item.deadlineOrHearingDate) {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const deadline = new Date(item.deadlineOrHearingDate);
+          deadline.setHours(0, 0, 0, 0);
+          
+          if (deadline < today) {
+            return { ...item, status: 'متأخر' };
+          }
+        }
+        
+        return item;
+      });
+      
+      setDisciplinaryList(processedData);
     } catch (error) {
       console.error("Error fetching disciplinary records:", error);
     }
@@ -49,6 +73,9 @@ export const useDisciplinaryController = () => {
     
     fetchMembers();
   }, []);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const openAddDialog = () => {
     setEditingItem(null);
@@ -72,8 +99,10 @@ export const useDisciplinaryController = () => {
   };
 
   const handleSave = async (item: DisciplinaryModel) => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
-      console.log("Data being sent to backend:", item); // Debug log for the user
+      console.log("Data being sent to backend:", item);
 
       if (editingItem && editingItem.id) {
         const response = await axios.post(`${DISCIPLINARY}/update`, item, {
@@ -91,11 +120,15 @@ export const useDisciplinaryController = () => {
     } catch (error) {
       console.error("Error saving disciplinary record:", error);
       alert("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: string) => {
+    if (deletingId) return;
     if (window.confirm('هل أنت متأكد من حذف هذا الإجراء التأديبي؟')) {
+      setDeletingId(id);
       try {
         await axios.post(`${DISCIPLINARY}/delete`, { id }, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -104,6 +137,8 @@ export const useDisciplinaryController = () => {
       } catch (error) {
         console.error("Error deleting disciplinary record:", error);
         alert("حدث خطأ أثناء الحذف");
+      } finally {
+        setDeletingId(null);
       }
     }
   };
@@ -123,7 +158,7 @@ export const useDisciplinaryController = () => {
   };
 
   const handleAcknowledge = async (item: DisciplinaryModel) => {
-    if (window.confirm('تأكيد توقيع اللاعب بالاستلام؟)')) {
+    if (window.confirm('تأكيد توقيع اللاعب بالاستلام؟')) {
       try {
         const now = new Date();
         const currentDate = now.getFullYear() + '-' + 
@@ -146,6 +181,25 @@ export const useDisciplinaryController = () => {
         console.error("Error acknowledging disciplinary record:", error);
         alert("حدث خطأ أثناء التوقيع");
       }
+    }
+  };
+
+  const handleUploadSignedDocument = async (id: string, file: File) => {
+    const formData = new FormData();
+    formData.append('document', file);
+    
+    try {
+      await axios.post(`${DISCIPLINARY}/${id}/upload-document`, formData, {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      await fetchDisciplinary();
+    } catch (error: any) {
+      console.error("Error uploading signed document:", error);
+      const backendMessage = error.response?.data?.message;
+      throw new Error(backendMessage || "حدث خطأ أثناء رفع الملف. يرجى مراجعة الباك إند.");
     }
   };
 
@@ -179,6 +233,9 @@ export const useDisciplinaryController = () => {
     handleDelete,
     handleUpdateStatus,
     handleAcknowledge,
+    handleUploadSignedDocument,
     members,
+    isSubmitting,
+    deletingId,
   };
 };

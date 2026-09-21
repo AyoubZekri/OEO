@@ -84,7 +84,7 @@ const numberToArabicWords = (amount: number) => {
   };
 
   try {
-    let words = getMillions(Math.floor(amount));
+    const words = getMillions(Math.floor(amount));
     return words;
   } catch (e) {
     return amount.toString();
@@ -137,8 +137,8 @@ export const PrintableReceipt = forwardRef<HTMLDivElement, PrintableReceiptProps
       const numMonths = payment?.numberOfMonths || (payment as any)?.Number_of_months || 1;
 
       if (numMonths > 3) {
-        let currentMonthNum = parseInt(mStr);
-        let currentYearNum = parseInt(yStr);
+        const currentMonthNum = parseInt(mStr);
+        const currentYearNum = parseInt(yStr);
         let endMonthNum = currentMonthNum + numMonths - 1;
         let endYearNum = currentYearNum;
 

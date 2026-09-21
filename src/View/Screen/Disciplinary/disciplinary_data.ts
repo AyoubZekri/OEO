@@ -5,7 +5,7 @@ export interface DisciplinaryModel {
   actionType: 'تنبيه' | 'إنذار' | 'طلب توضيح' | 'إحالة على الجهة التأديبية المختصة' | 'استدعاء جلسة' | 'واقعة';
   incidentDate: string;
   reason: string;
-  status: 'مفتوح' | 'منفذ' | 'ملغى';
+  status: 'مفتوح' | 'منفذ' | 'غير منفذ' | 'متأخر' | 'ملغى';
   incidentLocation?: string;
   violatedRule?: string;
   presentPeople?: string;
@@ -19,6 +19,7 @@ export interface DisciplinaryModel {
   is_acknowledged?: boolean;
   acknowledged_at?: string;
   effective_date?: string;
+  signed_document?: string;
 }
 
 export const mockDisciplinaryData: DisciplinaryModel[] = [

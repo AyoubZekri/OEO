@@ -48,9 +48,9 @@ export const CustomDropdown = <T extends string>({
   );
 
   return (
-    <div className="modern-form-group" style={{ position: 'relative', zIndex: isOpen ? 999 : 1 }} ref={dropdownRef}>
+    <div className="modern-form-group" style={{ position: 'relative', zIndex: isOpen ? 999 : 1, width: '100%' }} ref={dropdownRef}>
       {label && (
-        <label style={{ marginBottom: '8px', display: 'block', fontWeight: 600, color: 'var(--text-h, #1f2937)' }}>
+        <label style={{ marginBottom: '0px', display: 'block', fontWeight: 600, color: 'var(--text-h, #1f2937)' }}>
           {label}
           {required && <span style={{ color: '#ef4444', marginInlineStart: '4px' }}>*</span>}
         </label>
@@ -58,10 +58,10 @@ export const CustomDropdown = <T extends string>({
       <div 
         onClick={() => setIsOpen(!isOpen)}
         style={{ 
-          display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', 
+          display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', width: '100%',
           border: isOpen ? '2px solid var(--accent, #3b82f6)' : '2px solid transparent', borderRadius: '14px', 
           cursor: 'pointer', background: isOpen ? '#fff' : 'rgba(0,0,0,0.03)', color: 'var(--text-h)',
-          minHeight: '52px', boxSizing: 'border-box', fontSize: '0.95rem',
+          height: '52px', minHeight: '52px', boxSizing: 'border-box', fontSize: '0.95rem',
           boxShadow: isOpen ? '0 0 0 4px rgba(59, 130, 246, 0.1)' : 'inset 0 2px 5px rgba(0,0,0,0.01)',
           transition: 'all 0.2s ease'
         }}

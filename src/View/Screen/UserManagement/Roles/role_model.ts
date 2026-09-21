@@ -10,6 +10,13 @@ export interface MembersPermissions {
   viewFinancialRecord: boolean;
 }
 
+export interface MeetingsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
 export interface TeamsPermissions {
   view: boolean;
   add: boolean;
@@ -102,6 +109,7 @@ export interface AppPermissions {
   equipment: EquipmentPermissions;
   equipmentOperations: EquipmentOperationsPermissions;
   disciplinary: DisciplinaryPermissions;
+  meetings: MeetingsPermissions;
 }
 
 export const defaultPermissions: AppPermissions = {
@@ -116,6 +124,7 @@ export const defaultPermissions: AppPermissions = {
   equipment: { view: true, add: true, edit: true, delete: true, print: true },
   equipmentOperations: { view: true, handover: true, return: true, print: true, edit: true, delete: true },
   disciplinary: { view: true, add: true, edit: true, delete: true, print: true, sign: true, changeStatus: true, viewReply: true, editReply: true },
+  meetings: { view: true, add: true, edit: true, delete: true },
 };
 
 export const emptyPermissions: AppPermissions = {
@@ -130,6 +139,7 @@ export const emptyPermissions: AppPermissions = {
   equipment: { view: false, add: false, edit: false, delete: false, print: false },
   equipmentOperations: { view: false, handover: false, return: false, print: false, edit: false, delete: false },
   disciplinary: { view: false, add: false, edit: false, delete: false, print: false, sign: false, changeStatus: false, viewReply: false, editReply: false },
+  meetings: { view: false, add: false, edit: false, delete: false },
 };
 
 export class RoleModel {
@@ -178,7 +188,8 @@ export class RoleModel {
           usersAndRoles: { ...emptyPermissions.usersAndRoles, ...(parsed.usersAndRoles || {}) },
           equipment: { ...emptyPermissions.equipment, ...(parsed.equipment || {}) },
           equipmentOperations: { ...emptyPermissions.equipmentOperations, ...(parsed.equipmentOperations || {}) },
-          disciplinary: { ...emptyPermissions.disciplinary, ...(parsed.disciplinary || {}) }
+          disciplinary: { ...emptyPermissions.disciplinary, ...(parsed.disciplinary || {}) },
+          meetings: { ...emptyPermissions.meetings, ...(parsed.meetings || {}) }
         };
       } catch (e) {
         parsedPermissions = emptyPermissions;

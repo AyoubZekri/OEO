@@ -22,9 +22,11 @@ import TrainingSessions from './View/Screen/TrainingSessions/TrainingSessions';
 import { TakeAttendance } from './View/Screen/TrainingSessions/Attendance/TakeAttendance';
 import { AbsenceRequests } from './View/Screen/Absence/AbsenceRequests';
 import { Matches } from './View/Screen/Matches/Matches';
+import { MatchAttendance } from './View/Screen/Matches/Attendance/TakeAttendance';
 import { Medical } from './View/Screen/Medical/Medical';
 import { Meetings } from './View/Screen/Meetings/Meetings';
 import { Decisions } from './View/Screen/Decisions/Decisions';
+import { Clubs } from './View/Screen/Clubs/Clubs'; 
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
@@ -63,9 +65,11 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.TakeAttendance} element={<TakeAttendance />} />
             <Route path={Approutes.AbsenceRequests} element={<AbsenceRequests />} />
             <Route path={Approutes.Matches} element={<Matches />} />
+            <Route path="/matches/:id/attendance" element={<MatchAttendance />} />
             <Route path={Approutes.MedicalRecords} element={<Medical />} />
             <Route path={Approutes.Meetings} element={<Meetings />} />
             <Route path={Approutes.Decisions} element={<Decisions />} />
+            <Route path={Approutes.Clubs} element={<Clubs />} />
             {/* Add more routes here as needed */}
           </Routes>
         </div>

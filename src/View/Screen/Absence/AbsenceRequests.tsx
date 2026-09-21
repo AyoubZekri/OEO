@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAbsenceRequestsController } from './AbsenceRequestsController';
-import { User, Calendar, Clock, FileText, Check, X, Paperclip, AlertCircle, FileWarning, Users, Plus } from 'lucide-react';
+import { User, Calendar, Clock, FileText, Check, X, Paperclip, AlertCircle, FileWarning, Users, Plus, Trash2 } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { JustificationDialog } from './JustificationDialog';
 import { AddAbsenceDialog } from './AddAbsenceDialog';
@@ -146,13 +146,18 @@ export const AbsenceRequests: React.FC = () => {
                     <span className="time-ago" style={{ fontWeight: '600' }}>{abs.event_date || abs.session_date}</span>
                   </div>
 
-                  <div className="player-info" style={{ marginBottom: '16px' }}>
-                    <div className="avatar-circle" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent, #3b82f6)' }}>
-                      <User size={24} />
+                  <div className="player-info" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="avatar-circle" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent, #3b82f6)' }}>
+                        <User size={24} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{abs.player_name}</h3>
+                      </div>
                     </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{abs.player_name}</h3>
-                    </div>
+                    <button className="btn-icon delete no-print" onClick={() => controller.handleDelete(abs.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                      <Trash2 size={20} />
+                    </button>
                   </div>
 
                   {abs.justification_status !== 'لا_يوجد' && abs.justification_status !== 'none' && (
@@ -209,17 +214,22 @@ export const AbsenceRequests: React.FC = () => {
                     <span className="time-ago" style={{ fontWeight: '600' }}>{just.event_date || just.session_date}</span>
                   </div>
 
-                  <div className="player-info" style={{ marginBottom: '16px' }}>
-                    <div className="avatar-circle" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-secondary, #8b5cf6)' }}>
-                      <User size={24} />
+                  <div className="player-info" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div className="avatar-circle" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-secondary, #8b5cf6)' }}>
+                        <User size={24} />
+                      </div>
+                      <div>
+                        <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{just.player_name}</h3>
+                        <span className="req-type alert-type" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-secondary, #8b5cf6)' }}>
+                          <AlertCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '4px' }} />
+                          تبرير غياب
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{just.player_name}</h3>
-                      <span className="req-type alert-type" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-secondary, #8b5cf6)' }}>
-                        <AlertCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '4px' }} />
-                        تبرير غياب
-                      </span>
-                    </div>
+                    <button className="btn-icon delete no-print" onClick={() => controller.handleDelete(just.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
+                      <Trash2 size={20} />
+                    </button>
                   </div>
 
                   <div className="details-list" style={{ flex: 1, background: 'var(--bg, #f9fafb)', border: 'none' }}>
@@ -275,6 +285,7 @@ export const AbsenceRequests: React.FC = () => {
         absences={controller.absences.filter(a => a.player_id === controller.selectedMemberId)}
         onUpdateJustification={controller.handleUpdateJustification}
         openJustificationDialog={controller.openJustificationDialog}
+        onDelete={controller.handleDelete}
       />
     </div>
   );

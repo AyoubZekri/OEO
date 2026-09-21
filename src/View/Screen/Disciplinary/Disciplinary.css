@@ -340,24 +340,36 @@ body.dark-mode .status-dropdown-menu {
 }
 
 /* Status colors */
-.status-select-modern.مفتوح, .status-dropdown-item.مفتوح.selected, .status-dropdown-item.مفتوح:hover {
+.status-select-modern.pending, .status-dropdown-item.pending.selected, .status-dropdown-item.pending:hover {
   background-color: #faf5ff; color: #8b5cf6; border-color: #e9d5ff;
 }
-.status-select-modern.منفذ, .status-dropdown-item.منفذ.selected, .status-dropdown-item.منفذ:hover {
+.status-select-modern.delivered, .status-dropdown-item.delivered.selected, .status-dropdown-item.delivered:hover {
   background-color: #f0fdf4; color: #10b981; border-color: #d1fae5;
 }
-.status-select-modern.ملغى, .status-dropdown-item.ملغى.selected, .status-dropdown-item.ملغى:hover {
+.status-select-modern.not-delivered, .status-dropdown-item.not-delivered.selected, .status-dropdown-item.not-delivered:hover {
   background-color: #fef2f2; color: #ef4444; border-color: #fecaca;
 }
+.status-select-modern.late, .status-dropdown-item.late.selected, .status-dropdown-item.late:hover {
+  background-color: #fffbeb; color: #f59e0b; border-color: #fde68a;
+}
+.status-select-modern.closed, .status-dropdown-item.closed.selected, .status-dropdown-item.closed:hover {
+  background-color: #f3f4f6; color: #6b7280; border-color: #e5e7eb;
+}
 
-body.dark-mode .status-select-modern.مفتوح, body.dark-mode .status-dropdown-item.مفتوح.selected, body.dark-mode .status-dropdown-item.مفتوح:hover {
+body.dark-mode .status-select-modern.pending, body.dark-mode .status-dropdown-item.pending.selected, body.dark-mode .status-dropdown-item.pending:hover {
   background-color: rgba(139, 92, 246, 0.15); color: #c4b5fd; border-color: rgba(139, 92, 246, 0.3);
 }
-body.dark-mode .status-select-modern.منفذ, body.dark-mode .status-dropdown-item.منفذ.selected, body.dark-mode .status-dropdown-item.منفذ:hover {
+body.dark-mode .status-select-modern.delivered, body.dark-mode .status-dropdown-item.delivered.selected, body.dark-mode .status-dropdown-item.delivered:hover {
   background-color: rgba(16, 185, 129, 0.15); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3);
 }
-body.dark-mode .status-select-modern.ملغى, body.dark-mode .status-dropdown-item.ملغى.selected, body.dark-mode .status-dropdown-item.ملغى:hover {
+body.dark-mode .status-select-modern.not-delivered, body.dark-mode .status-dropdown-item.not-delivered.selected, body.dark-mode .status-dropdown-item.not-delivered:hover {
   background-color: rgba(239, 68, 68, 0.15); color: #fca5a5; border-color: rgba(239, 68, 68, 0.3);
+}
+body.dark-mode .status-select-modern.late, body.dark-mode .status-dropdown-item.late.selected, body.dark-mode .status-dropdown-item.late:hover {
+  background-color: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3);
+}
+body.dark-mode .status-select-modern.closed, body.dark-mode .status-dropdown-item.closed.selected, body.dark-mode .status-dropdown-item.closed:hover {
+  background-color: rgba(107, 114, 128, 0.15); color: #9ca3af; border-color: rgba(107, 114, 128, 0.3);
 }
 
 /* Modern Dialog Styles */

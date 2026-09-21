@@ -118,6 +118,7 @@ export class Applink {
   static readonly createMatch: string = `${Applink.server}/matches/create`;
   static readonly updateMatch: string = `${Applink.server}/matches/update`;
   static readonly deleteMatch: string = `${Applink.server}/matches/delete`;
+  static readonly matchAttendance = (matchId: number) => `${Applink.server}/matches/${matchId}/attendance`;
 
 //  =============================Match Callups============================== //
 
@@ -143,5 +144,10 @@ export class Applink {
   static readonly savePlayerClearance = `${Applink.server}/player-clearance`;
   static readonly deletePlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}`;
 
+  //  =============================Clubs============================== //
+  static readonly clubs = `${Applink.server}/clubs`;
+  static readonly createClub = `${Applink.server}/clubs/create`;
+  static readonly updateClub = (id: string | number) => `${Applink.server}/clubs/update/${id}`;
+  static readonly deleteClub = (id: string | number) => `${Applink.server}/clubs/delete/${id}`;
 }
 

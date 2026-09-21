@@ -34,7 +34,33 @@ export const useTrainingSessionsController = () => {
     setIsLoading(true);
     try {
       const data = await TrainingSessionData.getSessions(selectedTeamId);
-      setSessions(data);
+      
+      const dataWithRealStats = await Promise.all(data.map(async (session) => {
+        if (session.attendance_stats) return session;
+
+        try {
+          const response = await axios.get(
+            `${Applink.server}/training-sessions/${session.id}/attendance`,
+            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+          );
+          const players = response.data.players || [];
+          const total = players.length;
+          const present = players.filter((p: any) => p.status === 'حاضر' || p.status === 'متأخر').length;
+          const absent = players.filter((p: any) => p.status === 'غائب غير مبرر' || p.status === 'غائب مبرر').length;
+          
+          return {
+            ...session,
+            attendance_stats: { total, present, absent }
+          };
+        } catch (err) {
+          return {
+            ...session,
+            attendance_stats: { total: 0, present: 0, absent: 0 }
+          };
+        }
+      }));
+      
+      setSessions(dataWithRealStats);
     } catch (error) {
       console.error('Failed to fetch sessions');
     } finally {
@@ -72,19 +98,31 @@ export const useTrainingSessionsController = () => {
       try {
         await TrainingSessionData.deleteSession(id);
         await fetchSessions();
-      } catch (error) {
-        alert('حدث خطأ أثناء الحذف');
+      } catch (error: any) {
+        const msg = error.response?.data?.message || error.response?.data?.error || 'حدث خطأ أثناء الحذف';
+        const errorString = typeof msg === 'string' ? msg : JSON.stringify(msg);
+        
+        if (errorString.includes('foreign key constraint fails') || errorString.includes('Integrity constraint violation')) {
+          alert('لا يمكن حذف هذه الحصة التدريبية لأنها تحتوي على سجلات غياب/حضور مسجلة للفاعبين. يرجى حذف تلك السجلات أولاً أو تغيير حالة الحصة إلى "ملغاة".');
+        } else {
+          alert(errorString);
+        }
       }
     }
   };
 
   const handleChangeStatus = async (id: number | undefined, newStatus: string) => {
     if (!id) return;
+    
+    // Optimistic UI update
+    setSessions(prev => prev.map(s => s.id === id ? { ...s, status: newStatus } : s));
+    
     try {
       await TrainingSessionData.updateStatus(id, newStatus);
       await fetchSessions();
     } catch (error) {
       alert('حدث خطأ أثناء التحديث');
+      await fetchSessions(); // Revert on failure
     }
   };
 

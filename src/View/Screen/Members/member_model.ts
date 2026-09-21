@@ -1,4 +1,4 @@
-﻿import { Applink } from '../../../LinkApi';
+import { Applink } from '../../../LinkApi';
 
 export class MemberModel {
   id: string;
@@ -10,6 +10,15 @@ export class MemberModel {
   place_of_birth: string;
   birth_date: string;
   Shirt_number: number | null;
+  email: string;
+  position: string;
+  preferred_foot: string;
+  emergency_contact_name: string;
+  emergency_contact_phone: string;
+  national_id_document: string | File | null;
+  medical_certificate: string | File | null;
+  insurance_document: string | File | null;
+  bank_account_number: string;
   status: string;
   is_internal_system_printed: boolean;
   team_id: string;
@@ -28,6 +37,15 @@ export class MemberModel {
     this.place_of_birth = data.place_of_birth || '';
     this.birth_date = data.birth_date || '';
     this.Shirt_number = data.Shirt_number || null;
+    this.email = data.email || '';
+    this.position = data.position || '';
+    this.preferred_foot = data.preferred_foot || '';
+    this.emergency_contact_name = data.emergency_contact_name || '';
+    this.emergency_contact_phone = data.emergency_contact_phone || '';
+    this.national_id_document = data.national_id_document || null;
+    this.medical_certificate = data.medical_certificate || null;
+    this.insurance_document = data.insurance_document || null;
+    this.bank_account_number = data.bank_account_number || '';
     this.status = data.status || 'active';
     this.is_internal_system_printed = data.is_internal_system_printed === true || data.is_internal_system_printed === 1;
     this.team_id = data.team_id?.toString() || '';
@@ -58,6 +76,15 @@ export class MemberModel {
       place_of_birth: this.place_of_birth,
       birth_date: this.birth_date,
       Shirt_number: this.Shirt_number,
+      email: this.email,
+      position: this.position,
+      preferred_foot: this.preferred_foot,
+      emergency_contact_name: this.emergency_contact_name,
+      emergency_contact_phone: this.emergency_contact_phone,
+      national_id_document: this.national_id_document,
+      medical_certificate: this.medical_certificate,
+      insurance_document: this.insurance_document,
+      bank_account_number: this.bank_account_number,
       status: this.status,
       team_id: this.team_id
     };
@@ -89,3 +116,5 @@ export interface PlayerClearance {
   player_signature: boolean;
   player_signed_at: string;
 }
+
+

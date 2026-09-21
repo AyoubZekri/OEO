@@ -33,7 +33,35 @@ export const useMatchesController = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.status === 'success') {
-        setMatches(response.data.data);
+        const matchesData = response.data.data;
+        
+        // Fetch attendance stats for each match (mimicking training sessions)
+        const matchesWithStats = await Promise.all(matchesData.map(async (match: Match) => {
+          if (match.attendance_stats) return match;
+
+          try {
+            const attResponse = await axios.get(
+              Applink.matchAttendance(match.id),
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+            const players = attResponse.data.players || [];
+            const total = players.length;
+            const present = players.filter((p: any) => p.status === 'حاضر' || p.status === 'متأخر').length;
+            const absent = players.filter((p: any) => p.status === 'غائب غير مبرر' || p.status === 'غائب مبرر').length;
+            
+            return {
+              ...match,
+              attendance_stats: { total, present, absent }
+            };
+          } catch (err) {
+            return {
+              ...match,
+              attendance_stats: { total: 0, present: 0, absent: 0 }
+            };
+          }
+        }));
+
+        setMatches(matchesWithStats);
       }
     } catch (error) {
       console.error('Error fetching matches:', error);

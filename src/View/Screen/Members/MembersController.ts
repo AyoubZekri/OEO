@@ -8,6 +8,7 @@ import { PaymentsData } from '../Payments/payments_data';
 import { ContractsData } from '../Contracts/contracts_data';
 import { EvaluationsData } from './Evaluation/evaluation_data';
 import type { EvaluationRecord } from './Evaluation/evaluation_data';
+import { Applink } from '../../../LinkApi';
 
 export const useMembersController = () => {
   const [members, setMembers] = useState<MemberModel[]>([]);
@@ -43,6 +44,9 @@ export const useMembersController = () => {
     team_id: ''
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
+  const [medicalFile, setMedicalFile] = useState<File | null>(null);
+  const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
 
   const crud = new Crud();
   const membersData = new MembersData(crud);
@@ -101,6 +105,9 @@ export const useMembersController = () => {
   const openAddMemberDialog = () => {
     setMemberToEdit(null);
     setPhotoFile(null);
+    setNationalIdFile(null);
+    setMedicalFile(null);
+    setInsuranceFile(null);
     setFormData({
       first_name: '',
       last_name: '',
@@ -119,6 +126,9 @@ export const useMembersController = () => {
   const openEditMemberDialog = (member: MemberModel) => {
     setMemberToEdit(member);
     setPhotoFile(null);
+    setNationalIdFile(null);
+    setMedicalFile(null);
+    setInsuranceFile(null);
     setFormData({
       first_name: member.first_name,
       last_name: member.last_name,
@@ -154,28 +164,30 @@ export const useMembersController = () => {
     if (payload.team_id === '') payload.team_id = null;
     if (payload.birth_date === '') payload.birth_date = null;
 
-    if (memberToEdit) {
-      payload.id = memberToEdit.id;
-      let response;
-      if (photoFile) {
-        response = await membersData.editMemberWithImage(payload, photoFile);
-      } else {
-        response = await membersData.editMember(payload);
+    const fd = new FormData();
+    Object.keys(payload).forEach(key => {
+      if (payload[key] !== null) {
+        fd.append(key, payload[key]);
       }
-      if (response && !response.error) {
+    });
+
+    if (photoFile) fd.append('photo', photoFile);
+    if (nationalIdFile) fd.append('national_id_document', nationalIdFile);
+    if (medicalFile) fd.append('medical_certificate', medicalFile);
+    if (insuranceFile) fd.append('insurance_document', insuranceFile);
+
+    if (memberToEdit) {
+      fd.append('id', memberToEdit.id);
+      const response = await membersData.saveMemberFormData(Applink.updateIndividual, fd);
+      if (response && !response.error && response.status !== 'error') {
         fetchMembers();
         closeAddMemberDialog();
       } else {
         alert('حدث خطأ أثناء التعديل');
       }
     } else {
-      let response;
-      if (photoFile) {
-        response = await membersData.addMemberWithImage(payload, photoFile);
-      } else {
-        response = await membersData.addMember(payload);
-      }
-      if (response && !response.error) {
+      const response = await membersData.saveMemberFormData(Applink.createIndividual, fd);
+      if (response && !response.error && response.status !== 'error') {
         fetchMembers();
         closeAddMemberDialog();
       } else {
@@ -387,6 +399,12 @@ export const useMembersController = () => {
     setFormData,
     photoFile,
     setPhotoFile,
+    nationalIdFile,
+    setNationalIdFile,
+    medicalFile,
+    setMedicalFile,
+    insuranceFile,
+    setInsuranceFile,
     handleFormDataChange,
     handleSaveMember,
     openAddMemberDialog,

@@ -27,6 +27,36 @@ const TrainingSessions: React.FC = () => {
     }
   };
 
+  const getComputedStatus = (session: any) => {
+    const rawStatus = session.status ? session.status.trim() : '';
+    // If the user manually set a specific status, respect it and override the dynamic time check
+    if (rawStatus === 'ملغاة' || rawStatus === 'مكتملة' || rawStatus === 'جارية') {
+      return rawStatus;
+    }
+    
+    if (!session.date || !session.start || !session.end) {
+      return session.status || 'مجدولة';
+    }
+
+    const now = new Date();
+    // Safely extract just the YYYY-MM-DD part in case it's an ISO string
+    const datePart = session.date.split('T')[0];
+    const [year, month, day] = datePart.split('-').map(Number);
+    if (!year || !month || !day) return session.status;
+    
+    const [startH, startM] = session.start.split(':').map(Number);
+    const [endH, endM] = session.end.split(':').map(Number);
+
+    const startTime = new Date(year, month - 1, day, startH, startM);
+    const endTime = new Date(year, month - 1, day, endH, endM);
+
+    if (now < startTime) return 'مجدولة';
+    if (now >= startTime && now <= endTime) return 'جارية';
+    if (now > endTime) return 'مكتملة';
+    
+    return session.status;
+  };
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return dateStr;
     try {
@@ -58,7 +88,7 @@ const TrainingSessions: React.FC = () => {
       <div className="training-sessions-header">
         <h1>حصص التدريب</h1>
         <div className="header-actions">
-          <div style={{ width: '200px' }}>
+          <div className="modern-filter-group">
             <CustomDropdown<string>
               value={controller.selectedTeamId}
               options={teamOptions}
@@ -78,7 +108,8 @@ const TrainingSessions: React.FC = () => {
       ) : (
         <div className="training-sessions-grid">
           {controller.sessions.map((session, idx) => {
-            const status = getStatusInfo(session.status);
+            const computedStatusText = getComputedStatus(session);
+            const status = getStatusInfo(computedStatusText);
             const duration = calcDuration(session.start, session.end);
             const isMenuOpen = openStatusMenu === (session.id ?? idx);
             return (
@@ -104,7 +135,7 @@ const TrainingSessions: React.FC = () => {
                           <button
                             key={opt.value}
                             type="button"
-                            className={`sc-status-menu-item ${getStatusInfo(opt.value).cls} ${session.status === opt.value ? 'active' : ''}`}
+                            className={`sc-status-menu-item ${getStatusInfo(opt.value).cls} ${computedStatusText === opt.value ? 'active' : ''}`}
                             onClick={() => handleStatusChange(session.id, opt.value)}
                           >
                             <span className={`sc-status-dot ${getStatusInfo(opt.value).cls}`}></span>
@@ -141,7 +172,7 @@ const TrainingSessions: React.FC = () => {
                     <div className="sc-info-content">
                       <span className="sc-info-label">تاريخ الحصة</span>
                       <span className="sc-info-value">
-                        {formatDate(session.date)} <span className="sc-info-sub">({session.date})</span>
+                        {formatDate(session.date)}
                       </span>
                     </div>
                   </div>
@@ -176,10 +207,12 @@ const TrainingSessions: React.FC = () => {
                     <span className="sc-attendance-label">قائمة الحضور</span>
                   </div>
                   <div className="sc-progress-bar">
-                    <div className="sc-progress-fill" style={{ width: '75%' }}></div>
+                    <div className="sc-progress-fill" style={{ width: session.attendance_stats && session.attendance_stats.total > 0 ? `${Math.round((session.attendance_stats.present / session.attendance_stats.total) * 100)}%` : '0%' }}></div>
                   </div>
                   <div className="sc-attendance-nums">
-                    <span className="sc-att-present">18 / 22 لاعب</span>
+                    <span className="sc-att-present">
+                      {session.attendance_stats ? `${session.attendance_stats.present} / ${session.attendance_stats.total} لاعب` : '---'}
+                    </span>
                   </div>
                 </div>
 

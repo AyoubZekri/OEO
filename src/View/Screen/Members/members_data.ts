@@ -33,6 +33,26 @@ export class MembersData {
     return response._tag === 'Left' ? response.left : response.right;
   }
 
+  async saveMemberFormData(url: string, formData: FormData) {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+      };
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+      if (response.status === 200 || response.status === 201) {
+        return await response.json();
+      }
+      return { status: 'error', message: 'Error saving data' };
+    } catch (e) {
+      return { status: 'error', message: String(e) };
+    }
+  }
+
   async deleteMember(id: string) {
     const response = await this.crud.postDataheaders(Applink.deleteIndividual, { id });
     return response._tag === 'Left' ? response.left : response.right;
@@ -43,3 +63,4 @@ export class MembersData {
     return response._tag === 'Left' ? response.left : response.right;
   }
 }
+

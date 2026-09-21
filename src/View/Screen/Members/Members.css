@@ -485,23 +485,140 @@ body.dark-mode .btn-action.delete-btn { background-color: rgba(220, 38, 38, 0.15
   gap: 8px;
 }
 
+.add-member-form .form-group {
+  gap: 12px;
+}
+
 .form-group label {
   font-weight: 600;
   color: var(--text-h);
 }
 
-.form-control {
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background-color: var(--bg);
+.add-member-form .form-control,
+.add-member-form input.form-control {
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background-color: rgba(0,0,0,0.03);
   color: var(--text-h);
   font-family: var(--sans);
   outline: none;
-  transition: border-color 0.2s;
+  transition: all 0.2s ease;
+  height: 52px;
+  min-height: 52px;
+  max-height: 52px;
+  box-sizing: border-box;
+  font-size: 0.95rem;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.01);
+  width: 100%;
+  display: block;
 }
 
-.form-control:focus { border-color: var(--accent); }
+.add-member-form .form-control:focus,
+.add-member-form input.form-control:focus {
+  border-color: var(--accent);
+  background-color: #fff;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+}
+
+body.dark-mode .add-member-form .form-control,
+body.dark-mode .add-member-form input.form-control {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .add-member-form .form-control:focus,
+body.dark-mode .add-member-form input.form-control:focus {
+  background-color: var(--bg);
+}
+
+/* Modern Upload Component Styles */
+.modern-upload-box {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 2px dashed var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  background-color: rgba(0,0,0,0.02);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 120px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.modern-upload-box:hover {
+  border-color: var(--accent);
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.modern-upload-box .upload-icon {
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.modern-upload-box:hover .upload-icon {
+  color: var(--accent);
+}
+
+.modern-upload-box span {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.modern-upload-box input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.uploaded-file-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 12px;
+  margin-top: 8px;
+}
+
+.uploaded-file-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #059669;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.uploaded-file-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.action-icon-btn {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  padding: 6px;
+  color: var(--text-h);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.action-icon-btn:hover {
+  background: var(--bg-hover);
+  color: var(--accent);
+}
 
 /* Financial Summary Card */
 .financial-summary-card {
@@ -839,32 +956,66 @@ body.dark-mode .card-item:hover {
 }
 
 .photo-upload-card {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  border: 2px dashed var(--border, #cbd5e1);
-  background-color: var(--card-bg, #f8fafc);
+  width: 140px;
+  height: 140px;
+  border-radius: 32px;
+  border: 3px dashed var(--border, #cbd5e1);
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
   overflow: hidden;
   position: relative;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
 }
 
 .photo-upload-card:hover {
-  border-color: var(--accent, #f97316);
-  background-color: rgba(249, 115, 22, 0.04);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.15);
+  border-color: var(--accent, #3b82f6);
+  border-style: solid;
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.04);
+}
+
+.photo-upload-card.has-image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.photo-upload-card.has-image:hover::after {
+  opacity: 1;
+}
+
+.hover-edit-icon {
+  position: absolute;
+  z-index: 2;
+  color: white;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.photo-upload-card.has-image:hover .hover-edit-icon {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .photo-preview-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  z-index: 0;
+  transition: transform 0.5s ease;
+}
+
+.photo-upload-card:hover .photo-preview-image {
+  transform: scale(1.08);
 }
 
 .photo-placeholder-ui {
@@ -873,44 +1024,59 @@ body.dark-mode .card-item:hover {
   align-items: center;
   justify-content: center;
   color: var(--text-muted, #94a3b8);
-  gap: 6px;
+  gap: 12px;
+  z-index: 0;
 }
 
 .photo-placeholder-ui span {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
 }
 
 .photo-placeholder-icon {
   color: var(--text-muted, #94a3b8);
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  padding: 12px;
+  border-radius: 50%;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
-.photo-upload-card:hover .photo-placeholder-icon,
+.photo-upload-card:hover .photo-placeholder-icon {
+  color: var(--accent, #3b82f6);
+  transform: scale(1.15) translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.2);
+}
+
 .photo-upload-card:hover .photo-placeholder-ui span {
-  color: var(--accent, #f97316);
+  color: var(--accent, #3b82f6);
 }
 
 .btn-remove-photo {
-  margin-top: 12px;
-  background-color: rgba(239, 68, 68, 0.1);
+  margin-top: 16px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
   color: #ef4444;
-  border: none;
-  border-radius: 20px;
-  padding: 6px 14px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  border: 1px solid #fca5a5;
+  border-radius: 12px;
+  padding: 8px 18px;
+  font-size: 0.85rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.05);
 }
 
 .btn-remove-photo:hover {
-  background-color: #ef4444;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: #ffffff;
-  transform: translateY(-1px);
+  border-color: #ef4444;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 15px rgba(239, 68, 68, 0.25);
 }
 
 /* Small devices (Mobile phones <= 480px) */
@@ -1109,3 +1275,43 @@ body.dark-mode .card-item:hover {
   }
 }
 
+/* ==========================================================================
+   Add/Edit Member Dialog Form Layout
+   ========================================================================== */
+.add-member-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+}
+
+.form-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-h);
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px 20px;
+}
+
+@media (max-width: 640px) {
+  .form-section {
+    padding: 16px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}

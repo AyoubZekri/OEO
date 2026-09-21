@@ -10,14 +10,20 @@ export interface TrainingSessionModel {
   start: string;
   end: string;
   status: string;
+  attendance_stats?: {
+    total: number;
+    present: number;
+    absent: number;
+  };
 }
 
 export const TrainingSessionData = {
   getSessions: async (teamId?: string): Promise<TrainingSessionModel[]> => {
     try {
+      const ts = Date.now();
       const url = teamId 
-        ? `${Applink.server}/training-sessions?team_id=${teamId}`
-        : `${Applink.server}/training-sessions`;
+        ? `${Applink.server}/training-sessions?team_id=${teamId}&t=${ts}`
+        : `${Applink.server}/training-sessions?t=${ts}`;
         
       const response = await axios.get(url, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
