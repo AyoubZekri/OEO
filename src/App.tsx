@@ -25,6 +25,7 @@ import { Matches } from './View/Screen/Matches/Matches';
 import { MatchAttendance } from './View/Screen/Matches/Attendance/TakeAttendance';
 import { Medical } from './View/Screen/Medical/Medical';
 import { Meetings } from './View/Screen/Meetings/Meetings';
+import { TakeMeetingAttendance } from './View/Screen/Meetings/Attendance/TakeMeetingAttendance';
 import { Decisions } from './View/Screen/Decisions/Decisions';
 import { Clubs } from './View/Screen/Clubs/Clubs'; 
 import { Approutes } from './core/constant/routes';
@@ -68,6 +69,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/matches/:id/attendance" element={<MatchAttendance />} />
             <Route path={Approutes.MedicalRecords} element={<Medical />} />
             <Route path={Approutes.Meetings} element={<Meetings />} />
+            <Route path="/meetings/:id/attendance" element={<TakeMeetingAttendance />} />
             <Route path={Approutes.Decisions} element={<Decisions />} />
             <Route path={Approutes.Clubs} element={<Clubs />} />
             {/* Add more routes here as needed */}

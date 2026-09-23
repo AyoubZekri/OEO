@@ -50,7 +50,7 @@ export const Contracts: React.FC = () => {
   return (
     <div className="contracts-container">
       <div className="contracts-header">
-        <h1 className="page-title">{t('contracts.title', 'العقود')}</h1>
+
         
         <div className="contracts-actions">
           <div className="search-box">

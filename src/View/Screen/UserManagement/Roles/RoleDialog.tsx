@@ -147,7 +147,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
       <div className="premium-role-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="premium-dialog-header">
           <h2>{roleToEdit ? t('roles_permissions.edit_permissions') : t('roles_permissions.add_role')}</h2>
-          <button type="button" onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}>
+          <button type="button" onClick={onClose} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #64748b)' }}>
             <X size={24} />
           </button>
         </div>

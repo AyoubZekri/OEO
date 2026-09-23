@@ -86,7 +86,6 @@ const TrainingSessions: React.FC = () => {
   return (
     <div className="training-sessions-container">
       <div className="training-sessions-header">
-        <h1>حصص التدريب</h1>
         <div className="header-actions">
           <div className="modern-filter-group">
             <CustomDropdown<string>
@@ -104,7 +103,15 @@ const TrainingSessions: React.FC = () => {
       </div>
 
       {controller.isLoading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>جاري التحميل...</div>
+        <div className="loading-container" style={{ minHeight: '300px' }}>
+          <div className="premium-loader">
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-dot"></div>
+          </div>
+          <p className="loading-text">جاري تحميل الحصص...</p>
+        </div>
       ) : (
         <div className="training-sessions-grid">
           {controller.sessions.map((session, idx) => {

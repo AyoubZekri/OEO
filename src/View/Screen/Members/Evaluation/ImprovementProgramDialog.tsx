@@ -15,7 +15,7 @@ const ToggleSwitch = ({ checked, onChange, label, activeColor = 'var(--accent)' 
   <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer', padding: '16px 20px', background: 'var(--bg-input)', border: '1px solid var(--border)', borderRadius: '16px', transition: 'all 0.2s', boxShadow: checked ? `0 0 0 1px ${activeColor}33` : 'none' }}>
     <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ display: 'none' }} />
     <div style={{ position: 'relative', width: '52px', height: '28px', background: checked ? activeColor : 'var(--border)', borderRadius: '24px', transition: '0.3s', flexShrink: 0 }}>
-      <div style={{ position: 'absolute', top: '2px', left: checked ? '26px' : '2px', width: '24px', height: '24px', background: 'white', borderRadius: '50%', transition: '0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
+      <div style={{ position: 'absolute', top: '2px', left: checked ? '26px' : '2px', width: '24px', height: '24px', background: 'var(--card-bg, white)', borderRadius: '50%', transition: '0.3s', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }} />
     </div>
     <span style={{ color: checked ? 'var(--text-color)' : 'var(--text-muted)', fontWeight: checked ? 'bold' : '600', transition: '0.3s', fontSize: '1rem' }}>{label}</span>
   </label>
@@ -132,7 +132,7 @@ export const ImprovementProgramDialog: React.FC<ImprovementProgramDialogProps> =
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {!isEditing && program && (
-                <button onClick={handleDelete} disabled={saving} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px', borderRadius: '12px', cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', transition: '0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseLeave={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'} title="حذف البرنامج">
+                <button onClick={handleDelete} disabled={saving} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px', borderRadius: '12px', cursor: 'pointer', color: 'var(--danger, #ef4444)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', transition: '0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseLeave={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'} title="حذف البرنامج">
                   <Trash2 size={18} /> <span className="desktop-title">حذف</span>
                 </button>
               )}

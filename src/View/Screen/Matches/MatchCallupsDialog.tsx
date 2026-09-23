@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
-import { X, Search, CheckCircle } from 'lucide-react';
+import { X, Search, CheckCircle, Stethoscope } from 'lucide-react';
 import type { Match } from './match_model';
 
 interface MatchCallupsDialogProps {
@@ -34,34 +34,36 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
       
       let playersRes: any = null;
       let callupsRes: any = null;
+      let medicalsRes: any = null;
 
       try {
         playersRes = await axios.get(Applink.individuals, { headers });
       } catch (err: any) {
         console.error('Error fetching individuals:', err);
-        if (err.response) {
-          console.error('Individuals Backend error details:', err.response.data);
-        }
       }
 
       try {
         callupsRes = await axios.get(Applink.matchCallups(matchData!.id), { headers });
       } catch (err: any) {
-        console.error('Error fetching callups (maybe first time or endpoint missing):', err);
-        if (err.response) {
-          console.error('Callups Backend error details:', err.response.data);
-        }
+        console.error('Error fetching callups:', err);
+      }
+      
+      try {
+        medicalsRes = await axios.get(Applink.medicalRecords, { headers });
+      } catch (err: any) {
+        console.error('Error fetching medical records:', err);
       }
 
       if (playersRes && (playersRes.data.status === 'success' || Array.isArray(playersRes.data))) {
         const allInds = Array.isArray(playersRes.data) ? playersRes.data : playersRes.data.data;
-        // Filter to show ONLY players (اللاعبين) and belong to the match team
+        const matchDate = matchData?.match_date ? new Date(matchData.match_date.split('T')[0]) : new Date();
+        const medRecords = (medicalsRes?.data?.data || medicalsRes?.data || []);
+
         const onlyPlayers = allInds.filter((ind: any) => {
           if (!ind) return false;
           const roleName = ind.role?.name ? ind.role.name.trim() : '';
           const isPlayer = roleName === 'لاعب' || ind.type === 'لاعب' || ind.type === 'player';
           
-          // Filter by match team_id if the match has one assigned
           const matchTeamId = matchData?.team_id;
           const playerTeamId = ind.team_id || ind.team?.id;
           
@@ -69,14 +71,57 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
             return isPlayer && playerTeamId === matchTeamId;
           }
           return isPlayer;
+        }).map((player: any) => {
+          let medicalState = 'healthy';
+          let doctorNote = '';
+
+          const pRecords = medRecords.filter((r: any) => {
+            const pid = (r.player_id && typeof r.player_id === 'object') ? r.player_id.id : r.player_id;
+            return pid == player.id || pid == player.individual_id || pid == player.member_id;
+          });
+          pRecords.sort((a: any, b: any) => b.id - a.id);
+
+          const latestRecord = pRecords[0];
+
+          if (latestRecord) {
+            if (latestRecord.record_status === 'مغلق/متعافي') {
+              const date1 = latestRecord.absence_from ? new Date(latestRecord.absence_from.split('T')[0]).getTime() : 0;
+              const date2 = latestRecord.absence_to ? new Date(latestRecord.absence_to.split('T')[0]).getTime() : 0;
+              const maxDate = Math.max(date1, date2);
+              
+              if (maxDate > 0) {
+                if (matchDate.getTime() <= maxDate) {
+                  medicalState = 'treatment';
+                  doctorNote = latestRecord.restrictions || latestRecord.diagnosis || 'مرحلة العلاج - يتطلب الانتباه';
+                } else {
+                  medicalState = 'healthy';
+                }
+              } else {
+                medicalState = 'healthy';
+              }
+            } else {
+              // Any other state ('مفتوح/مصاب', 'بانتظار الفحص النهائي', etc) means strictly injured
+              medicalState = 'injured';
+            }
+          } else if (player.status && typeof player.status === 'string' && player.status.includes('مصاب')) {
+            // Fallback: If they have 'مصاب' in their general status but no active medical record
+            medicalState = 'injured';
+          }
+
+          return { ...player, medicalState, doctorNote };
         });
         setPlayers(onlyPlayers || []);
       }
 
       const currentSelected: Record<number, { notes: string }> = {};
-      if (callupsRes && callupsRes.data && callupsRes.data.status === 'success') {
-        callupsRes.data.data.forEach((callup: any) => {
-          const callupPlayerId = callup.player_id || callup.individual_id || callup.individuals_id || callup.member_id || callup.memberId;
+      console.log('Callups Response:', callupsRes?.data);
+      if (callupsRes && callupsRes.data) {
+        const callupsArray = Array.isArray(callupsRes.data) ? callupsRes.data : (callupsRes.data.data || []);
+        console.log('Parsed Callups Array:', callupsArray);
+        callupsArray.forEach((callup: any) => {
+          const rawId = callup.player_id || callup.individual_id || callup.individuals_id || callup.member_id || callup.memberId;
+          const callupPlayerId = typeof rawId === 'object' && rawId !== null ? rawId.id : rawId;
+          
           if (callupPlayerId) {
             currentSelected[callupPlayerId] = { notes: callup.notes || '' };
           }
@@ -91,13 +136,15 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
     }
   };
 
-  const handleTogglePlayer = (playerId: number) => {
+  const handleTogglePlayer = (player: any) => {
+    if (player.medicalState === 'injured') return;
+
     setSelectedPlayers(prev => {
       const newSelected = { ...prev };
-      if (newSelected[playerId]) {
-        delete newSelected[playerId];
+      if (newSelected[player.id]) {
+        delete newSelected[player.id];
       } else {
-        newSelected[playerId] = { notes: '' };
+        newSelected[player.id] = { notes: player.medicalState === 'treatment' ? player.doctorNote : '' };
       }
       return newSelected;
     });
@@ -181,7 +228,7 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
               </div>
               <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>الاستدعاء</h2>
             </div>
-            <p className="hide-on-mobile" style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: '0.95rem' }}>
+            <p className="hide-on-mobile" style={{ margin: '8px 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '0.95rem' }}>
               {matchData?.match_title ? `مباراة: ${matchData?.match_title}` : 'تحديد اللاعبين للمباراة القادمة'}
             </p>
           </div>
@@ -243,26 +290,28 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
                         flexDirection: 'column',
                         padding: '16px', 
                         borderRadius: '16px', 
-                        border: isSelected ? '2px solid var(--accent)' : '1px solid var(--border)',
-                        background: isSelected ? 'var(--accent-bg)' : 'var(--card-bg)',
+                        border: isSelected ? '2px solid var(--accent)' : (player.medicalState === 'treatment' ? '1px solid #f59e0b' : '1px solid var(--border)'),
+                        background: isSelected ? 'var(--accent-bg)' : (player.medicalState === 'injured' ? '#fef2f2' : (player.medicalState === 'treatment' ? '#fffbeb' : 'var(--card-bg)')),
                         boxShadow: isSelected ? '0 4px 12px var(--accent-bg)' : '0 2px 4px rgba(0,0,0,0.02)',
                         transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                        cursor: 'pointer',
-                        position: 'relative'
+                        cursor: player.medicalState === 'injured' ? 'not-allowed' : 'pointer',
+                        position: 'relative',
+                        opacity: player.medicalState === 'injured' ? 0.6 : 1
                       }}
-                      onClick={() => handleTogglePlayer(player.id)}
-                      onMouseOver={e => !isSelected && (e.currentTarget.style.borderColor = 'var(--text-muted)')}
-                      onMouseOut={e => !isSelected && (e.currentTarget.style.borderColor = 'var(--border)')}
+                      onClick={() => handleTogglePlayer(player)}
+                      onMouseOver={e => !isSelected && player.medicalState !== 'injured' && (e.currentTarget.style.borderColor = 'var(--text-muted)')}
+                      onMouseOut={e => !isSelected && player.medicalState !== 'injured' && (e.currentTarget.style.borderColor = 'var(--border)')}
                     >
                       <div style={{ position: 'absolute', top: '16px', left: '16px' }}>
                         <div style={{ 
                           width: '24px', height: '24px', borderRadius: '50%', 
                           border: isSelected ? 'none' : '2px solid var(--border)',
-                          background: isSelected ? 'var(--accent)' : 'var(--card-bg)',
+                          background: isSelected ? 'var(--accent)' : (player.medicalState === 'injured' ? 'var(--danger, #ef4444)' : 'var(--card-bg)'),
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           transition: 'all 0.2s'
                         }}>
                           {isSelected && <CheckCircle size={16} color="white" />}
+                          {player.medicalState === 'injured' && !isSelected && <Stethoscope size={14} color="white" />}
                         </div>
                       </div>
 
@@ -278,28 +327,48 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
                         </div>
                         <div style={{ flexGrow: 1, paddingLeft: '24px' }}>
                           <h4 style={{ margin: 0, fontSize: '1.05rem', color: 'var(--text-h)', fontWeight: 700 }}>{player.first_name} {player.last_name}</h4>
-                          <span style={{ fontSize: '0.8rem', color: 'var(--text)', background: 'var(--bg)', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', marginTop: '4px', fontWeight: 600 }}>
-                            {player.position || 'لاعب'}
-                          </span>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginTop: '4px' }}>
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text)', background: 'var(--bg)', padding: '2px 8px', borderRadius: '6px', display: 'inline-block', fontWeight: 600 }}>
+                              {player.position || 'لاعب'}
+                            </span>
+                            {player.medicalState === 'injured' && (
+                              <span style={{ fontSize: '0.75rem', color: 'var(--danger, #ef4444)', background: '#fef2f2', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                                مصاب
+                              </span>
+                            )}
+                            {player.medicalState === 'treatment' && (
+                              <span style={{ fontSize: '0.75rem', color: '#f59e0b', background: '#fffbeb', padding: '2px 8px', borderRadius: '6px', fontWeight: 700 }}>
+                                مرحلة علاج
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       
                       {isSelected && (
                         <div style={{ marginTop: '16px', borderTop: '1px dashed var(--border)', paddingTop: '16px' }} onClick={e => e.stopPropagation()}>
-                          <input 
-                            type="text" 
-                            placeholder="ملاحظات (اختياري)..."
-                            value={selectedPlayers[player.id].notes}
-                            onChange={(e) => handleNoteChange(player.id, e.target.value)}
-                            style={{ 
-                              width: '100%', padding: '10px 14px', borderRadius: '8px', 
-                              border: '1px solid var(--border)', fontSize: '0.85rem',
-                              background: 'var(--card-bg)', color: 'var(--text)', boxSizing: 'border-box',
-                              outline: 'none', transition: 'border-color 0.2s'
-                            }}
-                            onFocus={e => e.currentTarget.style.borderColor = 'var(--accent)'}
-                            onBlur={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                          />
+                          {player.medicalState === 'treatment' ? (
+                            <div style={{ padding: '10px 14px', borderRadius: '8px', background: '#fffbeb', border: '1px solid #fcd34d', color: '#b45309', fontSize: '0.85rem', fontWeight: 600 }}>
+                              <span style={{ fontWeight: 800, marginRight: '4px' }}>توصية الطبيب:</span> {selectedPlayers[player.id].notes}
+                            </div>
+                          ) : (
+                            <input 
+                              type="text" 
+                              placeholder="ملاحظات (اختياري)..."
+                              value={selectedPlayers[player.id].notes}
+                              onChange={(e) => handleNoteChange(player.id, e.target.value)}
+                              style={{ 
+                                width: '100%', padding: '10px 14px', borderRadius: '8px', 
+                                border: '1px solid var(--border)', fontSize: '0.85rem',
+                                background: 'var(--card-bg)', 
+                                color: 'var(--text)', 
+                                boxSizing: 'border-box',
+                                outline: 'none', transition: 'border-color 0.2s'
+                              }}
+                              onFocus={e => (e.currentTarget.style.borderColor = 'var(--accent)')}
+                              onBlur={e => (e.currentTarget.style.borderColor = 'var(--border)')}
+                            />
+                          )}
                         </div>
                       )}
                     </div>

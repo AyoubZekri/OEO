@@ -124,7 +124,7 @@ export const Disciplinary: React.FC = () => {
     <div className="members-container">
       {/* Header section */}
       <div className="members-header">
-          <h1 className="page-title">الإجراءات التأديبية</h1>
+
           
           <div className="members-actions">
             <div className="search-box">
@@ -163,8 +163,19 @@ export const Disciplinary: React.FC = () => {
 
       {/* Cards Grid */}
       <div style={{ marginTop: '20px' }}>
-        <div className="disciplinary-grid">
-          {controller.disciplinaryList.map(c => (
+        {controller.isLoading ? (
+          <div className="loading-container" style={{ gridColumn: '1 / -1' }}>
+            <div className="premium-loader">
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-dot"></div>
+            </div>
+            <p className="loading-text">جاري تحميل الإجراءات...</p>
+          </div>
+        ) : (
+          <div className="disciplinary-grid">
+            {controller.disciplinaryList.map(c => (
             <div key={c.id} className="disciplinary-premium-card">
               <div className="card-header-premium">
                 <div className={`action-type-pill ${c.actionType.replace(/ /g, '-')}`}>
@@ -255,7 +266,8 @@ export const Disciplinary: React.FC = () => {
                <p>لم يتم العثور على أي إجراءات تأديبية تطابق بحثك.</p>
              </div>
           )}
-        </div>
+          </div>
+        )}
       </div>
 
       <DisciplinaryDialog

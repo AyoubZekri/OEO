@@ -42,8 +42,7 @@ export const Equipment: React.FC = () => {
   return (
     <div className="equipment-page-wrapper">
       {/* Header Section */}
-      <div className="equipment-header">
-        <h1>معدات الفريق</h1>
+      <div className="equipment-header" style={{ justifyContent: 'flex-end' }}>
         {hasAccess(permissions.equipment.add) && (
           <button className="add-eq-btn" onClick={openAddDialog}>
             <Plus size={20} />

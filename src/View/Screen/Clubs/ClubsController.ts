@@ -5,8 +5,10 @@ import type { Club } from './club_model';
 
 export function useClubsController() {
   const [clubs, setClubs] = useState<Club[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const fetchClubs = async () => {
+  const fetchClubs = async (showLoading = false) => {
+    if (showLoading) setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(Applink.clubs, {
@@ -15,11 +17,13 @@ export function useClubsController() {
       setClubs(response.data);
     } catch (error) {
       console.error('Error fetching clubs:', error);
+    } finally {
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchClubs();
+    fetchClubs(true);
   }, []);
 
   const addClub = async (data: any) => {
@@ -85,6 +89,7 @@ export function useClubsController() {
 
   return {
     clubs,
+    isLoading,
     addClub,
     updateClub,
     deleteClub

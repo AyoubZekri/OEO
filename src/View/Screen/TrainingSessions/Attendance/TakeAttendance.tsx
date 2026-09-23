@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   ArrowRight, Save, Check, X, Clock, FileWarning,
   Users, MapPin, Calendar, CheckCircle2, Search,
-  ClipboardCheck, AlertTriangle
+  ClipboardCheck, AlertTriangle, Stethoscope
 } from 'lucide-react';
 import { useTakeAttendanceController } from './TakeAttendanceController';
 import type { PlayerAttendance } from './TakeAttendanceController';
@@ -199,7 +199,7 @@ export const TakeAttendance: React.FC = () => {
           filtered.map((player, idx) => (
             <div
               key={player.id}
-              className={`ta-player-card ${player.status ? `ta-card-${STATUS_BUTTONS.find(s => s.key === player.status)?.cls ?? ''}` : ''}`}
+              className={`ta-player-card ${player.is_injured ? 'ta-card-injured' : ''} ${player.status ? `ta-card-${STATUS_BUTTONS.find(s => s.key === player.status)?.cls ?? ''}` : ''}`}
             >
               {/* Avatar */}
               <div className="ta-player-avatar">
@@ -217,7 +217,14 @@ export const TakeAttendance: React.FC = () => {
 
               {/* Name */}
               <div className="ta-player-info">
-                <span className="ta-player-name">{player.name}</span>
+                <span className="ta-player-name">
+                  {player.name}
+                  {player.is_injured && (
+                    <span title="اللاعب مصاب" style={{ color: '#EF4444', marginRight: '6px' }}>
+                      <Stethoscope size={16} style={{ verticalAlign: 'middle', display: 'inline-block' }} />
+                    </span>
+                  )}
+                </span>
                 {player.shirt_number && (
                   <span className="ta-shirt-num">#{player.shirt_number}</span>
                 )}
@@ -243,9 +250,12 @@ export const TakeAttendance: React.FC = () => {
               <input
                 type="text"
                 className="ta-note-input"
-                placeholder="ملاحظة..."
-                value={player.note}
-                onChange={e => c.handleNoteChange(player.id, e.target.value)}
+                placeholder={player.is_injured ? "ملاحظة الطبيب..." : "ملاحظة..."}
+                value={player.is_injured ? (player.medical_note || 'مصاب') : player.note}
+                onChange={e => !player.is_injured && c.handleNoteChange(player.id, e.target.value)}
+                disabled={player.is_injured}
+                title={player.is_injured ? "اللاعب مصاب، لا يمكن تعديل الملاحظة" : ""}
+                style={player.is_injured ? { color: '#EF4444', backgroundColor: 'rgba(239, 68, 68, 0.05)' } : {}}
               />
             </div>
           ))

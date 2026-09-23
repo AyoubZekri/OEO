@@ -30,7 +30,7 @@
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: white;
+  background: var(--card-bg, white);
   border: 2px solid var(--border, #e2e8f0);
   border-radius: 12px;
   cursor: pointer;
@@ -42,7 +42,7 @@
 
 .req-card:hover {
   border-color: #cbd5e1;
-  background: #f8fafc;
+  background: var(--bg-body, #f8fafc);
 }
 
 .req-card.active {
@@ -137,7 +137,7 @@
 }
 
 .history-card {
-  background: white;
+  background: var(--card-bg, white);
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 8px;
   padding: 16px;

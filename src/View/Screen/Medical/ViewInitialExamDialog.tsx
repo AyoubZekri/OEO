@@ -21,24 +21,24 @@ export const ViewInitialExamDialog: React.FC<ViewInitialExamDialogProps> = ({
 
   return (
     <div className="task-dialog-overlay" onClick={onClose} style={{ backdropFilter: 'blur(10px)', backgroundColor: 'rgba(15, 23, 42, 0.4)', animation: 'fadeIn 0.3s ease-out', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'fixed', inset: 0, zIndex: 1000 }}>
-      <div className="task-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '550px', width: '95%', minHeight: '500px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', display: 'flex', flexDirection: 'column', background: '#ffffff', animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)', border: '1px solid #f3f4f6', overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
+      <div className="task-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '550px', width: '95%', minHeight: '500px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', display: 'flex', flexDirection: 'column', background: 'var(--card-bg, var(--card-bg, #ffffff))', animation: 'slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1)', border: '1px solid var(--border, var(--border, #f3f4f6))', overflow: 'hidden' }} onClick={(e) => e.stopPropagation()}>
         
         {/* App Bar */}
-        <div className="dialog-app-bar" style={{ padding: '16px 24px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', position: 'relative' }}>
+        <div className="dialog-app-bar" style={{ padding: '16px 24px', background: 'var(--bg-body, #f8fafc)', borderBottom: '1px solid var(--border, var(--border, #e2e8f0))', display: 'flex', alignItems: 'center', position: 'relative' }}>
           
-          <button type="button" onClick={onClose} style={{ position: 'absolute', right: '24px', background: 'white', border: '1px solid #e2e8f0', color: '#64748b', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', zIndex: 10 }} onMouseOver={e => {e.currentTarget.style.background = '#f1f5f9';}} onMouseOut={e => {e.currentTarget.style.background = 'white';}}>
+          <button type="button" onClick={onClose} style={{ position: 'absolute', right: '24px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--text-muted, #64748b)', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', zIndex: 10 }} onMouseOver={e => {e.currentTarget.style.background = 'var(--border, var(--border, #f1f5f9))';}} onMouseOut={e => {e.currentTarget.style.background = 'white';}}>
             <ArrowRight size={18} />
           </button>
 
-          <h2 style={{ margin: '0 auto', fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.5px', lineHeight: 1, textAlign: 'center' }}>
+          <h2 style={{ margin: '0 auto', fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-h, #1e293b)', letterSpacing: '-0.5px', lineHeight: 1, textAlign: 'center' }}>
             التشخيص والفحص الأولي
           </h2>
           
           <div className="desktop-actions" style={{ position: 'absolute', left: '24px', display: 'flex', gap: '8px', alignItems: 'center', zIndex: 10 }}>
-            <button onClick={() => { onClose(); onEdit(recordData); }} style={{ background: 'white', border: '1px solid #e2e8f0', color: '#3b82f6', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="تعديل التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.borderColor = '#bfdbfe';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0';}}>
+            <button onClick={() => { onClose(); onEdit(recordData); }} style={{ background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--accent, var(--accent, #3b82f6))', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="تعديل التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.borderColor = '#bfdbfe';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border, var(--border, #e2e8f0))';}}>
               <Edit2 size={16} />
             </button>
-            <button onClick={() => { onClose(); onDelete(recordData); }} style={{ background: 'white', border: '1px solid #e2e8f0', color: '#ef4444', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="حذف التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e2e8f0';}}>
+            <button onClick={() => { onClose(); onDelete(recordData); }} style={{ background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--danger, var(--danger, #ef4444))', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="حذف التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border, var(--border, #e2e8f0))';}}>
               <Trash2 size={16} />
             </button>
           </div>
@@ -47,41 +47,57 @@ export const ViewInitialExamDialog: React.FC<ViewInitialExamDialogProps> = ({
         {/* Content Section */}
         <div className="dialog-content-section" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px', overflowY: 'auto', maxHeight: '75vh', flex: 1 }}>
           
-          {/* Diagnosis Block */}
-          <div style={{ background: '#fafafa', borderRadius: '16px', border: '1px solid #f3f4f6', padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{ background: 'white', padding: '8px', borderRadius: '10px', border: '1px solid #e5e7eb', color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Stethoscope size={18} />
+          {/* Premium Initial Exam Block */}
+          <div style={{ background: 'var(--accent, #0f172a)', borderRadius: '20px', padding: '2px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3)' }}>
+            <div style={{ background: 'var(--card-bg, var(--card-bg, #ffffff))', borderRadius: '18px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              
+              {/* Header inside the card */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ background: 'var(--bg-hover-strong, var(--border, var(--border, #f1f5f9)))', padding: '12px', borderRadius: '14px', color: 'var(--text-h, #0f172a)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ClipboardList size={28} />
+                  </div>
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: '1.3rem', color: 'var(--text-h, #1e293b)', fontWeight: 900 }}>التقييم الأولي</h3>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-muted, #64748b)', fontWeight: 600 }}>تشخيص وتوصيات الفحص المبدئي</span>
+                  </div>
+                </div>
               </div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: 800 }}>التشخيص الطبي</h3>
-            </div>
-            <div style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.8', fontWeight: 600, background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-              {recordData.diagnosis || <span style={{ color: '#94a3b8' }}>لم يتم إدخال تشخيص.</span>}
-            </div>
-          </div>
 
-          {/* Recommendation Block */}
-          <div style={{ background: '#fafafa', borderRadius: '16px', border: '1px solid #f3f4f6', padding: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-              <div style={{ background: 'white', padding: '8px', borderRadius: '10px', border: '1px solid #e5e7eb', color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <FileText size={18} />
+              {/* Diagnosis Text */}
+              <div style={{ background: 'var(--bg-body, #f8fafc)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border, var(--border, #f1f5f9))', position: 'relative', marginTop: '8px' }}>
+                <div style={{ position: 'absolute', top: '-10px', right: '20px', background: 'var(--card-bg, white)', padding: '0 8px', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-h, #0f172a)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Stethoscope size={14} />
+                  <span>التشخيص الطبي</span>
+                </div>
+                <div style={{ color: 'var(--text-h, #334155)', fontSize: '1.05rem', lineHeight: '1.8', fontWeight: 700 }}>
+                  {recordData.diagnosis || <span style={{ color: 'var(--text-muted, #94a3b8)', fontStyle: 'italic' }}>لم يتم إدخال تشخيص.</span>}
+                </div>
               </div>
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#1e293b', fontWeight: 800 }}>التوصية المبدئية</h3>
-            </div>
-            <div style={{ color: '#475569', fontSize: '0.95rem', lineHeight: '1.8', fontWeight: 600, background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e5e7eb' }}>
-              {recordData.initial_recommendation || <span style={{ color: '#94a3b8' }}>لم يتم إدخال توصية.</span>}
+
+              {/* Recommendation Text */}
+              <div style={{ background: 'var(--bg-body, #f8fafc)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border, var(--border, #f1f5f9))', position: 'relative', marginTop: '8px' }}>
+                <div style={{ position: 'absolute', top: '-10px', right: '20px', background: 'var(--card-bg, white)', padding: '0 8px', fontSize: '0.75rem', fontWeight: 800, color: 'var(--text-h, #0f172a)', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <FileText size={14} />
+                  <span>التوصية المبدئية</span>
+                </div>
+                <div style={{ color: 'var(--text-h, #334155)', fontSize: '1.05rem', lineHeight: '1.8', fontWeight: 700 }}>
+                  {recordData.initial_recommendation || <span style={{ color: 'var(--text-muted, #94a3b8)', fontStyle: 'italic' }}>لم يتم إدخال توصية.</span>}
+                </div>
+              </div>
+
             </div>
           </div>
 
           {/* Next Exam Block (if available) */}
           {recordData.next_exam_date && (
-            <div style={{ background: '#fafafa', borderRadius: '16px', border: '1px solid #f3f4f6', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <div style={{ background: 'white', padding: '12px', borderRadius: '12px', border: '1px solid #e5e7eb', color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ background: 'var(--bg-hover, #fafafa)', borderRadius: '16px', border: '1px solid var(--border, var(--border, #f3f4f6))', padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{ background: 'var(--card-bg, white)', padding: '12px', borderRadius: '12px', border: '1px solid var(--border, var(--border, #e5e7eb))', color: 'var(--text-muted, #4b5563)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Calendar size={24} />
               </div>
               <div>
-                <div style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: '4px', fontWeight: 700 }}>موعد الفحص القادم</div>
-                <div style={{ color: '#1e293b', fontSize: '1.1rem', fontWeight: 900 }}>{new Date(recordData.next_exam_date).toLocaleDateString('en-CA').replace(/-/g, '/')}</div>
+                <div style={{ color: 'var(--text-muted, #64748b)', fontSize: '0.8rem', marginBottom: '4px', fontWeight: 700 }}>موعد الفحص القادم</div>
+                <div style={{ color: 'var(--text-h, #1e293b)', fontSize: '1.1rem', fontWeight: 900 }}>{new Date(recordData.next_exam_date).toLocaleDateString('en-CA').replace(/-/g, '/')}</div>
               </div>
             </div>
           )}
@@ -89,11 +105,11 @@ export const ViewInitialExamDialog: React.FC<ViewInitialExamDialogProps> = ({
         </div>
         
         {/* Mobile Actions Footer */}
-        <div className="mobile-actions" style={{ padding: '16px 24px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', display: 'none', gap: '12px', justifyContent: 'center' }}>
-          <button onClick={() => { onClose(); onEdit(recordData); }} style={{ flex: 1, padding: '12px', background: 'white', border: '1px solid #e2e8f0', color: '#3b82f6', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
+        <div className="mobile-actions" style={{ padding: '16px 24px', background: 'var(--bg-body, #f8fafc)', borderTop: '1px solid var(--border, var(--border, #e2e8f0))', display: 'none', gap: '12px', justifyContent: 'center' }}>
+          <button onClick={() => { onClose(); onEdit(recordData); }} style={{ flex: 1, padding: '12px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--accent, var(--accent, #3b82f6))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
             <Edit2 size={18} /> تعديل
           </button>
-          <button onClick={() => { onClose(); onDelete(recordData); }} style={{ flex: 1, padding: '12px', background: 'white', border: '1px solid #e2e8f0', color: '#ef4444', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
+          <button onClick={() => { onClose(); onDelete(recordData); }} style={{ flex: 1, padding: '12px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--danger, var(--danger, #ef4444))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
             <Trash2 size={18} /> حذف
           </button>
         </div>

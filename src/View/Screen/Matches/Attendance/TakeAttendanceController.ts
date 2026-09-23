@@ -10,6 +10,7 @@ export interface PlayerAttendance {
   photo?: string;
   status: 'حاضر' | 'متأخر' | 'غائب مبرر' | 'غائب غير مبرر' | null;
   note: string;
+  is_injured?: boolean;
 }
 
 export interface MatchInfo {
@@ -39,11 +40,20 @@ export const useTakeAttendanceController = () => {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await axios.get(
-        `${Applink.server}/matches/${matchId}/attendance`,
-        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-      const data = response.data;
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+
+      const [res, indsRes, medRes] = await Promise.all([
+        axios.get(`${Applink.server}/matches/${matchId}/attendance`, { headers }),
+        axios.get(Applink.individuals, { headers }).catch(() => null),
+        axios.get(Applink.medicalRecords, { headers }).catch(() => null)
+      ]);
+      const data = res.data;
+      
+      const allInds = indsRes?.data?.data || indsRes?.data || [];
+      const medRecords = medRes?.data?.data || medRes?.data || [];
+      const matchDate = new Date(data.match_date ? data.match_date.split('T')[0] : new Date());
+
       setMatchInfo({
         match_id: data.match_id,
         match_date: data.match_date,
@@ -52,7 +62,39 @@ export const useTakeAttendanceController = () => {
         end_time: data.end_time,
         team_name: data.team_name,
       });
-      setAttendanceList(data.players);
+
+      const formattedPlayers = data.players.map((p: any) => {
+        let isInjured = p.is_injured || false;
+        
+        const ind = allInds.find((i: any) => i.id === p.id);
+        if (ind && ind.status && typeof ind.status === 'string' && ind.status.includes('مصاب')) {
+          isInjured = true;
+        }
+
+        const pRecords = medRecords.filter((r: any) => {
+          const pid = (r.player_id && typeof r.player_id === 'object') ? r.player_id.id : r.player_id;
+          return pid == p.id;
+        });
+        
+        const activeRecord = pRecords.find((r: any) => r.record_status !== 'مغلق/متعافي');
+        if (activeRecord) {
+          if (activeRecord.absence_to) {
+            const absenceTo = new Date(activeRecord.absence_to.split('T')[0]);
+            if (matchDate <= absenceTo) {
+              isInjured = true;
+            }
+          } else {
+            isInjured = true;
+          }
+        }
+
+        return {
+          ...p,
+          is_injured: isInjured,
+          status: p.status
+        };
+      });
+      setAttendanceList(formattedPlayers);
     } catch (err: any) {
       const errorMsg = err.response ? JSON.stringify(err.response.data) : err.message;
       console.error("Backend fetch error:", err);

@@ -6,6 +6,7 @@ import { MembersData } from '../Members/members_data';
 
 export function useMeetingsController() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -46,10 +47,13 @@ export function useMeetingsController() {
 
   const fetchMeetings = async () => {
     try {
+      setIsLoading(true);
       const response = await client.get('/meetings');
       setMeetings(response.data);
     } catch (error) {
       console.error('Error fetching meetings:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -174,6 +178,7 @@ export function useMeetingsController() {
 
   return {
     meetings,
+    isLoading,
     isEditorOpen,
     editingId,
     topic, setTopic,

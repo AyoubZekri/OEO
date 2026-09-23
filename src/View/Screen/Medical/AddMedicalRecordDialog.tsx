@@ -25,6 +25,8 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
     initial_recommendation: '',
     last_exam_date: '',
     medical_decision: '',
+    absence_from: '',
+    absence_to: '',
     restrictions: '',
     next_exam_date: '',
     record_status: 'مفتوح/مصاب'
@@ -49,6 +51,8 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
           initial_recommendation: recordData.initial_recommendation || '',
           last_exam_date: recordData.last_exam_date?.split('T')[0] || '',
           medical_decision: recordData.medical_decision || '',
+          absence_from: recordData.absence_from?.split('T')[0] || '',
+          absence_to: recordData.absence_to?.split('T')[0] || '',
           restrictions: recordData.restrictions || '',
           next_exam_date: recordData.next_exam_date?.split('T')[0] || '',
           record_status: recordData.record_status || 'مفتوح/مصاب'
@@ -64,6 +68,8 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
           initial_recommendation: '',
           last_exam_date: '',
           medical_decision: '',
+          absence_from: '',
+          absence_to: '',
           restrictions: '',
           next_exam_date: '',
           record_status: 'مفتوح/مصاب'
@@ -290,12 +296,25 @@ export const AddMedicalRecordDialog: React.FC<AddMedicalRecordDialogProps> = ({ 
                       onChange={e => setFormData({...formData, medical_decision: e.target.value})} 
                     />
                   </div>
+                  <div style={{ display: 'flex', gap: '16px', marginTop: '24px' }}>
+                    <div style={{ flex: 1 }}>
+                      <CustomInput label="تاريخ انتهاء الغياب (المتوقع)" type="date" value={formData.absence_to} onChange={e => setFormData({...formData, absence_to: e.target.value})} />
+                    </div>
+                  </div>
                 </>
               )}
 
               {/* قرار العودة */}
               {mode === 'return_decision' && (
                 <>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <CustomInput 
+                      label="تاريخ نهاية مرحلة العلاج" 
+                      type="date" 
+                      value={formData.absence_from} 
+                      onChange={e => setFormData({...formData, absence_from: e.target.value})} 
+                    />
+                  </div>
                   <div>
                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '1rem', fontWeight: 700, color: 'var(--text-h)' }}>القيود والتعليمات للطاقم الفني</label>
                     <textarea 

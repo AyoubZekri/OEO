@@ -601,3 +601,12 @@ body.dark-mode .ta-status-absent.ta-active  { background: rgba(239,68,68,0.2); }
     padding: 8px 10px;
   }
 }
+
+.ta-card-injured {
+  border: 1px solid #EF4444 !important;
+  background-color: rgba(239, 68, 68, 0.05) !important;
+}
+.ta-card-injured .ta-status-btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

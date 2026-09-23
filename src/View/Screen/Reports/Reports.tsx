@@ -314,7 +314,6 @@ export const Reports: React.FC = () => {
   return (
     <div className="reports-container">
       <div className="reports-header">
-        <h2>{t('reports.title')}</h2>
         <div className="reports-actions">
           <button className="btn-primary" onClick={controller.handlePrint}>
             <Printer size={18} style={{ marginInlineEnd: '8px' }} />

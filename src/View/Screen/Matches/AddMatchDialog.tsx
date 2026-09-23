@@ -23,10 +23,8 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     gathering_location: '',
     coach_id: '', team_id: '',
     admin_id: '',
-      team_score: '',
-      opponent_score: '',
-      match_status: '',
-      opponent_club_id: ''
+    match_status: 'upcoming',
+    opponent_club_id: ''
   });
   
   const [individuals, setIndividuals] = useState<any[]>([]);
@@ -49,8 +47,6 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           coach_id: matchData.coach_id?.id ? matchData.coach_id.id.toString() : (matchData.coach_id ? matchData.coach_id.toString() : ''),
           admin_id: matchData.admin_id?.id ? matchData.admin_id.id.toString() : (matchData.admin_id ? matchData.admin_id.toString() : ''),
           team_id: matchData.team_id?.id ? matchData.team_id.id.toString() : (matchData.team_id ? matchData.team_id.toString() : (matchData.team?.id ? matchData.team.id.toString() : '')),
-          team_score: matchData.team_score || '',
-          opponent_score: matchData.opponent_score || '',
           match_status: matchData.match_status || 'upcoming',
           opponent_club_id: matchData.opponent_club_id || ''
         });
@@ -59,10 +55,8 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           competition: '', opponent: '', match_title: '', match_date: '',
           location: '', gathering_time: '', gathering_location: '',
           coach_id: '', team_id: '', admin_id: '',
-      team_score: '',
-      opponent_score: '',
-      match_status: '',
-      opponent_club_id: ''
+          match_status: 'upcoming',
+          opponent_club_id: ''
         });
       }
       fetchDependencies();
@@ -243,38 +237,7 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           </div>
 
 
-          <div className="responsive-grid-2">
-            <div style={{ marginBottom: '16px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-h)' }}>حالة المباراة</label>
-              <select 
-                value={formData.match_status || ''}
-                onChange={e => setFormData({...formData, match_status: e.target.value})}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', outline: 'none', height: '42px', fontFamily: 'inherit' }}
-              >
-                <option value="">مبرمجة / لم تُلعب بعد</option>
-                <option value="ملعوبة">ملعوبة</option>
-                <option value="مؤجلة">مؤجلة</option>
-                <option value="ملغاة">ملغاة</option>
-              </select>
-            </div>
-          </div>
-          
-          {(formData.match_status === 'ملعوبة' || formData.match_status === '') && (
-            <div className="responsive-grid-2" style={{ background: 'var(--bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '16px' }}>
-              <CustomInput
-                label="أهداف فريقنا"
-                type="number"
-                value={formData.team_score || ''}
-                onChange={e => setFormData({...formData, team_score: e.target.value})}
-              />
-              <CustomInput
-                label="أهداف الخصم"
-                type="number"
-                value={formData.opponent_score || ''}
-                onChange={e => setFormData({...formData, opponent_score: e.target.value})}
-              />
-            </div>
-          )}
+
 
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
             <button type="button" onClick={onClose} className="mc-btn mc-btn-secondary" style={{ padding: '10px 24px', minWidth: '100px' }}>

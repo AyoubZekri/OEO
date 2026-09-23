@@ -547,3 +547,41 @@
   }
 }
 
+
+/* Dark Mode Overrides for Report Cards */
+body.dark-mode .financial-summary-section,
+body.dark-mode .report-content,
+body.dark-mode .payments-list-section {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+
+body.dark-mode .financial-card,
+body.dark-mode .report-metric-card,
+body.dark-mode .highlight-card {
+  background-color: var(--bg-body) !important;
+  border-color: var(--border) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+body.dark-mode .financial-card:hover,
+body.dark-mode .report-metric-card:hover,
+body.dark-mode .highlight-card:hover {
+  background-color: var(--bg-hover) !important;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.dark-mode .fc-value,
+body.dark-mode .report-metric-value {
+  color: var(--text-h) !important;
+}
+
+body.dark-mode .fc-title,
+body.dark-mode .report-metric-title {
+  color: var(--text-muted) !important;
+}
+
+body.dark-mode .empty-state {
+  color: var(--text-muted) !important;
+}
+

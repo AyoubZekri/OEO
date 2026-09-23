@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
-import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, Check, CalendarX, FolderOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, Check, CalendarX, FolderOpen, ClipboardCheck, FileWarning } from 'lucide-react';
 import { useMeetingsController } from './MeetingsController';
 import type { Attendee, Meeting } from './meeting_model';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../core/context/AuthContext';
+import '../Matches/Matches.css';
+import '../Equipment/Equipment.css';
 import './Meetings.css';
 
 export const Meetings: React.FC = () => {
   const { t } = useTranslation();
   const {
     meetings,
+    isLoading,
     isEditorOpen,
     editingId,
     topic, setTopic,
@@ -25,7 +29,6 @@ export const Meetings: React.FC = () => {
     handleDelete,
     changeAttendeeStatus,
     appMembers,
-    
     newAttendeeName, setNewAttendeeName,
     newPoint, setNewPoint,
     activeReasonModal, setActiveReasonModal,
@@ -38,16 +41,14 @@ export const Meetings: React.FC = () => {
     submitAbsence
   } = useMeetingsController();
 
+  const navigate = useNavigate();
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
 
   return (
     <div className="visits-tab-container fade-in">
       {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Users size={28} style={{ color: 'var(--primary)' }} /> {t('admin_docs.meetings_title', 'الاجتماعات الدورية')}
-        </h2>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
         {hasAccess(permissions.meetings.add) && (
           <button className="add-eq-btn" onClick={() => openAdd()}>
             <Plus size={20} />
@@ -59,9 +60,53 @@ export const Meetings: React.FC = () => {
       {/* Grid Section */}
       {/* Grid Section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 360px), 1fr))', gap: '24px' }}>
-        {meetings.map(meeting => (
-          <div 
-            key={meeting.id} 
+        {isLoading ? (
+          <div className="loading-container" style={{ gridColumn: '1 / -1' }}>
+            <div className="premium-loader">
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-dot"></div>
+            </div>
+            <p className="loading-text">جاري تحميل الاجتماعات...</p>
+          </div>
+        ) : meetings.length === 0 ? (
+          <div style={{
+            gridColumn: '1 / -1',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
+            borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
+            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
+              padding: '24px', borderRadius: '50%', marginBottom: '20px',
+              border: '1px solid rgba(59, 130, 246, 0.2)',
+              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)'
+            }}>
+              <FolderOpen size={56} color="var(--primary)" style={{ opacity: 0.8 }} />
+            </div>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
+              لا توجد اجتماعات حالياً
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
+              لم يتم جدولة أي اجتماعات حتى الآن. يمكنك إضافة اجتماع جديد للبدء في تنظيم فريقك ومناقشة النقاط الهامة.
+            </p>
+            {hasAccess(permissions.meetings.add) && (
+              <button 
+                className="add-eq-btn" 
+                style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem' }}
+                onClick={() => openAdd()}
+              >
+                <Plus size={22} />
+                <span>إضافة اجتماع جديد</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          meetings.map(meeting => (
+            <div 
+              key={meeting.id} 
             className="premium-card fade-in"
             style={{
               position: 'relative',
@@ -107,60 +152,55 @@ export const Meetings: React.FC = () => {
                 <span style={{ fontWeight: '500' }}>{meeting.location}</span>
               </div>
 
-              <button 
-                className="premium-btn-outline"
-                onClick={() => setExpandedMeetingId(meeting.id)}
-                style={{ 
-                  width: '100%', 
-                  display: 'flex', 
-                  justifyContent: 'center', 
-                  alignItems: 'center', 
-                  gap: '8px', 
-                  padding: '12px',
-                  marginTop: '10px'
-                }}
-              >
-                <Users size={18} /> 
-                {t('admin_docs.show_details', 'عرض الحضور والنقاط')}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+              {/* Attendance Progress Bar */}
+              {meeting.attendees && meeting.attendees.length > 0 && (() => {
+                const total = meeting.attendees.length;
+                const present = meeting.attendees.filter((a: any) => a.status === 'حاضر').length;
+                const late = meeting.attendees.filter((a: any) => a.status === 'متأخر').length;
+                const excused = meeting.attendees.filter((a: any) => a.status === 'غائب مبرر').length;
+                const absent = meeting.attendees.filter((a: any) => a.status === 'غائب غير مبرر').length;
+                const totalPresent = present + late;
+                const totalAbsent = absent + excused;
+                const presentPct = total > 0 ? (totalPresent / total) * 100 : 0;
+                return (
+                  <div className="mc-attendance-bar-wrap" style={{ marginBottom: '16px' }}>
+                    <div className="mc-attendance-bar-header">
+                      <span className="mc-attendance-bar-title">الحضور</span>
+                      <span className="mc-att-badge mc-att-present">
+                        <span className="mc-att-dot mc-att-dot-green"></span>
+                        {totalPresent}/{total}
+                      </span>
+                    </div>
+                    <div className="mc-attendance-segbar">
+                      <div className="mc-att-seg mc-att-seg-green" style={{ width: `${presentPct}%` }}></div>
+                    </div>
+                    <div className="mc-attendance-bar-footer">
+                      <span>{total > 0 ? `${Math.round(presentPct)}٪ نسبة الحضور` : 'لم يُسجّل الحضور بعد'}</span>
+                      <span>{totalAbsent > 0 ? `${totalAbsent} غائب` : ''}</span>
+                    </div>
+                  </div>
+                );
+              })()}
 
-        {meetings.length === 0 && (
-          <div style={{
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
-            borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
-            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
-              padding: '24px', borderRadius: '50%', marginBottom: '20px',
-              border: '1px solid rgba(59, 130, 246, 0.2)',
-              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)'
-            }}>
-              <FolderOpen size={56} color="var(--primary)" style={{ opacity: 0.8 }} />
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: 'auto' }}>
+                <button
+                  className="mc-action-btn"
+                  onClick={() => navigate(`/meetings/${meeting.id}/attendance`)}
+                >
+                  <ClipboardCheck size={16} /> تسجيل الحضور
+                </button>
+                <button
+                  className="mc-action-btn"
+                  onClick={() => setExpandedMeetingId(meeting.id)}
+                >
+                  <List size={16} /> عرض التفاصيل
+                </button>
+              </div>
             </div>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
-              لا توجد اجتماعات حالياً
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
-              لم يتم جدولة أي اجتماعات حتى الآن. يمكنك إضافة اجتماع جديد للبدء في تنظيم فريقك ومناقشة النقاط الهامة.
-            </p>
-            {hasAccess(permissions.meetings.add) && (
-              <button 
-                className="add-eq-btn" 
-                style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem' }}
-                onClick={() => openAdd()}
-              >
-                <Plus size={22} />
-                <span>إضافة اجتماع جديد</span>
-              </button>
-            )}
           </div>
-        )}
+        )))}
+      </div>
 
       {/* Editor Modal */}
       {isEditorOpen && (
@@ -393,31 +433,23 @@ export const Meetings: React.FC = () => {
                                 <div style={{ fontWeight: '800', color: 'var(--text-h)', fontSize: '1.1rem', marginBottom: '6px' }}>{a.name}</div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                                     {a.status === 'pending' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontWeight: '700', fontSize: '0.85rem' }}>
-                                      <Clock size={14} /> {t('admin_docs.status_pending', 'قيد الانتظار')}
+                                      <Clock size={14} /> قيد الانتظار
                                     </span>}
-                                    {a.status === 'confirmed' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontWeight: '700', fontSize: '0.85rem' }}>
-                                      <CheckCircle size={14} /> {t('admin_docs.status_confirmed', 'مؤكد')}
+                                    {a.status === 'حاضر' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#059669', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <CheckCircle size={14} /> حاضر
                                     </span>}
-                                    {a.status === 'absent' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', fontWeight: '700', fontSize: '0.85rem' }}>
-                                      <XCircle size={14} /> {t('admin_docs.status_absent', 'غائب')}
+                                    {a.status === 'متأخر' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#d97706', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <Clock size={14} /> متأخر
+                                    </span>}
+                                    {a.status === 'غائب مبرر' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <FileWarning size={14} /> غائب مبرر
+                                    </span>}
+                                    {a.status === 'غائب غير مبرر' && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 12px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#dc2626', fontWeight: '700', fontSize: '0.85rem' }}>
+                                      <XCircle size={14} /> غائب غير مبرر
                                     </span>}
                                   {a.reason && <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--card-bg)', padding: '4px 10px', borderRadius: '8px', border: '1px solid var(--border)', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={a.reason}>{a.reason}</span>}
                                 </div>
                               </div>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', background: 'var(--card-bg)', padding: '6px', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                              <button onClick={() => changeAttendeeStatus(meeting.id, a.id, 'confirmed')} style={{ 
-                                background: a.status === 'confirmed' ? '#10b981' : 'transparent', color: a.status === 'confirmed' ? '#fff' : '#10b981', 
-                                border: 'none', padding: '10px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' 
-                              }} title={t('admin_docs.confirm_attendance', 'تأكيد الحضور')}>
-                                <Check size={20} strokeWidth={3} />
-                              </button>
-                              <button onClick={() => setActiveReasonModal({ meetingId: meeting.id, attendeeId: a.id })} style={{ 
-                                background: a.status === 'absent' ? '#ef4444' : 'transparent', color: a.status === 'absent' ? '#fff' : '#ef4444', 
-                                border: 'none', padding: '10px', borderRadius: '10px', cursor: 'pointer', transition: 'all 0.2s' 
-                              }} title={t('admin_docs.mark_absent', 'غياب')}>
-                                <X size={20} strokeWidth={3} />
-                              </button>
                             </div>
                           </div>
                         )) : <div style={{ fontSize: '1rem', color: 'var(--text-muted)', textAlign: 'center', padding: '24px', background: 'var(--bg)', borderRadius: '12px', fontStyle: 'italic', border: '1px dashed var(--border)' }}>{t('admin_docs.no_attendees', 'لا يوجد حضور محددين')}</div>}

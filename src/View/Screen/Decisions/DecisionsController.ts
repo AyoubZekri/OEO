@@ -4,9 +4,11 @@ import type { Decision, DecisionStatus, ChecklistItem } from './decision_model';
 
 export function useDecisionsController() {
   const [decisions, setDecisions] = useState<Decision[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchDecisions = async () => {
     try {
+      setIsLoading(true);
       const response = await client.get('/decisions');
       const mapped = response.data.map((d: any) => ({
         ...d,
@@ -17,6 +19,8 @@ export function useDecisionsController() {
       setDecisions(mapped);
     } catch (error) {
       console.error('Error fetching decisions:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -75,6 +79,7 @@ export function useDecisionsController() {
 
   return {
     decisions,
+    isLoading,
     addDecision,
     updateDecision,
     deleteDecision,

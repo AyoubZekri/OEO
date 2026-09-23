@@ -77,7 +77,7 @@ export const Correspondences: React.FC = () => {
   return (
     <div className="members-container">
       <div className="members-header">
-        <h1 className="page-title">إدارة المراسلات الرسمية</h1>
+
         
         <div className="members-actions">
           <div className="search-box">

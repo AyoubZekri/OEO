@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { X, Search, Calendar, MapPin, Clock, User, Users, Shield, CheckCircle } from 'lucide-react';
@@ -30,7 +30,10 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
     setIsLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
+      const headers = { 
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/json'
+      };
       
       let playersRes: any = null;
       let callupsRes: any = null;
@@ -61,7 +64,8 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
           if (callup.player_id && typeof callup.player_id === 'object') {
             return {
               ...callup,
-              playerDetails: callup.player_id
+              playerDetails: callup.player_id,
+              player_id: callup.player_id.id
             };
           }
 
@@ -74,6 +78,8 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
         });
         
         setCalledUpPlayers(playersList);
+
+
       } else {
         setCalledUpPlayers([]);
       }
@@ -89,6 +95,49 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
     `${p.playerDetails.first_name} ${p.playerDetails.last_name}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const { initialPlacements, initialCustomPositions } = useMemo(() => {
+    const placements: Record<string, number> = {};
+    const custom: Record<string, {x: number, y: number}> = {};
+    const formation = matchData?.formation || "4-3-3";
+    const config = FORMATIONS[formation];
+
+    if (config && calledUpPlayers.length > 0) {
+      const availableSpots = [...config.positions];
+      
+      calledUpPlayers.forEach(p => {
+        if (p.is_starter && p.position_x != null && p.position_y != null) {
+          const px = parseFloat(p.position_x);
+          const py = parseFloat(p.position_y);
+          
+          let closestSpot: any = null;
+          let minD = Infinity;
+          
+          availableSpots.forEach(spot => {
+             const d = Math.sqrt(Math.pow(spot.x - px, 2) + Math.pow(spot.y - py, 2));
+             if (d < minD) {
+               minD = d;
+               closestSpot = spot;
+             }
+          });
+          
+          if (closestSpot) {
+             const playerId = p.player_id || p.individual_id || p.id;
+             placements[closestSpot.id] = playerId;
+             
+             // If distance is > 0.1, it means user moved it from default position
+             if (Math.abs(closestSpot.x - px) > 0.1 || Math.abs(closestSpot.y - py) > 0.1) {
+               custom[closestSpot.id] = { x: px, y: py };
+             }
+             
+             availableSpots.splice(availableSpots.indexOf(closestSpot), 1);
+          }
+        }
+      });
+    }
+    
+    return { initialPlacements: placements, initialCustomPositions: custom };
+  }, [calledUpPlayers, matchData?.formation]);
+
   if (!isOpen) return null;
 
   return (
@@ -96,41 +145,22 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
       <div className="task-dialog-overlay" onClick={onClose} style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000 }}>
         <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '800px', width: '90%', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column', maxHeight: '90vh' }} onClick={(e) => e.stopPropagation()}>
         
-        <div className="dialog-app-bar" style={{ borderRadius: '16px 16px 0 0' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="icon-container" style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '12px' }}>
-                <CheckCircle size={24} color="#f97316" />
-              </div>
-              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>المستدعين</h2>
-            </div>
-            <p className="hide-on-mobile" style={{ margin: '8px 0 0', color: '#94a3b8', fontSize: '0.95rem' }}>{matchData?.match_title} - {matchData?.opponent}</p>
+        <div style={{ padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', background: 'var(--card-bg)', borderRadius: '16px 16px 0 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text)' }}>التشكيلة</h2>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', borderRight: '1px solid var(--border)', paddingRight: '8px', marginRight: '8px' }}>{matchData?.match_title}</span>
           </div>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <button type="button" onClick={onClose} style={{
-              background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', 
-              width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
-            }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-               onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-            >
-              <X size={20} />
-            </button>
-          </div>
+          <button type="button" onClick={onClose} style={{
+            background: 'transparent', border: 'none', color: 'var(--text-muted)', 
+            width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
+          }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg)'}
+             onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <div className="dialog-toolbar">
-          <div style={{ position: 'relative', flexGrow: 1, width: '100%' }}>
-            <Search size={20} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder="بحث..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="dialog-search-input"
-            />
-          </div>
-        </div>
 
         <div style={{ padding: '24px', overflowY: 'auto', flexGrow: 1, background: 'var(--card-bg)' }}>
           
@@ -143,32 +173,48 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
               لم يتم استدعاء أي لاعبين لهذه المباراة بعد. الرجاء استدعاء اللاعبين أولاً.
             </div>
           ) : (
+            <>
             <FootballPitch 
-              callups={calledUpPlayers.map(p => ({
-                player_id: p.player_id || p.individual_id || p.id,
-                name: `${p.playerDetails.first_name} ${p.playerDetails.last_name}`,
-                player: p.playerDetails,
-                notes: p.notes
-              }))}
+              callups={calledUpPlayers.map(p => {
+                const pid = p.player_id || p.individual_id || p.id;
+                // Find the player who replaced this player (subbed out)
+                const replacedBy = p.replaced_by
+                  ? p.replaced_by
+                  : calledUpPlayers.find((q: any) => {
+                      const qid = q.player_id || q.individual_id || q.id;
+                      return qid === p.replaced_by_id;
+                    })?.playerDetails;
+
+                return {
+                  player_id: pid,
+                  name: `${p.playerDetails.first_name} ${p.playerDetails.last_name}`,
+                  player: {
+                    ...p.playerDetails,
+                    shirt_number: p.playerDetails?.shirt_number || p.shirt_number,
+                  },
+                  notes: p.notes,
+                  is_starter: p.is_starter == 1 || p.is_starter === true,
+                  subbed_out_minute: p.subbed_out_minute || null,
+                  subbed_in_minute: p.subbed_in_minute || null,
+                  replaced_by_id: p.replaced_by_id || null,
+                  shirt_number: p.playerDetails?.shirt_number || p.shirt_number,
+                  // stats
+                  rating: p.rating != null ? Number(p.rating) : null,
+                  yellow_cards: p.yellow_cards || 0,
+                  red_cards: p.red_cards || 0,
+                  red_card_type: p.red_card_type || null,
+                  // goals & assists — passed via goals prop
+                };
+              })}
               initialFormation={matchData?.formation || "4-3-3"}
-              initialPlacements={
-                calledUpPlayers.reduce((acc, p) => {
-                  if (p.is_starter && p.position_x !== null && p.position_y !== null) {
-                    const formation = matchData?.formation || "4-3-3";
-                    const config = FORMATIONS[formation];
-                    if (config) {
-                      const pos = config.positions.find((pos: any) => 
-                        Math.abs(pos.x - parseFloat(p.position_x)) < 1 && 
-                        Math.abs(pos.y - parseFloat(p.position_y)) < 1
-                      );
-                      if (pos) {
-                        acc[pos.id] = p.player_id || p.individual_id || p.id;
-                      }
-                    }
-                  }
-                  return acc;
-                }, {} as Record<string, number>)
-              }
+              initialPlacements={initialPlacements}
+              initialCustomPositions={initialCustomPositions}
+              goals={calledUpPlayers.flatMap((p: any) =>
+                (p.goals || []).map((g: any) => ({
+                  ...g,
+                  scorer_id: p.player_id || p.individual_id || p.id,
+                }))
+              )}
               onSave={async (formation, starters) => {
                 setIsLoading(true);
                 try {
@@ -182,8 +228,11 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
                     },
                     { headers: { Authorization: `Bearer ${token}` } }
                   );
+                  if (matchData) {
+                    matchData.formation = formation;
+                  }
                   alert('تم حفظ التشكيلة بنجاح');
-                  fetchCalledUpPlayers(); // Reload
+                  fetchCalledUpPlayers();
                 } catch (err) {
                   console.error(err);
                   alert('حدث خطأ أثناء حفظ التشكيلة');
@@ -193,6 +242,8 @@ export const ViewMatchCallupsDialog: React.FC<ViewMatchCallupsDialogProps> = ({ 
               }}
               isLoading={isLoading}
             />
+
+            </>
           )}
 
         </div>

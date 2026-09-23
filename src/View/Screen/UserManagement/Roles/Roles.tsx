@@ -32,8 +32,7 @@ export const Roles: React.FC = () => {
 
   return (
     <div className="roles-container">
-      <div className="roles-header">
-        <h1>{t('roles_permissions.title')}</h1>
+      <div className="roles-header" style={{ justifyContent: 'flex-end' }}>
         {hasAccess(permissions.usersAndRoles.addRoles) && (
           <button className="add-role-btn" onClick={controller.openAddDialog}>
             <Plus size={20} />

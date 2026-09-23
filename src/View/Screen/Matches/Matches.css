@@ -6,7 +6,7 @@
 }
 
 .match-card-new {
-  background: white;
+  background: var(--card-bg, white);
   border-radius: 20px;
   padding: 24px;
   display: flex;
@@ -70,7 +70,7 @@
   height: 32px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
-  background: white;
+  background: var(--card-bg, white);
   color: #94a3b8;
   display: flex;
   align-items: center;
@@ -173,7 +173,7 @@
 }
 
 .mc-detail-row, .mc-detail-half {
-  background: #f8fafc;
+  background: var(--bg-body, #f8fafc);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -535,5 +535,248 @@ body.dark-mode .no-matches {
 
   .hide-on-mobile {
     display: none !important;
+  }
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.mc-live-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse-green 2s infinite;
+}
+
+/* New Clean Action Buttons */
+.mc-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  background: var(--card-bg);
+  color: var(--text-h);
+  flex: 1 1 calc(50% - 8px);
+  min-width: 120px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.mc-action-btn svg {
+  transition: transform 0.25s ease;
+  color: var(--text-muted);
+}
+
+.mc-action-btn:hover {
+  background: var(--primary, #f97316);
+  color: white;
+  border-color: var(--primary, #f97316);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.25);
+}
+
+.mc-action-btn:hover svg {
+  color: white;
+  transform: scale(1.15);
+}
+
+.mc-action-btn:active {
+  transform: translateY(0);
+}
+
+/* Inline View Report Row */
+.mc-view-report-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(249, 115, 22, 0.06);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  color: var(--primary, #f97316);
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: right;
+}
+
+.mc-view-report-row:hover {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+  transform: translateX(-2px);
+}
+
+body.dark-mode .mc-view-report-row {
+  background: rgba(249, 115, 22, 0.08);
+  border-color: rgba(249, 115, 22, 0.2);
+}
+
+/* Attendance Visual Bar */
+.mc-attendance-bar-wrap {
+  margin-top: 16px;
+  background: var(--bg-light, #f8fafc);
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+}
+
+.mc-attendance-bar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mc-attendance-bar-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted, #94a3b8);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.mc-attendance-bar-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mc-att-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.mc-att-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mc-att-dot-green { background: #10b981; }
+.mc-att-dot-red   { background: #ef4444; }
+.mc-att-dot-gray  { background: #cbd5e1; }
+
+.mc-att-present { color: #10b981; }
+.mc-att-absent  { color: #ef4444; }
+.mc-att-unrecorded { color: #94a3b8; }
+
+.mc-attendance-segbar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+  gap: 2px;
+}
+
+.mc-att-seg {
+  height: 100%;
+  transition: width 0.5s ease;
+}
+.mc-att-seg-green { background: #10b981; border-radius: 999px 0 0 999px; }
+.mc-att-seg-red   { background: #ef4444; }
+.mc-att-seg-gray  { background: #cbd5e1; border-radius: 0 999px 999px 0; }
+.mc-att-seg:only-child { border-radius: 999px; }
+
+.mc-attendance-bar-footer {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted, #94a3b8);
+  font-weight: 600;
+}
+
+body.dark-mode .mc-attendance-bar-wrap {
+  background: rgba(255,255,255,0.04);
+  border-color: var(--border);
+}
+body.dark-mode .mc-attendance-segbar {
+  background: rgba(255,255,255,0.08);
+}
+
+/* ========================================================================= */
+/* Responsive Dialog Styles for Matches                                      */
+/* ========================================================================= */
+
+@media (max-width: 768px) {
+  /* General Dialog Container */
+  .task-dialog,
+  .role-dialog {
+    width: 95% !important;
+    max-width: 95% !important;
+    max-height: 90vh !important;
+    border-radius: 16px !important;
+    margin: 10px !important;
+  }
+  
+  .task-dialog-header {
+    padding: 16px !important;
+  }
+
+  .task-dialog-header h2 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Split Layouts (e.g. MatchTimelineDialog) */
+  .mc-dialog-split {
+    flex-direction: column !important;
+    overflow-y: auto !important;
+  }
+
+  .mc-dialog-sidebar,
+  .mc-dialog-main {
+    width: 100% !important;
+    border-left: none !important;
+    flex-grow: 0 !important;
+    overflow: visible !important;
+  }
+
+  .mc-dialog-sidebar {
+    border-bottom: 1px solid var(--border) !important;
+    max-height: 50vh !important;
+    overflow-y: auto !important;
+  }
+  
+  .mc-dialog-main {
+    max-height: none !important;
+  }
+
+  /* Grid Layouts in Dialogs */
+  .responsive-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .responsive-grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Specific padding adjustments */
+  .print-section {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+  
+  .hover-card {
+    padding: 16px !important;
   }
 }

@@ -353,7 +353,7 @@ body.dark-mode .status-dropdown-menu {
   background-color: #fffbeb; color: #f59e0b; border-color: #fde68a;
 }
 .status-select-modern.closed, .status-dropdown-item.closed.selected, .status-dropdown-item.closed:hover {
-  background-color: #f3f4f6; color: #6b7280; border-color: #e5e7eb;
+  background-color: var(--bg-hover, #f3f4f6); color: var(--text-muted, #6b7280); border-color: var(--border, #e5e7eb);
 }
 
 body.dark-mode .status-select-modern.pending, body.dark-mode .status-dropdown-item.pending.selected, body.dark-mode .status-dropdown-item.pending:hover {
@@ -369,7 +369,7 @@ body.dark-mode .status-select-modern.late, body.dark-mode .status-dropdown-item.
   background-color: rgba(245, 158, 11, 0.15); color: #fcd34d; border-color: rgba(245, 158, 11, 0.3);
 }
 body.dark-mode .status-select-modern.closed, body.dark-mode .status-dropdown-item.closed.selected, body.dark-mode .status-dropdown-item.closed:hover {
-  background-color: rgba(107, 114, 128, 0.15); color: #9ca3af; border-color: rgba(107, 114, 128, 0.3);
+  background-color: rgba(107, 114, 128, 0.15); color: var(--text-muted, #9ca3af); border-color: rgba(107, 114, 128, 0.3);
 }
 
 /* Modern Dialog Styles */

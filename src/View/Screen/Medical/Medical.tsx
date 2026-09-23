@@ -1,32 +1,44 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, HeartPulse, Activity, User, Calendar, Stethoscope, AlertCircle, Edit2, Trash2, CheckCircle, FileText, Clock, Check } from 'lucide-react';
 import { useMedicalController } from './MedicalController';
 import { AddMedicalRecordDialog } from './AddMedicalRecordDialog';
 import { ViewInitialExamDialog } from './ViewInitialExamDialog';
 import { ViewFinalDecisionDialog } from './ViewFinalDecisionDialog';
+import { ViewTreatmentPhaseDialog } from './ViewTreatmentPhaseDialog';
+import { CustomDropdown } from '../../widget/CustomDropdown';
 import '../Members/Members.css';
 import './Medical.css';
 
 export const Medical: React.FC = () => {
   const {
     records,
+    members,
     loading,
     error,
     fetchRecords,
     isAddDialogOpen,
     isViewInitialExamDialogOpen,
     isViewFinalDecisionDialogOpen,
+    isViewTreatmentPhaseDialogOpen,
     selectedRecord,
     dialogMode,
     openAddDialog,
     openEditDialog,
     openViewInitialExamDialog,
     openViewFinalDecisionDialog,
+    openViewTreatmentPhaseDialog,
     closeDialogs,
     handleDelete,
     handleDeleteInitialExam,
-    handleDeleteFinalDecision
+    handleDeleteFinalDecision,
+    handleDeleteTreatmentPhase
   } = useMedicalController();
+
+  const [memberFilter, setMemberFilter] = useState<string>('');
+
+  const filteredRecords = memberFilter
+    ? records.filter(r => r.player?.id?.toString() === memberFilter || r.doctor?.id?.toString() === memberFilter)
+    : records;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -43,11 +55,19 @@ export const Medical: React.FC = () => {
 
   return (
     <div className="members-container" style={{ margin: '0', animation: 'fadeIn 0.4s ease-out' }}>
-      <div className="members-header" style={{ marginBottom: '24px' }}>
-        <div>
-          <h2 style={{ fontSize: '1.6rem', color: 'var(--text-h)', margin: '0', fontWeight: 800 }}>العيادة والطاقم الطبي</h2>
-        </div>
-        <div className="header-actions">
+      <div className="members-header" style={{ marginBottom: '24px', justifyContent: 'flex-end' }}>
+        <div className="header-actions" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+          <div style={{ minWidth: '200px' }}>
+            <CustomDropdown
+              options={[
+                { value: '', label: 'الكل (جميع الأعضاء)' },
+                ...members.map(m => ({ value: m.id.toString(), label: m.name || `${m.first_name} ${m.last_name}` }))
+              ]}
+              value={memberFilter}
+              onChange={setMemberFilter}
+              placeholder="تصفية حسب العضو"
+            />
+          </div>
           <button className="add-btn" onClick={openAddDialog} style={{
             display: 'flex', alignItems: 'center', gap: '10px',
             background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%)',
@@ -66,7 +86,15 @@ export const Medical: React.FC = () => {
       {error && <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>{error}</div>}
 
       {loading ? (
-        <div className="loading" style={{ padding: '60px', textAlign: 'center', color: 'var(--text-p)' }}>جاري تحميل السجلات الطبية...</div>
+        <div className="loading-container" style={{ gridColumn: '1 / -1', marginTop: '40px' }}>
+          <div className="premium-loader">
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-dot"></div>
+          </div>
+          <p className="loading-text">جاري تحميل السجلات الطبية...</p>
+        </div>
       ) : records.length === 0 ? (
         <div className="no-data" style={{ padding: '80px', textAlign: 'center', background: 'var(--card-bg)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
           <HeartPulse size={48} color="var(--border)" style={{ marginBottom: '16px' }} />
@@ -74,7 +102,7 @@ export const Medical: React.FC = () => {
         </div>
       ) : (
         <div className="mc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px', padding: '0 0 24px 0' }}>
-          {records.map((record) => (
+          {filteredRecords.map((record) => (
             <div className="mc-card" key={record.id} style={{
               background: '#ffffff',
               borderRadius: '24px',
@@ -123,14 +151,14 @@ export const Medical: React.FC = () => {
               {/* Main Info */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                 <div style={{ flex: 1, minWidth: '200px' }}>
-                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1.8rem', fontWeight: 900, color: '#111827' }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '1.8rem', fontWeight: 900, color: 'var(--text-h, #111827)' }}>
                     {record.player?.name || (record.player?.first_name ? `${record.player.first_name} ${record.player.last_name}` : 'لاعب غير معروف')}
                   </h3>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <span style={{ fontSize: '0.85rem', color: '#3b82f6', background: '#eff6ff', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid #bfdbfe', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--accent, #3b82f6)', background: 'var(--accent-bg, #eff6ff)', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '6px', border: '1px solid var(--accent, #bfdbfe)', fontWeight: 700 }}>
                       الطبيب: {record.doctor?.name || (record.doctor?.first_name ? `${record.doctor.first_name} ${record.doctor.last_name}` : 'غير معروف')} <User size={14} />
                     </span>
-                    <span style={{ fontSize: '0.85rem', color: '#ef4444', background: '#fef2f2', padding: '6px 12px', borderRadius: '8px', fontWeight: 600, border: '1px solid #fecaca', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--danger, #ef4444)', background: 'var(--danger-bg, #fef2f2)', padding: '6px 12px', borderRadius: '8px', fontWeight: 600, border: '1px solid var(--danger, #fecaca)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Activity size={14} /> {record.injury_nature || 'إصابة غير محددة'}
                     </span>
                   </div>
@@ -143,37 +171,37 @@ export const Medical: React.FC = () => {
               {/* Info Boxes */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Date Box */}
-                <div style={{ border: '1px solid #f3f4f6', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa', flexWrap: 'wrap', gap: '12px' }}>
+                <div style={{ border: '1px solid var(--border, #f3f4f6)', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-hover, #fafafa)', flexWrap: 'wrap', gap: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '1 1 min-content' }}>
-                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', border: '1px solid #e5e7eb', background: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '12px', border: '1px solid var(--border, #e5e7eb)', background: 'var(--card-bg, white)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, #6b7280)' }}>
                       <Calendar size={20} />
                     </div>
                     <div style={{ textAlign: 'right' }}>
-                      <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '4px' }}>تاريخ الإصابة</div>
-                      <div style={{ fontSize: '1rem', fontWeight: 800, color: '#111827' }}>{record.injury_date ? new Date(record.injury_date).toLocaleDateString('en-CA').replace(/-/g, '/') : '-'}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted, #9ca3af)', marginBottom: '4px' }}>تاريخ الإصابة</div>
+                      <div style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-h, #111827)' }}>{record.injury_date ? new Date(record.injury_date).toLocaleDateString('en-CA').replace(/-/g, '/') : '-'}</div>
                     </div>
                   </div>
-                  <span style={{ background: '#e5e7eb', color: '#4b5563', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600 }}>سجل سابق</span>
+                  <span style={{ background: 'var(--border, #e5e7eb)', color: 'var(--text-h, #4b5563)', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', fontWeight: 600 }}>سجل سابق</span>
                 </div>
 
               </div>
 
               {/* Action Buttons - Exact Design based on Stages */}
               <div style={{ marginTop: '8px' }}>
-                <div style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 700, marginBottom: '8px', textAlign: 'right' }}>مسار الخطة العلاجية والتعافي</div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--text-muted, #6b7280)', fontWeight: 700, marginBottom: '8px', textAlign: 'right' }}>مسار الخطة العلاجية والتعافي</div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
                   {/* Stage 1: Initial Exam */}
                   <button 
                     onClick={() => record.record_status !== 'مفتوح/مصاب' ? openViewInitialExamDialog(record) : openEditDialog(record, 'initial_exam')}
-                    style={{ background: '#f9fafb', border: record.record_status !== 'مفتوح/مصاب' ? '1px solid #e5e7eb' : '1px dashed #cbd5e1', borderRadius: '10px', padding: '8px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s', outline: 'none' }}
-                    onMouseOver={e => { e.currentTarget.style.background = '#f3f4f6'; }}
-                    onMouseOut={e => { e.currentTarget.style.background = '#f9fafb'; }}
+                    style={{ background: 'var(--bg-hover, #f9fafb)', border: record.record_status !== 'مفتوح/مصاب' ? '1px solid var(--border, #e5e7eb)' : '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '8px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s', outline: 'none' }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'var(--border, #f3f4f6)'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'var(--bg-hover, #f9fafb)'; }}
                   >
-                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {record.record_status !== 'مفتوح/مصاب' ? <Check size={10} color="#374151" strokeWidth={3} /> : <Clock size={10} color="#6b7280" />}
+                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'var(--border, #e5e7eb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {record.record_status !== 'مفتوح/مصاب' ? <Check size={10} color="var(--text-h, #374151)" strokeWidth={3} /> : <Clock size={10} color="var(--text-muted, #6b7280)" />}
                     </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#374151', margin: '0' }}>التشخيص الأولي</div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: record.record_status !== 'مفتوح/مصاب' ? '#10b981' : '#f59e0b' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-h, #374151)', margin: '0' }}>التشخيص الأولي</div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: record.record_status !== 'مفتوح/مصاب' ? 'var(--success, #10b981)' : 'var(--warning, #f59e0b)' }}>
                       {record.record_status !== 'مفتوح/مصاب' ? 'مكتمل' : 'بانتظار الفحص'}
                     </div>
                   </button>
@@ -181,31 +209,31 @@ export const Medical: React.FC = () => {
                   {/* Stage 2: Final Exam */}
                   <button 
                     onClick={() => (record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? openViewFinalDecisionDialog(record) : openEditDialog(record, 'final_exam')}
-                    style={{ background: '#f9fafb', border: (record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? '1px solid #e5e7eb' : '1px dashed #cbd5e1', borderRadius: '10px', padding: '8px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s', outline: 'none' }}
-                    onMouseOver={e => { e.currentTarget.style.background = '#f3f4f6'; }}
-                    onMouseOut={e => { e.currentTarget.style.background = '#f9fafb'; }}
+                    style={{ background: 'var(--bg-hover, #f9fafb)', border: (record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? '1px solid var(--border, #e5e7eb)' : '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '8px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s', outline: 'none' }}
+                    onMouseOver={e => { e.currentTarget.style.background = 'var(--border, #f3f4f6)'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = 'var(--bg-hover, #f9fafb)'; }}
                   >
-                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {(record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? <Check size={10} color="#374151" strokeWidth={3} /> : <Clock size={10} color="#6b7280" />}
+                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'var(--border, #e5e7eb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {(record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? <Check size={10} color="var(--text-h, #374151)" strokeWidth={3} /> : <Clock size={10} color="var(--text-muted, #6b7280)" />}
                     </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#374151', margin: '0' }}>القرار النهائي</div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: (record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? '#10b981' : '#f59e0b' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-h, #374151)', margin: '0' }}>القرار النهائي</div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: (record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? 'var(--success, #10b981)' : 'var(--warning, #f59e0b)' }}>
                       {(record.record_status === 'بانتظار قرار العودة' || record.record_status === 'مغلق/متعافي' || record.record_status === 'قيد التأهيل') ? 'مكتمل' : 'بانتظار القرار'}
                     </div>
                   </button>
 
                   {/* Stage 3: Return Decision */}
                   <button 
-                    onClick={() => openEditDialog(record, 'return_decision')}
-                    style={{ background: record.record_status === 'مغلق/متعافي' ? '#ecfdf5' : '#f9fafb', border: record.record_status === 'مغلق/متعافي' ? '2px solid #10b981' : '1px dashed #cbd5e1', borderRadius: '10px', padding: '8px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s', outline: 'none' }}
-                    onMouseOver={e => { e.currentTarget.style.background = record.record_status === 'مغلق/متعافي' ? '#d1fae5' : '#f3f4f6'; }}
-                    onMouseOut={e => { e.currentTarget.style.background = record.record_status === 'مغلق/متعافي' ? '#ecfdf5' : '#f9fafb'; }}
+                    onClick={() => record.record_status === 'مغلق/متعافي' ? openViewTreatmentPhaseDialog(record) : openEditDialog(record, 'return_decision')}
+                    style={{ background: record.record_status === 'مغلق/متعافي' ? 'var(--success-bg, #ecfdf5)' : 'var(--bg-hover, #f9fafb)', border: record.record_status === 'مغلق/متعافي' ? '2px solid var(--success, #10b981)' : '1px dashed var(--border, #cbd5e1)', borderRadius: '10px', padding: '8px 4px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'all 0.2s', outline: 'none' }}
+                    onMouseOver={e => { e.currentTarget.style.background = record.record_status === 'مغلق/متعافي' ? 'var(--success-hover, #d1fae5)' : 'var(--border, #f3f4f6)'; }}
+                    onMouseOut={e => { e.currentTarget.style.background = record.record_status === 'مغلق/متعافي' ? 'var(--success-bg, #ecfdf5)' : 'var(--bg-hover, #f9fafb)'; }}
                   >
-                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: record.record_status === 'مغلق/متعافي' ? '#10b981' : '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {record.record_status === 'مغلق/متعافي' ? <Check size={10} color="#fff" strokeWidth={3} /> : <Clock size={10} color="#6b7280" />}
+                    <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: record.record_status === 'مغلق/متعافي' ? 'var(--success, #10b981)' : 'var(--border, #e5e7eb)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {record.record_status === 'مغلق/متعافي' ? <Check size={10} color="#fff" strokeWidth={3} /> : <Clock size={10} color="var(--text-muted, #6b7280)" />}
                     </div>
-                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: record.record_status === 'مغلق/متعافي' ? '#065f46' : '#374151', margin: '0' }}>مراحل العلاج</div>
-                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: record.record_status === 'مغلق/متعافي' ? '#059669' : '#f59e0b' }}>
+                    <div style={{ fontSize: '0.65rem', fontWeight: 800, color: record.record_status === 'مغلق/متعافي' ? 'var(--success, #065f46)' : 'var(--text-h, #374151)', margin: '0' }}>مراحل العلاج</div>
+                    <div style={{ fontSize: '0.6rem', fontWeight: 700, color: record.record_status === 'مغلق/متعافي' ? 'var(--success, #059669)' : 'var(--warning, #f59e0b)' }}>
                       {record.record_status === 'مغلق/متعافي' ? '100% تعافي' : 'قيد العلاج'}
                     </div>
                   </button>
@@ -245,6 +273,16 @@ export const Medical: React.FC = () => {
           recordData={selectedRecord}
           onEdit={(record) => openEditDialog(record, 'final_exam')}
           onDelete={(record) => handleDeleteFinalDecision(record)}
+        />
+      )}
+
+      {isViewTreatmentPhaseDialogOpen && (
+        <ViewTreatmentPhaseDialog
+          isOpen={isViewTreatmentPhaseDialogOpen}
+          onClose={closeDialogs}
+          recordData={selectedRecord}
+          onEdit={(record) => openEditDialog(record, 'return_decision')}
+          onDelete={(record) => handleDeleteTreatmentPhase(record)}
         />
       )}
 

@@ -68,7 +68,7 @@ export const ViewAdministrativeReportDialog: React.FC<ViewAdministrativeReportDi
           <CheckCircle2 size={16} /> نعم
         </span>
       ) : (
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontWeight: 700, background: 'rgba(239, 68, 68, 0.1)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.9rem' }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--danger, #ef4444)', fontWeight: 700, background: 'rgba(239, 68, 68, 0.1)', padding: '4px 12px', borderRadius: '8px', fontSize: '0.9rem' }}>
           <XCircle size={16} /> لا
         </span>
       );
@@ -113,10 +113,10 @@ export const ViewAdministrativeReportDialog: React.FC<ViewAdministrativeReportDi
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <div style={{ 
-                background: 'linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%)', 
+                background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', 
                 padding: '14px', 
                 borderRadius: '16px',
-                boxShadow: '0 4px 15px rgba(14, 165, 233, 0.3)',
+                boxShadow: '0 4px 15px rgba(249, 115, 22, 0.3)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
               }}>
                 <FileText size={26} color="white" />
@@ -171,7 +171,7 @@ export const ViewAdministrativeReportDialog: React.FC<ViewAdministrativeReportDi
 
           {isLoading ? (
              <div style={{ padding: '100px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-               <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTop: '4px solid #0ea5e9', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+               <div style={{ width: '40px', height: '40px', border: '4px solid var(--border)', borderTop: '4px solid #f97316', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
                <div style={{ color: 'var(--text-p)', fontWeight: 600, fontSize: '1.1rem' }}>جاري تحميل التقرير...</div>
              </div>
           ) : error ? (
@@ -202,11 +202,11 @@ export const ViewAdministrativeReportDialog: React.FC<ViewAdministrativeReportDi
               {/* Section 1: Logistics */}
               <div style={{ background: 'var(--card-bg)', borderRadius: '20px', padding: '28px', border: '1px solid var(--border)', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }} className="print-section">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
-                  <div style={{ background: 'rgba(14, 165, 233, 0.1)', padding: '10px', borderRadius: '12px', color: '#0ea5e9' }}>
+                  <div style={{ background: 'rgba(249, 115, 22, 0.1)', padding: '10px', borderRadius: '12px', color: '#f97316' }}>
                     <MapPin size={24} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, color: '#0ea5e9', fontWeight: 800, fontSize: '1.3rem' }}>التقييم اللوجستي</h3>
+                    <h3 style={{ margin: 0, color: '#f97316', fontWeight: 800, fontSize: '1.3rem' }}>التقييم اللوجستي</h3>
                   </div>
                 </div>
                 
@@ -272,7 +272,7 @@ export const ViewAdministrativeReportDialog: React.FC<ViewAdministrativeReportDi
                   </div>
 
                   <div style={{ background: 'var(--bg)', padding: '24px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ef4444', marginBottom: '12px', fontSize: '1rem', fontWeight: 700 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger, #ef4444)', marginBottom: '12px', fontSize: '1rem', fontWeight: 700 }}>
                       <FileWarning size={18} /> الحوادث الانضباطية
                     </div>
                     {renderFieldValue(reportData.disciplinary_incidents)}

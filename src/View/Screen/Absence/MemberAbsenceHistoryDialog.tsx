@@ -68,12 +68,12 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
                     </span>
                     <span className="time-ago" style={{ fontWeight: '600' }}>{abs.event_date || abs.session_date}</span>
                   </div>
-                  <button className="btn-icon delete no-print" onClick={() => onDelete(abs.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
+                  <button className="btn-icon delete no-print" onClick={() => onDelete(abs.id)} title="حذف الغياب" style={{ color: 'var(--danger, #ef4444)', background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}>
                     <Trash2 size={20} />
                   </button>
                 </div>
 
-                <div className="details-list" style={{ flex: 1, background: 'var(--bg, #f9fafb)', border: '1px solid var(--border, #e5e7eb)', borderRadius: '8px', padding: '16px' }}>
+                <div className="details-list" style={{ flex: 1, background: 'var(--bg, #f9fafb)', border: '1px solid var(--border, var(--border, #e5e7eb))', borderRadius: '8px', padding: '16px' }}>
                   
                   {isRequest ? (
                     <>
@@ -85,7 +85,7 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
                         <span style={{ fontWeight: 600, color: 'var(--text-h)', width: '120px', display: 'inline-block' }}>مدة الغياب:</span>
                         <span>{abs.duration || 'غير محددة'}</span>
                       </div>
-                      <div className="detail-row reason-box" style={{ marginTop: '12px', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div className="detail-row reason-box" style={{ marginTop: '12px', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid var(--border, #e2e8f0)' }}>
                         <span style={{ fontWeight: 600, color: 'var(--text-h)', display: 'block', marginBottom: '6px' }}>ملاحظات وسبب الطلب:</span>
                         <p style={{ margin: 0, color: 'var(--text-p)', fontSize: '0.9rem', lineHeight: '1.5' }}>{abs.reason || 'لا يوجد سبب مرفق'}</p>
                       </div>
@@ -94,7 +94,7 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
                     <>
                       <div className="detail-row" style={{ marginBottom: '10px' }}>
                         <span style={{ fontWeight: 600, color: 'var(--text-h)', width: '120px', display: 'inline-block' }}>النوع:</span>
-                        <span style={{ color: abs.is_justified ? '#10b981' : '#ef4444', fontWeight: 600 }}>
+                        <span style={{ color: abs.is_justified ? '#10b981' : 'var(--danger, #ef4444)', fontWeight: 600 }}>
                           {abs.is_justified ? 'مبرر' : 'غير مبرر'}
                         </span>
                       </div>
@@ -114,7 +114,7 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
                       )}
                       
                       {hasJustification && (
-                        <div className="detail-row reason-box" style={{ marginTop: '12px', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div className="detail-row reason-box" style={{ marginTop: '12px', background: '#fff', padding: '12px', borderRadius: '8px', border: '1px solid var(--border, #e2e8f0)' }}>
                           <span style={{ fontWeight: 600, color: 'var(--text-h)', display: 'block', marginBottom: '6px' }}>التبرير:</span>
                           <p style={{ margin: 0, color: 'var(--text-p)', fontSize: '0.9rem', lineHeight: '1.5' }}>{abs.reason || 'لا يوجد تبرير'}</p>
                         </div>
@@ -123,7 +123,7 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
                   )}
 
                   {hasJustification && (
-                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed #cbd5e1' }}>
+                    <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px dashed var(--border, #cbd5e1)' }}>
                       <div className="detail-row" style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
                         <span style={{ fontWeight: 600, color: 'var(--text-h)', width: '120px' }}>قرار الإدارة:</span>
                         <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600, background: (effectiveStatus === 'مقبول' || effectiveStatus === 'accepted') ? '#d1fae5' : (effectiveStatus === 'مرفوض' || effectiveStatus === 'rejected') ? '#fee2e2' : '#fef3c7', color: (effectiveStatus === 'مقبول' || effectiveStatus === 'accepted') ? '#059669' : (effectiveStatus === 'مرفوض' || effectiveStatus === 'rejected') ? '#dc2626' : '#d97706' }}>
@@ -135,11 +135,11 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
                         <span style={{ fontWeight: 600, color: 'var(--text-h)', width: '120px', display: 'inline-block' }}>المرفق:</span>
                         {/* Placeholder for attachment if any */}
                         {(abs as any).attachment_url ? (
-                          <a href={(abs as any).attachment_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: '#3b82f6', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem', background: '#eff6ff', padding: '4px 10px', borderRadius: '6px' }}>
+                          <a href={(abs as any).attachment_url} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--accent, #3b82f6)', textDecoration: 'none', fontWeight: 600, fontSize: '0.9rem', background: '#eff6ff', padding: '4px 10px', borderRadius: '6px' }}>
                             <FileText size={16} /> عرض المرفق
                           </a>
                         ) : (
-                          <span style={{ color: '#9ca3af', fontSize: '0.9rem' }}>لا يوجد مرفق</span>
+                          <span style={{ color: 'var(--text-muted, #9ca3af)', fontSize: '0.9rem' }}>لا يوجد مرفق</span>
                         )}
                       </div>
                     </div>
@@ -148,7 +148,7 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
 
                 {!hasJustification && (
                   <div className="action-buttons-row" style={{ marginTop: '16px' }}>
-                    <button className="btn-accept" style={{ background: 'linear-gradient(135deg, var(--accent, #3b82f6) 0%, var(--accent-secondary, #8b5cf6) 100%)', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', width: '100%' }} onClick={() => openJustificationDialog(abs.id)}>
+                    <button className="btn-accept" style={{ background: 'linear-gradient(135deg, var(--accent, var(--accent, #3b82f6)) 0%, var(--accent-secondary, #8b5cf6) 100%)', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', width: '100%' }} onClick={() => openJustificationDialog(abs.id)}>
                       <FileText size={18} /> تقديم تبرير
                     </button>
                   </div>

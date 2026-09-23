@@ -9,7 +9,7 @@ interface TopbarProps {
   controller: any;
 }
 
-export const Topbar: React.FC<TopbarProps> = ({ controller }) => {
+export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
 
@@ -27,6 +27,24 @@ export const Topbar: React.FC<TopbarProps> = ({ controller }) => {
     roleName = user?.roleId === '1' ? 'مدير النظام' : 'مستخدم';
   }
 
+  let activeLabel = title;
+  if (controller.menuSections) {
+    for (const section of controller.menuSections) {
+      for (const item of section.items) {
+        if (item.name === title) {
+          activeLabel = item.label;
+        }
+        if (item.subItems) {
+          for (const sub of item.subItems) {
+            if (sub.name === title) {
+              activeLabel = sub.label;
+            }
+          }
+        }
+      }
+    }
+  }
+
   return (
     <header className="topbar-container">
       {/* Title & Mobile Menu */}
@@ -34,7 +52,7 @@ export const Topbar: React.FC<TopbarProps> = ({ controller }) => {
         <button className="mobile-menu-btn" onClick={controller.toggleMobileSidebar} aria-label={t('topbar.menu')}>
           <Menu size={24} />
         </button>
-        {/* <h1 className="topbar-title">{title}</h1> */}
+        <h1 className="topbar-title">{t(activeLabel, activeLabel)}</h1>
       </div>
 
       {/* Actions */}

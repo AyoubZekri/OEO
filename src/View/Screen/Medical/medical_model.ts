@@ -1,4 +1,4 @@
-﻿export interface PlayerMedicalRecord {
+export interface PlayerMedicalRecord {
   id: number;
   player_id: number;
   doctor_id: number;
@@ -9,6 +9,8 @@
   initial_recommendation: string;
   last_exam_date: string;
   medical_decision: string;
+  absence_from: string | null;
+  absence_to: string | null;
   restrictions: string;
   next_exam_date: string;
   record_status: string;

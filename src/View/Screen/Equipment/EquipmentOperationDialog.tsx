@@ -125,7 +125,7 @@ export const EquipmentOperationDialog: React.FC<{
           <form onSubmit={handleSubmit} className="ops-form">
             
             {/* Header section */}
-            <div className="form-row" style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+            <div className="form-row" style={{ backgroundColor: 'var(--bg-body, #f8fafc)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
               <CustomDropdown<string>
                 label="العضو المستلم"
                 value={selectedMember}
@@ -165,8 +165,8 @@ export const EquipmentOperationDialog: React.FC<{
 
             <div className="items-list" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {items.map((item, index) => (
-                <div key={item.id} className="eq-item-row" style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#fff', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px', position: 'relative' }}>
-                  <div style={{ position: 'absolute', top: -10, right: -10, background: '#3b82f6', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                <div key={item.id} className="eq-item-row" style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', background: '#fff', border: '1px solid var(--border, #e2e8f0)', padding: '16px', borderRadius: '8px', position: 'relative' }}>
+                  <div style={{ position: 'absolute', top: -10, right: -10, background: 'var(--accent, #3b82f6)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     {index + 1}
                   </div>
                   
@@ -210,7 +210,7 @@ export const EquipmentOperationDialog: React.FC<{
                     <button 
                       type="button" 
                       onClick={() => handleRemoveItem(item.id)}
-                      style={{ marginTop: '28px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px' }}
+                      style={{ marginTop: '28px', color: 'var(--danger, #ef4444)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px' }}
                       title="إزالة"
                     >
                       <Trash2 size={20} />
@@ -234,7 +234,7 @@ export const EquipmentOperationDialog: React.FC<{
             bottom: '24px',
             left: '50%',
             transform: 'translateX(-50%)',
-            backgroundColor: '#ef4444',
+            backgroundColor: 'var(--danger, #ef4444)',
             color: 'white',
             padding: '12px 24px',
             borderRadius: '8px',

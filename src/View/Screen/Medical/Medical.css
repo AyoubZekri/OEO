@@ -1,4 +1,4 @@
-﻿.mc-badge {
+.mc-badge {
   padding: 4px 12px;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -27,3 +27,16 @@
   background-color: rgba(148, 163, 184, 0.1);
   color: #64748b;
 }
+
+
+/* Dark Mode Overrides */
+body.dark-mode .mc-card {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2) !important;
+}
+body.dark-mode .no-data {
+  background: var(--card-bg) !important;
+  border-color: var(--border) !important;
+}
+

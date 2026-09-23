@@ -1,6 +1,7 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAbsenceRequestsController } from './AbsenceRequestsController';
-import { User, Calendar, Clock, FileText, Check, X, Paperclip, AlertCircle, FileWarning, Users, Plus, Trash2 } from 'lucide-react';
+import { User, Calendar, Clock, FileText, Check, X, Paperclip, AlertCircle, FileWarning, Users, Plus, Trash2, Link } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { JustificationDialog } from './JustificationDialog';
 import { AddAbsenceDialog } from './AddAbsenceDialog';
@@ -11,13 +12,11 @@ import './AbsenceRequests.css';
 
 export const AbsenceRequests: React.FC = () => {
   const controller = useAbsenceRequestsController();
+  const navigate = useNavigate();
 
   return (
     <div className="absence-container">
-      <div className="absence-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1>الغيابات والتبريرات</h1>
-        </div>
+      <div className="absence-header" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div style={{ width: '220px', zIndex: 10, height: '44px' }}>
             <CustomDropdown
@@ -153,6 +152,25 @@ export const AbsenceRequests: React.FC = () => {
                       </div>
                       <div>
                         <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{abs.player_name}</h3>
+                        {abs.event_category && (
+                          <span style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '5px',
+                            padding: '3px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700,
+                            background: abs.event_category === 'اجتماع' ? 'rgba(249,115,22,0.1)' : abs.event_category === 'مباراة' ? 'rgba(16,185,129,0.1)' : 'rgba(99,102,241,0.1)',
+                            color: abs.event_category === 'اجتماع' ? '#f97316' : abs.event_category === 'مباراة' ? '#10b981' : '#6366f1'
+                          }}>
+                            {abs.event_category}
+                            {abs.event_category === 'اجتماع' && abs.meeting_id && (
+                              <button
+                                onClick={() => navigate('/meetings/' + abs.meeting_id + '/attendance')}
+                                title={'الاجتماع: ' + (abs.meeting_topic || '')}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'inherit' }}
+                              >
+                                <Link size={12} />
+                              </button>
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
                     <button className="btn-icon delete no-print" onClick={() => controller.handleDelete(abs.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
@@ -272,6 +290,7 @@ export const AbsenceRequests: React.FC = () => {
         onSubmit={controller.handleAddAbsence}
         defaultPlayerId={controller.selectedMemberForAbsenceId}
         isMultiMode={controller.isMultiMode}
+        meetings={controller.meetings.map((m: any) => ({ id: String(m.id), topic: m.topic, date: m.date }))}
       />
       <JustificationDialog
         isOpen={controller.isJustificationDialogOpen}

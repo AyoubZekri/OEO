@@ -78,7 +78,7 @@ const modalStyles = `
   }
   .stage-btn.danger {
     background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    color: var(--danger, #ef4444);
   }
   .cl-input {
     background: var(--bg);
@@ -459,7 +459,7 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
             })}
             
             <div style={{ marginTop: 'auto', paddingTop: '16px' }}>
-              <button onClick={handleDelete} disabled={isSaving || !hasCard} className="cl-btn-secondary" style={{ width: '100%', color: '#ef4444', borderColor: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+              <button onClick={handleDelete} disabled={isSaving || !hasCard} className="cl-btn-secondary" style={{ width: '100%', color: 'var(--danger, #ef4444)', borderColor: 'var(--danger, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                 <Trash2 size={18} /> إلغاء الإخلاء وحذف البطاقة
               </button>
             </div>
@@ -520,7 +520,7 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                       <div className="cl-card" style={{ padding: '16px', background: loansData.length > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)', borderColor: loansData.length > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                        <span style={{ fontWeight: 800, fontSize: '1.8rem', color: loansData.length > 0 ? '#ef4444' : '#10b981' }}>{loansData.length}</span>
+                        <span style={{ fontWeight: 800, fontSize: '1.8rem', color: loansData.length > 0 ? 'var(--danger, #ef4444)' : '#10b981' }}>{loansData.length}</span>
                         <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-p)' }}>سلف غير مسددة</span>
                       </div>
                       <div className="cl-card" style={{ padding: '16px', background: remainingPayments.length > 0 ? 'rgba(245, 158, 11, 0.05)' : 'rgba(16, 185, 129, 0.05)', borderColor: remainingPayments.length > 0 ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
@@ -529,7 +529,7 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
                       </div>
                     </div>
                     {(loansData.length > 0 || remainingPayments.length > 0) && (
-                      <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', color: '#ef4444', fontSize: '0.9rem', fontWeight: 600, display: 'flex', gap: '10px', alignItems: 'center' }}>
+                      <div style={{ padding: '12px 16px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '12px', color: 'var(--danger, #ef4444)', fontSize: '0.9rem', fontWeight: 600, display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <AlertTriangle size={20} /> 
                         تنبيه: يجب على المسؤول المالي تسوية المستحقات والسلف قبل توقيع إخلاء الطرف المالي.
                       </div>
@@ -549,7 +549,7 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
                         <>
                           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                             <div className="cl-card" style={{ padding: '12px', textAlign: 'center', background: 'rgba(59, 130, 246, 0.05)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
-                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: '#3b82f6' }}>{allMovements.length}</div>
+                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: 'var(--accent, #3b82f6)' }}>{allMovements.length}</div>
                               <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-p)' }}>إجمالي المستلم</div>
                             </div>
                             <div className="cl-card" style={{ padding: '12px', textAlign: 'center', background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
@@ -557,14 +557,14 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
                               <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-p)' }}>تم إرجاعه</div>
                             </div>
                             <div className="cl-card" style={{ padding: '12px', textAlign: 'center', background: unreturnedMovements.length > 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)', borderColor: unreturnedMovements.length > 0 ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)' }}>
-                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: unreturnedMovements.length > 0 ? '#ef4444' : '#10b981' }}>{unreturnedMovements.length}</div>
+                              <div style={{ fontWeight: 800, fontSize: '1.5rem', color: unreturnedMovements.length > 0 ? 'var(--danger, #ef4444)' : '#10b981' }}>{unreturnedMovements.length}</div>
                               <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-p)' }}>لم يُعد</div>
                             </div>
                           </div>
 
                           {unreturnedMovements.length > 0 ? (
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 700, fontSize: '0.95rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger, #ef4444)', fontWeight: 700, fontSize: '0.95rem' }}>
                                 <AlertTriangle size={20} />
                                 اللاعب يمتلك {unreturnedMovements.length} عنصر لم يرجعه بعد!
                               </div>
@@ -579,7 +579,7 @@ export const ClearanceDialog: React.FC<ClearanceDialogProps> = ({ isOpen, onClos
                                         الكمية: {mov.quantity || 1}
                                       </span>
                                     </div>
-                                    <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', fontWeight: 700, fontSize: '0.8rem' }}>لم يُعد</span>
+                                    <span style={{ padding: '4px 12px', borderRadius: '20px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger, #ef4444)', fontWeight: 700, fontSize: '0.8rem' }}>لم يُعد</span>
                                   </div>
                                 ))}
                               </div>

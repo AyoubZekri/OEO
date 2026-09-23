@@ -222,11 +222,11 @@ export const AdministrativeReportDialog: React.FC<AdministrativeReportDialogProp
               <div style={sectionStyle} className="hover-card">
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                  <div style={{ background: 'rgba(14, 165, 233, 0.1)', padding: '10px', borderRadius: '12px', color: '#0ea5e9' }}>
+                  <div style={{ background: 'rgba(249, 115, 22, 0.1)', padding: '10px', borderRadius: '12px', color: '#f97316' }}>
                     <MapPin size={22} />
                   </div>
                   <div>
-                    <h3 style={{ margin: 0, color: '#0ea5e9', fontWeight: 800, fontSize: '1.2rem' }}>التقييم اللوجستي</h3>
+                    <h3 style={{ margin: 0, color: '#f97316', fontWeight: 800, fontSize: '1.2rem' }}>التقييم اللوجستي</h3>
                     <div style={{color: 'var(--text-p)', fontSize: '0.85rem', marginTop: '4px', fontWeight: 500}}>التنقل، الإقامة، والمعدات</div>
                   </div>
                 </div>
@@ -241,9 +241,9 @@ export const AdministrativeReportDialog: React.FC<AdministrativeReportDialogProp
                         <input type="radio" checked={formData.travel_as_planned === true} onChange={() => setFormData({...formData, travel_as_planned: true})} style={{ accentColor: '#10b981', width: '18px', height: '18px' }} />
                         <span style={{ fontWeight: formData.travel_as_planned ? 700 : 500, color: formData.travel_as_planned ? '#10b981' : 'var(--text-p)' }}>نعم</span>
                       </label>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: !formData.travel_as_planned ? 'rgba(239, 68, 68, 0.1)' : 'var(--card-bg)', border: `1px solid ${!formData.travel_as_planned ? '#ef4444' : 'var(--border)'}`, padding: '12px 24px', borderRadius: '12px', flex: 1, transition: 'all 0.2s' }}>
-                        <input type="radio" checked={formData.travel_as_planned === false} onChange={() => setFormData({...formData, travel_as_planned: false})} style={{ accentColor: '#ef4444', width: '18px', height: '18px' }} />
-                        <span style={{ fontWeight: !formData.travel_as_planned ? 700 : 500, color: !formData.travel_as_planned ? '#ef4444' : 'var(--text-p)' }}>لا</span>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', background: !formData.travel_as_planned ? 'rgba(239, 68, 68, 0.1)' : 'var(--card-bg)', border: `1px solid ${!formData.travel_as_planned ? 'var(--danger, #ef4444)' : 'var(--border)'}`, padding: '12px 24px', borderRadius: '12px', flex: 1, transition: 'all 0.2s' }}>
+                        <input type="radio" checked={formData.travel_as_planned === false} onChange={() => setFormData({...formData, travel_as_planned: false})} style={{ accentColor: 'var(--danger, #ef4444)', width: '18px', height: '18px' }} />
+                        <span style={{ fontWeight: !formData.travel_as_planned ? 700 : 500, color: !formData.travel_as_planned ? 'var(--danger, #ef4444)' : 'var(--text-p)' }}>لا</span>
                       </label>
                     </div>
                   </div>
@@ -330,8 +330,8 @@ export const AdministrativeReportDialog: React.FC<AdministrativeReportDialogProp
                   </div>
 
                   <div>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '1rem', fontWeight: 700, color: '#ef4444' }}>
-                      <FileWarning size={18} color="#ef4444" /> الحوادث الانضباطية (للاعبين أو الطاقم)
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', fontSize: '1rem', fontWeight: 700, color: 'var(--danger, #ef4444)' }}>
+                      <FileWarning size={18} color="var(--danger, #ef4444)" /> الحوادث الانضباطية (للاعبين أو الطاقم)
                     </label>
                     <textarea 
                       value={formData.disciplinary_incidents}
@@ -339,7 +339,7 @@ export const AdministrativeReportDialog: React.FC<AdministrativeReportDialogProp
                       onFocus={() => setFocusedField('disciplinary')}
                       onBlur={() => setFocusedField(null)}
                       placeholder="بطاقات حمراء، تصرفات غير رياضية، غيابات غير مبررة..."
-                      style={getTextAreaStyle('disciplinary', '#ef4444')}
+                      style={getTextAreaStyle('disciplinary', 'var(--danger, #ef4444)')}
                     />
                   </div>
 

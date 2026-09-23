@@ -317,7 +317,7 @@ export const Payments: React.FC = () => {
   return (
     <div className="payments-container">
       <div className="payments-header">
-        <h1 className="page-title">{t('payments.title', 'المدفوعات والمصاريف')}</h1>
+
         
         <div className="payments-actions">
           <div className="search-box">

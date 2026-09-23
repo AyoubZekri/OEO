@@ -95,7 +95,7 @@ export const DisciplinaryActionDialog: React.FC<DisciplinaryActionDialogProps> =
       <div className="dialog-content disciplinary-dialog" onClick={e => e.stopPropagation()}>
         <div className="dialog-header">
           <div className="dialog-title">
-            <ShieldAlert size={24} color="#ef4444" />
+            <ShieldAlert size={24} color="var(--danger, #ef4444)" />
             <h2>{editData ? 'تعديل الإجراء - ' : 'إجراء تأديبي جديد - '}{member.first_name} {member.last_name}</h2>
           </div>
           <button type="button" className="close-btn" onClick={onClose}>

@@ -13,6 +13,8 @@ export interface AbsenceRecord {
   event_date: string;
   session_id?: number;
   session_date?: string;
+  meeting_id?: number;
+  meeting_topic?: string;
   location?: string;
   duration?: string;
   reason: string;
@@ -25,6 +27,7 @@ export const useAbsenceRequestsController = () => {
   const [absences, setAbsences] = useState<AbsenceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [teams, setTeams] = useState<any[]>([]);
+  const [meetings, setMeetings] = useState<any[]>([]);
   const [filterTeamId, setFilterTeamId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
@@ -46,6 +49,7 @@ export const useAbsenceRequestsController = () => {
   useEffect(() => {
     fetchTeams();
     fetchMembers();
+    fetchMeetings();
   }, []);
 
   useEffect(() => {
@@ -60,6 +64,17 @@ export const useAbsenceRequestsController = () => {
       setTeams(res.data);
     } catch (err) {
       console.error('Error fetching teams', err);
+    }
+  };
+
+  const fetchMeetings = async () => {
+    try {
+      const res = await axios.get(`${Applink.server}/meetings`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setMeetings(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('Error fetching meetings', err);
     }
   };
 
@@ -207,6 +222,7 @@ export const useAbsenceRequestsController = () => {
     absences,
     isLoading,
     teams,
+    meetings,
     members,
     filterTeamId, setFilterTeamId,
     filterStatus, setFilterStatus,

@@ -74,13 +74,13 @@ body.dark-mode .badge-return {
 }
 
 .ops-toggle-btn.active-handover {
-  background: #ffffff;
+  background: var(--card-bg, #ffffff);
   color: var(--accent, #3b82f6);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .ops-toggle-btn.active-return {
-  background: #ffffff;
+  background: var(--card-bg, #ffffff);
   color: #10b981;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
 }
@@ -118,7 +118,7 @@ body.dark-mode .badge-return {
   padding: 14px 16px;
   border-radius: 12px;
   border: 1px solid #cbd5e1;
-  background: #f8fafc;
+  background: var(--bg-body, #f8fafc);
   font-size: 1rem;
   font-family: inherit;
   color: #0f172a;
@@ -129,7 +129,7 @@ body.dark-mode .badge-return {
 .ops-input:focus {
   outline: none;
   border-color: #3b82f6;
-  background: #ffffff;
+  background: var(--card-bg, #ffffff);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 

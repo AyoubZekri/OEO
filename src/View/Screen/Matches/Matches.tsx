@@ -1,5 +1,6 @@
-import React from 'react';
-import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle, ClipboardList } from 'lucide-react';
+import React, { useState } from 'react';
+import axios from 'axios';
+import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle, ClipboardList, ChevronDown, Activity, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
 import { AddMatchDialog } from './AddMatchDialog';
@@ -8,15 +9,54 @@ import { ViewMatchCallupsDialog } from './ViewMatchCallupsDialog';
 import { AdministrativeReportDialog } from './AdministrativeReportDialog';
 import { ViewAdministrativeReportDialog } from './ViewAdministrativeReportDialog';
 import { SetMatchResultDialog } from './SetMatchResultDialog';
+import { MatchTimelineDialog } from './MatchTimelineDialog';
+import { MatchPlayerStatsDialog } from './MatchPlayerStatsDialog';
 import { useMatchesController } from './MatchesController';
 import {type Match } from './match_model';
 import '../Members/Members.css';
 import './Matches.css';
 
+const isMatchLive = (matchDate?: string) => {
+  if (!matchDate) return false;
+  
+  // Format the date string to be ISO compliant and explicitly append +01:00 (Algeria Time / UTC+1)
+  // This ensures the match time is always interpreted as Algeria time regardless of the user's device timezone
+  let formattedDate = matchDate;
+  if (!formattedDate.includes('T')) {
+    formattedDate = formattedDate.replace(' ', 'T');
+  }
+  if (!formattedDate.includes('+') && !formattedDate.includes('Z')) {
+    formattedDate = `${formattedDate}+01:00`;
+  }
+
+  const date = new Date(formattedDate);
+  const now = new Date();
+  
+  // diffHours represents the absolute time passed since the match start time
+  const diffHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+  return diffHours >= 0 && diffHours <= 2.5;
+};
+
+const isMatchEnded = (matchDate?: string) => {
+  if (!matchDate) return false;
+  let formattedDate = matchDate;
+  if (!formattedDate.includes('T')) {
+    formattedDate = formattedDate.replace(' ', 'T');
+  }
+  if (!formattedDate.includes('+') && !formattedDate.includes('Z')) {
+    formattedDate = `${formattedDate}+01:00`;
+  }
+  const date = new Date(formattedDate);
+  const now = new Date();
+  const diffHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+  return diffHours > 2.5;
+};
+
 export const Matches = () => {
   const navigate = useNavigate();
   const {
     matches,
+    isLoading,
     isDialogOpen,
     editingMatch,
     isCallupsDialogOpen,
@@ -43,23 +83,120 @@ export const Matches = () => {
     isResultDialogOpen,
     selectedMatchForResult,
     openResultDialog,
-    closeResultDialog
+    closeResultDialog,
+    isTimelineDialogOpen,
+    selectedMatchForTimeline,
+    openTimelineDialog,
+    closeTimelineDialog,
+    isPlayerStatsDialogOpen,
+    selectedMatchForPlayerStats,
+    openPlayerStatsDialog,
+    closePlayerStatsDialog
   } = useMatchesController();
+
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
+  const [rescheduleMatchId, setRescheduleMatchId] = useState<number | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredMatches = matches.filter(match => {
+    const searchLower = searchQuery.toLowerCase();
+    const opponent = match.opponent?.toLowerCase() || '';
+    const opponentClubName1 = match.opponentClub?.name?.toLowerCase() || '';
+    const opponentClubName2 = match.opponent_club?.name?.toLowerCase() || '';
+    
+    return opponent.includes(searchLower) || 
+           opponentClubName1.includes(searchLower) || 
+           opponentClubName2.includes(searchLower);
+  });
+
+  const handleUpdateStatus = async (match: Match, newStatus: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        ...match,
+        coach_id: match.coach_id?.id ? match.coach_id.id : match.coach_id,
+        admin_id: match.admin_id?.id ? match.admin_id.id : match.admin_id,
+        team_id: match.team_id || match.team?.id,
+        match_status: newStatus
+      };
+      
+      const res = await axios.post(Applink.updateMatch, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.status === 'success') {
+        fetchMatches();
+        setStatusDropdownOpen(null);
+      }
+    } catch (error) {
+      console.error('Error updating match status:', error);
+      alert('حدث خطأ أثناء تحديث حالة المباراة');
+    }
+  };
+
+  const handleReschedule = async (match: Match) => {
+    if (!rescheduleDate) return;
+    try {
+      const token = localStorage.getItem('token');
+      const payload = {
+        ...match,
+        coach_id: match.coach_id?.id ? match.coach_id.id : match.coach_id,
+        admin_id: match.admin_id?.id ? match.admin_id.id : match.admin_id,
+        team_id: match.team_id || match.team?.id,
+        match_status: 'upcoming',
+        match_date: rescheduleDate,
+      };
+      const res = await axios.post(Applink.updateMatch, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.status === 'success') {
+        fetchMatches();
+        setRescheduleMatchId(null);
+        setRescheduleDate('');
+        setStatusDropdownOpen(null);
+      }
+    } catch (error) {
+      console.error('Error rescheduling match:', error);
+      alert('حدث خطأ أثناء إعادة جدولة المباراة');
+    }
+  };
 
 
   return (
     <div className="members-container" style={{ margin: '0' }}>
       <div className="members-header">
-        <h2 className="page-title">سجل المباريات</h2>
+
         <div className="members-actions">
+          <div className="search-box">
+            <Search className="search-icon" size={18} />
+            <input 
+              type="text" 
+              placeholder="البحث بالفريق المنافس..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="search-input"
+            />
+          </div>
           <button className="btn-primary" onClick={openAddDialog}>
             <Plus size={20} /> إضافة مباراة
           </button>
         </div>
       </div>
 
-      <div className="matches-grid">
-        {matches.map((match) => (
+      {isLoading ? (
+        <div className="loading-container">
+          <div className="premium-loader">
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-dot"></div>
+          </div>
+          <p>جاري تحميل المباريات...</p>
+        </div>
+      ) : (
+        <div className="matches-grid">
+          {filteredMatches.map((match) => (
           <div key={match.id} className="match-card-new">
 
             {/* Top Bar */}
@@ -93,25 +230,207 @@ export const Matches = () => {
 
               <div className="mc-vs-center">
                 {match.match_status === 'مؤجلة' ? (
-                  <>
-                    <div className="mc-vs-circle" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', width: 'auto', padding: '4px 16px', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 'bold' }}>
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      className="mc-vs-circle"
+                      style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', width: 'auto', padding: '4px 16px', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                      onClick={() => {
+                        setStatusDropdownOpen(statusDropdownOpen === match.id ? null : match.id);
+                        setRescheduleMatchId(null);
+                        setRescheduleDate('');
+                      }}
+                    >
                       مؤجلة
                     </div>
-                  </>
+                    {statusDropdownOpen === match.id && (
+                      <div style={{ position: 'absolute', top: '110%', left: '50%', transform: 'translateX(-50%)', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.18)', border: '1px solid var(--border)', zIndex: 99, minWidth: '200px', overflow: 'hidden' }}>
+                        {rescheduleMatchId === match.id ? (
+                          /* Date picker inline */
+                          <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>اختر التاريخ الجديد</div>
+                            <input
+                              type="datetime-local"
+                              value={rescheduleDate}
+                              onChange={e => setRescheduleDate(e.target.value)}
+                              style={{ padding: '8px 10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', width: '100%' }}
+                            />
+                            <div style={{ display: 'flex', gap: '8px' }}>
+                              <button
+                                onClick={() => handleReschedule(match)}
+                                disabled={!rescheduleDate}
+                                style={{ flex: 1, padding: '8px', borderRadius: '8px', border: 'none', background: rescheduleDate ? 'var(--primary)' : 'var(--border)', color: '#fff', fontWeight: 700, cursor: rescheduleDate ? 'pointer' : 'not-allowed', fontSize: '0.82rem' }}
+                              >
+                                تأكيد
+                              </button>
+                              <button
+                                onClick={() => { setRescheduleMatchId(null); setRescheduleDate(''); }}
+                                style={{ flex: 1, padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text)', fontWeight: 600, cursor: 'pointer', fontSize: '0.82rem' }}
+                              >
+                                رجوع
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div
+                              onClick={() => { setRescheduleMatchId(match.id); setRescheduleDate(match.match_date?.substring(0, 16) || ''); }}
+                              style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, borderBottom: '1px solid var(--border)', color: '#10b981' }}
+                              onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              مباراة قادمة (تعيين التاريخ)
+                            </div>
+                            <div
+                              onClick={() => { handleUpdateStatus(match, 'ملغاة'); }}
+                              style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, color: '#ef4444' }}
+                              onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                              onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                            >
+                              ملغاة
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : match.match_status === 'ملغاة' ? (
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      className="mc-vs-circle"
+                      style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', width: 'auto', padding: '4px 16px', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer' }}
+                      onClick={() => setStatusDropdownOpen(statusDropdownOpen === match.id ? null : match.id)}
+                    >
+                      ملغاة
+                    </div>
+                    {statusDropdownOpen === match.id && (
+                      <div style={{ position: 'absolute', top: '110%', left: '50%', transform: 'translateX(-50%)', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.18)', border: '1px solid var(--border)', zIndex: 99, minWidth: '150px', overflow: 'hidden' }}>
+                        <div
+                          onClick={() => { handleUpdateStatus(match, 'upcoming'); }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, color: '#10b981' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          إرجاع لمباراة قادمة
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : match.team_score !== undefined && match.team_score !== null && match.opponent_score !== undefined && match.opponent_score !== null ? (
-                  <>
-                    <div className="mc-vs-circle" style={{ background: 'var(--primary)', color: 'white', width: 'auto', padding: '0 16px', borderRadius: '16px', fontSize: '1.4rem', letterSpacing: '4px' }}>
-                      {match.team_score} - {match.opponent_score}
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '4px', borderRadius: '8px' }}>
+                      <div className="mc-vs-circle" style={{ background: 'var(--primary)', color: 'white', width: 'auto', padding: '0 16px', borderRadius: '16px', fontSize: '1.4rem', letterSpacing: '4px', cursor: 'inherit' }}>
+                        {match.team_score} - {match.opponent_score}
+                      </div>
+                      <div className="mc-vs-text" style={{ color: match.team_score > match.opponent_score ? '#10b981' : match.team_score < match.opponent_score ? '#ef4444' : '#64748b', fontWeight: 'bold', cursor: 'inherit' }}>
+                        {match.team_score > match.opponent_score ? 'فوز' : match.team_score < match.opponent_score ? 'خسارة' : 'تعادل'}
+                      </div>
                     </div>
-                    <div className="mc-vs-text" style={{ color: match.team_score > match.opponent_score ? '#10b981' : match.team_score < match.opponent_score ? '#ef4444' : '#64748b', fontWeight: 'bold' }}>
-                      {match.team_score > match.opponent_score ? 'فوز' : match.team_score < match.opponent_score ? 'خسارة' : 'تعادل'}
+                    <button 
+                      onClick={() => openTimelineDialog(match)}
+                      style={{ 
+                        background: 'var(--primary)', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '6px 16px', 
+                        borderRadius: '20px', 
+                        fontSize: '0.85rem', 
+                        fontWeight: 'bold', 
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                      }}
+                    >
+                      أحداث المباراة
+                    </button>
+                  </div>
+                ) : isMatchLive(match.match_date) ? (
+                  <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <div 
+                      className="mc-vs-circle" 
+                      onClick={() => setStatusDropdownOpen(statusDropdownOpen === match.id ? null : match.id)}
+                      style={{ cursor: 'pointer', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', width: 'auto', padding: '4px 16px', borderRadius: '16px', fontSize: '1.1rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      <span className="mc-live-indicator"></span>
+                      مباراة جارية
                     </div>
-                  </>
+
+                    <button 
+                      onClick={() => openTimelineDialog(match)}
+                      style={{ 
+                        background: 'var(--primary)', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '6px 16px', 
+                        borderRadius: '20px', 
+                        fontSize: '0.85rem', 
+                        fontWeight: 'bold', 
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                      }}
+                    >
+                      أحداث المباراة
+                    </button>
+
+                    {statusDropdownOpen === match.id && (
+                      <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 10, minWidth: '160px', overflow: 'hidden' }}>
+                        <div 
+                          onClick={() => { setStatusDropdownOpen(null); openResultDialog(match); }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, borderBottom: '1px solid var(--border)', color: '#10b981' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          انتهت (تقرير المباراة)
+                        </div>
+                        <div 
+                          onClick={() => { handleUpdateStatus(match, 'مؤجلة'); }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, borderBottom: '1px solid var(--border)', color: '#f59e0b' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          مؤجلة
+                        </div>
+                        <div 
+                          onClick={() => { handleUpdateStatus(match, 'ملغاة'); }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, color: '#ef4444' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          ملغاة
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <>
-                    <div className="mc-vs-circle">VS</div>
-                    <div className="mc-vs-text">مواجهة قادمة</div>
-                  </>
+                  <div style={{ position: 'relative' }}>
+                    <div
+                      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer', gap: '4px' }}
+                      onClick={() => setStatusDropdownOpen(statusDropdownOpen === match.id ? null : match.id)}
+                    >
+                      <div className="mc-vs-circle">VS</div>
+                      <div className="mc-vs-text">
+                        مواجهة قادمة
+                      </div>
+                    </div>
+                    {statusDropdownOpen === match.id && (
+                      <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid var(--border)', zIndex: 99, minWidth: '150px', overflow: 'hidden' }}>
+                        <div
+                          onClick={() => { handleUpdateStatus(match, 'مؤجلة'); }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, borderBottom: '1px solid var(--border)', color: '#f59e0b' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          مؤجلة
+                        </div>
+                        <div
+                          onClick={() => { handleUpdateStatus(match, 'ملغاة'); }}
+                          style={{ padding: '12px 16px', cursor: 'pointer', textAlign: 'center', fontWeight: 600, color: '#ef4444' }}
+                          onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'}
+                          onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                        >
+                          ملغاة
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -186,73 +505,99 @@ export const Matches = () => {
                   </div>
                 </div>
               </div>
-              {/* Attendance */}
-              <div className="sc-attendance" style={{ marginTop: '16px', background: 'var(--bg-light)', padding: '12px', borderRadius: '12px' }}>
-                <div className="sc-attendance-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-p)' }}>
-                  <span className="sc-attendance-label">الغياب/حضور</span>
-                  <span className="sc-attendance-check">
-                    {match.attendance_stats ? match.attendance_stats.present : 0}/
-                    {match.attendance_stats ? match.attendance_stats.total : 0}
-                  </span>
-                </div>
-                <div className="sc-progress-bar" style={{ height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
-                  <div 
-                    className="sc-progress-fill" 
-                    style={{ 
-                      width: `${match.attendance_stats && match.attendance_stats.total > 0 ? (match.attendance_stats.present / match.attendance_stats.total) * 100 : 0}%`,
-                      height: '100%',
-                      background: 'var(--primary)'
-                    }}
-                  ></div>
-                </div>
-              </div>
+              {/* Attendance Visual Bar */}
+              {(() => {
+                const stats = match.attendance_stats;
+                const total = stats?.total ?? 0;
+                const present = stats?.present ?? 0;
+                const absent = stats?.absent ?? 0;
+                const presentPct = total > 0 ? (present / total) * 100 : 0;
+                return (
+                  <div className="mc-attendance-bar-wrap">
+                    <div className="mc-attendance-bar-header">
+                      <span className="mc-attendance-bar-title">الحضور</span>
+                      <span className="mc-att-badge mc-att-present">
+                        <span className="mc-att-dot mc-att-dot-green"></span>
+                        {present}/{total}
+                      </span>
+                    </div>
+                    <div className="mc-attendance-segbar">
+                      <div className="mc-att-seg mc-att-seg-green" style={{ width: `${presentPct}%` }}></div>
+                    </div>
+                    <div className="mc-attendance-bar-footer">
+                      <span>{total > 0 ? `${Math.round(presentPct)}٪ نسبة الحضور` : 'لم يُسجّل الحضور بعد'}</span>
+                      <span>{absent > 0 ? `${absent} غائب` : ''}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
 
 
+              {/* View Report Row */}
+              {match.team_score !== undefined && match.team_score !== null &&
+               match.opponent_score !== undefined && match.opponent_score !== null && (
+                <button
+                  className="mc-view-report-row"
+                  onClick={() => openViewAdministrativeReportDialog(match)}
+                >
+                  <FileText size={15} />
+                  <span>عرض تقرير المباراة</span>
+                  <ChevronDown size={14} style={{ transform: 'rotate(-90deg)', marginRight: 'auto' }} />
+                </button>
+              )}
+
+            {/* Actions Divider */}
+            <div style={{ height: '1px', background: 'var(--border)', margin: '16px 0 12px 0', opacity: 0.6 }}></div>
+
             {/* Actions */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '8px' }}>
-              <div className="mc-bottom-actions" style={{ marginTop: 0 }}>
-                <button className="mc-btn mc-btn-primary" onClick={() => openCallupsDialog(match)}>
-                  <Users size={18} /> الاستدعاء
-                </button>
-                <button className="mc-btn mc-btn-secondary" onClick={() => openViewCallupsDialog(match)}>
-                  <List size={18} /> التشكيلة
-                </button>
-              </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {!(match.team_score !== undefined && match.team_score !== null && match.opponent_score !== undefined && match.opponent_score !== null) && !isMatchLive(match.match_date) && (
+                <>
+                  <button className="mc-action-btn" onClick={() => openCallupsDialog(match)}>
+                    <Users size={16} /> الاستدعاء
+                  </button>
+                  <button className="mc-action-btn" onClick={() => openViewCallupsDialog(match)}>
+                    <List size={16} /> التشكيلة
+                  </button>
+                </>
+              )}
               
               {(!match.match_date || new Date(match.match_date) <= new Date()) && (
                 <>
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
-                    <button className="mc-btn mc-btn-secondary" onClick={() => navigate(`/matches/${match.id}/attendance`)} style={{ color: '#f59e0b', borderColor: 'rgba(245, 158, 11, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="الغياب والحضور">
-                      <ClipboardList size={18} /> الغياب والحضور
-                    </button>
-                    <button className="mc-btn mc-btn-secondary" onClick={() => openResultDialog(match)} style={{ color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعيين النتيجة">
-                      <CheckCircle size={18} /> تعيين النتيجة
-                    </button>
-                  </div>
-                  <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
-                    <button className="mc-btn mc-btn-secondary" onClick={() => openAdministrativeReportDialog(match)} style={{ color: '#0ea5e9', borderColor: 'rgba(14, 165, 233, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="تعديل التقرير">
-                      <FileText size={18} /> إضافة التقرير
-                    </button>
-                    <button className="mc-btn mc-btn-secondary" onClick={() => openViewAdministrativeReportDialog(match)} style={{ color: '#8b5cf6', borderColor: 'rgba(139, 92, 246, 0.3)' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(139, 92, 246, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'transparent'} title="عرض التقرير الإداري">
-                      <FileText size={18} /> عرض التقرير
-                    </button>
-                  </div>
+                  <button className="mc-action-btn" onClick={() => navigate(`/matches/${match.id}/attendance`)}>
+                    <ClipboardList size={16} /> الحضور
+                  </button>
+                  <button className="mc-action-btn" onClick={() => openResultDialog(match)}>
+                    <CheckCircle size={16} /> النتيجة
+                  </button>
+
+                  {match.team_score !== undefined && match.team_score !== null && match.opponent_score !== undefined && match.opponent_score !== null && (
+                    <>
+                      <button className="mc-action-btn" onClick={() => openAdministrativeReportDialog(match)}>
+                        <FileText size={16} /> التقرير
+                      </button>
+                      <button className="mc-action-btn" onClick={() => openPlayerStatsDialog(match)}>
+                        <Activity size={16} /> تقييم اللاعبين
+                      </button>
+                    </>
+                  )}
                 </>
               )}
             </div>
 
           </div>
         ))}
-        {matches.length === 0 && (
+        {filteredMatches.length === 0 && (
           <div className="no-matches">
             <Calendar size={48} style={{ color: 'var(--border)', marginBottom: '8px' }} />
             <h3>لا توجد مباريات</h3>
-            <p>انقر على "إضافة مباراة" لإدراج مباراة جديدة في السجل.</p>
+            <p>{matches.length === 0 ? 'انقر على "إضافة مباراة" لإدراج مباراة جديدة في السجل.' : 'لا توجد نتائج للبحث، جرب اسم فريق مختلف.'}</p>
           </div>
         )}
       </div>
+      )}
 
       <AddMatchDialog
         isOpen={isDialogOpen}
@@ -288,8 +633,26 @@ export const Matches = () => {
       <SetMatchResultDialog
         isOpen={isResultDialogOpen}
         onClose={closeResultDialog}
-        onSave={fetchMatches}
+        onSave={() => {
+          fetchMatches();
+          if (selectedMatchForResult) {
+            openPlayerStatsDialog(selectedMatchForResult);
+          }
+        }}
         matchData={selectedMatchForResult}
+      />
+
+      {selectedMatchForTimeline && (
+        <MatchTimelineDialog 
+          match={selectedMatchForTimeline} 
+          onClose={closeTimelineDialog} 
+        />
+      )}
+
+      <MatchPlayerStatsDialog
+        isOpen={isPlayerStatsDialogOpen}
+        onClose={closePlayerStatsDialog}
+        matchData={selectedMatchForPlayerStats}
       />
     </div>
   );

@@ -96,7 +96,7 @@ body.dark-mode .saidpar-logo-text {
 }
 
 body.dark-mode .toggle-btn:hover {
-  background-color: #374151;
+  background-color: var(--text, #374151);
   color: var(--text-h);
 }
 
@@ -117,7 +117,7 @@ body.dark-mode .toggle-btn:hover {
 
 body.dark-mode .search-input-wrapper {
   background-color: var(--text-h);
-  border-color: #374151;
+  border-color: var(--text, #374151);
 }
 
 .search-icon {
@@ -190,7 +190,7 @@ body.dark-mode .search-input {
 }
 
 body.dark-mode .section-divider {
-  background-color: #374151;
+  background-color: var(--text, #374151);
 }
 
 .saidpar-menu {
@@ -220,7 +220,7 @@ body.dark-mode .menu-item {
 }
 
 body.dark-mode .menu-item:hover {
-  background-color: #374151;
+  background-color: var(--text, #374151);
 }
 
 .menu-item.active {
@@ -317,7 +317,7 @@ body.dark-mode .menu-item.active {
 
 body.dark-mode .saidpar-container.closed .submenu-container {
   background-color: #1F293B; /* var(--card-bg) for dark mode */
-  border-color: #374151;
+  border-color: var(--text, #374151);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
@@ -340,7 +340,7 @@ body.dark-mode .sub-menu-item {
 }
 
 .sub-menu-item:hover {
-  background-color: #F8FAFC;
+  background-color: var(--bg-body, #F8FAFC);
   color: var(--text-h);
   transform: translateX(-4px); /* Slight hover effect for RTL */
 }
@@ -350,7 +350,7 @@ body.dark-mode .sub-menu-item {
 }
 
 body.dark-mode .sub-menu-item:hover {
-  background-color: #374151;
+  background-color: var(--text, #374151);
   color: var(--text-h);
 }
 
@@ -393,7 +393,7 @@ body.dark-mode .sub-menu-item.active .sub-menu-bullet {
 }
 
 body.dark-mode .saidpar-footer {
-  border-color: #374151;
+  border-color: var(--text, #374151);
 }
 
 /* Logout Button */
@@ -511,7 +511,7 @@ body.dark-mode .toggle-switch {
 .switch-knob {
   width: 18px;
   height: 18px;
-  background-color: white;
+  background-color: var(--card-bg, white);
   border-radius: 50%;
   position: absolute;
   top: 3px;

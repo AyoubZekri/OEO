@@ -5,6 +5,7 @@ import type { Match } from './match_model';
 
 export const useMatchesController = () => {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   
@@ -26,8 +27,17 @@ export const useMatchesController = () => {
   const [isResultDialogOpen, setIsResultDialogOpen] = useState(false);
   const [selectedMatchForResult, setSelectedMatchForResult] = useState<Match | null>(null);
 
+  // Timeline state
+  const [isTimelineDialogOpen, setIsTimelineDialogOpen] = useState(false);
+  const [selectedMatchForTimeline, setSelectedMatchForTimeline] = useState<Match | null>(null);
+
+  // Player Stats state
+  const [isPlayerStatsDialogOpen, setIsPlayerStatsDialogOpen] = useState(false);
+  const [selectedMatchForPlayerStats, setSelectedMatchForPlayerStats] = useState<Match | null>(null);
+
   const fetchMatches = async () => {
     try {
+      setIsLoading(true);
       const token = localStorage.getItem('token');
       const response = await axios.get(Applink.matches, {
         headers: { Authorization: `Bearer ${token}` }
@@ -35,36 +45,46 @@ export const useMatchesController = () => {
       if (response.data.status === 'success') {
         const matchesData = response.data.data;
         
-        // Fetch attendance stats for each match (mimicking training sessions)
-        const matchesWithStats = await Promise.all(matchesData.map(async (match: Match) => {
-          if (match.attendance_stats) return match;
+        // Fetch attendance stats for each match sequentially to avoid 429 Too Many Requests
+        const matchesWithStats = [];
+        for (const match of matchesData) {
+          if (match.attendance_stats) {
+            matchesWithStats.push(match);
+            continue;
+          }
 
           try {
             const attResponse = await axios.get(
               Applink.matchAttendance(match.id),
               { headers: { Authorization: `Bearer ${token}` } }
             );
-            const players = attResponse.data.players || [];
+            
+            // Handle possible 'data' wrapper from Laravel response
+            const responseData = attResponse.data.status === 'success' ? attResponse.data.data : attResponse.data;
+            const players = responseData.players || [];
+            
             const total = players.length;
             const present = players.filter((p: any) => p.status === 'حاضر' || p.status === 'متأخر').length;
             const absent = players.filter((p: any) => p.status === 'غائب غير مبرر' || p.status === 'غائب مبرر').length;
             
-            return {
+            matchesWithStats.push({
               ...match,
               attendance_stats: { total, present, absent }
-            };
+            });
           } catch (err) {
-            return {
+            matchesWithStats.push({
               ...match,
               attendance_stats: { total: 0, present: 0, absent: 0 }
-            };
+            });
           }
-        }));
+        }
 
         setMatches(matchesWithStats);
       }
     } catch (error) {
       console.error('Error fetching matches:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -150,8 +170,29 @@ export const useMatchesController = () => {
     setSelectedMatchForResult(null);
   };
 
+  const openTimelineDialog = (match: Match) => {
+    setSelectedMatchForTimeline(match);
+    setIsTimelineDialogOpen(true);
+  };
+
+  const closeTimelineDialog = () => {
+    setIsTimelineDialogOpen(false);
+    setSelectedMatchForTimeline(null);
+  };
+
+  const openPlayerStatsDialog = (match: Match) => {
+    setSelectedMatchForPlayerStats(match);
+    setIsPlayerStatsDialogOpen(true);
+  };
+
+  const closePlayerStatsDialog = () => {
+    setIsPlayerStatsDialogOpen(false);
+    setSelectedMatchForPlayerStats(null);
+  };
+
   return {
     matches,
+    isLoading,
     isDialogOpen,
     editingMatch,
     isCallupsDialogOpen,
@@ -178,6 +219,14 @@ export const useMatchesController = () => {
     isResultDialogOpen,
     selectedMatchForResult,
     openResultDialog,
-    closeResultDialog
+    closeResultDialog,
+    isTimelineDialogOpen,
+    selectedMatchForTimeline,
+    openTimelineDialog,
+    closeTimelineDialog,
+    isPlayerStatsDialogOpen,
+    selectedMatchForPlayerStats,
+    openPlayerStatsDialog,
+    closePlayerStatsDialog
   };
 };

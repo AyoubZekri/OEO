@@ -7,12 +7,14 @@ import { useMembersController } from '../Members/MembersController';
 import { Plus, Edit2, Trash2, Calendar, Users, CheckCircle, Clock, Filter, X, Eye, ClipboardList, FolderOpen, Check } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CustomInput } from '../../widget/CustomInput';
+import '../Equipment/Equipment.css';
 import './Decisions.css';
 
 export const Decisions: React.FC = () => {
   const { t } = useTranslation();
   const { 
-    decisions, 
+    decisions,
+    isLoading,
     addDecision,
     updateDecision,
     deleteDecision,
@@ -118,10 +120,7 @@ export const Decisions: React.FC = () => {
   return (
     <div className="visits-tab-container fade-in" style={{ fontFamily: 'var(--sans)' }}>
       {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <CheckCircle size={28} style={{ color: 'var(--accent)' }} /> {t('admin_docs.decisions_tracking', 'متابعة القرارات')}
-        </h2>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
           <div style={{ minWidth: '250px' }}>
             <CustomDropdown 
@@ -145,8 +144,50 @@ export const Decisions: React.FC = () => {
 
       {/* Decisions Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 380px), 1fr))', gap: '28px' }}>
-        {filteredDecisions.map(decision => {
-          const isCompleted = decision.progress === 100;
+        {isLoading ? (
+          <div className="loading-container" style={{ gridColumn: '1 / -1' }}>
+            <div className="premium-loader">
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-ring"></div>
+              <div className="loader-dot"></div>
+            </div>
+            <p className="loading-text">جاري تحميل القرارات...</p>
+          </div>
+        ) : filteredDecisions.length === 0 ? (
+          <div style={{
+            gridColumn: '1 / -1',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+            padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
+            borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
+            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
+          }}>
+            <div style={{
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1))',
+              padding: '24px', borderRadius: '50%', marginBottom: '20px',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              boxShadow: '0 8px 32px rgba(16, 185, 129, 0.15)'
+            }}>
+              <FolderOpen size={56} color="var(--accent)" style={{ opacity: 0.8 }} />
+            </div>
+            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
+              لا توجد قرارات حالياً
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
+              لم يتم إضافة أي قرارات حتى الآن. يمكنك البدء بإضافة قرار جديد لمتابعته وتعيين المسؤولين عنه.
+            </p>
+            <button 
+              className="add-eq-btn" 
+              style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem', background: 'linear-gradient(135deg, var(--accent), #10b981)' }}
+              onClick={openAdd}
+            >
+              <Plus size={22} />
+              <span>إضافة قرار جديد</span>
+            </button>
+          </div>
+        ) : (
+          filteredDecisions.map(decision => {
+            const isCompleted = decision.progress === 100;
           const assigneesCount = decision.assigneeIds?.length || 0;
           const displayAssignees = decision.assigneeIds?.slice(0, 3) || [];
           
@@ -273,32 +314,8 @@ export const Decisions: React.FC = () => {
               </div>
             </div>
           );
-        })}
+        }))}
       </div>
-
-      {filteredDecisions.length === 0 && (
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
-          borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
-          boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
-        }}>
-          <div style={{
-            background: 'linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(139, 92, 246, 0.1))',
-            padding: '24px', borderRadius: '50%', marginBottom: '20px',
-            border: '1px solid rgba(var(--accent-rgb), 0.2)',
-            boxShadow: '0 8px 32px rgba(var(--accent-rgb), 0.15)'
-          }}>
-            <FolderOpen size={56} color="var(--accent)" style={{ opacity: 0.8 }} />
-          </div>
-          <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
-            لا توجد قرارات حالياً
-          </h3>
-          <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
-            لم يتم العثور على أي قرارات. يمكنك إضافة قرار جديد للبدء في تتبع إنجازه.
-          </p>
-        </div>
-      )}
 
       {/* Editor Modal */}
       {isModalOpen && (

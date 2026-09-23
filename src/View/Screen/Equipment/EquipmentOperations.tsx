@@ -40,8 +40,7 @@ export const EquipmentOperations: React.FC = () => {
 
   return (
     <div className="equipment-page-wrapper">
-      <div className="equipment-header">
-        <h1>حركة العتاد</h1>
+      <div className="equipment-header" style={{ justifyContent: 'flex-end' }}>
         {(hasAccess(permissions.equipmentOperations.handover) || hasAccess(permissions.equipmentOperations.return)) && (
           <button className="add-eq-btn" onClick={() => { setEditingOperation(null); setIsDialogOpen(true); }}>
             <ArrowLeftRight size={20} />

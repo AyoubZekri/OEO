@@ -100,8 +100,8 @@
   display: inline-block;
   padding: 4px 12px;
   border-radius: 20px;
-  background-color: #f3f4f6;
-  color: #374151;
+  background-color: var(--bg-hover, #f3f4f6);
+  color: var(--text, #374151);
   font-weight: 500;
   font-size: 0.85rem;
 }

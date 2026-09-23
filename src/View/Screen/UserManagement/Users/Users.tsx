@@ -38,8 +38,7 @@ export const Users: React.FC = () => {
 
   return (
     <div className="users-container" style={{ fontFamily: 'var(--sans)' }}>
-      <div className="users-header">
-        <h1>{t('users.title')}</h1>
+      <div className="users-header" style={{ justifyContent: 'flex-end' }}>
         {hasAccess(permissions.usersAndRoles.addUsers) && (
           <button className="add-user-btn" onClick={openAddDialog}>
             <Plus size={20} />

@@ -183,7 +183,7 @@ export const Members: React.FC = () => {
   return (
     <div className="members-container">
       <div className="members-header">
-        <h1 className="page-title">{t('members.title', 'قائمة الأعضاء')}</h1>
+
         
         <div className="members-actions">
           <div className="search-box">
@@ -229,7 +229,21 @@ export const Members: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {paginatedMembers.map(member => (
+              {controller.isLoading ? (
+                <tr>
+                  <td colSpan={8} style={{ textAlign: 'center', padding: '48px 0' }}>
+                    <div className="loading-container">
+                      <div className="premium-loader">
+                        <div className="loader-ring"></div>
+                        <div className="loader-ring"></div>
+                        <div className="loader-ring"></div>
+                        <div className="loader-dot"></div>
+                      </div>
+                      <p className="loading-text">جاري تحميل الأعضاء...</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : paginatedMembers.map(member => (
                 <tr key={member.id} className="member-row">
                   <td data-label={t('members.photo', 'الصورة')} className="avatar-cell">
                     {member.photo && member.photo !== '' && !member.photo.includes('default') ? (

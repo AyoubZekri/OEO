@@ -76,11 +76,11 @@ export const EquipmentDialog: React.FC<{
             
             <div className="form-group" style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                <label style={{ alignSelf: 'flex-start' }}>صورة العتاد</label>
-               <div style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '10px', position: 'relative' }}>
+               <div style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed var(--border, #cbd5e1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '10px', position: 'relative' }}>
                   {imagePreview ? (
                     <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>لا توجد صورة</span>
+                    <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '0.9rem' }}>لا توجد صورة</span>
                   )}
                   <input 
                     type="file" 
@@ -89,7 +89,7 @@ export const EquipmentDialog: React.FC<{
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                   />
                </div>
-               <span style={{ fontSize: '0.8rem', color: '#64748b' }}>انقر لاختيار صورة</span>
+               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>انقر لاختيار صورة</span>
             </div>
 
             <div className="form-group" style={{ marginBottom: '24px' }}>

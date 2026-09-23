@@ -57,7 +57,7 @@ export const DisciplinaryHistoryDialog: React.FC<DisciplinaryHistoryDialogProps>
           </button>
         </div>
 
-        <div className="dialog-body printable-area" style={{ padding: '0', background: '#f8fafc' }}>
+        <div className="dialog-body printable-area" style={{ padding: '0', background: 'var(--bg-body, #f8fafc)' }}>
           
           <div className="print-header only-print">
             <h2>نادي أولمبيك - السجل التأديبي</h2>
@@ -67,7 +67,7 @@ export const DisciplinaryHistoryDialog: React.FC<DisciplinaryHistoryDialogProps>
 
           <div className="history-timeline">
             {history.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '48px 24px', color: '#64748b' }}>
+              <div style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted, #64748b)' }}>
                 <CheckCircle2 size={48} style={{ margin: '0 auto 16px', color: '#10b981', opacity: 0.5 }} />
                 <h3>لا توجد أي إجراءات تأديبية</h3>
                 <p>سجل هذا العضو نظيف تماماً.</p>
@@ -101,7 +101,7 @@ export const DisciplinaryHistoryDialog: React.FC<DisciplinaryHistoryDialogProps>
                         }} title="تعديل" style={{ color: 'var(--primary)', background: 'var(--primary-light, rgba(249, 115, 22, 0.1))', padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                         </button>
-                        <button className="btn-icon" onClick={() => { if(window.confirm('هل أنت متأكد من حذف هذا السجل؟')) onDelete(item.id); }} title="حذف" style={{ color: '#ef4444', background: '#fef2f2', padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
+                        <button className="btn-icon" onClick={() => { if(window.confirm('هل أنت متأكد من حذف هذا السجل؟')) onDelete(item.id); }} title="حذف" style={{ color: 'var(--danger, #ef4444)', background: '#fef2f2', padding: '6px', borderRadius: '6px', border: 'none', cursor: 'pointer' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
                         </button>
                       </div>

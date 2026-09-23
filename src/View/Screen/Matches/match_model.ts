@@ -38,4 +38,31 @@ export interface Match {
   };
   formation?: string;
   created_at?: string;
+  match_duration?: string | number;
+}
+
+export interface MatchGoal {
+  id: number;
+  match_id: number;
+  scorer_id: number;
+  assist_id?: number | null;
+  minute: number;
+  scorer_first_name?: string;
+  scorer_last_name?: string;
+  assist_first_name?: string;
+  assist_last_name?: string;
+}
+
+export interface MatchEvent {
+  id: string;
+  minute: number;
+  type: 'goal' | 'substitution' | 'yellow_card' | 'red_card' | 'second_yellow';
+  description: string;
+  playerIn?: string;
+  playerOut?: string;
+  playerInPhoto?: string;
+  playerOutPhoto?: string;
+  scorer?: string;
+  assist?: string;
+  playerName?: string;
 }

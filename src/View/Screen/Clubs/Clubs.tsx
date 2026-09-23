@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Shield, Plus, Edit2, Trash2, Camera, X, UploadCloud } from 'lucide-react';
+import { Shield, Plus, Edit2, Trash2, Camera, X, UploadCloud, Search } from 'lucide-react';
 import { useClubsController } from './ClubsController';
 import type { Club } from './club_model';
 import { CustomInput } from '../../widget/CustomInput';
@@ -8,12 +8,13 @@ import './Clubs.css';
 
 export const Clubs: React.FC = () => {
   const { t } = useTranslation();
-  const { clubs, addClub, updateClub, deleteClub } = useClubsController();
+  const { clubs, addClub, updateClub, deleteClub, isLoading } = useClubsController();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', symbol: '', logo: '' });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const openAdd = () => {
     setEditingId(null);
@@ -55,54 +56,50 @@ export const Clubs: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const filteredClubs = clubs.filter(club => 
+    club.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (club.symbol && club.symbol.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
     <div className="clubs-container">
       {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
-        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <Shield size={28} style={{ color: 'var(--accent)' }} /> الأندية الأخرى
-        </h2>
-        <button className="add-eq-btn" onClick={openAdd}>
-          <Plus size={20} />
-          <span>إضافة نادي</span>
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <div className="search-box">
+            <Search size={18} />
+            <input 
+              type="text"
+              placeholder="بحث عن نادي..."
+              className="search-input"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <button className="add-eq-btn" onClick={openAdd}>
+            <Plus size={20} />
+            <span>إضافة نادي</span>
+          </button>
+        </div>
       </div>
 
       {/* Grid Section */}
-      <div className="clubs-grid">
-        {clubs.map((club) => (
+      {isLoading ? (
+        <div className="loading-container" style={{ minHeight: '300px' }}>
+          <div className="premium-loader">
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-ring"></div>
+            <div className="loader-dot"></div>
+          </div>
+          <p className="loading-text">جاري تحميل الأندية...</p>
+        </div>
+      ) : (
+        <div className="clubs-grid">
+        {filteredClubs.map((club) => (
           <div 
             key={club.id} 
-            style={{
-              background: 'var(--card-bg)',
-              borderRadius: '24px',
-              border: '1px solid var(--border)',
-              padding: '64px 24px 32px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              boxShadow: '0 4px 20px -10px rgba(0,0,0,0.05)',
-              cursor: 'pointer',
-              overflow: 'hidden',
-              minHeight: '300px'
-            }}
-            onMouseOver={e => {
-              e.currentTarget.style.transform = 'translateY(-6px)';
-              e.currentTarget.style.boxShadow = '0 20px 40px -15px rgba(0,0,0,0.1)';
-              e.currentTarget.style.borderColor = 'var(--accent)';
-              const actions = e.currentTarget.querySelector('.card-actions') as HTMLElement;
-              if (actions) actions.style.opacity = '1';
-            }}
-            onMouseOut={e => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 20px -10px rgba(0,0,0,0.05)';
-              e.currentTarget.style.borderColor = 'var(--border)';
-              const actions = e.currentTarget.querySelector('.card-actions') as HTMLElement;
-              if (actions) actions.style.opacity = '0.8';
-            }}
+            className="club-card-wow"
           >
             {/* Background gradient blur */}
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100px', background: 'linear-gradient(180deg, var(--accent-bg) 0%, transparent 100%)', opacity: 0.5, pointerEvents: 'none' }}></div>
@@ -122,18 +119,18 @@ export const Clubs: React.FC = () => {
             >
               <button 
                 onClick={(e) => { e.stopPropagation(); openEdit(club); }} 
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: 'var(--text-h)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: 'var(--text-h)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                 onMouseOver={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                onMouseOut={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.color = 'var(--text-h)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-h)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                 title="تعديل"
               >
                 <Edit2 size={18} />
               </button>
               <button 
                 onClick={(e) => { e.stopPropagation(); handleDelete(club.id); }} 
-                style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
                 onMouseOver={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = '#EF4444'; }}
-                onMouseOut={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.borderColor = 'var(--border)'; }}
                 title="حذف"
               >
                 <Trash2 size={18} />
@@ -165,20 +162,21 @@ export const Clubs: React.FC = () => {
             
             <h3 style={{ margin: '0 0 10px 0', fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-h)', textAlign: 'center', zIndex: 1 }}>{club.name}</h3>
             
-            <div style={{ background: 'var(--bg)', padding: '8px 20px', borderRadius: '100px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1 }}>
-              <Shield size={16} style={{ color: 'var(--accent)' }} />
-              <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-muted)', letterSpacing: '1px' }}>{club.symbol || 'بدون رمز'}</span>
+            <div className="club-symbol" style={{ display: 'flex', alignItems: 'center', gap: '8px', zIndex: 1, marginTop: '4px' }}>
+              <Shield size={16} />
+              <span>{club.symbol || 'بدون رمز'}</span>
             </div>
           </div>
         ))}
-        {clubs.length === 0 && (
+        {filteredClubs.length === 0 && (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', background: 'var(--card-bg)', borderRadius: '16px', color: 'var(--text-muted)' }}>
             <Shield size={64} style={{ opacity: 0.2, marginBottom: '16px' }} />
-            <h3>لا توجد أندية مضافة</h3>
-            <p>انقر على "إضافة نادي" للبدء</p>
+            <h3>{clubs.length === 0 ? 'لا توجد أندية مضافة' : 'لا توجد نتائج للبحث'}</h3>
+            <p>{clubs.length === 0 ? 'انقر على "إضافة نادي" للبدء' : 'جرب كلمات بحث مختلفة'}</p>
           </div>
         )}
       </div>
+      )}
 
       {/* Modal */}
       {isModalOpen && (

@@ -9,6 +9,7 @@ import { Crud } from '../../../core/class/Crud';
 const DISCIPLINARY = Applink.disciplinary;
 
 export const useDisciplinaryController = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [disciplinaryList, setDisciplinaryList] = useState<DisciplinaryModel[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('الكل');
@@ -22,7 +23,8 @@ export const useDisciplinaryController = () => {
   const crud = new Crud();
   const membersData = new MembersData(crud);
 
-  const fetchDisciplinary = async () => {
+  const fetchDisciplinary = async (showLoading = false) => {
+    if (showLoading) setIsLoading(true);
     try {
       const response = await axios.get(DISCIPLINARY, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
@@ -54,24 +56,32 @@ export const useDisciplinaryController = () => {
       setDisciplinaryList(processedData);
     } catch (error) {
       console.error("Error fetching disciplinary records:", error);
+    } finally {
+      if (showLoading) setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDisciplinary();
-    
-    const fetchMembers = async () => {
-      const response = await membersData.getMembers();
-      if (response) {
-        if (Array.isArray(response)) {
-          setMembers(response.map(MemberModel.fromJson));
-        } else if (response.data && Array.isArray(response.data)) {
-          setMembers(response.data.map(MemberModel.fromJson));
+    const init = async () => {
+      setIsLoading(true);
+      await fetchDisciplinary(false);
+      
+      const fetchMembers = async () => {
+        const response = await membersData.getMembers();
+        if (response) {
+          if (Array.isArray(response)) {
+            setMembers(response.map(MemberModel.fromJson));
+          } else if (response.data && Array.isArray(response.data)) {
+            setMembers(response.data.map(MemberModel.fromJson));
+          }
         }
-      }
+      };
+      
+      await fetchMembers();
+      setIsLoading(false);
     };
-    
-    fetchMembers();
+
+    init();
   }, []);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -215,6 +225,7 @@ export const useDisciplinaryController = () => {
   }, [disciplinaryList, searchQuery, filterType, filterStatus]);
 
   return {
+    isLoading,
     disciplinaryList: filteredList,
     searchQuery,
     setSearchQuery,

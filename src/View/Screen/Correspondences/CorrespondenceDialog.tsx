@@ -113,7 +113,7 @@ export const CorrespondenceDialog: React.FC<CorrespondenceDialogProps> = ({
       <div className="dialog-content disciplinary-dialog" style={{ maxWidth: '800px' }} onClick={e => e.stopPropagation()}>
         <div className="dialog-header no-print">
           <div className="dialog-title">
-            <Mail size={24} color="#3b82f6" />
+            <Mail size={24} color="var(--accent, #3b82f6)" />
             <h2>
               {viewOnly ? 'عرض وطباعة المراسلة' : 'مراسلة رسمية جديدة'} {currentMember ? `- ${currentMember.first_name} ${currentMember.last_name}` : ''}
             </h2>
@@ -233,7 +233,7 @@ export const CorrespondenceDialog: React.FC<CorrespondenceDialogProps> = ({
             </div>
 
             <div style={{ marginTop: '20px', marginBottom: '10px' }}><strong>نص المراسلة:</strong></div>
-            <div style={{ minHeight: '100px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', whiteSpace: 'pre-wrap', backgroundColor: '#f8fafc' }}>
+            <div style={{ minHeight: '100px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', whiteSpace: 'pre-wrap', backgroundColor: 'var(--bg-body, #f8fafc)' }}>
               {text || '\n\n\n'}
             </div>
 

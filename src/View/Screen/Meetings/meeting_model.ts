@@ -1,4 +1,4 @@
-export type AttendeeStatus = 'pending' | 'confirmed' | 'absent';
+export type AttendeeStatus = 'pending' | 'confirmed' | 'absent' | 'حاضر' | 'متأخر' | 'غائب مبرر' | 'غائب غير مبرر';
 
 export interface Attendee {
   id: string;

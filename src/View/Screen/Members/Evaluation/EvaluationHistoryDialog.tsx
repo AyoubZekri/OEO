@@ -154,7 +154,7 @@ export const EvaluationHistoryDialog: React.FC<EvaluationHistoryDialogProps> = (
                     
                     {/* Action Bar at the bottom of the card */}
                     <div style={{ display: 'flex', gap: '12px', padding: '16px', background: 'var(--bg)', borderTop: '1px solid var(--border)', marginTop: 'auto', justifyContent: 'center', flexWrap: 'wrap' }}>
-                      <button onClick={() => setViewingEvaluation(ev)} style={{ flex: 1, background: 'rgba(59, 130, 246, 0.1)', border: 'none', cursor: 'pointer', color: '#3b82f6', minWidth: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} title="عرض التقييم">
+                      <button onClick={() => setViewingEvaluation(ev)} style={{ flex: 1, background: 'rgba(59, 130, 246, 0.1)', border: 'none', cursor: 'pointer', color: 'var(--accent, #3b82f6)', minWidth: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} title="عرض التقييم">
                         <Eye size={18} />
                       </button>
                       <button onClick={() => setImprovementProgramFor(ev)} style={{ flex: 1, background: 'rgba(245, 158, 11, 0.1)', border: 'none', cursor: 'pointer', color: '#f59e0b', minWidth: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} title="برنامج التحسين">
@@ -166,7 +166,7 @@ export const EvaluationHistoryDialog: React.FC<EvaluationHistoryDialogProps> = (
                       <button onClick={() => startEdit(ev)} style={{ flex: 1, background: 'rgba(16, 185, 129, 0.1)', border: 'none', cursor: 'pointer', color: '#10b981', minWidth: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} title="تعديل">
                         <Edit2 size={18} />
                       </button>
-                      <button onClick={() => onDelete && onDelete(ev.id)} style={{ flex: 1, background: 'rgba(239, 68, 68, 0.1)', border: 'none', cursor: 'pointer', color: '#ef4444', minWidth: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} title="حذف">
+                      <button onClick={() => onDelete && onDelete(ev.id)} style={{ flex: 1, background: 'rgba(239, 68, 68, 0.1)', border: 'none', cursor: 'pointer', color: 'var(--danger, #ef4444)', minWidth: '40px', height: '40px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} title="حذف">
                         <Trash2 size={18} />
                       </button>
                     </div>

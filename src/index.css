@@ -6,6 +6,10 @@
   --text-muted: #6b7280;
   --bg: #f3f4f6;
   --card-bg: #ffffff;
+  --bg-body: #f8fafc;
+  --bg-hover-strong: #f1f5f9;
+  --danger: #ef4444;
+
   --border: #D1D5DB;
   --bg-hover: #e5e7eb;
   --code-bg: #f4f3ec;
@@ -41,6 +45,10 @@ body.dark-mode {
   --text-muted: #9ca3af;
   --bg: #111827;
   --card-bg: #1f2937;
+  --bg-body: #111827;
+  --bg-hover-strong: #4b5563;
+  --danger: #f87171;
+
   --border: #374151;
   --bg-hover: #374151;
   --code-bg: #1f2028;
@@ -478,4 +486,27 @@ body.dark-mode input[type="date"]::-webkit-calendar-picker-indicator {
     font-size: 0.68rem;
     padding: 2px 6px;
   }
+}
+
+body.dark-mode input,
+body.dark-mode textarea,
+body.dark-mode select,
+body.dark-mode .search-box,
+body.dark-mode .search-input,
+body.dark-mode .form-control {
+    background-color: var(--card-bg) !important;
+    color: var(--text-h) !important;
+    border-color: var(--border) !important;
+}
+
+body.dark-mode input::placeholder,
+body.dark-mode textarea::placeholder,
+body.dark-mode .search-input::placeholder {
+    color: var(--text-muted) !important;
+}
+
+body.dark-mode .sidebar,
+body.dark-mode .sidebar-container {
+    background-color: var(--card-bg) !important;
+    border-color: var(--border) !important;
 }

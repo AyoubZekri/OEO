@@ -123,7 +123,7 @@ export const Funds: React.FC = () => {
   return (
     <div className="funds-container">
       <div className="funds-header">
-        <h1 className="page-title">{t('funds.title', 'الصناديق المالية')}</h1>
+
         <div className="funds-actions">
           {hasAccess(permissions.funds.add) && (
             <button className="btn-primary" onClick={() => openFundDialog()}>

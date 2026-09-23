@@ -15,9 +15,9 @@ export const ViewEvaluationDialog: React.FC<ViewEvaluationDialogProps> = ({ play
   const getScoreColor = (val: number, max: number) => {
     const perc = (val / max) * 100;
     if (perc >= 85) return '#10b981'; // Green
-    if (perc >= 70) return '#3b82f6'; // Blue
+    if (perc >= 70) return 'var(--accent, #3b82f6)'; // Blue
     if (perc >= 55) return '#f59e0b'; // Yellow
-    return '#ef4444'; // Red
+    return 'var(--danger, #ef4444)'; // Red
   };
 
   const getScoreClassification = (score: number) => {
@@ -77,7 +77,7 @@ export const ViewEvaluationDialog: React.FC<ViewEvaluationDialogProps> = ({ play
                     onDelete(evaluation.id);
                     onClose();
                   }
-                }} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px', borderRadius: '12px', cursor: 'pointer', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', transition: '0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseLeave={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'} title="حذف التقييم">
+                }} style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '10px', borderRadius: '12px', cursor: 'pointer', color: 'var(--danger, #ef4444)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold', transition: '0.2s' }} onMouseEnter={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseLeave={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'} title="حذف التقييم">
                   <Trash2 size={18} /> <span className="desktop-title">حذف</span>
                 </button>
               )}
@@ -148,7 +148,7 @@ export const ViewEvaluationDialog: React.FC<ViewEvaluationDialogProps> = ({ play
               </p>
             </div>
             <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '24px', borderRadius: '20px' }}>
-              <h4 style={{ margin: '0 0 16px 0', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem' }}>
+              <h4 style={{ margin: '0 0 16px 0', color: 'var(--danger, #ef4444)', display: 'flex', alignItems: 'center', gap: '10px', fontSize: '1.2rem' }}>
                 <AlertTriangle size={22} /> النقائص والملاحظات
               </h4>
               <p style={{ margin: 0, color: 'var(--text-color)', lineHeight: '1.7', whiteSpace: 'pre-wrap', fontSize: '1.05rem' }}>

@@ -5,12 +5,14 @@ import type { PlayerMedicalRecord } from './medical_model';
 
 export const useMedicalController = () => {
   const [records, setRecords] = useState<PlayerMedicalRecord[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
   const [isViewInitialExamDialogOpen, setIsViewInitialExamDialogOpen] = useState<boolean>(false);
   const [isViewFinalDecisionDialogOpen, setIsViewFinalDecisionDialogOpen] = useState<boolean>(false);
+  const [isViewTreatmentPhaseDialogOpen, setIsViewTreatmentPhaseDialogOpen] = useState<boolean>(false);
   const [selectedRecord, setSelectedRecord] = useState<PlayerMedicalRecord | null>(null);
 
   const fetchRecords = async () => {
@@ -34,6 +36,7 @@ export const useMedicalController = () => {
 
       if (indsRes && indsRes.data) {
         const allInds = Array.isArray(indsRes.data) ? indsRes.data : (indsRes.data.data || []);
+        setMembers(allInds);
         fetchedRecords = fetchedRecords.map((record: any) => {
            // Handle if backend returns the object inside player_id/doctor_id
            if (!record.player && record.player_id && typeof record.player_id === 'object') {
@@ -94,10 +97,16 @@ export const useMedicalController = () => {
     setIsViewFinalDecisionDialogOpen(true);
   };
 
+  const openViewTreatmentPhaseDialog = (record: PlayerMedicalRecord) => {
+    setSelectedRecord(record);
+    setIsViewTreatmentPhaseDialogOpen(true);
+  };
+
   const closeDialogs = () => {
     setIsAddDialogOpen(false);
     setIsViewInitialExamDialogOpen(false);
     setIsViewFinalDecisionDialogOpen(false);
+    setIsViewTreatmentPhaseDialogOpen(false);
     setSelectedRecord(null);
   };
 
@@ -163,24 +172,52 @@ export const useMedicalController = () => {
     }
   };
 
+  const handleDeleteTreatmentPhase = async (record: PlayerMedicalRecord) => {
+    if (!window.confirm('هل أنت متأكد من حذف تفاصيل مرحلة العلاج؟ سيتم التراجع عن الحالة إلى بانتظار قرار العودة.')) return;
+    try {
+      const token = localStorage.getItem('token');
+      const payload: any = { ...record };
+      payload.absence_from = null;
+      payload.restrictions = null;
+      payload.record_status = 'بانتظار قرار العودة';
+      delete payload.player;
+      delete payload.doctor;
+      delete payload.created_at;
+      delete payload.updated_at;
+
+      await axios.post(Applink.updateMedicalRecord(record.id), payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      fetchRecords();
+      setIsViewTreatmentPhaseDialogOpen(false);
+    } catch (err) {
+      console.error('Error deleting treatment phase:', err);
+      alert('حدث خطأ أثناء حذف تفاصيل مرحلة العلاج');
+    }
+  };
+
 
   return {
     records,
+    members,
     loading,
     error,
     fetchRecords,
     isAddDialogOpen,
     isViewInitialExamDialogOpen,
     isViewFinalDecisionDialogOpen,
+    isViewTreatmentPhaseDialogOpen,
     selectedRecord,
     dialogMode,
     openAddDialog,
     openEditDialog,
     openViewInitialExamDialog,
     openViewFinalDecisionDialog,
+    openViewTreatmentPhaseDialog,
     closeDialogs,
     handleDelete,
     handleDeleteInitialExam,
-    handleDeleteFinalDecision
+    handleDeleteFinalDecision,
+    handleDeleteTreatmentPhase
   };
 };

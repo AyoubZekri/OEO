@@ -50,7 +50,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
         <div className="eq-dialog-body" style={{ padding: '16px', background: 'var(--card-bg)' }}>
           
           <h3 style={{ fontSize: '1.1rem', color: 'var(--text-h)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span style={{ width: '4px', height: '16px', background: 'var(--accent, #3b82f6)', borderRadius: '4px' }}></span>
+            <span style={{ width: '4px', height: '16px', background: 'var(--accent, var(--accent, #3b82f6))', borderRadius: '4px' }}></span>
             العتاد المستلم
           </h3>
 
@@ -188,8 +188,8 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                     left: 0,
                     right: 0,
                     marginTop: '8px',
-                    background: 'var(--card-bg, #ffffff)',
-                    border: '1px solid var(--border, #e2e8f0)',
+                    background: 'var(--card-bg, var(--card-bg, #ffffff))',
+                    border: '1px solid var(--border, var(--border, #e2e8f0))',
                     borderRadius: '12px',
                     boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
                     zIndex: 50,
@@ -206,7 +206,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                           backgroundColor: returnCondition === cond ? 'rgba(245, 158, 11, 0.1)' : 'transparent',
                           color: returnCondition === cond ? '#f59e0b' : 'var(--text-h, #1e293b)',
                           fontWeight: returnCondition === cond ? '700' : '500',
-                          borderBottom: cond !== 'تالف' ? '1px solid var(--border, #e2e8f0)' : 'none',
+                          borderBottom: cond !== 'تالف' ? '1px solid var(--border, var(--border, #e2e8f0))' : 'none',
                           transition: 'background-color 0.2s'
                         }}
                         onClick={() => {

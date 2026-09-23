@@ -59,11 +59,11 @@ export const CustomDropdown = <T extends string>({
         onClick={() => setIsOpen(!isOpen)}
         style={{ 
           display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 14px', width: '100%',
-          border: isOpen ? '2px solid var(--accent, #3b82f6)' : '2px solid transparent', borderRadius: '14px', 
-          cursor: 'pointer', background: isOpen ? '#fff' : 'rgba(0,0,0,0.03)', color: 'var(--text-h)',
-          height: '52px', minHeight: '52px', boxSizing: 'border-box', fontSize: '0.95rem',
-          boxShadow: isOpen ? '0 0 0 4px rgba(59, 130, 246, 0.1)' : 'inset 0 2px 5px rgba(0,0,0,0.01)',
-          transition: 'all 0.2s ease'
+          border: isOpen ? '1px solid var(--accent, #3b82f6)' : '1px solid var(--border, #e2e8f0)', borderRadius: '12px', 
+          cursor: 'pointer', background: 'var(--card-bg, #ffffff)', color: 'var(--text-h)',
+          height: '48px', minHeight: '48px', boxSizing: 'border-box', fontSize: '0.95rem',
+          boxShadow: isOpen ? '0 0 0 3px rgba(59, 130, 246, 0.1)' : '0 2px 4px rgba(0, 0, 0, 0.02)',
+          transition: 'all 0.3s ease'
         }}
       >
         {selectedOption?.icon && <span style={{ opacity: 0.9 }}>{selectedOption.icon}</span>}
@@ -76,13 +76,13 @@ export const CustomDropdown = <T extends string>({
       {isOpen && (
         <div style={{ 
           position: 'absolute', top: 'calc(100% + 8px)', left: 0, width: '100%', 
-          background: 'var(--bg, #fff)', border: '1px solid #e2e8f0', 
+          background: 'var(--card-bg, #fff)', border: '1px solid var(--border, #e2e8f0)', 
           borderRadius: '16px', zIndex: 1000, 
           boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)', 
           overflow: 'hidden', display: 'flex', flexDirection: 'column'
         }}>
           {options.length > 5 && (
-            <div style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
+            <div style={{ padding: '12px', borderBottom: '1px solid var(--border, #e2e8f0)', background: 'var(--bg-body, #f8fafc)' }}>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                 <div style={{ position: 'absolute', right: '12px', color: '#94a3b8', display: 'flex' }}>
                   <Search size={16} />
@@ -96,13 +96,13 @@ export const CustomDropdown = <T extends string>({
                   style={{
                     width: '100%', padding: '10px 12px 10px 36px', borderRadius: '10px',
                     paddingRight: '36px',
-                    border: '1px solid #cbd5e1', outline: 'none', fontSize: '0.95rem',
-                    boxSizing: 'border-box', background: '#fff',
+                    border: '1px solid var(--border, #cbd5e1)', outline: 'none', fontSize: '0.95rem',
+                    boxSizing: 'border-box', background: 'var(--card-bg, #fff)', color: 'var(--text-h, #1f2937)',
                     boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.02)',
                     transition: 'border-color 0.2s, box-shadow 0.2s'
                   }}
                   onFocus={(e) => { e.currentTarget.style.borderColor = 'var(--accent, #3b82f6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59,130,246,0.1)'; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.02)'; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = 'var(--border, #cbd5e1)'; e.currentTarget.style.boxShadow = 'inset 0 1px 2px rgba(0,0,0,0.02)'; }}
                 />
               </div>
             </div>
@@ -120,23 +120,23 @@ export const CustomDropdown = <T extends string>({
                     style={{ 
                       padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', 
                       cursor: 'pointer', borderRadius: '10px',
-                      background: isSelected ? '#eff6ff' : 'transparent', 
-                      color: isSelected ? '#1e3a8a' : 'var(--text-h, #1f2937)',
+                      background: isSelected ? 'var(--accent-bg, #eff6ff)' : 'transparent', 
+                      color: isSelected ? 'var(--accent, #1e3a8a)' : 'var(--text-h, #1f2937)',
                       fontWeight: isSelected ? 600 : 400,
                       transition: 'all 0.15s ease'
                     }}
-                    onMouseOver={(e) => e.currentTarget.style.background = isSelected ? '#dbeafe' : '#f1f5f9'}
-                    onMouseOut={(e) => e.currentTarget.style.background = isSelected ? '#eff6ff' : 'transparent'}
+                    onMouseOver={(e) => e.currentTarget.style.background = isSelected ? 'var(--accent-bg, #dbeafe)' : 'var(--bg-hover, #f1f5f9)'}
+                    onMouseOut={(e) => e.currentTarget.style.background = isSelected ? 'var(--accent-bg, #eff6ff)' : 'transparent'}
                   >
                     <div style={{ 
                       width: '20px', height: '20px', borderRadius: '50%', 
-                      border: isSelected ? 'none' : '2px solid #cbd5e1',
+                      border: isSelected ? 'none' : '2px solid var(--border, #cbd5e1)',
                       background: isSelected ? 'var(--accent, #3b82f6)' : 'transparent',
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       {isSelected && <div style={{ width: '8px', height: '8px', background: 'white', borderRadius: '50%' }}></div>}
                     </div>
-                    {opt.icon && <span style={{ display: 'flex', alignItems: 'center', color: isSelected ? 'var(--accent, #3b82f6)' : '#64748b' }}>{opt.icon}</span>}
+                    {opt.icon && <span style={{ display: 'flex', alignItems: 'center', color: isSelected ? 'var(--accent, #3b82f6)' : 'var(--text-muted, #64748b)' }}>{opt.icon}</span>}
                     {opt.label}
                   </div>
                 );

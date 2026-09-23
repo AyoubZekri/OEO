@@ -10,7 +10,7 @@
 
 .training-sessions-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   margin-bottom: 32px;
 }
@@ -500,3 +500,56 @@
     width: 100%;
   }
 }
+
+/* ========== Dark Mode Overrides ========== */
+body.dark-mode .sc-card {
+  border-color: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 4px 24px -6px rgba(0,0,0,0.3);
+}
+
+body.dark-mode .sc-card:hover {
+  border-color: rgba(108, 99, 255, 0.4);
+  box-shadow: 0 12px 32px -8px rgba(0,0,0,0.5);
+}
+
+body.dark-mode .sc-info-row,
+body.dark-mode .sc-attendance {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+body.dark-mode .sc-info-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+body.dark-mode .sc-footer {
+  border-top-color: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .sc-action-btn {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+body.dark-mode .sc-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+body.dark-mode .sc-action-btn.edit:hover,
+body.dark-mode .sc-action-btn.delete:hover {
+  /* Let the original hover gradients take over */
+}
+
+body.dark-mode .sc-status-menu {
+  background: var(--card-bg);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 24px -4px rgba(0,0,0,0.5);
+}
+
+body.dark-mode .sc-status-menu-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .sc-status-menu-item.active {
+  background: rgba(255, 255, 255, 0.08);
+}
+

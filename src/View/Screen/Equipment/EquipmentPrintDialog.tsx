@@ -114,7 +114,7 @@ export const EquipmentPrintDialog: React.FC<EquipmentPrintDialogProps> = ({ isOp
           </div>
 
           {printType === 'return' && itemsToPrint.length === 0 && (
-            <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
+            <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger, #ef4444)', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
               لا يوجد عتاد مسترجع في هذه العملية لطباعته!
             </div>
           )}

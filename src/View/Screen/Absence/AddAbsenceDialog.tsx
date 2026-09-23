@@ -12,9 +12,10 @@ interface AddAbsenceDialogProps {
   onSubmit: (data: any) => Promise<void>;
   defaultPlayerId?: number | null;
   isMultiMode?: boolean;
+  meetings?: { id: string; topic: string; date: string }[];
 }
 
-export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onClose, onSubmit, defaultPlayerId, isMultiMode = false }) => {
+export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onClose, onSubmit, defaultPlayerId, isMultiMode = false, meetings = [] }) => {
   const [players, setPlayers] = useState<any[]>([]);
   const [recordMode, setRecordMode] = useState<'record' | 'late' | 'request' | 'leave'>('record');
   const [formData, setFormData] = useState<{
@@ -25,6 +26,7 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
     duration: string;
     reason: string;
     record_source: string;
+    meeting_id: string;
   }>({
     player_ids: [],
     absence_type: 'غياب',
@@ -32,7 +34,8 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
     event_date: new Date().toISOString().split('T')[0],
     duration: '',
     reason: '',
-    record_source: 'يدوي'
+    record_source: 'يدوي',
+    meeting_id: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customEventCategory, setCustomEventCategory] = useState('');
@@ -101,7 +104,8 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
         event_date: new Date().toISOString().split('T')[0],
         duration: '',
         reason: '',
-        record_source: 'يدوي'
+        record_source: 'يدوي',
+        meeting_id: ''
       });
       setRecordMode('record');
       setCustomEventCategory('');
@@ -131,7 +135,7 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
 
         <form onSubmit={handleSubmit} className="task-form">
 
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: '#f1f5f9', padding: '6px', borderRadius: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: 'var(--bg-hover-strong, var(--border, #f1f5f9))', padding: '6px', borderRadius: '12px' }}>
             <button
               type="button"
               onClick={() => handleModeChange('record')}
@@ -213,6 +217,22 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
               />
             )}
           </div>
+
+          {/* Meeting selector when event_category is 'اجتماع' */}
+          {formData.event_category === 'اجتماع' && meetings.length > 0 && (
+            <div style={{ marginTop: '16px' }}>
+              <CustomDropdown<string>
+                label={<><FileText size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }} /> الاجتماع (اختياري)</>}
+                value={formData.meeting_id}
+                onChange={(val) => setFormData({ ...formData, meeting_id: val })}
+                options={[
+                  { value: '', label: '-- اختر الاجتماع --' },
+                  ...meetings.map(m => ({ value: m.id, label: `${m.topic} (${m.date})` }))
+                ]}
+                placeholder="-- اختر الاجتماع --"
+              />
+            </div>
+          )}
 
           <div style={{ display: 'grid', gridTemplateColumns: (recordMode === 'request' || recordMode === 'late') ? '1fr 1fr' : '1fr', gap: '16px', marginTop: '16px' }}>
             <CustomInput

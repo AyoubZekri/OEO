@@ -50,7 +50,7 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
                 minHeight: '120px', fontFamily: 'inherit', outline: 'none', background: 'var(--bg, #f9fafb)',
                 color: 'var(--text-h, #1f2937)', resize: 'vertical', transition: 'border-color 0.3s'
               }}
-              onFocus={e => e.currentTarget.style.borderColor = 'var(--accent, #3b82f6)'}
+              onFocus={e => e.currentTarget.style.borderColor = 'var(--accent, var(--accent, #3b82f6))'}
               onBlur={e => e.currentTarget.style.borderColor = 'var(--border, #d1d5db)'}
             />
           </div>
@@ -58,14 +58,14 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
           <div className="form-group" style={{ marginBottom: '32px' }}>
             <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: 'var(--text-h, #374151)' }}>إرفاق وثيقة (اختياري)</label>
             <div style={{
-              border: '2px dashed var(--accent, #3b82f6)', borderRadius: '12px', padding: '24px',
+              border: '2px dashed var(--accent, var(--accent, #3b82f6))', borderRadius: '12px', padding: '24px',
               textAlign: 'center', position: 'relative', background: 'rgba(59, 130, 246, 0.05)',
               transition: 'background 0.3s'
             }}
             onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
             onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'}
             >
-              <UploadCloud size={36} color="var(--accent, #3b82f6)" style={{ marginBottom: '12px' }} />
+              <UploadCloud size={36} color="var(--accent, var(--accent, #3b82f6))" style={{ marginBottom: '12px' }} />
               <p style={{ margin: 0, color: 'var(--text-h, #1f2937)', fontSize: '0.95rem', fontWeight: '500' }}>
                 {selectedFile ? selectedFile.name : 'اضغط هنا أو قم بسحب الملف'}
               </p>
