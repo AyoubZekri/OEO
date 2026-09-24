@@ -15,7 +15,17 @@
 
 .funds-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+.funds-actions > * {
+  flex: 1;
+  max-width: 220px;
 }
 
 .funds-summary {

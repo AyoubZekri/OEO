@@ -7,6 +7,10 @@ import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
 import { ClearanceDialog } from './ClearanceDialog';
+import { MobileMembers } from '../../Mobile/MobileMembers/MobileMembers';
+import { MobileMemberForm } from '../../Mobile/MobileMembers/MobileMemberForm';
+import { MobileEvaluationForm } from '../../Mobile/MobileMembers/MobileEvaluationForm';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
 
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
@@ -14,93 +18,14 @@ import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import { MemberModel } from './member_model';
 import './Members.css';
 import '../Disciplinary/Disciplinary.css';
-import heic2any from 'heic2any';
-
-const processImage = async (file: File, maxSizeKB: number): Promise<File> => {
-  let fileToProcess = file;
-
-  if (file.type === 'image/heic' || file.type === 'image/heif' || file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
-    try {
-      const convertedBlob = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.9 });
-      const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-      fileToProcess = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
-        type: 'image/jpeg',
-        lastModified: Date.now(),
-      });
-    } catch (error) {
-      console.error('Error converting HEIC image:', error);
-      return file;
-    }
-  }
-
-  return new Promise((resolve) => {
-    if (fileToProcess.size <= maxSizeKB * 1024) {
-      resolve(fileToProcess);
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.readAsDataURL(fileToProcess);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX_WIDTH = 1200;
-        const MAX_HEIGHT = 1200;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > MAX_WIDTH) {
-            height *= MAX_WIDTH / width;
-            width = MAX_WIDTH;
-          }
-        } else {
-          if (height > MAX_HEIGHT) {
-            width *= MAX_HEIGHT / height;
-            height = MAX_HEIGHT;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        let quality = 0.9;
-        const checkSize = () => {
-          canvas.toBlob((blob) => {
-            if (blob) {
-              if (blob.size <= maxSizeKB * 1024 || quality <= 0.2) {
-                const newFile = new File([blob], fileToProcess.name, {
-                  type: 'image/jpeg',
-                  lastModified: Date.now(),
-                });
-                resolve(newFile);
-              } else {
-                quality -= 0.1;
-                checkSize();
-              }
-            } else {
-              resolve(fileToProcess);
-            }
-          }, 'image/jpeg', quality);
-        };
-        checkSize();
-      };
-      img.onerror = () => {
-        resolve(fileToProcess);
-      };
-    };
-  });
-};
+import { processImage } from '../../../core/functions/processImage';
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useMembersController();
+  const isMobile = useIsMobile();
   const { 
     filteredMembers,
     searchQuery,
@@ -145,6 +70,44 @@ export const Members: React.FC = () => {
 
   const [activeDialogTab, setActiveDialogTab] = useState<'financial' | 'equipment' | 'disciplinary' | 'correspondences'>('financial');
 
+  const closeEvaluationForm = () => {
+    setEvalMember(null);
+    setEditingEvaluation(null);
+  };
+
+  // Shared by the desktop dialog and the phone form
+  const saveEvaluationForm = (data: any) => {
+    const date = new Date().toISOString().split('T')[0];
+    if (editingEvaluation) {
+      controller.updateEvaluation({
+        id: editingEvaluation.data.id,
+        member_id: Number(editingEvaluation.player.id),
+        evalDate: editingEvaluation.data.evalDate,
+        season: data.season,
+        period: data.period,
+        totalScore: data.totalScore,
+        recommendation: data.recommendation,
+        strengths: data.strengths,
+        weaknesses: data.weaknesses,
+        scores: data.scores
+      });
+      setEditingEvaluation(null);
+    } else if (evalMember) {
+      controller.saveEvaluation({
+        member_id: Number(evalMember.id),
+        season: data.season,
+        period: data.period,
+        evalDate: date,
+        totalScore: data.totalScore,
+        recommendation: data.recommendation,
+        strengths: data.strengths,
+        weaknesses: data.weaknesses,
+        scores: data.scores
+      });
+      setEvalMember(null);
+    }
+  };
+
   const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getStatusBadge = (status: string) => {
@@ -182,6 +145,19 @@ export const Members: React.FC = () => {
 
   return (
     <div className="members-container">
+      {/* Phone layout */}
+      <div className="members-mobile">
+        <MobileMembers
+          controller={controller}
+          canAdd={hasAccess(permissions.members.add)}
+          canEdit={hasAccess(permissions.members.edit)}
+          canDelete={hasAccess(permissions.members.delete)}
+          onAddEvaluation={setEvalMember}
+        />
+      </div>
+
+      {/* Desktop layout (unchanged) */}
+      <div className="members-desktop">
       <div className="members-header">
 
         
@@ -349,9 +325,13 @@ export const Members: React.FC = () => {
           onItemsPerPageChange={setItemsPerPage} 
         />
       </div>
+      </div>
+
+      {/* Add/Edit Member: full-screen form on phones */}
+      {isAddMemberOpen && isMobile && <MobileMemberForm controller={controller} />}
 
       {/* Add/Edit Member Modal */}
-      {isAddMemberOpen && (
+      {isAddMemberOpen && !isMobile && (
         <div className="dialog-overlay" onClick={closeAddMemberDialog}>
           <div className="dialog-content add-member-dialog" onClick={e => e.stopPropagation()}>
             <div className="dialog-header">
@@ -979,48 +959,23 @@ export const Members: React.FC = () => {
       )}
 
       {/* Evaluation Dialog */}
-      {(evalMember || editingEvaluation) && (
-        <EvaluationDialog 
-          player={evalMember || editingEvaluation?.player} 
+      {(evalMember || editingEvaluation) && (isMobile ? (
+        // Full-screen form on phones
+        <MobileEvaluationForm
+          player={(evalMember || editingEvaluation?.player)!}
           initialData={editingEvaluation?.data}
-          onClose={() => {
-            setEvalMember(null);
-            setEditingEvaluation(null);
-          }}
-          onSave={(data) => {
-            const date = new Date().toISOString().split('T')[0];
-            if (editingEvaluation) {
-              controller.updateEvaluation({
-                id: editingEvaluation.data.id,
-                member_id: Number(editingEvaluation.player.id),
-                evalDate: editingEvaluation.data.evalDate,
-                season: data.season,
-                period: data.period,
-                totalScore: data.totalScore,
-                recommendation: data.recommendation,
-                strengths: data.strengths,
-                weaknesses: data.weaknesses,
-                scores: data.scores
-              });
-              setEditingEvaluation(null);
-            } else if (evalMember) {
-              controller.saveEvaluation({
-                member_id: Number(evalMember.id),
-                season: data.season,
-                period: data.period,
-                evalDate: date,
-                totalScore: data.totalScore,
-                recommendation: data.recommendation,
-                strengths: data.strengths,
-                weaknesses: data.weaknesses,
-                scores: data.scores
-              });
-              setEvalMember(null);
-            }
-          }}
+          onClose={closeEvaluationForm}
+          onSave={saveEvaluationForm}
         />
-      )}
-      
+      ) : (
+        <EvaluationDialog
+          player={evalMember || editingEvaluation?.player}
+          initialData={editingEvaluation?.data}
+          onClose={closeEvaluationForm}
+          onSave={saveEvaluationForm}
+        />
+      ))}
+
       {/* Evaluation History Dialog */}
       {controller.evalHistoryMember && (
         <EvaluationHistoryDialog 

@@ -313,14 +313,6 @@ export const Reports: React.FC = () => {
 
   return (
     <div className="reports-container">
-      <div className="reports-header">
-        <div className="reports-actions">
-          <button className="btn-primary" onClick={controller.handlePrint}>
-            <Printer size={18} style={{ marginInlineEnd: '8px' }} />
-            {t('reports.print_report')}
-          </button>
-        </div>
-      </div>
 
       <div className="tabs-container">
         {categories.map((cat) => (

@@ -15,19 +15,17 @@
 
 .payments-actions {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   width: 100%;
   justify-content: flex-end;
+  white-space: nowrap;
 }
 
-.payments-actions .form-group,
-.payments-actions .search-box {
-  margin-bottom: 0;
+.payments-actions > * {
   flex: 1;
-  min-width: 200px;
-  max-width: 280px;
+  max-width: 220px;
 }
 
 .payments-actions .search-box,

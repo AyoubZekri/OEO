@@ -139,7 +139,13 @@ export const useMembersController = () => {
       birth_date: member.birth_date ? member.birth_date.split('T')[0] : '',
       Shirt_number: member.Shirt_number || '',
       status: member.status || 'active',
-      team_id: member.team_id || ''
+      team_id: member.team_id || '',
+      position: member.position || '',
+      preferred_foot: member.preferred_foot || '',
+      email: member.email || '',
+      emergency_contact_name: member.emergency_contact_name || '',
+      emergency_contact_phone: member.emergency_contact_phone || '',
+      bank_account_number: member.bank_account_number || ''
     });
     setIsAddMemberOpen(true);
   };

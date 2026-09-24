@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Saidpar } from './View/Screen/Saidpar/Saidpar';
+import { MobileBottomNav } from './View/Mobile/MobileBottomNav/MobileBottomNav';
 import { useSaidparController } from './View/Screen/Saidpar/SaidparController';
 import { Roles } from './View/Screen/UserManagement/Roles/Roles';
 import { Users } from './View/Screen/UserManagement/Users/Users';
@@ -28,25 +29,35 @@ import { Meetings } from './View/Screen/Meetings/Meetings';
 import { TakeMeetingAttendance } from './View/Screen/Meetings/Attendance/TakeMeetingAttendance';
 import { Decisions } from './View/Screen/Decisions/Decisions';
 import { Clubs } from './View/Screen/Clubs/Clubs'; 
+import { Operations } from './View/Screen/Operations/Operations';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
+import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
+
+// Pages that draw their own app bar on phones, so the Topbar is hidden there
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
   const { i18n } = useTranslation();
+  const location = useLocation();
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
     console.log("Registered Route for Correspondences:", Approutes.Correspondences);
   }, [i18n.language]);
 
+  const isMobile = useIsMobile();
+
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', backgroundColor: 'var(--bg)', overflow: 'hidden' }}>
-      <Saidpar controller={controller} />
-      <div style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', backgroundColor: 'var(--bg)', display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        <Topbar title={controller.activeItem} controller={controller} />
+      {!isMobile && <Saidpar controller={controller} />}
+      {isMobile && <Saidpar controller={controller} />} {/* Sidebar still renders for the 'More' menu overlay */}
+      
+      <div style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', backgroundColor: 'var(--bg)', display: 'flex', flexDirection: 'column', height: '100vh', paddingBottom: isMobile ? '82px' : '0' }}>
+        {!(isMobile && MOBILE_APPBAR_PAGES.includes(location.pathname)) && <Topbar title={controller.activeItem} controller={controller} />}
         <div style={{ padding: '20px', flex: 1 }}>
           <Routes>
             <Route path="/" element={<Home />} />
@@ -72,10 +83,18 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/meetings/:id/attendance" element={<TakeMeetingAttendance />} />
             <Route path={Approutes.Decisions} element={<Decisions />} />
             <Route path={Approutes.Clubs} element={<Clubs />} />
+            {/* Phone-only page: widening the screen sends the user to the desktop home */}
+            <Route path={Approutes.Operations} element={isMobile ? <Operations /> : <Navigate to="/" replace />} />
             {/* Add more routes here as needed */}
           </Routes>
         </div>
       </div>
+      
+      {isMobile && (
+        <MobileBottomNav 
+          onMoreClick={controller.toggleMobileSidebar} 
+        />
+      )}
     </div>
   );
 };

@@ -777,3 +777,24 @@ body.dark-mode .badge-red { color: #f87171; }
 .dialog-body {
   padding: 24px;
 }
+
+
+/* Mobile Dashboard Layout */
+.mobile-dashboard-wrapper {
+  display: none;
+}
+
+/* Transparent on desktop so the original layout is untouched */
+.desktop-dashboard-wrapper {
+  display: contents;
+}
+
+@media (max-width: 768px) {
+  .desktop-dashboard-wrapper {
+    display: none !important;
+  }
+
+  .mobile-dashboard-wrapper {
+    display: block;
+  }
+}

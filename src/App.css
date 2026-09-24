@@ -1,1 +1,8 @@
 /* App styles */
+
+
+@media (max-width: 768px) {
+  .main-content-wrapper {
+    padding-bottom: 80px !important;
+  }
+}

@@ -1,0 +1,83 @@
+.m-appbar {
+  --m-appbar-border: #e2e8f0;
+  --m-appbar-soft: #f1f5f9;
+  --m-appbar-text: #0f172a;
+}
+
+body.dark-mode .m-appbar {
+  --m-appbar-border: rgba(255, 255, 255, 0.08);
+  --m-appbar-soft: rgba(255, 255, 255, 0.05);
+  --m-appbar-text: #f4f4f5;
+}
+
+/* ── App bar ── */
+/* Fixed (not sticky) so it stays put even when the phone browser scrolls the whole page */
+.m-appbar-slot {
+  flex-shrink: 0;
+  /* Cancel the layout's 20px content padding */
+  margin: -20px -20px 0;
+  height: calc(62px + env(safe-area-inset-top));
+}
+
+.m-appbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  box-sizing: border-box;
+  min-height: calc(62px + env(safe-area-inset-top));
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--m-appbar-border);
+  color: var(--m-appbar-text);
+  font-family: var(--sans);
+}
+
+.m-appbar-logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.m-appbar-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.m-appbar-bell {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  border: 1px solid var(--m-appbar-border);
+  background: var(--m-appbar-soft);
+  color: var(--m-appbar-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.m-appbar-dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 0 2px var(--bg), 0 0 8px #f97316;
+}

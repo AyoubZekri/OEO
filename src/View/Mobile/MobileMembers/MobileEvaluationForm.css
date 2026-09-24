@@ -1,0 +1,524 @@
+.ev-screen {
+  --ev-bg: #f3f4f6;
+  --ev-card: #ffffff;
+  --ev-field: #f8fafc;
+  --ev-border: #e2e8f0;
+  --ev-text: #0f172a;
+  --ev-muted: #64748b;
+  --ev-accent: #f97316;
+  --ev-excellent: #16a34a;
+  --ev-good: #0ea5e9;
+  --ev-acceptable: #f59e0b;
+  --ev-weak: #ef4444;
+
+  position: fixed;
+  inset: 0;
+  z-index: 1100; /* above the bottom nav and the list */
+  display: flex;
+  flex-direction: column;
+  background: var(--ev-bg);
+  color: var(--ev-text);
+  font-family: var(--sans);
+  animation: ev-slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .ev-screen {
+  --ev-bg: #0e0f12;
+  --ev-card: #17181c;
+  --ev-field: rgba(255, 255, 255, 0.04);
+  --ev-border: rgba(255, 255, 255, 0.08);
+  --ev-text: #f4f4f5;
+  --ev-muted: #a1a1aa;
+  --ev-excellent: #4ade80;
+  --ev-good: #38bdf8;
+  --ev-acceptable: #fbbf24;
+  --ev-weak: #f87171;
+}
+
+@keyframes ev-slide-up {
+  from { transform: translateY(24px); opacity: 0; }
+}
+
+/* Grade colour used by the ring, badges and sliders */
+.ev-screen .excellent  { --ev-grade: var(--ev-excellent); }
+.ev-screen .good       { --ev-grade: var(--ev-good); }
+.ev-screen .acceptable { --ev-grade: var(--ev-acceptable); }
+.ev-screen .weak       { --ev-grade: var(--ev-weak); }
+
+/* ── App bar ── */
+.ev-appbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: var(--ev-bg);
+  border-bottom: 1px solid var(--ev-border);
+}
+
+.ev-appbar h1 {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.ev-back,
+.ev-appbar-spacer {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.ev-back {
+  border-radius: 14px;
+  border: 1px solid var(--ev-border);
+  background: var(--ev-card);
+  color: var(--ev-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Body ── */
+.ev-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── Hero: player + score ring ── */
+.ev-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px 20px;
+  border-radius: 24px;
+  border: 1px solid var(--ev-border);
+  background:
+    radial-gradient(120% 90% at 50% 0%, color-mix(in srgb, var(--ev-grade) 22%, transparent), transparent 65%),
+    var(--ev-card);
+  transition: background 0.3s ease;
+}
+
+.ev-player {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ev-player img {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  object-fit: cover;
+  background: #262a33;
+  border: 2px solid var(--ev-grade);
+}
+
+.ev-player div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ev-player strong {
+  font-size: 1rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.ev-player span {
+  font-size: 0.75rem;
+  color: var(--ev-muted);
+}
+
+.ev-ring {
+  position: relative;
+  width: 140px;
+  height: 140px;
+}
+
+.ev-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ev-ring circle {
+  fill: none;
+  stroke-width: 10;
+}
+
+.ev-ring-bg { stroke: var(--ev-border); }
+
+.ev-ring-value {
+  stroke: var(--ev-grade);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.35s ease, stroke 0.3s ease;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ev-grade) 55%, transparent));
+}
+
+.ev-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.ev-ring-text strong {
+  font-size: 2.3rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--ev-grade);
+}
+
+.ev-ring-text span {
+  font-size: 0.75rem;
+  color: var(--ev-muted);
+}
+
+.ev-grade {
+  padding: 4px 16px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ev-grade) 16%, transparent);
+  color: var(--ev-grade);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+/* ── Sections ── */
+.ev-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--ev-border);
+  background: var(--ev-card);
+}
+
+.ev-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 2px;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.ev-section-title > span {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(249, 115, 22, 0.14);
+  color: var(--ev-accent);
+}
+
+.ev-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ev-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ev-muted);
+}
+
+/* Beats the global `body.dark-mode input/textarea` rule in index.css */
+.ev-screen .ev-input,
+.ev-screen .ev-note textarea {
+  width: 100%;
+  margin: 0;
+  border-radius: 13px;
+  border: 1px solid var(--ev-border) !important;
+  background: var(--ev-field) !important;
+  color: var(--ev-text) !important;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 600;
+  outline: none;
+  box-shadow: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.ev-screen .ev-input {
+  height: 46px;
+  padding: 0 12px;
+}
+
+.ev-screen .ev-input:focus,
+.ev-screen .ev-note textarea:focus {
+  border-color: var(--ev-accent) !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.ev-screen .ev-input.invalid { border-color: var(--ev-weak) !important; }
+
+.ev-error {
+  font-size: 0.72rem;
+  color: var(--ev-weak);
+}
+
+.ev-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.ev-choices button {
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--ev-border);
+  background: var(--ev-field);
+  color: var(--ev-muted);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ev-choices button.active {
+  background: var(--ev-accent);
+  border-color: var(--ev-accent);
+  color: #fff;
+  box-shadow: 0 6px 14px -6px rgba(249, 115, 22, 0.7);
+}
+
+/* ── Criteria ── */
+.ev-criteria {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ev-criterion {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--ev-border);
+  background: var(--ev-field);
+}
+
+.ev-criterion-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.ev-criterion-head span {
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.ev-criterion-head strong {
+  flex-shrink: 0;
+  min-width: 52px;
+  padding: 2px 8px;
+  border-radius: 9px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--ev-grade);
+  background: color-mix(in srgb, var(--ev-grade) 14%, transparent);
+}
+
+.ev-criterion-head small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.ev-criterion-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ev-criterion-control button {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid var(--ev-border);
+  background: var(--ev-card);
+  color: var(--ev-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.ev-criterion-control button:active { transform: scale(0.9); }
+
+/* Range slider filled with the grade colour (fills from the right in RTL) */
+.ev-criterion-control input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  height: 8px;
+  margin: 0;
+  border-radius: 999px;
+  appearance: none;
+  -webkit-appearance: none;
+  direction: rtl;
+  background: linear-gradient(to left, var(--ev-grade) var(--ev-fill), var(--ev-border) var(--ev-fill)) !important;
+  border: none !important;
+  outline: none;
+  cursor: pointer;
+}
+
+.ev-criterion-control input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--ev-grade);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.ev-criterion-control input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  border: 4px solid var(--ev-grade);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Notes ── */
+.ev-screen .ev-note textarea {
+  padding: 10px 12px;
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.6;
+}
+
+.ev-note.strengths .ev-label  { color: var(--ev-excellent); }
+.ev-note.weaknesses .ev-label { color: var(--ev-weak); }
+.ev-screen .ev-note.strengths textarea  { border-inline-start: 3px solid var(--ev-excellent) !important; }
+.ev-screen .ev-note.weaknesses textarea { border-inline-start: 3px solid var(--ev-weak) !important; }
+
+/* ── Recommendations ── */
+.ev-recs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ev-rec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--ev-border);
+  background: var(--ev-field);
+  color: var(--ev-text);
+  font: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ev-rec-icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ev-card);
+  color: var(--ev-muted);
+}
+
+.ev-rec-text {
+  flex: 1;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.ev-rec-dot {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--ev-border);
+}
+
+.ev-rec.active {
+  border-color: rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.1);
+}
+
+.ev-rec.active .ev-rec-icon {
+  background: var(--ev-accent);
+  color: #fff;
+}
+
+.ev-rec.active .ev-rec-dot {
+  border-color: var(--ev-accent);
+  background: radial-gradient(circle, var(--ev-accent) 45%, transparent 50%);
+}
+
+/* ── Sticky save bar ── */
+.ev-footer {
+  flex-shrink: 0;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--ev-bg);
+  border-top: 1px solid var(--ev-border);
+}
+
+.ev-save {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 24px -10px rgba(249, 115, 22, 0.8);
+}
+
+.ev-save:active { transform: scale(0.98); }
+
+.ev-save:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.ev-save-score {
+  padding: 2px 8px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.18);
+  font-size: 0.8rem;
+}

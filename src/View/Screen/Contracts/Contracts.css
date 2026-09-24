@@ -17,12 +17,19 @@
   display: flex;
   gap: 16px;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  width: 100%;
+  justify-content: flex-end;
+  white-space: nowrap;
 }
 
 .contracts-actions .form-group {
   margin-bottom: 0; /* Align perfectly with other header elements */
-  min-width: 160px;
+}
+
+.contracts-actions > * {
+  flex: 1;
+  max-width: 220px;
 }
 
 /* Force perfect height and alignment for all action items */
@@ -45,7 +52,6 @@
   border-radius: 12px;
   padding: 10px 16px;
   gap: 10px;
-  min-width: 280px;
   transition: all 0.3s ease;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
@@ -135,6 +141,8 @@ body.dark-mode .contract-number-cell {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 
 .btn-action {
@@ -152,9 +160,6 @@ body.dark-mode .contract-number-cell {
 .btn-action.view-btn {
   background-color: #eff6ff;
   color: #3b82f6;
-  width: auto;
-  padding: 0 16px;
-  gap: 8px;
   font-weight: 600;
   font-family: var(--sans);
 }

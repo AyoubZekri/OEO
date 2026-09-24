@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Applink } from '../../../LinkApi';
+import type { Match } from '../Matches/match_model';
 import { Crud } from '../../../core/class/Crud';
 import { MembersData } from '../Members/members_data';
 import { MemberModel } from '../Members/member_model';
@@ -8,6 +11,8 @@ import { PaymentsData } from '../Payments/payments_data';
 import type { PaymentRecord } from '../Payments/payment_model';
 import { FundsData } from '../Funds/funds_data';
 import type { Fund, FundTransaction } from '../Funds/fund_model';
+import { buildOperations } from '../Operations/operation_model';
+import type { Operation } from '../Operations/operation_model';
 
 export interface FinancialMetrics {
   totalExpenses: number;
@@ -23,13 +28,30 @@ export interface FinancialMetrics {
   upcomingEntitlements: number;
 }
 
-export interface Operation {
-  id: string;
-  name: string;
-  type: string;
-  amount: number;
-  date: string;
+export interface MobileDashboard {
+  nextMatch: Match | null;
+  overdueContracts: number;
 }
+
+// Match dates come as "YYYY-MM-DD HH:mm:ss" in Algeria time (UTC+1)
+export const parseMatchDate = (matchDate?: string): Date | null => {
+  if (!matchDate) return null;
+  let formatted = matchDate.includes('T') ? matchDate : matchDate.replace(' ', 'T');
+  if (!formatted.includes('+') && !formatted.includes('Z')) formatted = `${formatted}+01:00`;
+  const date = new Date(formatted);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+const isMatchPlayed = (m: Match) =>
+  m.match_status === 'منتهية' ||
+  (m.team_score !== null && m.team_score !== undefined && m.opponent_score !== null && m.opponent_score !== undefined);
+
+const toList = <T,>(res: { data?: unknown } | null): T[] => {
+  const body = res?.data as { data?: unknown } | T[] | undefined;
+  if (Array.isArray(body)) return body;
+  if (Array.isArray(body?.data)) return body.data as T[];
+  return [];
+};
 
 export const useHomeController = () => {
   const [metrics, setMetrics] = useState<FinancialMetrics>({
@@ -50,6 +72,10 @@ export const useHomeController = () => {
   const [allOperations, setAllOperations] = useState<Operation[]>([]);
   const [isOperationsDialogOpen, setIsOperationsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [dashboard, setDashboard] = useState<MobileDashboard>({
+    nextMatch: null,
+    overdueContracts: 0,
+  });
 
   const crud = new Crud();
   const membersData = new MembersData(crud);
@@ -60,12 +86,15 @@ export const useHomeController = () => {
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      const [membersRes, contractsRes, paymentsRes, fundsRes, fundTransactionsRes] = await Promise.all([
+      const token = localStorage.getItem('token');
+      const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
+      const [membersRes, contractsRes, paymentsRes, fundsRes, fundTransactionsRes, matchesRes] = await Promise.all([
         membersData.getMembers(),
         contractsData.getContracts(),
         paymentsData.getPayments(),
         fundsData.getFunds(),
-        fundsData.getTransactions()
+        fundsData.getTransactions(),
+        axios.get(Applink.matches, authHeaders).catch(() => null)
       ]);
 
       let members: MemberModel[] = [];
@@ -113,6 +142,7 @@ export const useHomeController = () => {
       // Calculate Debts and Upcoming Entitlements
       let totalDebts = 0;
       let upcomingEntitlements = 0;
+      let overdueContracts = 0;
       const today = new Date().getTime();
 
       contracts.forEach(c => {
@@ -121,6 +151,7 @@ export const useHomeController = () => {
          const paymentValue = numPayments > 0 ? contractValue / numPayments : 0;
          
          if (paymentValue <= 0) return;
+         let isOverdue = false;
 
          let memberPayments = payments
             .filter(p => p.memberId === c.individuals_id && p.amountNature === 'رقم دفعة')
@@ -140,11 +171,13 @@ export const useHomeController = () => {
              memberPayments = 0;
              if (dueDate <= today) {
                totalDebts += unpaidPortion;
+               isOverdue = true;
              } else {
                upcomingEntitlements += unpaidPortion;
              }
            }
          }
+         if (isOverdue) overdueContracts++;
       });
       
       setMetrics({
@@ -161,40 +194,20 @@ export const useHomeController = () => {
         totalBalance: cashBalance + bankBalance,
       });
 
-      // Unified Recent Operations
-      const ops: Operation[] = [];
-      
-      payments.forEach(p => {
-        const member = members.find(m => m.id === p.memberId);
-        const name = member ? `${member.first_name} ${member.last_name}` : (p.occasion || 'مصروف');
-        ops.push({
-          id: `p_${p.id}`,
-          name: name,
-          type: p.amountNature || 'دفع',
-          amount: Number(p.amount) || 0,
-          date: p.paymentDate
-        });
-      });
-
-      fundTransactions.forEach(t => {
-         const tFundId = t.fundId || (t as any).fund_id;
-         const fund = funds.find(f => f.id === tFundId);
-         const fundName = fund ? fund.name : 'صندوق';
-         ops.push({
-           id: `f_${t.id}`,
-           name: fundName,
-           type: t.type,
-           amount: Number(t.amount) || 0,
-           date: t.date || (t as any).transaction_date || ''
-         });
-      });
-
-      // Sort by date descending
-      ops.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-      // Take top 3 for recent
+      // Operations for the desktop table (mobile uses the Operations page)
+      const ops = buildOperations(payments, members, funds, fundTransactions);
       setRecentOperations(ops.slice(0, 3));
       setAllOperations(ops);
+
+      // Nearest unplayed match from today onwards (today's match stays until it gets a result)
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      const nextMatch = toList<Match>(matchesRes)
+        .map(m => ({ m, date: parseMatchDate(m.match_date) }))
+        .filter(({ m, date }) => date && date.getTime() >= startOfToday.getTime() && m.match_status !== 'ملغاة' && !isMatchPlayed(m))
+        .sort((a, b) => a.date!.getTime() - b.date!.getTime())[0]?.m || null;
+
+      setDashboard({ nextMatch, overdueContracts });
       setIsLoading(false);
     };
     
@@ -217,6 +230,7 @@ export const useHomeController = () => {
     isOperationsDialogOpen,
     setIsOperationsDialogOpen,
     isLoading,
+    dashboard,
     formatCurrency
   };
 };

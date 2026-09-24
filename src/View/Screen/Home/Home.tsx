@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHomeController } from './HomeController';
 import { Wallet, Users, UserCog, CreditCard, Landmark, CalendarClock, History, ArrowUpRight, ArrowDownLeft, TrendingDown } from 'lucide-react';
+import { MobileHome } from '../../Mobile/MobileHome/MobileHome';
 import './Home.css';
 
 export const Home: React.FC = () => {
@@ -26,7 +27,13 @@ export const Home: React.FC = () => {
 
   return (
     <div className="home-container">
-      {/* Financial Metrics Grid */}
+      {/* Phone layout */}
+      <div className="mobile-dashboard-wrapper">
+        <MobileHome controller={controller} />
+      </div>
+
+      {/* Desktop layout (unchanged) */}
+      <div className="desktop-dashboard-wrapper">
       {/* Financial Metrics Grid */}
       <div className="metrics-grid">
         <div className="metric-card highlight">
@@ -136,6 +143,7 @@ export const Home: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
       </div>
 
       {/* All Operations Dialog */}

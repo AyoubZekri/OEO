@@ -1,0 +1,94 @@
+.mobile-bottom-nav {
+  --nav-bg: rgba(255, 255, 255, 0.92);
+  --nav-border: #e2e8f0;
+  --nav-muted: #94a3b8;
+  --nav-accent: #f97316;
+
+  position: fixed;
+  left: 8px;
+  right: 8px;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  height: 60px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-around;
+  padding: 0 2px;
+  border-radius: 22px;
+  background: var(--nav-bg);
+  border: 1px solid var(--nav-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+  z-index: 1000;
+}
+
+body.dark-mode .mobile-bottom-nav {
+  --nav-bg: rgba(20, 21, 24, 0.94);
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --nav-muted: #8b8b93;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+}
+
+.nav-item {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--nav-muted);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--sans);
+  transition: color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+/* Active state: orange icon + label, top indicator and soft glow */
+.nav-item.active {
+  color: var(--nav-accent);
+}
+
+.nav-item.active .nav-icon-container {
+  transform: translateY(-1px);
+  filter: drop-shadow(0 0 6px rgba(249, 115, 22, 0.55));
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 28px;
+  height: 3px;
+  border-radius: 0 0 4px 4px;
+  background: var(--nav-accent);
+  transform: translateX(-50%);
+  box-shadow: 0 0 10px var(--nav-accent);
+}
+
+.nav-item.active::after {
+  content: '';
+  position: absolute;
+  inset: 8px 6px;
+  border-radius: 16px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(249, 115, 22, 0.22), transparent 70%);
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .mobile-bottom-nav {
+    display: none !important;
+  }
+}
