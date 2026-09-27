@@ -1,0 +1,92 @@
+.am-trigger {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-h);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.am-trigger:hover,
+.am-trigger.open {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+/* Rendered in <body> with fixed positioning (see ActionsMenu.tsx) */
+.am-menu {
+  position: fixed;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: 0 18px 40px -12px rgba(15, 23, 42, 0.35);
+  font-family: var(--sans);
+  direction: rtl;
+  animation: am-pop 0.14s ease-out;
+}
+
+body.dark-mode .am-menu {
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7);
+}
+
+@keyframes am-pop {
+  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+
+.am-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 42px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.am-item:hover { background: var(--bg-hover); }
+
+.am-icon {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+}
+
+.am-item.danger { color: #ef4444; }
+
+.am-item.danger .am-icon {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.am-item.danger:hover { background: rgba(239, 68, 68, 0.08); }
+
+.am-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}

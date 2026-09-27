@@ -7,6 +7,8 @@ import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileContracts } from '../../Mobile/MobileContracts/MobileContracts';
 import './Contracts.css';
 
 export const Contracts: React.FC = () => {
@@ -46,6 +48,21 @@ export const Contracts: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const paginatedContracts = contracts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileContracts
+        c={controller}
+        can={{
+          add: hasAccess(permissions.contracts.add),
+          view: hasAccess(permissions.contracts.view),
+          edit: hasAccess(permissions.contracts.edit),
+          delete: hasAccess(permissions.contracts.delete),
+        }}
+      />
+    );
+  }
 
   return (
     <div className="contracts-container">

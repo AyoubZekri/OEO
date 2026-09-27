@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { TrainingSessionDialog } from './TrainingSessionDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useTrainingSessionsController } from './TrainingSessionsController';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileTrainingSessions } from '../../Mobile/MobileTrainingSessions/MobileTrainingSessions';
 import './TrainingSessions.css';
 
 const STATUS_OPTIONS = [
@@ -16,6 +18,9 @@ const STATUS_OPTIONS = [
 const TrainingSessions: React.FC = () => {
   const controller = useTrainingSessionsController();
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
+  const isMobile = useIsMobile();
+
+  if (isMobile) return <MobileTrainingSessions controller={controller} />;
 
   const getStatusInfo = (status: string) => {
     switch (status) {

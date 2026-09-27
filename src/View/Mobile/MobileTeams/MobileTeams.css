@@ -1,0 +1,340 @@
+/* Phone team categories page. Accent = app orange. */
+.mt-page {
+  --mt-card: #ffffff;
+  --mt-field: #f8fafc;
+  --mt-border: #e2e8f0;
+  --mt-text: #0f172a;
+  --mt-muted: #64748b;
+  --mt-accent: #f97316;
+  --mt-ring: #ffffff;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--mt-text);
+  font-family: var(--sans);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .mt-page {
+  --mt-card: linear-gradient(165deg, #1c1d21 0%, #141518 100%);
+  --mt-field: rgba(255, 255, 255, 0.04);
+  --mt-border: rgba(255, 255, 255, 0.08);
+  --mt-text: #f4f4f5;
+  --mt-muted: #a1a1aa;
+  --mt-ring: #17181c;
+}
+
+/* ── Summary ── */
+.mt-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+/* Decorative rings */
+.mt-hero::before,
+.mt-hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.mt-hero::before { width: 200px; height: 200px; top: -90px; left: -70px; }
+.mt-hero::after  { width: 130px; height: 130px; top: -50px; left: -35px; }
+
+.mt-hero-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mt-hero-icon {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  box-shadow: 0 10px 24px -8px rgba(249, 115, 22, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.mt-hero-top div {
+  display: flex;
+  flex-direction: column;
+}
+
+.mt-hero-top small {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.mt-hero-top strong {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.mt-stats {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mt-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mt-stats strong {
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.mt-stats small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.mt-hero-note {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fdba74;
+}
+
+/* ── Category cards ── */
+.mt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 64px; /* keep the last card clear of the floating button */
+}
+
+.mt-card {
+  position: relative; /* anchors the ⋮ menu */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 20px;
+  border: 1px solid var(--mt-border);
+  background: var(--mt-card);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease;
+}
+
+.mt-card.clickable { cursor: pointer; }
+
+/* No press effect while the ⋮ menu is open: a transform would move the menu under the finger */
+.mt-card.clickable:active:not(:has(.mrm-menu)) { transform: scale(0.985); }
+
+.mt-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mt-badge {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--mt-accent);
+}
+
+.mt-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mt-card-text strong {
+  font-size: 1.02rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mt-card-text small {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--mt-muted);
+}
+
+/* Placeholder while the members load */
+.mt-skeleton {
+  width: 110px;
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--mt-border), var(--mt-field), var(--mt-border));
+  background-size: 200% 100%;
+  animation: mt-shimmer 1.2s linear infinite;
+}
+
+@keyframes mt-shimmer {
+  to { background-position: -200% 0; }
+}
+
+.mt-card-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--mt-border);
+}
+
+/* Overlapping photos (RTL: the first photo is on the right) */
+.mt-avatars {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.mt-avatars img,
+.mt-avatars span {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--mt-ring);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.mt-avatars img + img,
+.mt-avatars img + span {
+  margin-inline-start: -10px;
+}
+
+.mt-avatars img {
+  object-fit: cover;
+  background: #262a33;
+}
+
+.mt-avatars span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--mt-accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  direction: ltr;
+}
+
+.mt-open {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--mt-accent);
+}
+
+/* ── Empty ── */
+.mt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--mt-muted);
+}
+
+.mt-empty-icon {
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border-radius: 28px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--mt-accent);
+}
+
+.mt-empty strong {
+  color: var(--mt-text);
+  font-size: 1.1rem;
+}
+
+.mt-empty p {
+  margin: 0;
+  max-width: 280px;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.mt-empty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 24px -10px rgba(249, 115, 22, 0.8);
+}
+
+/* ── Floating add button (above the bottom nav) ── */
+.mt-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 999;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 12px 26px -8px rgba(249, 115, 22, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.mt-fab:active { transform: scale(0.92); }

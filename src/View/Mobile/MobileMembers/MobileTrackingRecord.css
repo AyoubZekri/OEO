@@ -1,0 +1,406 @@
+/* Phone tracking record. Tokens come from .m-screen and MobileEvaluations.css */
+
+.tr-member {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.tr-member img {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 15px;
+  object-fit: cover;
+  background: #262a33;
+  border: 2px solid var(--ms-accent);
+}
+
+.tr-member div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tr-member strong {
+  font-size: 1rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.tr-member span {
+  font-size: 0.75rem;
+  color: var(--ms-muted);
+}
+
+/* ── Tabs ── */
+.tr-tabs {
+  display: grid;
+  /* minmax(0, 1fr): equal columns that never grow past the container */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+}
+
+.tr-tabs button {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 52px;
+  padding: 0 2px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--ms-muted);
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tr-tabs button.active {
+  background: var(--ms-accent);
+  color: #fff;
+  box-shadow: 0 6px 14px -6px rgba(249, 115, 22, 0.7);
+}
+
+/* ── Colour helpers ── */
+.m-screen .pos { color: var(--me-excellent) !important; }
+.m-screen .neg { color: var(--me-weak) !important; }
+.m-screen .warn { color: var(--me-acceptable) !important; }
+
+/* ── Balance hero ── */
+.tr-balance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 16px 14px;
+  border-radius: 22px;
+  color: #fff;
+  text-align: center;
+  background:
+    radial-gradient(120% 100% at 100% 0%, rgba(255, 255, 255, 0.14), transparent 55%),
+    linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.tr-balance > span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.tr-balance > strong {
+  font-size: 1.7rem;
+  font-weight: 900;
+  color: #fb923c;
+  white-space: nowrap;
+}
+
+.tr-balance-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.tr-balance-row div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tr-balance-row small {
+  font-size: 0.7rem;
+  opacity: 0.75;
+}
+
+.tr-balance-row b {
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.tr-balance-row b.neg { color: #f87171 !important; }
+
+/* ── Contract ── */
+.tr-contract {
+  display: grid;
+  /* minmax(0, 1fr): columns share the width instead of growing with long amounts */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.tr-contract div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 3px;
+  border-radius: 12px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+  text-align: center;
+}
+
+.tr-contract small {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+.tr-contract b {
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.tr-contract .tr-cur {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--ms-muted);
+}
+
+.tr-paid-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+  overflow: hidden;
+}
+
+.tr-paid-track div {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--me-excellent);
+}
+
+.tr-paid-note {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+/* ── Lists (payments / equipment) ── */
+.tr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tr-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.tr-list li + li { border-top: 1px solid var(--ms-border); }
+
+.tr-op-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ms-field);
+}
+
+.tr-op-icon.pos  { background: color-mix(in srgb, var(--me-excellent) 13%, transparent); }
+.tr-op-icon.neg  { background: color-mix(in srgb, var(--me-weak) 13%, transparent); }
+.tr-op-icon.warn { background: color-mix(in srgb, var(--me-acceptable) 13%, transparent); }
+
+.tr-op-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tr-op-body strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.tr-op-body small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  font-size: 0.72rem;
+  color: var(--ms-muted);
+}
+
+.tr-list b {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.tr-qty {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ms-muted);
+}
+
+.tr-badge {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 9px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  background: var(--ms-field);
+  color: var(--ms-muted);
+}
+
+.tr-badge.pos  { background: color-mix(in srgb, var(--me-excellent) 14%, transparent); }
+.tr-badge.neg  { background: color-mix(in srgb, var(--me-weak) 14%, transparent); }
+.tr-badge.warn { background: color-mix(in srgb, var(--me-acceptable) 14%, transparent); }
+
+/* ── Equipment tiles ── */
+.tr-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.tr-tiles div {
+  --tr-color: var(--me-good);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 4px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--tr-color) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tr-color) 28%, transparent);
+}
+
+.tr-tiles .good { --tr-color: var(--me-excellent); }
+.tr-tiles .bad  { --tr-color: var(--me-weak); }
+
+.tr-tiles strong {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--tr-color);
+}
+
+.tr-tiles span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+/* ── Disciplinary ── */
+.tr-disc { gap: 10px; }
+
+.tr-disc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tr-disc-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: rgba(249, 115, 22, 0.13);
+  color: var(--ms-accent);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.tr-disc-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+.tr-disc-decision {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--me-good) 10%, transparent);
+  color: var(--me-good);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+/* ── Absence kinds: absence red, lateness amber, leave violet, leave request blue ── */
+.m-screen .kind-absence { --tr-kind: var(--me-weak); }
+.m-screen .kind-late    { --tr-kind: var(--me-acceptable); }
+.m-screen .kind-leave   { --tr-kind: var(--me-violet); }
+.m-screen .kind-request { --tr-kind: var(--me-good); }
+
+.tr-op-icon[class*='kind-'] {
+  background: color-mix(in srgb, var(--tr-kind) 14%, transparent);
+  color: var(--tr-kind);
+}
+
+.tr-kind {
+  display: inline-block;
+  margin-inline-end: 6px;
+  padding: 1px 8px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tr-kind) 15%, transparent);
+  color: var(--tr-kind);
+  font-size: 0.72rem;
+  font-weight: 800;
+  vertical-align: 1px;
+}
+
+.tr-tiles .late { --tr-color: var(--me-acceptable); }
+
+/* Absence / lateness filter */
+.tr-filter {
+  display: flex;
+  gap: 8px;
+}
+
+.tr-filter button {
+  flex: 1;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.tr-filter button.active {
+  border-color: var(--ms-accent);
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}

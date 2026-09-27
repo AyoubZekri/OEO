@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useTakeMeetingAttendanceController } from './TakeMeetingAttendanceController';
 import type { MeetingAttendeeFull } from './TakeMeetingAttendanceController';
+import { useIsMobile } from '../../../../core/functions/useIsMobile';
+import { MobileTakeAttendance } from '../../../Mobile/MobileTrainingSessions/MobileTakeAttendance';
 import '../../Matches/Attendance/TakeAttendance.css';
 
 const STATUS_BUTTONS: {
@@ -23,6 +25,19 @@ const STATUS_BUTTONS: {
 export const TakeMeetingAttendance: React.FC = () => {
   const c = useTakeMeetingAttendanceController();
   const [search, setSearch] = useState('');
+  const isMobile = useIsMobile();
+
+  // Phone: same attendance page as the training sessions and matches
+  if (isMobile) {
+    const i = c.meetingInfo;
+    return (
+      <MobileTakeAttendance
+        c={c}
+        subject="اجتماع"
+        info={i && { title: i.topic, date: i.date, location: i.location, start_time: i.time }}
+      />
+    );
+  }
 
   const filtered = c.attendanceList.filter(a =>
     a.name.toLowerCase().includes(search.toLowerCase())

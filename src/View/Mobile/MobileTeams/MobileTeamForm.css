@@ -1,0 +1,231 @@
+/* Phone add / edit page of a team category. Colour tokens: --ms-* (MobileScreen); accent = app orange. */
+
+/* ── Live preview ── */
+.mtf-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 26px 16px 22px;
+  border-radius: 24px;
+  color: #fff;
+  text-align: center;
+  background:
+    radial-gradient(80% 90% at 50% 0%, rgba(249, 115, 22, 0.55), transparent 70%),
+    linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+/* Decorative pitch lines */
+.mtf-hero::before,
+.mtf-hero::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+
+.mtf-hero::before {
+  width: 150px;
+  height: 150px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -62%);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.mtf-hero::after {
+  left: 0;
+  right: 0;
+  top: 38%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.mtf-jersey {
+  position: relative;
+  z-index: 1;
+  width: 86px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  box-shadow: 0 16px 32px -10px rgba(249, 115, 22, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  animation: mtf-float 3.2s ease-in-out infinite;
+}
+
+@keyframes mtf-float {
+  50% { transform: translateY(-4px); }
+}
+
+.mtf-hero strong {
+  position: relative;
+  z-index: 1;
+  max-width: 100%;
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  animation: mtf-in 0.25s ease;
+}
+
+.mtf-hero strong.placeholder { opacity: 0.35; }
+
+@keyframes mtf-in {
+  from { opacity: 0; transform: translateY(4px); }
+}
+
+.mtf-hero-sub {
+  position: relative;
+  z-index: 1;
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+/* ── Cards ── */
+.mtf-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+}
+
+.mtf-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 54px;
+  padding: 0 14px;
+  border-radius: 15px;
+  border: 1.5px solid var(--ms-border);
+  background: var(--ms-field);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.mtf-input:focus-within {
+  border-color: var(--ms-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.mtf-input.invalid {
+  border-color: rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.m-screen .mtf-input input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.mtf-count {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+  direction: ltr;
+}
+
+.mtf-error,
+.mtf-help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.mtf-error { color: #ef4444; }
+
+.mtf-help { color: var(--ms-muted); }
+
+.mtf-help svg { flex-shrink: 0; color: var(--ms-accent); }
+
+/* ── Suggestions ── */
+.mtf-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.mtf-title svg { color: var(--ms-accent); }
+
+.mtf-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mtf-suggestions button {
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.mtf-suggestions button:active { transform: scale(0.95); }
+
+.mtf-suggestions button.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+}
+
+.mtf-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.08);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.mtf-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--ms-accent);
+}
+
+.mtf-spin { animation: mtf-spin 0.9s linear infinite; }
+
+@keyframes mtf-spin {
+  to { transform: rotate(360deg); }
+}

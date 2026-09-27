@@ -1,0 +1,451 @@
+/* Phone call-up list. Colour tokens: --ms-* (MobileScreen); accent = app orange. */
+
+/* ── Match + count ── */
+.mmc-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+.mmc-hero-match {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mmc-hero-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+}
+
+.mmc-hero-text small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.mmc-hero-text strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.mmc-hero-text span {
+  font-size: 0.74rem;
+  color: #fdba74;
+  font-weight: 700;
+}
+
+.mmc-count {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mmc-count-num {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.mmc-count-num strong {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  color: #fb923c;
+}
+
+.mmc-count-num small {
+  font-size: 0.82rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.mmc-count-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.mmc-count-bar div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fb923c, #f97316);
+  transition: width 0.3s ease;
+}
+
+.mmc-count p {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fca5a5;
+}
+
+/* ── Search + call all ── */
+.mmc-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.mmc-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 13px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-muted);
+}
+
+.mmc-search:focus-within {
+  border-color: var(--ms-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.m-screen .mmc-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.mmc-all {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 44px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mmc-all:disabled { opacity: 0.5; }
+
+/* ── Filters (scroll sideways) ── */
+.mmc-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mmc-filters::-webkit-scrollbar { display: none; }
+
+.mmc-filters button {
+  --mmc-c: #f97316;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mmc-filters .f-free    { --mmc-c: #64748b; }
+.mmc-filters .f-injured { --mmc-c: #ef4444; }
+
+.mmc-filters button span {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mmc-c) 14%, transparent);
+  color: var(--mmc-c);
+  font-size: 0.72rem;
+}
+
+.mmc-filters button.active {
+  border-color: var(--mmc-c);
+  background: color-mix(in srgb, var(--mmc-c) 12%, transparent);
+  color: var(--mmc-c);
+}
+
+/* ── Lines ── */
+.mmc-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mmc-group h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 4px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--ms-muted);
+}
+
+.mmc-group h3 span {
+  padding: 0 8px;
+  border-radius: 8px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+  font-size: 0.72rem;
+  direction: ltr;
+}
+
+.mmc-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mmc-player {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 18px;
+  border: 1.5px solid var(--ms-border);
+  background: var(--ms-card);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.mmc-player.called {
+  border-color: var(--ms-accent);
+  background: rgba(249, 115, 22, 0.06);
+}
+
+.mmc-player.treatment:not(.called) { border-color: rgba(245, 158, 11, 0.5); }
+.mmc-player.injured { opacity: 0.6; }
+
+.mmc-player-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ms-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.mmc-player-main:disabled { cursor: not-allowed; }
+
+.mmc-avatar {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.mmc-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+/* Shirt number on the corner of the photo */
+.mmc-avatar em {
+  position: absolute;
+  bottom: -5px;
+  left: -5px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 7px;
+  background: #0f172a;
+  color: #fff;
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 900;
+  line-height: 20px;
+  text-align: center;
+}
+
+.mmc-player.called .mmc-avatar {
+  background: rgba(249, 115, 22, 0.14);
+  border-color: rgba(249, 115, 22, 0.4);
+  color: var(--ms-accent);
+}
+
+.mmc-player-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mmc-player-text strong {
+  font-size: 0.93rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mmc-player-text small {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--ms-muted);
+}
+
+.mmc-player-text .tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 7px;
+  border-radius: 7px;
+  font-weight: 800;
+}
+
+.mmc-player-text .tag.red   { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
+.mmc-player-text .tag.amber { background: rgba(245, 158, 11, 0.14); color: #d97706; }
+
+/* Round check on the left */
+.mmc-check {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--ms-border);
+  color: #fff;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.mmc-player.called .mmc-check {
+  border-color: var(--ms-accent);
+  background: var(--ms-accent);
+  box-shadow: 0 6px 14px -6px rgba(249, 115, 22, 0.9);
+}
+
+.mmc-player.injured .mmc-check {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.m-screen .mmc-note {
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid var(--ms-border) !important;
+  background: var(--ms-card) !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 0.84rem;
+  outline: none;
+}
+
+.m-screen .mmc-note:focus { border-color: var(--ms-accent) !important; }
+
+.mmc-doctor {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 11px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #b45309;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+body.dark-mode .mmc-doctor { color: #fcd34d; }
+
+.mmc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 20px;
+  color: var(--ms-muted);
+}
+
+.mmc-empty p {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.mmc-review {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.08);
+  color: var(--ms-accent);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mmc-spin { animation: mmc-spin 0.9s linear infinite; }
+
+@keyframes mmc-spin {
+  to { transform: rotate(360deg); }
+}

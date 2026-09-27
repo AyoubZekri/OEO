@@ -7,10 +7,13 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../core/context/AuthContext';
 import '../Matches/Matches.css';
 import '../Equipment/Equipment.css';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileMeetings } from '../../Mobile/MobileMeetings/MobileMeetings';
 import './Meetings.css';
 
 export const Meetings: React.FC = () => {
   const { t } = useTranslation();
+  const controller = useMeetingsController();
   const {
     meetings,
     isLoading,
@@ -39,11 +42,14 @@ export const Meetings: React.FC = () => {
     handleAddPoint,
     handleRemovePoint,
     submitAbsence
-  } = useMeetingsController();
+  } = controller;
 
   const navigate = useNavigate();
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
+  const isMobile = useIsMobile();
+
+  if (isMobile) return <MobileMeetings c={controller} canAdd={hasAccess(permissions.meetings.add)} />;
 
   return (
     <div className="visits-tab-container fade-in">

@@ -1,0 +1,102 @@
+.mrm-trigger {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--bg-hover, #f1f5f9);
+  color: var(--text-h, #0f172a);
+  cursor: pointer;
+}
+
+body.dark-mode .mrm-trigger {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f4f4f5;
+}
+
+.mrm-trigger:active { transform: scale(0.92); }
+
+.mrm-trigger.open {
+  border-color: #f97316;
+  color: #f97316;
+}
+
+.mrm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+/* Opens under the ⋮ button (left side of the card in RTL) */
+.mrm-menu {
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 12px;
+  z-index: 50;
+  width: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.45);
+  font-family: var(--sans);
+  animation: mrm-pop 0.16s ease-out;
+  transform-origin: top left;
+  scroll-margin-bottom: 100px; /* stay clear of the bottom nav when scrolled into view */
+}
+
+body.dark-mode .mrm-menu {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: #1f2025;
+}
+
+/* Invisible room under the menu so the page can scroll past it and clear the bottom nav */
+.mrm-menu::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 1px;
+  height: 100px;
+  pointer-events: none;
+}
+
+@keyframes mrm-pop {
+  from { opacity: 0; transform: scale(0.92); }
+}
+
+.mrm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #0f172a;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+}
+
+body.dark-mode .mrm-item { color: #f4f4f5; }
+
+.mrm-item:active { background: rgba(148, 163, 184, 0.15); }
+
+.mrm-icon {
+  display: flex;
+  color: #94a3b8;
+}
+
+.mrm-item.danger,
+.mrm-item.danger .mrm-icon { color: #ef4444; }

@@ -13,6 +13,15 @@ import { MatchTimelineDialog } from './MatchTimelineDialog';
 import { MatchPlayerStatsDialog } from './MatchPlayerStatsDialog';
 import { useMatchesController } from './MatchesController';
 import {type Match } from './match_model';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileMatches } from '../../Mobile/MobileMatches/MobileMatches';
+import { MobileMatchCallups } from '../../Mobile/MobileMatches/MobileMatchCallups';
+import { MobileMatchLineup } from '../../Mobile/MobileMatches/MobileMatchLineup';
+import { MobileMatchForm } from '../../Mobile/MobileMatches/MobileMatchForm';
+import { MobileMatchReport, MobileMatchReportForm } from '../../Mobile/MobileMatches/MobileMatchReport';
+import { MobileMatchResult } from '../../Mobile/MobileMatches/MobileMatchResult';
+import { MobileMatchTimeline } from '../../Mobile/MobileMatches/MobileMatchTimeline';
+import { MobileMatchPlayerStats } from '../../Mobile/MobileMatches/MobileMatchPlayerStats';
 import '../Members/Members.css';
 import './Matches.css';
 
@@ -98,6 +107,9 @@ export const Matches = () => {
   const [rescheduleMatchId, setRescheduleMatchId] = useState<number | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const isMobile = useIsMobile();
+  // Bumped when the phone report form closes, so the report page shown under it reloads
+  const [reportVersion, setReportVersion] = useState(0);
 
   const filteredMatches = matches.filter(match => {
     const searchLower = searchQuery.toLowerCase();
@@ -135,8 +147,8 @@ export const Matches = () => {
     }
   };
 
-  const handleReschedule = async (match: Match) => {
-    if (!rescheduleDate) return;
+  const handleReschedule = async (match: Match, date: string = rescheduleDate) => {
+    if (!date) return;
     try {
       const token = localStorage.getItem('token');
       const payload = {
@@ -145,7 +157,7 @@ export const Matches = () => {
         admin_id: match.admin_id?.id ? match.admin_id.id : match.admin_id,
         team_id: match.team_id || match.team?.id,
         match_status: 'upcoming',
-        match_date: rescheduleDate,
+        match_date: date,
       };
       const res = await axios.post(Applink.updateMatch, payload, {
         headers: { Authorization: `Bearer ${token}` }
@@ -162,6 +174,159 @@ export const Matches = () => {
     }
   };
 
+  // Shared by the desktop page and the phone page
+  const dialogs = (
+    <>
+        {isMobile ? (
+          isDialogOpen && (
+            <MobileMatchForm key={editingMatch?.id ?? 'new'} match={editingMatch} onSave={fetchMatches} onClose={closeDialog} />
+          )
+        ) : (
+          <AddMatchDialog
+            isOpen={isDialogOpen}
+            onClose={closeDialog}
+            onSave={fetchMatches}
+            matchData={editingMatch}
+          />
+        )}
+
+        {isMobile ? (
+          isCallupsDialogOpen && selectedMatchForCallup && (
+            <MobileMatchCallups match={selectedMatchForCallup} onClose={closeCallupsDialog} />
+          )
+        ) : (
+          <MatchCallupsDialog
+            isOpen={isCallupsDialogOpen}
+            onClose={closeCallupsDialog}
+            matchData={selectedMatchForCallup}
+          />
+        )}
+
+        {isMobile ? (
+          isViewCallupsDialogOpen && selectedMatchForViewCallups && (
+            <MobileMatchLineup
+              match={selectedMatchForViewCallups}
+              onOpenCallups={() => {
+                const match = selectedMatchForViewCallups;
+                closeViewCallupsDialog();
+                openCallupsDialog(match);
+              }}
+              onClose={closeViewCallupsDialog}
+            />
+          )
+        ) : (
+          <ViewMatchCallupsDialog
+            isOpen={isViewCallupsDialogOpen}
+            onClose={closeViewCallupsDialog}
+            matchData={selectedMatchForViewCallups}
+          />
+        )}
+
+        {isMobile ? (
+          <>
+            {isAdministrativeReportDialogOpen && selectedMatchForAdministrativeReport && (
+              <MobileMatchReportForm
+                match={selectedMatchForAdministrativeReport}
+                onClose={() => {
+                  closeAdministrativeReportDialog();
+                  setReportVersion(v => v + 1); // the report page underneath reloads the saved report
+                }}
+              />
+            )}
+            {isViewAdministrativeReportDialogOpen && selectedMatchForViewAdministrativeReport && (
+              <MobileMatchReport
+                key={reportVersion}
+                match={selectedMatchForViewAdministrativeReport}
+                onEdit={() => openAdministrativeReportDialog(selectedMatchForViewAdministrativeReport)}
+                onClose={closeViewAdministrativeReportDialog}
+              />
+            )}
+            {isResultDialogOpen && selectedMatchForResult && (
+              <MobileMatchResult
+                match={selectedMatchForResult}
+                onSave={() => {
+                  fetchMatches();
+                  openPlayerStatsDialog(selectedMatchForResult);
+                }}
+                onClose={closeResultDialog}
+              />
+            )}
+            {selectedMatchForTimeline && (
+              <MobileMatchTimeline match={selectedMatchForTimeline} onClose={closeTimelineDialog} />
+            )}
+            {isPlayerStatsDialogOpen && selectedMatchForPlayerStats && (
+              <MobileMatchPlayerStats match={selectedMatchForPlayerStats} onClose={closePlayerStatsDialog} />
+            )}
+          </>
+        ) : (
+          <>
+            <AdministrativeReportDialog
+              isOpen={isAdministrativeReportDialogOpen}
+              onClose={closeAdministrativeReportDialog}
+              matchData={selectedMatchForAdministrativeReport}
+            />
+
+            <ViewAdministrativeReportDialog
+              isOpen={isViewAdministrativeReportDialogOpen}
+              onClose={closeViewAdministrativeReportDialog}
+              matchData={selectedMatchForViewAdministrativeReport}
+            />
+
+            <SetMatchResultDialog
+              isOpen={isResultDialogOpen}
+              onClose={closeResultDialog}
+              onSave={() => {
+                fetchMatches();
+                if (selectedMatchForResult) {
+                  openPlayerStatsDialog(selectedMatchForResult);
+                }
+              }}
+              matchData={selectedMatchForResult}
+            />
+
+            {selectedMatchForTimeline && (
+              <MatchTimelineDialog 
+                match={selectedMatchForTimeline} 
+                onClose={closeTimelineDialog} 
+              />
+            )}
+
+            <MatchPlayerStatsDialog
+              isOpen={isPlayerStatsDialogOpen}
+              onClose={closePlayerStatsDialog}
+              matchData={selectedMatchForPlayerStats}
+            />
+          </>
+        )}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <MobileMatches
+          matches={matches}
+          isLoading={isLoading}
+          actions={{
+            add: openAddDialog,
+            edit: openEditDialog,
+            remove: m => handleDelete(m.id),
+            callups: openCallupsDialog,
+            lineup: openViewCallupsDialog,
+            attendance: m => navigate(`/matches/${m.id}/attendance`),
+            result: openResultDialog,
+            report: openAdministrativeReportDialog,
+            viewReport: openViewAdministrativeReportDialog,
+            playerStats: openPlayerStatsDialog,
+            timeline: openTimelineDialog,
+            setStatus: handleUpdateStatus,
+            reschedule: handleReschedule,
+          }}
+        />
+        {dialogs}
+      </>
+    );
+  }
 
   return (
     <div className="members-container" style={{ margin: '0' }}>
@@ -599,61 +764,7 @@ export const Matches = () => {
       </div>
       )}
 
-      <AddMatchDialog
-        isOpen={isDialogOpen}
-        onClose={closeDialog}
-        onSave={fetchMatches}
-        matchData={editingMatch}
-      />
-
-      <MatchCallupsDialog
-        isOpen={isCallupsDialogOpen}
-        onClose={closeCallupsDialog}
-        matchData={selectedMatchForCallup}
-      />
-
-      <ViewMatchCallupsDialog
-        isOpen={isViewCallupsDialogOpen}
-        onClose={closeViewCallupsDialog}
-        matchData={selectedMatchForViewCallups}
-      />
-
-      <AdministrativeReportDialog
-        isOpen={isAdministrativeReportDialogOpen}
-        onClose={closeAdministrativeReportDialog}
-        matchData={selectedMatchForAdministrativeReport}
-      />
-
-      <ViewAdministrativeReportDialog
-        isOpen={isViewAdministrativeReportDialogOpen}
-        onClose={closeViewAdministrativeReportDialog}
-        matchData={selectedMatchForViewAdministrativeReport}
-      />
-
-      <SetMatchResultDialog
-        isOpen={isResultDialogOpen}
-        onClose={closeResultDialog}
-        onSave={() => {
-          fetchMatches();
-          if (selectedMatchForResult) {
-            openPlayerStatsDialog(selectedMatchForResult);
-          }
-        }}
-        matchData={selectedMatchForResult}
-      />
-
-      {selectedMatchForTimeline && (
-        <MatchTimelineDialog 
-          match={selectedMatchForTimeline} 
-          onClose={closeTimelineDialog} 
-        />
-      )}
-
-      <MatchPlayerStatsDialog
-        isOpen={isPlayerStatsDialogOpen}
-        onClose={closePlayerStatsDialog}
-        matchData={selectedMatchForPlayerStats}
-      />
+      {dialogs}
     </div>
   );
 };

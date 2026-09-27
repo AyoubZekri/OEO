@@ -562,6 +562,7 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
   .eval-dialog-overlay {
     padding: 0 !important;
     background: var(--bg) !important;
+    z-index: 1100; /* above the phone bottom nav */
   }
 
   .eval-dialog {

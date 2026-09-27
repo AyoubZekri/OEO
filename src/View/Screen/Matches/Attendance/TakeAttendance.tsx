@@ -7,6 +7,8 @@ import {
 import { useTakeAttendanceController } from './TakeAttendanceController';
 import type { PlayerAttendance } from './TakeAttendanceController';
 import { Applink } from '../../../../LinkApi';
+import { useIsMobile } from '../../../../core/functions/useIsMobile';
+import { MobileTakeAttendance } from '../../../Mobile/MobileTrainingSessions/MobileTakeAttendance';
 import './TakeAttendance.css';
 
 const STATUS_BUTTONS: {
@@ -31,6 +33,19 @@ const getPhotoUrl = (photo?: string) => {
 export const MatchAttendance: React.FC = () => {
   const c = useTakeAttendanceController();
   const [search, setSearch] = useState('');
+  const isMobile = useIsMobile();
+
+  // Phone: same attendance page as the training sessions
+  if (isMobile) {
+    const i = c.matchInfo;
+    return (
+      <MobileTakeAttendance
+        c={c}
+        subject="مباراة"
+        info={i && { title: i.team_name, date: i.match_date, location: i.location, start_time: i.start_time, end_time: i.end_time }}
+      />
+    );
+  }
 
   const filtered = c.attendanceList.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||

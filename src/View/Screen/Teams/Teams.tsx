@@ -3,12 +3,29 @@ import { Plus, Edit2, Trash2, Users } from 'lucide-react';
 import { useTeamsController } from './TeamsController';
 import { TeamDialog } from './TeamDialog';
 import { useAuth } from '../../../core/context/AuthContext';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileTeams } from '../../Mobile/MobileTeams/MobileTeams';
 import './Teams.css';
 
 export const Teams: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useTeamsController();
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <MobileTeams
+        controller={controller}
+        can={{
+          add: hasAccess(permissions.teams.add),
+          edit: hasAccess(permissions.teams.edit),
+          delete: hasAccess(permissions.teams.delete),
+          viewMembers: hasAccess(permissions.members.view),
+        }}
+      />
+    );
+  }
 
   return (
     <div className="teams-container">

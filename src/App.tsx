@@ -30,6 +30,7 @@ import { TakeMeetingAttendance } from './View/Screen/Meetings/Attendance/TakeMee
 import { Decisions } from './View/Screen/Decisions/Decisions';
 import { Clubs } from './View/Screen/Clubs/Clubs'; 
 import { Operations } from './View/Screen/Operations/Operations';
+import { MobileMore } from './View/Mobile/MobileMore/MobileMore';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
@@ -37,7 +38,7 @@ import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -83,17 +84,16 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path="/meetings/:id/attendance" element={<TakeMeetingAttendance />} />
             <Route path={Approutes.Decisions} element={<Decisions />} />
             <Route path={Approutes.Clubs} element={<Clubs />} />
-            {/* Phone-only page: widening the screen sends the user to the desktop home */}
+            {/* Phone-only pages: widening the screen sends the user to the desktop home */}
             <Route path={Approutes.Operations} element={isMobile ? <Operations /> : <Navigate to="/" replace />} />
+            <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
             {/* Add more routes here as needed */}
           </Routes>
         </div>
       </div>
       
       {isMobile && (
-        <MobileBottomNav 
-          onMoreClick={controller.toggleMobileSidebar} 
-        />
+        <MobileBottomNav />
       )}
     </div>
   );

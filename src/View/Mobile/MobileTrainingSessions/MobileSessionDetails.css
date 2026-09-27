@@ -1,0 +1,310 @@
+/* Phone training session details. Colour tokens: --ms-* (MobileScreen); accent = app orange. */
+
+.msd-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+.msd-hero > * { position: relative; }
+
+.msd-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.msd-hero-icon {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  box-shadow: 0 10px 24px -8px rgba(249, 115, 22, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.msd-hero-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.msd-hero-title small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.msd-hero-title strong {
+  font-size: 1.15rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.tone-scheduled { --msd-status: #f97316; }
+.tone-live      { --msd-status: #10b981; }
+.tone-done      { --msd-status: #94a3b8; }
+.tone-cancelled { --msd-status: #ef4444; }
+
+.msd-status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--msd-status) 50%, transparent);
+  background: color-mix(in srgb, var(--msd-status) 22%, rgba(0, 0, 0, 0.2));
+  color: #fff;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.msd-status i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--msd-status);
+  box-shadow: 0 0 8px var(--msd-status);
+}
+
+/* Start | duration over a dashed line | end, each in its own column */
+.msd-clock {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.msd-clock > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.msd-clock small {
+  font-size: 0.68rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.msd-clock strong {
+  font-size: 1.3rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.msd-clock-line {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Dashed track with a dot at each end */
+.msd-clock-line::after {
+  content: '';
+  align-self: stretch;
+  height: 8px;
+  background:
+    radial-gradient(circle, #f97316 3px, transparent 3.5px) left center / 8px 8px no-repeat,
+    radial-gradient(circle, #f97316 3px, transparent 3.5px) right center / 8px 8px no-repeat,
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.35) 0 6px, transparent 6px 11px) center / 100% 2px no-repeat;
+}
+
+.msd-clock-line em {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f97316;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.msd-hero-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fdba74;
+}
+
+/* ── Facts ── */
+.msd-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.msd-fact {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+}
+
+.msd-fact-icon {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}
+
+.msd-fact small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+.msd-fact strong {
+  font-size: 0.86rem;
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+/* ── Attendance ── */
+@property --msd-p {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.msd-att {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.msd-ring {
+  --msd-p: 0;
+  width: 104px;
+  height: 104px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(#f97316 calc(var(--msd-p) * 1%), var(--ms-field) 0);
+  transition: --msd-p 0.6s ease;
+}
+
+.msd-ring span {
+  width: 82px;
+  height: 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--ms-card);
+}
+
+.msd-ring strong {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--ms-accent);
+}
+
+.msd-ring small {
+  font-size: 0.7rem;
+  color: var(--ms-muted);
+}
+
+.msd-att-list {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.msd-att-list div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+.msd-att-list strong {
+  margin-inline-start: auto;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--ms-text);
+}
+
+.msd-att-list .present svg { color: #10b981; }
+.msd-att-list .absent svg { color: #ef4444; }
+
+.msd-att-list .total {
+  padding-top: 8px;
+  border-top: 1px dashed var(--ms-border);
+}
+
+.msd-att-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 4px;
+  text-align: center;
+  color: var(--ms-muted);
+}
+
+.msd-att-empty p {
+  margin: 0;
+  font-size: 0.86rem;
+}
+
+.msd-att-empty button {
+  padding: 8px 16px;
+  border-radius: 11px;
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--ms-accent);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.me-btn.msd-btn {
+  flex: 1;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}

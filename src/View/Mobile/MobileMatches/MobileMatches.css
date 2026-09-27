@@ -1,0 +1,502 @@
+/* Phone matches page. Accent = app orange; results keep their meaning (green / grey / red). */
+.mmt-page {
+  --mmt-card: #ffffff;
+  --mmt-field: #f8fafc;
+  --mmt-border: #e2e8f0;
+  --mmt-text: #0f172a;
+  --mmt-muted: #64748b;
+  --mmt-accent: #f97316;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--mmt-text);
+  font-family: var(--sans);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .mmt-page {
+  --mmt-card: linear-gradient(165deg, #1c1d21 0%, #141518 100%);
+  --mmt-field: rgba(255, 255, 255, 0.04);
+  --mmt-border: rgba(255, 255, 255, 0.08);
+  --mmt-text: #f4f4f5;
+  --mmt-muted: #a1a1aa;
+}
+
+/* ── Club logo tile (also used by the details page) ── */
+.mmt-logo {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  color: #f97316;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.3px;
+  overflow: hidden;
+}
+
+.mmt-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mmt-logo.empty {
+  border: none;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+}
+
+.mmt-logo.big { width: 62px; height: 62px; border-radius: 18px; font-size: 0.9rem; }
+.mmt-logo.xl  { width: 74px; height: 74px; border-radius: 22px; font-size: 1rem; }
+
+/* ── Next / live match ── */
+.mmt-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+/* Centre circle of a pitch */
+.mmt-hero::before {
+  content: '';
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+
+.mmt-hero > * { position: relative; }
+
+.mmt-hero-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mmt-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(249, 115, 22, 0.2);
+  border: 1px solid rgba(249, 115, 22, 0.4);
+  color: #fdba74;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.mmt-hero.live .mmt-hero-tag {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(16, 185, 129, 0.45);
+  color: #6ee7b7;
+}
+
+.mmt-hero-board {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.mmt-hero-team {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.mmt-hero-team small {
+  max-width: 100%;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.mmt-hero-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.mmt-hero-center strong {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.mmt-hero-center small {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fdba74;
+  white-space: nowrap;
+}
+
+.mmt-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 14px;
+  font-size: 0.76rem;
+  opacity: 0.8;
+}
+
+.mmt-hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mmt-hero-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 6px 0;
+  font-size: 0.92rem;
+  font-weight: 800;
+  opacity: 0.85;
+}
+
+.mmt-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mmt-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 8px 2px;
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mmt-stats strong {
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.mmt-stats small {
+  font-size: 0.68rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.mmt-stats .win strong { color: #6ee7b7; }
+.mmt-stats .draw strong { color: #cbd5e1; }
+.mmt-stats .loss strong { color: #fca5a5; }
+
+/* ── Search + tabs ── */
+.mmt-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 13px;
+  border: 1px solid var(--mmt-border);
+  background: var(--mmt-card);
+  color: var(--mmt-muted);
+}
+
+.mmt-search:focus-within {
+  border-color: var(--mmt-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.mmt-page .mmt-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--mmt-text) !important;
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+.mmt-tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 15px;
+  border: 1px solid var(--mmt-border);
+  background: var(--mmt-card);
+}
+
+.mmt-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 38px;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--mmt-muted);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mmt-tabs button span {
+  min-width: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--mmt-field);
+  border: 1px solid var(--mmt-border);
+  font-size: 0.72rem;
+}
+
+.mmt-tabs button.active {
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--mmt-accent);
+}
+
+/* ── Match cards ── */
+.mmt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 64px; /* keep the last card clear of the floating button */
+}
+
+.mmt-card {
+  position: relative; /* anchors the ⋮ menu */
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--mmt-border);
+  background: var(--mmt-card);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+/* No press effect while the ⋮ menu is open: a transform would move the menu under the finger */
+.mmt-card:active:not(:has(.mrm-menu)) { transform: scale(0.985); }
+
+.mmt-card.state-live { border-color: rgba(16, 185, 129, 0.5); }
+.mmt-card.state-cancelled { opacity: 0.75; }
+
+.mmt-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mmt-comp {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--mmt-accent);
+}
+
+.mmt-comp em {
+  padding: 1px 8px;
+  border-radius: 7px;
+  background: var(--mmt-field);
+  border: 1px solid var(--mmt-border);
+  color: var(--mmt-muted);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.mmt-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.mmt-team {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.mmt-team small {
+  max-width: 100%;
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.mmt-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.mmt-score,
+.mmt-time,
+.mmt-vs {
+  font-size: 1.35rem;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.mmt-vs { color: var(--mmt-muted); }
+
+.mmt-state {
+  --mmt-s: #f97316;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mmt-s) 12%, transparent);
+  color: var(--mmt-s);
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.state-live .mmt-state      { --mmt-s: #10b981; }
+.state-awaiting .mmt-state  { --mmt-s: #8b5cf6; }
+.state-postponed .mmt-state { --mmt-s: #f59e0b; }
+.state-cancelled .mmt-state { --mmt-s: #ef4444; }
+.mmt-state.result-win  { --mmt-s: #10b981; }
+.mmt-state.result-draw { --mmt-s: #64748b; }
+.mmt-state.result-loss { --mmt-s: #ef4444; }
+
+.mmt-state i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: mmt-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes mmt-blink {
+  50% { opacity: 0.3; }
+}
+
+.mmt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--mmt-border);
+  font-size: 0.76rem;
+  color: var(--mmt-muted);
+}
+
+.mmt-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Empty ── */
+.mmt-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px 80px;
+  text-align: center;
+  color: var(--mmt-muted);
+}
+
+.mmt-empty-icon {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 26px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--mmt-accent);
+}
+
+.mmt-empty strong {
+  color: var(--mmt-text);
+  font-size: 1.05rem;
+}
+
+.mmt-empty p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* ── Floating add button (above the bottom nav) ── */
+.mmt-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 999;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 12px 26px -8px rgba(249, 115, 22, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.mmt-fab:active { transform: scale(0.92); }

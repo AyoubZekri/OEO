@@ -17,11 +17,13 @@ interface MobileSelectProps {
   onChange: (value: string) => void;
   placeholder?: string;
   searchable?: boolean;
+  /** Custom element that opens the sheet, in place of the default labelled field */
+  renderTrigger?: (open: () => void) => React.ReactNode;
 }
 
 // Field that opens a bottom sheet with the options (phone-friendly dropdown)
 export const MobileSelect: React.FC<MobileSelectProps> = ({
-  label, icon: Icon, value, options, onChange, placeholder = 'اختر', searchable,
+  label, icon: Icon, value, options, onChange, placeholder = 'اختر', searchable, renderTrigger,
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -54,14 +56,18 @@ export const MobileSelect: React.FC<MobileSelectProps> = ({
   };
 
   return (
-    <div className="ms-field">
-      <span className="ms-label">{label}</span>
-      <button type="button" className={`ms-trigger ${selected?.value ? 'has-value' : ''}`} onClick={() => setOpen(true)}>
-        <Icon size={18} />
-        <span className="ms-value">{selected?.label || placeholder}</span>
-        {selected?.hint && <span className="ms-hint">{selected.hint}</span>}
-        <ChevronDown size={18} className="ms-chevron" />
-      </button>
+    <div className={renderTrigger ? 'ms-custom' : 'ms-field'}>
+      {renderTrigger ? renderTrigger(() => setOpen(true)) : (
+        <>
+          <span className="ms-label">{label}</span>
+          <button type="button" className={`ms-trigger ${selected?.value ? 'has-value' : ''}`} onClick={() => setOpen(true)}>
+            <Icon size={18} />
+            <span className="ms-value">{selected?.label || placeholder}</span>
+            {selected?.hint && <span className="ms-hint">{selected.hint}</span>}
+            <ChevronDown size={18} className="ms-chevron" />
+          </button>
+        </>
+      )}
 
       {open && (
         <div className="ms-backdrop" onClick={close}>

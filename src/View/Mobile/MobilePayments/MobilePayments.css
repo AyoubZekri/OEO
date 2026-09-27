@@ -1,0 +1,1024 @@
+/* Phone payments and expenses: list page, details, form and receipt pages.
+   Everything uses the --ms-* tokens (defined by MobileScreen for the pages, and here for the list page).
+   Operation type colours: member payment = orange, expense = blue, exceptional expense = red. */
+.mpy-page {
+  --ms-card: #ffffff;
+  --ms-field: #f8fafc;
+  --ms-border: #e2e8f0;
+  --ms-text: #0f172a;
+  --ms-muted: #64748b;
+  --ms-accent: #f97316;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--ms-text);
+  font-family: var(--sans);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .mpy-page {
+  --ms-card: #17181c;
+  --ms-field: rgba(255, 255, 255, 0.04);
+  --ms-border: rgba(255, 255, 255, 0.08);
+  --ms-text: #f4f4f5;
+  --ms-muted: #a1a1aa;
+}
+
+.mpy-page .tone-orange,
+.m-screen .tone-orange { --mpy-s: #f97316; }
+.mpy-page .tone-blue,
+.m-screen .tone-blue { --mpy-s: #3b82f6; }
+.mpy-page .tone-red,
+.m-screen .tone-red { --mpy-s: #ef4444; }
+
+/* ── Dark hero ── */
+.mpy-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+.mpy-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mpy-hero-top > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mpy-hero-top small {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #fdba74;
+}
+
+.mpy-hero-top strong {
+  align-self: flex-start;
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.mpy-hero-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 17px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  box-shadow: 0 10px 24px -8px rgba(249, 115, 22, 0.9);
+}
+
+.mpy-hero.tone-blue .mpy-hero-icon { background: linear-gradient(135deg, #60a5fa, #3b82f6 55%, #2563eb); box-shadow: 0 10px 24px -8px rgba(59, 130, 246, 0.9); }
+.mpy-hero.tone-red .mpy-hero-icon { background: linear-gradient(135deg, #f87171, #ef4444 55%, #dc2626); box-shadow: 0 10px 24px -8px rgba(239, 68, 68, 0.9); }
+
+.mpy-hero-nature {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.mpy-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mpy-stats div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.mpy-stats small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--mpy-s) 55%, #fff);
+}
+
+.mpy-stats strong {
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+.mpy-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mpy-person div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mpy-person strong { font-size: 1rem; font-weight: 900; overflow-wrap: anywhere; }
+.mpy-person small { font-size: 0.76rem; font-weight: 700; color: #fdba74; }
+
+.mpy-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 900;
+}
+
+/* ── Search, tabs, filters ── */
+.mpy-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-muted);
+}
+
+.mpy-search:focus-within {
+  border-color: var(--ms-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.mpy-page .mpy-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.mpy-search input::-webkit-search-cancel-button { display: none; }
+
+.mpy-search button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--ms-field);
+  color: var(--ms-muted);
+  cursor: pointer;
+}
+
+.mpy-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--ms-card);
+  border: 1px solid var(--ms-border);
+}
+
+.mpy-tabs button {
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ms-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mpy-tabs button.active {
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  box-shadow: 0 6px 14px -8px rgba(249, 115, 22, 0.9);
+}
+
+.mpy-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mpy-filter,
+.mpy-select {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.mpy-select { background: var(--ms-field); padding: 9px 12px; }
+.mpy-select.empty { border-style: dashed; border-color: rgba(249, 115, 22, 0.5); }
+
+.mpy-filter > svg,
+.mpy-select > svg { flex-shrink: 0; }
+
+.mpy-filter span,
+.mpy-select span {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mpy-filter small,
+.mpy-select small { font-size: 0.68rem; font-weight: 700; }
+
+.mpy-filter strong,
+.mpy-select strong {
+  overflow: hidden;
+  color: var(--ms-text);
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mpy-filter.active {
+  border-color: rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.06);
+  color: var(--ms-accent);
+}
+
+/* ── List grouped by month ── */
+.mpy-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 64px; /* keep the last card clear of the floating button */
+}
+
+.mpy-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mpy-group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+}
+
+.mpy-group-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.mpy-group-head strong svg { color: var(--ms-accent); }
+
+.mpy-group-head span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ms-muted);
+}
+
+.mpy-card {
+  position: relative; /* anchors the ⋮ menu */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+/* No press effect while the ⋮ menu is open: a transform would move the menu under the finger */
+.mpy-card:active:not(:has(.mrm-menu)) { transform: scale(0.985); }
+
+.mpy-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mpy-kind-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--mpy-s) 13%, transparent);
+  color: var(--mpy-s);
+}
+
+.mpy-card-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mpy-card-text strong {
+  font-size: 0.93rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mpy-card-text small {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--ms-muted);
+  overflow-wrap: anywhere;
+}
+
+.mpy-card-foot {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--ms-border);
+}
+
+.mpy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+  color: var(--ms-muted);
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.mpy-chip.ok {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.mpy-amount {
+  margin-inline-start: auto;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--mpy-s);
+}
+
+.mpy-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px 80px;
+  text-align: center;
+  color: var(--ms-muted);
+}
+
+.mpy-empty-icon {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 26px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}
+
+.mpy-empty strong { color: var(--ms-text); font-size: 1.05rem; }
+.mpy-empty p { margin: 0; font-size: 0.85rem; }
+
+.mpy-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 999;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 12px 26px -8px rgba(249, 115, 22, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.mpy-fab:active { transform: scale(0.92); }
+
+/* ── Print options sheet ── */
+.mpy-print {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.mpy-print p {
+  margin: 0 0 4px;
+  color: var(--ms-muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.mpy-print button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 15px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.mpy-print button svg { color: var(--ms-accent); flex-shrink: 0; }
+.mpy-print button strong { font-size: 0.92rem; font-weight: 800; }
+
+.mpy-print button.primary {
+  border: none;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  box-shadow: 0 12px 24px -12px rgba(249, 115, 22, 0.9);
+}
+
+.mpy-print button.primary svg { color: #fff; }
+
+/* ── Details ── */
+.mpy-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mpy-field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+}
+
+.mpy-field.wide { grid-column: 1 / -1; }
+
+.mpy-field small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+.mpy-field small svg { color: var(--ms-accent); }
+
+.mpy-field strong {
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.mpy-field em {
+  font-style: italic;
+  font-size: 0.82rem;
+  color: var(--ms-muted);
+}
+
+.mpy-receipt {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border-radius: 16px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  cursor: pointer;
+}
+
+.mpy-receipt img {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+}
+
+.mpy-receipt-pdf {
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #ef4444;
+  font-weight: 800;
+}
+
+.mpy-receipt em {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  background: rgba(15, 23, 42, 0.75);
+  color: #fff;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.mpy-upload-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 15px;
+  border: 1.5px dashed rgba(59, 130, 246, 0.55);
+  background: rgba(59, 130, 246, 0.06);
+  color: #3b82f6;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.mpy-upload-btn span {
+  display: flex;
+  flex-direction: column;
+}
+
+.mpy-upload-btn strong { font-size: 0.9rem; font-weight: 800; }
+.mpy-upload-btn small { font-size: 0.74rem; color: var(--ms-muted); }
+
+.mpy-upload-btn.subtle {
+  justify-content: center;
+  padding: 10px;
+  border-style: solid;
+  border-color: var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+/* ── Receipt upload / view pages ── */
+.mpy-mini {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+}
+
+.mpy-mini > span:not(.mpy-kind-icon) {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mpy-mini strong { font-size: 0.9rem; font-weight: 800; overflow-wrap: anywhere; }
+.mpy-mini small { align-self: flex-start; font-size: 0.74rem; color: var(--ms-muted); }
+.mpy-mini b { flex-shrink: 0; font-size: 0.9rem; font-weight: 900; color: var(--mpy-s); }
+
+.mpy-drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 16px;
+  border-radius: 20px;
+  border: 2px dashed rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.04);
+  text-align: center;
+  cursor: pointer;
+}
+
+.mpy-drop input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.mpy-drop.has-file {
+  border-style: solid;
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.mpy-drop-icon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}
+
+.mpy-drop strong { font-size: 0.95rem; font-weight: 800; }
+.mpy-drop small { font-size: 0.76rem; color: var(--ms-muted); }
+
+.mpy-drop img {
+  width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: var(--ms-field);
+}
+
+.mpy-file {
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--ms-card);
+  border: 1px solid var(--ms-border);
+  color: #10b981;
+}
+
+.mpy-file > svg { flex-shrink: 0; }
+
+.mpy-file span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  text-align: start;
+}
+
+.mpy-file strong {
+  overflow: hidden;
+  color: var(--ms-text);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.mpy-drop em {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-style: normal;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--ms-accent);
+}
+
+.mpy-viewer {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+}
+
+.mpy-viewer img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.mpy-viewer iframe {
+  display: block;
+  width: 100%;
+  height: 72vh;
+  border: none;
+}
+
+/* ── Form ── */
+.mpy-kinds {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mpy-kinds button {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 6px;
+  border-radius: 15px;
+  border: 1.5px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.35;
+  text-align: center;
+  cursor: pointer;
+}
+
+.mpy-kinds button.on {
+  border-color: var(--mpy-s);
+  background: color-mix(in srgb, var(--mpy-s) 9%, transparent);
+  color: var(--mpy-s);
+  box-shadow: 0 8px 18px -12px var(--mpy-s);
+}
+
+.mpy-kinds button.on .mpy-kind-icon {
+  background: var(--mpy-s);
+  color: #fff;
+}
+
+.mpy-pick {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1.5px dashed rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.05);
+  color: var(--ms-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.mpy-pick.has-value {
+  border-style: solid;
+  border-color: var(--ms-border);
+  background: var(--ms-field);
+}
+
+.mpy-pick-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}
+
+.mpy-pick-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mpy-pick-text small { font-size: 0.7rem; font-weight: 700; }
+
+.mpy-pick-text strong {
+  color: var(--ms-text);
+  font-size: 0.92rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mpy-pick > svg { flex-shrink: 0; }
+
+.mpy-person-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+.mpy-person-facts span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px;
+  border-radius: 9px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+  color: var(--ms-muted);
+  font-size: 0.74rem;
+}
+
+.mpy-person-facts b { color: var(--ms-text); font-weight: 800; }
+
+.mpy-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(239, 68, 68, 0.07);
+  color: #ef4444;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.mpy-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mpy-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 8px 8px 12px;
+  border-radius: 14px;
+  background: var(--ms-field);
+  border: 1px solid var(--ms-border);
+}
+
+.mpy-count small {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ms-muted);
+}
+
+.mpy-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mpy-stepper strong {
+  min-width: 28px;
+  font-size: 1.15rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.mpy-stepper button {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-text);
+  cursor: pointer;
+}
+
+.mpy-stepper button:last-child {
+  border: none;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+}
+
+.mpy-stepper button:disabled { opacity: 0.4; cursor: default; }
+
+.mpy-quick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+.mpy-quick button,
+.mpy-methods button {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mpy-quick button small {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+.mpy-quick button.active,
+.mpy-methods button.active {
+  border-color: var(--ms-accent);
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}
+
+.mpy-methods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.mpy-methods button {
+  min-width: 0;
+  justify-content: center;
+  height: 40px;
+  padding: 0 4px;
+}
+
+.m-screen .me-input.mpy-big-input {
+  height: 54px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--ms-accent) !important;
+}
+
+.mpy-auto {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.mpy-form-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.mpy-spin { animation: mpy-spin 0.9s linear infinite; }
+
+@keyframes mpy-spin {
+  to { transform: rotate(360deg); }
+}

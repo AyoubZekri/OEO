@@ -21,4 +21,5 @@ export class Approutes {
   static readonly Decisions = "/decisions";
   static readonly Clubs = "/clubs";
   static readonly Operations = "/operations";
+  static readonly More = "/more";
 }

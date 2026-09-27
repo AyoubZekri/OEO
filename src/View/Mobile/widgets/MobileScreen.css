@@ -1,0 +1,105 @@
+.m-screen {
+  --ms-bg: #f3f4f6;
+  --ms-card: #ffffff;
+  --ms-field: #f8fafc;
+  --ms-border: #e2e8f0;
+  --ms-text: #0f172a;
+  --ms-muted: #64748b;
+  --ms-accent: #f97316;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ms-bg);
+  color: var(--ms-text);
+  font-family: var(--sans);
+  animation: m-screen-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Above the bottom nav (1000); screens opened from a screen sit higher */
+.m-screen.layer-1 { z-index: 1100; }
+.m-screen.layer-2 { z-index: 1150; }
+.m-screen.layer-3 { z-index: 1250; }
+
+body.dark-mode .m-screen {
+  --ms-bg: #0e0f12;
+  --ms-card: #17181c;
+  --ms-field: rgba(255, 255, 255, 0.04);
+  --ms-border: rgba(255, 255, 255, 0.08);
+  --ms-text: #f4f4f5;
+  --ms-muted: #a1a1aa;
+}
+
+@keyframes m-screen-in {
+  from { transform: translateX(-24px); opacity: 0; }
+}
+
+.m-screen-bar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 62px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: var(--ms-bg);
+  border-bottom: 1px solid var(--ms-border);
+}
+
+.m-screen-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.m-screen-icon:active { transform: scale(0.92); }
+
+.m-screen-titles {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.m-screen-titles h1 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+/* Same width as the back button so the title stays centred */
+.m-screen-spacer {
+  width: 42px;
+  flex-shrink: 0;
+}
+
+.m-screen-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Keep each block at its full height and let the body scroll */
+.m-screen-body > * {
+  flex-shrink: 0;
+}
+
+.m-screen-footer {
+  flex-shrink: 0;
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: var(--ms-bg);
+  border-top: 1px solid var(--ms-border);
+}

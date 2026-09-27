@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, ClipboardList, LogOut, FileText } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import type { useMembersController } from '../../Screen/Members/MembersController';
 import type { MemberModel } from '../../Screen/Members/member_model';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
+import { revealMenu, menuPositionUnder } from '../widgets/revealMenu';
+import { TYPE_LABELS, POSITION_LABELS } from './memberLabels';
 import './MobileMembers.css';
 
 interface MobileMembersProps {
@@ -12,51 +14,22 @@ interface MobileMembersProps {
   canAdd: boolean;
   canEdit: boolean;
   canDelete: boolean;
+  canViewRecord: boolean;
   onAddEvaluation: (member: MemberModel) => void;
 }
-
-const TYPE_LABELS: Record<string, string> = {
-  player: 'لاعب',
-  coach: 'مدرب',
-  assistant_coach: 'مساعد مدرب',
-  goalkeeper_coach: 'مدرب حراس',
-  physical_trainer: 'محضر بدني',
-  employee: 'موظف',
-  admin: 'إداري',
-  doctor: 'طبيب',
-};
-
-const POSITION_LABELS: Record<string, string> = {
-  GK: 'حارس مرمى',
-  CB: 'قلب دفاع',
-  SW: 'ليبرو',
-  RB: 'ظهير أيمن',
-  LB: 'ظهير أيسر',
-  RWB: 'ظهير جناح أيمن',
-  LWB: 'ظهير جناح أيسر',
-  CDM: 'وسط دفاعي',
-  CM: 'وسط محوري',
-  CAM: 'صانع ألعاب',
-  RM: 'وسط أيمن',
-  LM: 'وسط أيسر',
-  RW: 'جناح أيمن',
-  LW: 'جناح أيسر',
-  SS: 'مهاجم ثانٍ',
-  CF: 'قلب هجوم',
-  ST: 'رأس حربة',
-};
 
 // The model falls back to a generated ui-avatars URL; use the app's own default image instead
 const getPhoto = (member: MemberModel) =>
   member.photo && !member.photo.includes('ui-avatars.com') ? member.photo : defaultAvatar;
 
-export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, onAddEvaluation }) => {
+export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onAddEvaluation }) => {
   const { filteredMembers, searchQuery, setSearchQuery, filterTeamId, setFilterTeamId, teams } = controller;
   const categories = [{ id: '', name: 'الكل' }, ...teams];
 
   // Member whose actions menu is open; the menu sits inside that card so it scrolls with it
   const [actionMember, setActionMember] = useState<MemberModel | null>(null);
-  const [menuUp, setMenuUp] = useState(false);
+  // Menu position under the ⋮ button, measured when it opens
+  const [menuPos, setMenuPos] = useState<React.CSSProperties>({});
 
   useEffect(() => {
     if (!actionMember) return;
@@ -66,19 +39,10 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
   }, [actionMember]);
 
   // Evaluations are for players only, same as desktop
-  const hasActions = (member: MemberModel) => member.type === 'player' || canEdit || canDelete;
+  const hasActions = (member: MemberModel) => member.type === 'player' || canViewRecord || canEdit || canDelete;
 
-  const openMenu = (member: MemberModel, button: HTMLElement) => {
-    if (actionMember?.id === member.id) {
-      setActionMember(null);
-      return;
-    }
-    const itemCount = (member.type === 'player' ? 1 : 0) + (canEdit ? 1 : 0) + (canDelete ? 1 : 0);
-    const menuHeight = itemCount * 46 + 12;
-    // Open below the button, or above it when it would run under the bottom nav
-    setMenuUp(button.getBoundingClientRect().bottom + 6 + menuHeight > window.innerHeight - 96);
-    setActionMember(member);
-  };
+  const openMenu = (member: MemberModel) =>
+    setActionMember(current => (current?.id === member.id ? null : member));
 
   const runAction = (action: (member: MemberModel) => void) => {
     const member = actionMember;
@@ -150,7 +114,10 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
               {hasActions(member) && (
                 <button
                   className={`mm-more ${actionMember?.id === member.id ? 'open' : ''}`}
-                  onClick={e => openMenu(member, e.currentTarget)}
+                  onClick={e => {
+                    if (actionMember?.id !== member.id) setMenuPos(menuPositionUnder(e.currentTarget, 170)); // .mm-menu width
+                    openMenu(member);
+                  }}
                   aria-label="خيارات العضو"
                   aria-haspopup="menu"
                   aria-expanded={actionMember?.id === member.id}
@@ -163,17 +130,35 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
               {actionMember?.id === member.id && (
                 <>
                   <div className="mm-menu-backdrop" onClick={() => setActionMember(null)} />
-                  <div className={`mm-menu ${menuUp ? 'up' : ''}`} role="menu" aria-label="خيارات العضو">
+                  <div ref={revealMenu} className="mm-menu" style={menuPos} role="menu" aria-label="خيارات العضو">
                     {member.type === 'player' && (
                       <button role="menuitem" className="mm-menu-item eval" onClick={() => runAction(onAddEvaluation)}>
                         <TrendingUp size={17} />
                         إضافة تقييم
                       </button>
                     )}
+                    {member.type === 'player' && (
+                      <button role="menuitem" className="mm-menu-item history" onClick={() => runAction(controller.openEvalHistory)}>
+                        <ClipboardList size={17} />
+                        عرض التقييمات
+                      </button>
+                    )}
+                    {canViewRecord && (
+                      <button role="menuitem" className="mm-menu-item record" onClick={() => runAction(controller.openExpensesDialog)}>
+                        <FileText size={17} />
+                        سجل المتابعة
+                      </button>
+                    )}
                     {canEdit && (
                       <button role="menuitem" className="mm-menu-item edit" onClick={() => runAction(controller.openEditMemberDialog)}>
                         <Pencil size={17} />
                         تعديل
+                      </button>
+                    )}
+                    {canEdit && (
+                      <button role="menuitem" className="mm-menu-item clearance" onClick={() => runAction(controller.openClearanceDialog)}>
+                        <LogOut size={17} />
+                        الإخلاء والمغادرة
                       </button>
                     )}
                     {canDelete && (

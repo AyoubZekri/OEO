@@ -1,0 +1,493 @@
+/* Phone attendance sheet. Colour tokens: --ms-* (MobileScreen); status colours are meaningful. */
+
+.m-screen .tone-present { --mta-c: #10b981; }
+.m-screen .tone-late    { --mta-c: #f59e0b; }
+.m-screen .tone-excused { --mta-c: #3b82f6; }
+.m-screen .tone-absent  { --mta-c: #ef4444; }
+.m-screen .tone-none    { --mta-c: #94a3b8; }
+.m-screen .tone-all     { --mta-c: #f97316; }
+
+/* ── Session + progress ── */
+.mta-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+.mta-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mta-hero-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mta-hero-text small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #fdba74;
+}
+
+.mta-hero-text strong {
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.mta-hero-text span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  opacity: 0.8;
+  overflow-wrap: anywhere;
+}
+
+@property --mta-p {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 0;
+}
+
+.mta-ring {
+  --mta-p: 0;
+  width: 84px;
+  height: 84px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(#10b981 calc(var(--mta-p) * 1%), rgba(255, 255, 255, 0.14) 0);
+  transition: --mta-p 0.5s ease;
+}
+
+.mta-ring span {
+  width: 66px;
+  height: 66px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #131c2e;
+}
+
+.mta-ring strong {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.mta-ring small {
+  font-size: 0.64rem;
+  opacity: 0.7;
+}
+
+.mta-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mta-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+
+.mta-progress-head strong { font-size: 0.95rem; }
+
+.mta-progress-head em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 8px;
+  background: rgba(249, 115, 22, 0.25);
+  color: #fdba74;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.mta-progress-head em.done {
+  background: rgba(16, 185, 129, 0.2);
+  color: #6ee7b7;
+}
+
+.mta-progress-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+}
+
+.mta-progress-bar div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fb923c, #f97316);
+  transition: width 0.3s ease;
+}
+
+.mta-warn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.mta-warn svg { flex-shrink: 0; }
+
+/* ── Filters (scroll sideways) ── */
+.mta-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mta-filters::-webkit-scrollbar { display: none; }
+
+.mta-filters button {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mta-filters button span {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mta-c) 14%, transparent);
+  color: var(--mta-c);
+  font-size: 0.72rem;
+}
+
+.mta-filters button.active {
+  border-color: var(--mta-c);
+  background: color-mix(in srgb, var(--mta-c) 12%, transparent);
+  color: var(--mta-c);
+}
+
+.mta-toolbar {
+  display: flex;
+  gap: 8px;
+}
+
+.mta-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 13px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-muted);
+}
+
+.mta-search:focus-within {
+  border-color: var(--ms-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.m-screen .mta-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.mta-bulk {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 10px 20px -10px rgba(249, 115, 22, 0.9);
+}
+
+/* ── Players ── */
+.mta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mta-player {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1.5px solid color-mix(in srgb, var(--mta-c) 45%, transparent);
+  background: var(--ms-card);
+  transition: border-color 0.2s;
+}
+
+.mta-player.tone-none { border-color: var(--ms-border); }
+
+.mta-player-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mta-avatar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+  font-weight: 900;
+}
+
+.mta-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mta-player-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mta-player-text strong {
+  font-size: 0.93rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mta-player-text small {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.74rem;
+  color: var(--ms-muted);
+}
+
+.mta-player-text b {
+  color: var(--ms-accent);
+  direction: ltr;
+}
+
+.mta-player-text em {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 7px;
+  border-radius: 7px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.mta-note-btn {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-muted);
+  cursor: pointer;
+}
+
+.mta-note-btn.on {
+  border-color: rgba(249, 115, 22, 0.4);
+  color: var(--ms-accent);
+}
+
+/* Four status buttons, one tap each */
+.mta-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mta-choices button {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  padding: 0 4px;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-muted);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.mta-choices button span {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mta-choices button:active { transform: scale(0.95); }
+
+.mta-choices button.active {
+  border-color: transparent;
+  background: var(--mta-c);
+  color: #fff;
+  box-shadow: 0 8px 16px -8px var(--mta-c);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.m-screen .mta-note {
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 12px;
+  border-radius: 11px;
+  border: 1px solid var(--ms-border) !important;
+  background: var(--ms-field) !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 0.84rem;
+  outline: none;
+}
+
+.m-screen .mta-note:focus { border-color: var(--ms-accent) !important; }
+
+.m-screen .mta-player.injured .mta-note {
+  color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.06) !important;
+}
+
+/* ── Empty / error ── */
+.mta-empty,
+.mta-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--ms-muted);
+}
+
+.mta-empty p,
+.mta-error p {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.mta-error svg { color: #ef4444; }
+
+/* ── Bulk sheet ── */
+.mta-sheet-title {
+  margin: 4px 2px 10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--msh-muted);
+}
+
+.mta-sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mta-sheet-grid button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 46px;
+  border-radius: 13px;
+  border: 1px solid color-mix(in srgb, var(--mta-c) 35%, transparent);
+  background: color-mix(in srgb, var(--mta-c) 10%, transparent);
+  color: var(--mta-c);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mta-spin { animation: mta-spin 0.9s linear infinite; }
+
+@keyframes mta-spin {
+  to { transform: rotate(360deg); }
+}

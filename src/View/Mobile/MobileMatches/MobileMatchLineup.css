@@ -1,0 +1,234 @@
+/* Phone line-up page. Colour tokens: --ms-* (MobileScreen); accent = app orange.
+   The pitch itself is the shared FootballPitch; only its frame is restyled here. */
+
+.mml-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+.mml-hero-match {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mml-hero-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  text-align: center;
+}
+
+.mml-hero-text small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.mml-hero-text strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.mml-hero-text span {
+  font-size: 0.74rem;
+  color: #fdba74;
+  font-weight: 700;
+}
+
+.mml-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mml-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mml-stats span {
+  color: #fdba74;
+  margin-bottom: 2px;
+}
+
+.mml-stats strong {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.mml-stats small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.mml-stats .full strong { color: #6ee7b7; }
+
+.mml-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.08);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.mml-tip svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--ms-accent);
+}
+
+/* ── Frame of the shared pitch ── */
+/* Two rows so nothing leaves narrow screens: [label | formation] then the save button */
+.mml-pitch .formation-selector {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  box-shadow: none;
+}
+
+.mml-pitch .formation-selector > div:first-child {
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.mml-pitch .formation-selector label {
+  margin: 0 !important;
+  color: var(--ms-text) !important;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.mml-pitch .custom-dropdown-container {
+  flex: 1;
+  min-width: 0;
+  max-width: 180px;
+}
+
+.mml-pitch .custom-dropdown-btn {
+  width: 100%;
+  height: 42px;
+  border-radius: 12px;
+  border-color: var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font-weight: 800;
+  direction: ltr;
+}
+
+.mml-pitch .formation-selector .mc-btn-primary {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  box-shadow: 0 10px 20px -10px rgba(249, 115, 22, 0.9);
+}
+
+.mml-pitch .football-pitch-container {
+  height: 520px !important;
+  border-width: 3px;
+  border-radius: 22px;
+  box-shadow: 0 16px 32px -14px rgba(0, 0, 0, 0.5), inset 0 0 40px rgba(0, 0, 0, 0.3);
+}
+
+.mml-pitch .pitch-and-players-layout { gap: 14px; }
+
+.mml-pitch .substitutes-container {
+  height: auto;
+  max-height: 340px;
+  border-radius: 18px;
+  border-color: var(--ms-border);
+  background: var(--ms-card);
+  overflow-y: auto !important;
+}
+
+.mml-pitch .player-picker-modal {
+  border-radius: 14px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  color: var(--ms-text);
+}
+
+/* ── Nobody called up ── */
+.mml-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 20px;
+  text-align: center;
+  color: var(--ms-muted);
+}
+
+.mml-empty-icon {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  border-radius: 24px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--ms-accent);
+}
+
+.mml-empty strong {
+  color: var(--ms-text);
+  font-size: 1.02rem;
+}
+
+.mml-empty p {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+}
+
+.mml-empty .me-btn { flex: none; padding: 0 20px; }
+
+/* Picker items carry inline colours; keep them readable in dark mode */
+.mml-pitch .player-picker-modal span,
+.mml-pitch .player-picker-modal > div:first-child {
+  color: var(--ms-text) !important;
+}
+
+.mml-pitch .player-picker-modal > div + div:active {
+  background: rgba(249, 115, 22, 0.12);
+}
+

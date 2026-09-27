@@ -13,7 +13,7 @@
 
   position: fixed;
   inset: 0;
-  z-index: 1100; /* above the bottom nav and the list */
+  z-index: 1250; /* above the bottom nav and the evaluations archive it opens from */
   display: flex;
   flex-direction: column;
   background: var(--ev-bg);

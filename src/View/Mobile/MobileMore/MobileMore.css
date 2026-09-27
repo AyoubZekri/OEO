@@ -1,0 +1,187 @@
+.mo-page {
+  --mo-card: #ffffff;
+  --mo-field: #f8fafc;
+  --mo-border: #e2e8f0;
+  --mo-text: #0f172a;
+  --mo-muted: #64748b;
+  --mo-accent: #f97316;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: var(--mo-text);
+  font-family: var(--sans);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .mo-page {
+  --mo-card: linear-gradient(165deg, #1c1d21 0%, #141518 100%);
+  --mo-field: rgba(255, 255, 255, 0.04);
+  --mo-border: rgba(255, 255, 255, 0.08);
+  --mo-text: #f4f4f5;
+  --mo-muted: #a1a1aa;
+}
+
+/* ── Account card ── */
+.mo-account {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 22px;
+  color: #fff;
+  background:
+    radial-gradient(110% 130% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 55%),
+    linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.6);
+}
+
+.mo-avatar {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  font-size: 1.4rem;
+  font-weight: 900;
+  box-shadow: 0 8px 18px -8px rgba(249, 115, 22, 0.8);
+}
+
+.mo-account-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mo-account-text strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.mo-account-text span {
+  font-size: 0.78rem;
+  color: #fdba74;
+  font-weight: 700;
+}
+
+.mo-theme {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+}
+
+.mo-theme:active { transform: scale(0.92); }
+
+/* ── Search ── */
+.mo-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid var(--mo-border);
+  background: var(--mo-card);
+  color: var(--mo-muted);
+}
+
+.mo-search:focus-within {
+  border-color: var(--mo-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.mo-page .mo-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--mo-text) !important;
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+/* ── Page groups ── */
+.mo-group h2 {
+  margin: 0 4px 10px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--mo-muted);
+}
+
+.mo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mo-tile {
+  --mo-color: var(--mo-accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 14px 6px 12px;
+  border-radius: 18px;
+  border: 1px solid var(--mo-border);
+  background: var(--mo-card);
+  color: var(--mo-text);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.mo-tile:active { transform: scale(0.95); }
+
+.mo-tile-icon {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--mo-color) 15%, transparent);
+  color: var(--mo-color);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mo-color) 25%, transparent);
+}
+
+.mo-tile-label {
+  width: 100%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* ── Empty ── */
+.mo-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 0;
+  color: var(--mo-muted);
+}
+
+.mo-empty p { margin: 0; }

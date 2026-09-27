@@ -4,17 +4,23 @@ import { Shield, Plus, Edit2, Trash2, Camera, X, UploadCloud, Search } from 'luc
 import { useClubsController } from './ClubsController';
 import type { Club } from './club_model';
 import { CustomInput } from '../../widget/CustomInput';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileClubs } from '../../Mobile/MobileClubs/MobileClubs';
 import './Clubs.css';
 
 export const Clubs: React.FC = () => {
   const { t } = useTranslation();
-  const { clubs, addClub, updateClub, deleteClub, isLoading } = useClubsController();
+  const controller = useClubsController();
+  const { clubs, addClub, updateClub, deleteClub, isLoading } = controller;
+  const isMobile = useIsMobile();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', symbol: '', logo: '' });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  if (isMobile) return <MobileClubs controller={controller} />;
 
   const openAdd = () => {
     setEditingId(null);

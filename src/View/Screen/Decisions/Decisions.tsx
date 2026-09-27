@@ -8,6 +8,9 @@ import { Plus, Edit2, Trash2, Calendar, Users, CheckCircle, Clock, Filter, X, Ey
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CustomInput } from '../../widget/CustomInput';
 import '../Equipment/Equipment.css';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileDecisions } from '../../Mobile/MobileDecisions/MobileDecisions';
+import type { DecisionDraft } from '../../Mobile/MobileDecisions/MobileDecisionForm';
 import './Decisions.css';
 
 export const Decisions: React.FC = () => {
@@ -112,6 +115,38 @@ export const Decisions: React.FC = () => {
     const mem = members.find(e => e.id?.toString() === id?.toString());
     return mem ? { ...mem, name: `${mem.first_name} ${mem.last_name}` } : undefined;
   };
+
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    // Same rules as handleSubmit below
+    const saveFromPhone = async (draft: DecisionDraft, id: string | null) => {
+      const data = { ...draft };
+      if (data.type === 'checklist' && !data.text) data.text = data.category || 'قرار مهام متعددة ';
+      if (id) {
+        await updateDecision(id, data);
+      } else {
+        await addDecision({
+          ...data,
+          progress: data.type === 'checklist' ? 0 : (data.progress || 0),
+          status: 'في الانتظار',
+          meetingId: data.meetingId || '',
+        } as Omit<Decision, 'id'>);
+      }
+    };
+    return (
+      <MobileDecisions
+        decisions={decisions}
+        isLoading={isLoading}
+        meetings={meetings}
+        members={members}
+        onSave={saveFromPhone}
+        onDelete={deleteDecision}
+        onProgress={updateProgress}
+        onToggleTask={toggleChecklistItem}
+      />
+    );
+  }
 
   const handleQuickProgress = (id: string, currentProgress: number, addAmount: number) => {
     updateProgress(id, currentProgress + addAmount);

@@ -15,6 +15,8 @@ import { CustomDropdown } from '../../widget/CustomDropdown';
 import { IncidentPrintDialog } from './Dialogs/IncidentPrintDialog';
 import { UploadSignedDocumentDialog } from './Dialogs/UploadSignedDocumentDialog';
 import { ViewSignedDocumentDialog } from './Dialogs/ViewSignedDocumentDialog';
+import { MobileDisciplinary } from '../../Mobile/MobileDisciplinary/MobileDisciplinary';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
 
 
 import './Disciplinary.css';
@@ -81,6 +83,7 @@ export const Disciplinary: React.FC = () => {
   const hasAccess = (check: boolean) => isFullAccess || check;
 
   const controller = useDisciplinaryController();
+  const isMobile = useIsMobile();
   const [viewingItem, setViewingItem] = useState<any>(null);
   const [viewingReplyItem, setViewingReplyItem] = useState<any>(null);
   const [printingIncident, setPrintingIncident] = useState<any>(null);
@@ -122,6 +125,22 @@ export const Disciplinary: React.FC = () => {
 
   return (
     <div className="members-container">
+      {isMobile ? (
+        // Phone layout; it opens its own pages instead of the dialogs below
+        <MobileDisciplinary
+          controller={controller}
+          can={{
+            add: hasAccess(permissions.disciplinary.add),
+            edit: hasAccess(permissions.disciplinary.edit),
+            delete: hasAccess(permissions.disciplinary.delete),
+            view: hasAccess(permissions.disciplinary.view),
+            viewReply: hasAccess(permissions.disciplinary.viewReply),
+            print: hasAccess(permissions.disciplinary.print),
+            changeStatus: hasAccess(permissions.disciplinary.changeStatus),
+          }}
+        />
+      ) : (
+      <>
       {/* Header section */}
       <div className="members-header">
 
@@ -269,75 +288,84 @@ export const Disciplinary: React.FC = () => {
           </div>
         )}
       </div>
+      </>
+      )}
 
-      <DisciplinaryDialog
-        isOpen={controller.isAddDialogOpen}
-        onClose={controller.closeDialog}
-        onSave={controller.handleSave}
-        editingItem={controller.editingItem}
-        members={controller.members}
-        isSubmitting={controller.isSubmitting}
-      />
+      {!isMobile && (
+        <DisciplinaryDialog
+          isOpen={controller.isAddDialogOpen}
+          onClose={controller.closeDialog}
+          onSave={controller.handleSave}
+          editingItem={controller.editingItem}
+          members={controller.members}
+          isSubmitting={controller.isSubmitting}
+        />
+      )}
 
-      <IncidentDecisionDialog
-        isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'واقعة'}
-        onClose={controller.closeDialog}
-        onSave={controller.handleSave}
-        editingItem={controller.editingItem}
-      />
+      {/* Desktop dialogs; the phone layout has its own pages */}
+      {!isMobile && (
+        <>
+        <IncidentDecisionDialog
+          isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'واقعة'}
+          onClose={controller.closeDialog}
+          onSave={controller.handleSave}
+          editingItem={controller.editingItem}
+        />
       
-      <ClarificationResponseDialog
-        isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'طلب توضيح'}
-        onClose={controller.closeDialog}
-        onSave={controller.handleSave}
-        editingItem={controller.editingItem}
-      />
+        <ClarificationResponseDialog
+          isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'طلب توضيح'}
+          onClose={controller.closeDialog}
+          onSave={controller.handleSave}
+          editingItem={controller.editingItem}
+        />
 
-      <HearingResponseDialog
-        isOpen={controller.isResponseDialogOpen && ['استدعاء جلسة', 'إحالة على الجهة التأديبية المختصة'].includes(controller.editingItem?.actionType || '')}
-        onClose={controller.closeDialog}
-        onSave={controller.handleSave}
-        editingItem={controller.editingItem}
-      />
+        <HearingResponseDialog
+          isOpen={controller.isResponseDialogOpen && ['استدعاء جلسة', 'إحالة على الجهة التأديبية المختصة'].includes(controller.editingItem?.actionType || '')}
+          onClose={controller.closeDialog}
+          onSave={controller.handleSave}
+          editingItem={controller.editingItem}
+        />
 
-      <DisciplinaryDetailsDialog
-        isOpen={!!viewingItem}
-        onClose={() => setViewingItem(null)}
-        item={viewingItem}
-      />
+        <DisciplinaryDetailsDialog
+          isOpen={!!viewingItem}
+          onClose={() => setViewingItem(null)}
+          item={viewingItem}
+        />
 
-      <ViewReplyDialog
-        isOpen={!!viewingReplyItem}
-        onClose={() => setViewingReplyItem(null)}
-        item={viewingReplyItem}
-        onEdit={(item) => {
-          setViewingReplyItem(null);
-          controller.openResponseDialog(item);
-        }}
-      />
+        <ViewReplyDialog
+          isOpen={!!viewingReplyItem}
+          onClose={() => setViewingReplyItem(null)}
+          item={viewingReplyItem}
+          onEdit={(item) => {
+            setViewingReplyItem(null);
+            controller.openResponseDialog(item);
+          }}
+        />
 
-      <IncidentPrintDialog 
-        isOpen={!!printingIncident}
-        onClose={() => setPrintingIncident(null)}
-        incident={printingIncident}
-      />
+        <IncidentPrintDialog 
+          isOpen={!!printingIncident}
+          onClose={() => setPrintingIncident(null)}
+          incident={printingIncident}
+        />
 
-      <UploadSignedDocumentDialog
-        isOpen={!!uploadingSignedDocItem}
-        onClose={() => setUploadingSignedDocItem(null)}
-        onSave={controller.handleUploadSignedDocument}
-        item={uploadingSignedDocItem}
-      />
+        <UploadSignedDocumentDialog
+          isOpen={!!uploadingSignedDocItem}
+          onClose={() => setUploadingSignedDocItem(null)}
+          onSave={controller.handleUploadSignedDocument}
+          item={uploadingSignedDocItem}
+        />
 
-      <ViewSignedDocumentDialog
-        isOpen={!!viewingSignedDocItem}
-        onClose={() => setViewingSignedDocItem(null)}
-        imageUrl={viewingSignedDocItem?.signed_document || ''}
-        onEdit={hasAccess(permissions.disciplinary.edit) ? () => {
-          setUploadingSignedDocItem(viewingSignedDocItem);
-          setViewingSignedDocItem(null);
-        } : undefined}
-      />
+        <ViewSignedDocumentDialog
+          isOpen={!!viewingSignedDocItem}
+          onClose={() => setViewingSignedDocItem(null)}
+          imageUrl={viewingSignedDocItem?.signed_document || ''}
+          onEdit={hasAccess(permissions.disciplinary.edit) ? () => {
+            setUploadingSignedDocItem(viewingSignedDocItem);
+            setViewingSignedDocItem(null);
+          } : undefined}
+        />
+        </>
+      )}
     </div>
   );
 };

@@ -1,0 +1,315 @@
+/* Phone other clubs page. Accent = app orange. */
+.mcl-page {
+  --mcl-card: #ffffff;
+  --mcl-field: #f8fafc;
+  --mcl-border: #e2e8f0;
+  --mcl-text: #0f172a;
+  --mcl-muted: #64748b;
+  --mcl-accent: #f97316;
+
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--mcl-text);
+  font-family: var(--sans);
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.dark-mode .mcl-page {
+  --mcl-card: linear-gradient(165deg, #1c1d21 0%, #141518 100%);
+  --mcl-field: rgba(255, 255, 255, 0.04);
+  --mcl-border: rgba(255, 255, 255, 0.08);
+  --mcl-text: #f4f4f5;
+  --mcl-muted: #a1a1aa;
+}
+
+/* ── Summary ── */
+.mcl-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+.mcl-hero::before {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  top: -90px;
+  left: -70px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: none;
+}
+
+.mcl-hero-icon {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  box-shadow: 0 10px 24px -8px rgba(249, 115, 22, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.mcl-hero-text {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.mcl-hero-text small {
+  font-size: 0.78rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.mcl-hero-text strong {
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+/* A few logos, overlapping */
+.mcl-hero-logos {
+  position: relative;
+  display: flex;
+}
+
+.mcl-hero-logos img {
+  width: 40px;
+  height: 40px;
+  padding: 4px;
+  border-radius: 50%;
+  object-fit: contain;
+  background: #fff;
+  border: 2px solid #0f172a;
+}
+
+.mcl-hero-logos img + img { margin-inline-start: -12px; }
+
+.mcl-hero-note {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fdba74;
+}
+
+/* ── Search ── */
+.mcl-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 13px;
+  border: 1px solid var(--mcl-border);
+  background: var(--mcl-card);
+  color: var(--mcl-muted);
+}
+
+.mcl-search:focus-within {
+  border-color: var(--mcl-accent);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.mcl-page .mcl-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  outline: none;
+  box-shadow: none;
+  background: transparent !important;
+  color: var(--mcl-text) !important;
+  font: inherit;
+  font-size: 0.86rem;
+}
+
+/* ── Logo grid ── */
+.mcl-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-bottom: 64px; /* keep the last cards clear of the floating button */
+}
+
+.mcl-card {
+  position: relative; /* anchors the ⋮ menu */
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 18px 10px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--mcl-border);
+  background: var(--mcl-card);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+/* No press effect while the ⋮ menu is open: a transform would move the menu under the finger */
+.mcl-card:active:not(:has(.mrm-menu)) { transform: scale(0.97); }
+
+.mcl-card-menu { display: contents; }
+
+/* Smaller, borderless ⋮ in the corner, clear of the logo */
+.mcl-card-menu .mrm-trigger,
+body.dark-mode .mcl-card-menu .mrm-trigger {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 32px;
+  height: 32px;
+  border-color: transparent;
+  background: transparent;
+}
+
+/* The menu keeps its text aligned normally inside the centred card */
+.mcl-card .mrm-menu { text-align: start; }
+
+.mcl-logo {
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+  padding: 8px;
+  border-radius: 22px;
+  background: #fff;
+  border: 1px solid var(--mcl-border);
+  box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.35);
+}
+
+.mcl-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mcl-logo.empty {
+  border: none;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 900;
+}
+
+.mcl-card strong {
+  max-width: 100%;
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.mcl-symbol {
+  padding: 2px 10px;
+  border-radius: 8px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--mcl-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  direction: ltr;
+}
+
+/* ── Empty ── */
+.mcl-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 20px;
+  text-align: center;
+  color: var(--mcl-muted);
+}
+
+.mcl-empty.small { padding: 32px 20px; }
+
+.mcl-empty-icon {
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 6px;
+  border-radius: 28px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--mcl-accent);
+}
+
+.mcl-empty strong {
+  color: var(--mcl-text);
+  font-size: 1.1rem;
+}
+
+.mcl-empty p {
+  margin: 0;
+  max-width: 280px;
+  font-size: 0.86rem;
+  line-height: 1.7;
+}
+
+.mcl-empty-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 12px 24px -10px rgba(249, 115, 22, 0.8);
+}
+
+/* ── Floating add button (above the bottom nav) ── */
+.mcl-fab {
+  position: fixed;
+  right: 18px;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 999;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 12px 26px -8px rgba(249, 115, 22, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+.mcl-fab:active { transform: scale(0.92); }

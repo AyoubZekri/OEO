@@ -1,0 +1,280 @@
+/* Phone add / edit page of a training session. Colour tokens: --ms-* (MobileScreen); accent = app orange. */
+
+/* ── Live preview ── */
+.msf-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  border-radius: 24px;
+  color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.5), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  box-shadow: 0 18px 36px -18px rgba(249, 115, 22, 0.75);
+}
+
+/* Tear-off calendar page */
+.msf-cal {
+  width: 76px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #fff;
+  color: #0f172a;
+  box-shadow: 0 12px 26px -10px rgba(0, 0, 0, 0.6);
+}
+
+.msf-cal small {
+  width: 100%;
+  padding: 4px 0;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.msf-cal strong {
+  padding: 4px 0 8px;
+  font-size: 1.9rem;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.msf-hero-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.msf-hero-text small {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #fdba74;
+}
+
+.msf-hero-text strong {
+  font-size: 1.1rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.msf-hero-text span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  opacity: 0.85;
+  overflow-wrap: anywhere;
+}
+
+.msf-hero-text em {
+  padding: 0 7px;
+  border-radius: 7px;
+  background: rgba(249, 115, 22, 0.3);
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+/* ── Cards ── */
+.msf-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.msf-card.has-error {
+  border-color: rgba(239, 68, 68, 0.55);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.msf-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.msf-title svg { color: var(--ms-accent); }
+
+.msf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.msf-chips button {
+  max-width: 100%;
+  padding: 8px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--ms-border);
+  background: var(--ms-field);
+  color: var(--ms-text);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.msf-chips button.active {
+  border-color: transparent;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+}
+
+/* ── Category picker ── */
+.msf-select {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1.5px dashed rgba(249, 115, 22, 0.5);
+  background: rgba(249, 115, 22, 0.05);
+  color: var(--ms-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.msf-select.has-value {
+  border-style: solid;
+  border-color: var(--ms-border);
+  background: var(--ms-field);
+}
+
+.msf-select-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+}
+
+.msf-select-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.msf-select-text strong {
+  color: var(--ms-text);
+  font-size: 0.95rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.msf-select-text small { font-size: 0.74rem; }
+
+.msf-select > svg { flex-shrink: 0; }
+.msf-select-search { color: var(--ms-accent); }
+
+/* ── Start | end ── */
+.msf-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.msf-time {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.msf-time span {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--ms-muted);
+}
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+.m-screen .msf-time input {
+  width: 100%;
+  min-width: 0;
+  height: 54px;
+  margin: 0;
+  padding: 0 6px;
+  border-radius: 15px;
+  border: 1.5px solid var(--ms-border) !important;
+  background: var(--ms-field) !important;
+  color: var(--ms-text) !important;
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 900;
+  text-align: center;
+  outline: none;
+}
+
+.m-screen .msf-time input::-webkit-datetime-edit { padding: 0; }
+.m-screen .msf-time input::-webkit-calendar-picker-indicator { margin: 0; padding: 0; }
+
+.m-screen .msf-time input:focus {
+  border-color: var(--ms-accent) !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+/* Duration, at the end of the "التوقيت" title */
+.msf-time-gap {
+  margin-inline-start: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--ms-field);
+  border: 1px dashed var(--ms-border);
+  color: var(--ms-muted);
+  font-style: normal;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.msf-time-gap.ok {
+  border: none;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #fff;
+}
+
+.msf-error,
+.msf-help {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -2px 0 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.msf-error { color: #ef4444; }
+.msf-help { color: var(--ms-muted); }
+
+.msf-spin { animation: msf-spin 0.9s linear infinite; }
+
+@keyframes msf-spin {
+  to { transform: rotate(360deg); }
+}

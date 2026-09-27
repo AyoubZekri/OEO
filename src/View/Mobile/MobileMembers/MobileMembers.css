@@ -216,7 +216,7 @@ body.dark-mode .mm-page {
   z-index: 40;
 }
 
-/* Opens under the ⋮ button (left side of the card in RTL), or above it with .up */
+/* Always opens under the ⋮ button (left side of the card in RTL) */
 .mm-menu {
   position: absolute;
   top: calc(100% - 6px);
@@ -233,12 +233,20 @@ body.dark-mode .mm-page {
   font-family: var(--sans);
   animation: mm-pop 0.16s ease-out;
   transform-origin: top left;
+  scroll-margin-bottom: 100px; /* stay clear of the bottom nav when scrolled into view */
 }
 
-.mm-menu.up {
-  top: auto;
-  bottom: calc(100% - 6px);
-  transform-origin: bottom left;
+
+
+/* Invisible room under the menu so the page can scroll past it and clear the bottom nav */
+.mm-menu::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 1px;
+  height: 100px;
+  pointer-events: none;
 }
 
 body.dark-mode .mm-menu {
@@ -271,6 +279,9 @@ body.dark-mode .mm-menu {
 .mm-menu-item + .mm-menu-item { margin-top: 2px; }
 
 .mm-menu-item.eval svg   { color: #8b5cf6; }
+.mm-menu-item.history svg { color: #0ea5e9; }
+.mm-menu-item.record svg { color: #10b981; }
+.mm-menu-item.clearance svg { color: #f59e0b; }
 .mm-menu-item.edit svg   { color: #3b82f6; }
 .mm-menu-item.delete     { color: var(--mm-red); }
 

@@ -40,3 +40,319 @@ body.dark-mode .no-data {
   border-color: var(--border) !important;
 }
 
+
+/* ── Medical record card (desktop) ── */
+.med-card {
+  --med-s: #94a3b8;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border-radius: 22px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px -18px rgba(15, 23, 42, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.med-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--med-s) 45%, var(--border));
+  box-shadow: 0 22px 40px -20px color-mix(in srgb, var(--med-s) 55%, rgba(15, 23, 42, 0.5));
+}
+
+.med-card.tone-red   { --med-s: #ef4444; }
+.med-card.tone-amber { --med-s: #f59e0b; }
+.med-card.tone-blue  { --med-s: #3b82f6; }
+.med-card.tone-green { --med-s: #10b981; }
+
+/* Soft glow of the status colour in the corner */
+.med-card-glow {
+  position: absolute;
+  top: -80px;
+  right: -80px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--med-s) 22%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.med-card > *:not(.med-card-glow) { position: relative; }
+
+.med-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.med-status {
+  --med-s: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--med-s) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--med-s) 35%, transparent);
+  color: var(--med-s);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.med-status.tone-red   { --med-s: #ef4444; }
+.med-status.tone-amber { --med-s: #f59e0b; }
+.med-status.tone-blue  { --med-s: #3b82f6; }
+.med-status.tone-green { --med-s: #10b981; }
+
+.med-status i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--med-s) 20%, transparent);
+}
+
+.med-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.med-card-actions button {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.med-card-actions button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.med-card-actions button.danger:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
+.med-player {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.med-avatar {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  box-shadow: 0 10px 22px -10px rgba(249, 115, 22, 0.8);
+}
+
+.med-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.med-player-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.med-player-text h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: var(--text-h);
+  overflow-wrap: anywhere;
+}
+
+.med-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.med-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.med-tag.injury {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.med-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.med-facts > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+
+.med-facts > div.wide { grid-column: 1 / -1; }
+.med-facts > div > svg { flex-shrink: 0; }
+
+.med-facts span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.med-facts small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.med-facts strong {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-h);
+  overflow-wrap: anywhere;
+}
+
+.med-path {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+
+.med-path-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+.med-path-head b {
+  padding: 1px 9px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--med-s) 12%, transparent);
+  color: var(--med-s);
+  direction: ltr;
+}
+
+.med-path-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.med-path-track div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #34d399, #10b981);
+  transition: width 0.4s ease;
+}
+
+.med-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.med-step {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 6px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.med-step:hover {
+  border-color: var(--accent);
+  border-style: solid;
+  transform: translateY(-2px);
+}
+
+.med-step-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--accent);
+}
+
+.med-step strong {
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.med-step small {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #f59e0b;
+}
+
+.med-step.done {
+  border-style: solid;
+  border-color: rgba(16, 185, 129, 0.35);
+  background: rgba(16, 185, 129, 0.06);
+}
+
+.med-step.done .med-step-icon {
+  background: #10b981;
+  color: #fff;
+}
+
+.med-step.done small { color: #10b981; }

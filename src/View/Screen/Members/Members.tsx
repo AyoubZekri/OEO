@@ -2,14 +2,19 @@ import React, { useState } from 'react';
 import { Applink } from '../../../LinkApi';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Search, Plus, UserPlus, FileSignature, CheckCircle2, Landmark, Wallet, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, AlertTriangle, MapPin, FileWarning, Calendar, FileText, Mail, ArrowDownLeft, ArrowUpRight, Hash, Shirt, Scale, LogOut, UploadCloud } from 'lucide-react';
+import { Eye, X, Search, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, LogOut, UploadCloud } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
 import { ClearanceDialog } from './ClearanceDialog';
 import { MobileMembers } from '../../Mobile/MobileMembers/MobileMembers';
+import { ActionsMenu } from '../../widget/ActionsMenu';
 import { MobileMemberForm } from '../../Mobile/MobileMembers/MobileMemberForm';
 import { MobileEvaluationForm } from '../../Mobile/MobileMembers/MobileEvaluationForm';
+import { MobileEvaluationHistory } from '../../Mobile/MobileEvaluations/MobileEvaluationHistory';
+import { MobileClearance } from '../../Mobile/MobileMembers/MobileClearance';
+import { MobileTrackingRecord } from '../../Mobile/MobileMembers/MobileTrackingRecord';
+import { TrackingRecordDialog } from './TrackingRecordDialog';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 
 import { useAuth } from '../../../core/context/AuthContext';
@@ -59,7 +64,6 @@ export const Members: React.FC = () => {
     selectedClearanceMember,
     openClearanceDialog,
     closeClearanceDialog,
-    formatCurrency
   } = controller;
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -68,7 +72,6 @@ export const Members: React.FC = () => {
   const [evalMember, setEvalMember] = useState<MemberModel | null>(null);
   const [editingEvaluation, setEditingEvaluation] = useState<{player: MemberModel, data: any} | null>(null);
 
-  const [activeDialogTab, setActiveDialogTab] = useState<'financial' | 'equipment' | 'disciplinary' | 'correspondences'>('financial');
 
   const closeEvaluationForm = () => {
     setEvalMember(null);
@@ -152,6 +155,7 @@ export const Members: React.FC = () => {
           canAdd={hasAccess(permissions.members.add)}
           canEdit={hasAccess(permissions.members.edit)}
           canDelete={hasAccess(permissions.members.delete)}
+          canViewRecord={hasAccess(permissions.members.viewFinancialRecord)}
           onAddEvaluation={setEvalMember}
         />
       </div>
@@ -270,40 +274,25 @@ export const Members: React.FC = () => {
                     </div>
                   </td>
                   <td data-label={t('members.actions', 'إجراءات')} className="actions-cell">
-                    <div className="action-buttons-wrapper">
-                      {member.type === 'player' && (
-                        <>
-                          <button className="btn-action" onClick={() => setEvalMember(member)} title="إضافة تقييم" style={{ color: '#8b5cf6', background: 'rgba(139, 92, 246, 0.1)', borderColor: 'rgba(139, 92, 246, 0.2)' }}>
-                            <TrendingUp size={18} />
-                          </button>
-                          <button className="btn-action" onClick={() => controller.openEvalHistory(member)} title="أرشيف التقييمات" style={{ color: '#0ea5e9', background: 'rgba(14, 165, 233, 0.1)', borderColor: 'rgba(14, 165, 233, 0.2)' }}>
-                            <ClipboardList size={18} />
-                          </button>
-                        </>
-                      )}
-                      
-                      {hasAccess(permissions.members.viewFinancialRecord) && (
-                        <button className="btn-action view-btn" onClick={() => openExpensesDialog(member)} title="كشف الحساب">
-                          <Eye size={18} />
-                        </button>
-                      )}
-
-                      {hasAccess(permissions.members.edit) && (
-                        <button className="btn-action edit-btn" onClick={() => openEditMemberDialog(member)} title="تعديل">
-                          <Edit2 size={18} />
-                        </button>
-                      )}
-                      {hasAccess(permissions.members.edit) && (
-                        <button className="btn-action delete-btn" onClick={() => openClearanceDialog(member)} title="تسريح / مغادرة">
-                          <LogOut size={18} />
-                        </button>
-                      )}
-                      {hasAccess(permissions.members.delete) && (
-                        <button className="btn-action delete-btn" onClick={() => handleDeleteMember(member.id)} title="حذف">
-                          <Trash2 size={18} />
-                        </button>
-                      )}
-                    </div>
+                    <ActionsMenu
+                      label="إجراءات العضو"
+                      items={[
+                        ...(member.type === 'player' ? [
+                          { key: 'eval', label: 'إضافة تقييم', icon: TrendingUp, color: '#8b5cf6', onClick: () => setEvalMember(member) },
+                          { key: 'evals', label: 'عرض التقييمات', icon: ClipboardList, color: '#0ea5e9', onClick: () => controller.openEvalHistory(member) },
+                        ] : []),
+                        ...(hasAccess(permissions.members.viewFinancialRecord) ? [
+                          { key: 'record', label: 'سجل المتابعة', icon: Eye, color: '#10b981', onClick: () => openExpensesDialog(member) },
+                        ] : []),
+                        ...(hasAccess(permissions.members.edit) ? [
+                          { key: 'edit', label: 'تعديل', icon: Edit2, color: '#3b82f6', onClick: () => openEditMemberDialog(member) },
+                          { key: 'clearance', label: 'الإخلاء والمغادرة', icon: LogOut, color: '#f59e0b', onClick: () => openClearanceDialog(member) },
+                        ] : []),
+                        ...(hasAccess(permissions.members.delete) ? [
+                          { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => handleDeleteMember(member.id) },
+                        ] : []),
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}
@@ -618,344 +607,14 @@ export const Members: React.FC = () => {
         </div>
       )}
 
+      {/* Tracking Record: full-screen page on phones */}
+      {isDialogOpen && selectedMember && isMobile && (
+        <MobileTrackingRecord member={selectedMember} controller={controller} onClose={closeDialog} />
+      )}
+
       {/* Tracking Record Dialog */}
-      {isDialogOpen && selectedMember && (
-        <div className="dialog-overlay printable-overlay" onClick={closeDialog}>
-          <div className="dialog-content details-dialog" onClick={e => e.stopPropagation()}>
-            <div className="dialog-header no-print">
-              <div className="dialog-title">
-                <ClipboardList size={24} />
-                <h2>سجل متابعة اللاعب - {selectedMember.first_name} {selectedMember.last_name}</h2>
-              </div>
-              <button className="close-btn" onClick={closeDialog}>
-                <X size={24} />
-              </button>
-            </div>
-            
-            <div className="premium-dialog-tabs no-print">
-              <button 
-                className={`premium-tab-btn ${activeDialogTab === 'financial' ? 'active' : ''}`}
-                onClick={() => setActiveDialogTab('financial')}
-              >
-                <Wallet size={16} /> كشف الحساب
-              </button>
-              <button 
-                className={`premium-tab-btn ${activeDialogTab === 'equipment' ? 'active' : ''}`}
-                onClick={() => setActiveDialogTab('equipment')}
-              >
-                <Shirt size={16} /> سجل المعدات
-              </button>
-              <button 
-                className={`premium-tab-btn ${activeDialogTab === 'disciplinary' ? 'active' : ''}`}
-                onClick={() => setActiveDialogTab('disciplinary')}
-              >
-                <Scale size={16} /> الإجراءات التأديبية
-              </button>
-            </div>
-
-            <div className="dialog-body printable-area">
-              {activeDialogTab === 'financial' && (
-                <>
-                  <div className="print-header only-print">
-                    <h2>نادي أولمبيك - كشف حساب</h2>
-                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
-                  </div>
-
-              {/* Financial Summary Card */}
-              <div className="financial-summary-card">
-                <div className="card-header">
-                  <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                  <span className="card-badge">{selectedMember.type === 'player' ? 'لاعب' : selectedMember.type === 'coach' ? 'مدرب' : selectedMember.type === 'assistant_coach' ? 'مساعد مدرب' : selectedMember.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'عضو فريق'}</span>
-                </div>
-                
-                {/* Contracts Loop */}
-                {controller.getContractsForMember(selectedMember.id).map((contract, index) => {
-                  const contractVal = Number(contract.contractValue) || Number(contract.Contract_value) || 0;
-                  const contractPaid = controller.getPaidForContract(selectedMember.id, contract);
-                  const contractRemaining = contractVal - contractPaid;
-                  
-                  return (
-                    <div key={contract.id || index} style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-body)', borderRadius: '12px', border: '1px solid var(--border)' }}>
-                      <h4 style={{ marginBottom: '12px', color: 'var(--text-h)', fontSize: '1.1rem' }}>
-                        عقد موسم: {contract.startDate || contract.start_date || 'غير محدد'}
-                      </h4>
-                      <div className="card-grid">
-                        <div className="card-item contract">
-                          <div className="card-icon"><FileSignature size={24} /></div>
-                          <div className="card-content">
-                            <span className="label">{t('members.contract', 'قيمة العقد:')}</span>
-                            <span className="value">{formatCurrency(contractVal)}</span>
-                          </div>
-                        </div>
-                        <div className="card-item paid">
-                          <div className="card-icon"><CheckCircle2 size={24} /></div>
-                          <div className="card-content">
-                            <span className="label text-success">{t('members.paid', 'المدفوع من العقد:')}</span>
-                            <span className="value text-success">{formatCurrency(contractPaid)}</span>
-                          </div>
-                        </div>
-                        <div className="card-item highlight-item">
-                          <div className="card-icon"><Wallet size={24} /></div>
-                          <div className="card-content">
-                            <span className="label">{t('members.remaining', 'المتبقي من العقد:')}</span>
-                            <span className="value">{formatCurrency(contractRemaining)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-
-                {/* Global Advances and Global Remaining (after advances) */}
-                <div className="card-grid" style={{ marginTop: '20px' }}>
-                  <div className="card-item advances">
-                    <div className="card-icon"><Landmark size={24} /></div>
-                    <div className="card-content">
-                      <span className="label text-danger">{t('members.advances', 'إجمالي السلف:')}</span>
-                      <span className="value text-danger">{formatCurrency(controller.getAdvances(selectedMember.id))}</span>
-                    </div>
-                  </div>
-                  <div className="card-item" style={{ background: 'rgba(249, 115, 22, 0.1)', borderColor: 'rgba(249, 115, 22, 0.2)' }}>
-                    <div className="card-icon" style={{ color: '#F97316' }}><Wallet size={24} /></div>
-                    <div className="card-content">
-                      <span className="label" style={{ color: '#F97316' }}>الرصيد النهائي المتبقي:</span>
-                      <span className="value" style={{ color: '#F97316' }}>{formatCurrency(controller.getRemainingAmount(selectedMember.id))}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Operations Table */}
-              <h3 className="timeline-title" style={{ marginTop: '32px', marginBottom: '16px' }}>{t('members.operations_timeline', 'سجل العمليات والمدفوعات')}</h3>
-              <div className="table-responsive">
-                <table className="custom-table premium-ops-table" style={{ width: '100%' }}>
-                  <thead>
-                    <tr>
-                      <th>{t('members.op_date', 'التاريخ')}</th>
-                      <th>{t('members.op_nature', 'النوع')}</th>
-                      <th>{t('members.op_method', 'طريقة الدفع')}</th>
-                      <th>{t('members.op_amount', 'المبلغ')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {controller.getMemberPayments(selectedMember.id).map((p: any) => (
-                      <tr key={p.id}>
-                        <td>{new Intl.DateTimeFormat('ar-DZ', { year: 'numeric', month: 'short', day: 'numeric' }).format(new Date(p.paymentDate || p.created_at || new Date()))}</td>
-                        <td>
-                          <span className={`badge ${(p.amountNature === 'استقطاع' || p.amountNature === 'خصم') ? 'badge-red' : p.amountNature === 'سلفة' ? 'badge-blue' : 'badge-green'}`}>
-                            {p.amountNature || 'دفع'}
-                          </span>
-                        </td>
-                        <td>{p.paymentMethod}</td>
-                        <td className={`amount-cell ${(p.amountNature === 'استقطاع' || p.amountNature === 'خصم') ? 'text-danger' : 'text-success'}`}>
-                          {formatCurrency(p.amount)}
-                        </td>
-                      </tr>
-                    ))}
-                    {controller.getMemberPayments(selectedMember.id).length === 0 && (
-                      <tr>
-                        <td colSpan={4} className="no-data" style={{ textAlign: 'center', padding: '32px', color: 'var(--text-muted)' }}>
-                          {t('members.no_expenses', 'لا توجد عمليات مسجلة حالياً')}
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-              </>
-              )}
-              {activeDialogTab === 'equipment' && (
-                <>
-                  <div className="print-header only-print">
-                    <h2>نادي أولمبيك - سجل المعدات</h2>
-                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
-                  </div>
-                  <div className="financial-summary-card" style={{ marginTop: '20px' }}>
-                    <div className="card-header">
-                      <h3>حركة المعدات الخاصة باللاعب</h3>
-                    </div>
-                    <div className="users-table-container">
-                      <table className="custom-table" style={{ width: '100%' }}>
-                        <thead>
-                          <tr>
-                            <th>العتاد</th>
-                            <th>النوع</th>
-                            <th>الكمية</th>
-                            <th>التاريخ</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {/* Mock Data for now */}
-                          <tr>
-                            <td data-label="العتاد">طقم رياضي</td>
-                            <td data-label="النوع"><span className="op-type-badge badge-handover" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '4px 8px', borderRadius: '4px', fontSize: '0.875rem' }}>تسليم</span></td>
-                            <td data-label="الكمية"><span className="qty-badge-table" style={{ background: 'var(--bg-body)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border)' }}>1</span></td>
-                            <td data-label="التاريخ">2026-08-25</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </>
-              )}
-              {activeDialogTab === 'disciplinary' && (
-                <>
-                  <div className="print-header only-print">
-                    <h2>نادي أولمبيك - السجل التأديبي</h2>
-                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
-                  </div>
-                  <div className="disciplinary-grid" style={{ marginTop: '20px' }}>
-                    <div className="disciplinary-premium-card">
-                      <div className="card-header-premium">
-                        <div className="action-type-pill تنبيه">
-                          <AlertTriangle size={16} />
-                          <span>تنبيه</span>
-                        </div>
-                        <span className="card-subtitle-premium">#102938</span>
-                      </div>
-                      
-                      <div className="card-body-premium">
-                        <div className="info-row-premium">
-                          <Calendar size={16} />
-                          <span><strong>تاريخ الحدث:</strong> 2026-08-20</span>
-                        </div>
-                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
-                          <FileText size={16} />
-                          <span><strong>السبب:</strong> تأخر متكرر عن التدريبات بدون عذر مسبق.</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="disciplinary-premium-card">
-                      <div className="card-header-premium">
-                        <div className="action-type-pill إنذار">
-                          <FileWarning size={16} />
-                          <span>إنذار</span>
-                        </div>
-                        <span className="card-subtitle-premium">#394857</span>
-                      </div>
-                      
-                      <div className="card-body-premium">
-                        <div className="info-row-premium">
-                          <Calendar size={16} />
-                          <span><strong>تاريخ الحدث:</strong> 2026-08-10</span>
-                        </div>
-                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
-                          <FileText size={16} />
-                          <span><strong>السبب:</strong> سلوك غير رياضي تجاه أحد أعضاء الفريق الخصم أثناء مباراة ودية.</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-              {activeDialogTab === 'correspondences' && (
-                <>
-                  <div className="print-header only-print">
-                    <h2>نادي أولمبيك - سجل المراسلات</h2>
-                    <h3>{selectedMember.first_name} {selectedMember.last_name}</h3>
-                    <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
-                  </div>
-                  <div className="disciplinary-grid" style={{ marginTop: '20px' }}>
-                    {/* Correspondence Card 1 - Outgoing */}
-                    <div className="disciplinary-premium-card">
-                      <div className="card-header-premium">
-                        <div className="action-type-pill" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
-                          <ArrowUpRight size={16} />
-                          <span>صادر</span>
-                        </div>
-                        <span className="card-subtitle-premium" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Hash size={14} />
-                          م/2026/045
-                        </span>
-                      </div>
-                      
-                      <div className="card-body-premium">
-                        <div className="info-row-premium">
-                          <Calendar size={16} />
-                          <span><strong>التاريخ:</strong> 2026-08-25</span>
-                        </div>
-                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
-                          <Mail size={16} />
-                          <span><strong>الموضوع:</strong> طلب إعارة لاعب إلى نادي شبيبة الساورة للموسم 2026/2027</span>
-                        </div>
-                        <div className="info-row-premium">
-                          <MapPin size={16} />
-                          <span><strong>الجهة:</strong> الرابطة الوطنية لكرة القدم</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Correspondence Card 2 - Incoming */}
-                    <div className="disciplinary-premium-card">
-                      <div className="card-header-premium">
-                        <div className="action-type-pill" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
-                          <ArrowDownLeft size={16} />
-                          <span>وارد</span>
-                        </div>
-                        <span className="card-subtitle-premium" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Hash size={14} />
-                          م/2026/032
-                        </span>
-                      </div>
-                      
-                      <div className="card-body-premium">
-                        <div className="info-row-premium">
-                          <Calendar size={16} />
-                          <span><strong>التاريخ:</strong> 2026-08-15</span>
-                        </div>
-                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
-                          <Mail size={16} />
-                          <span><strong>الموضوع:</strong> استدعاء للمشاركة في تربص المنتخب الوطني للشباب</span>
-                        </div>
-                        <div className="info-row-premium">
-                          <MapPin size={16} />
-                          <span><strong>الجهة:</strong> الاتحادية الجزائرية لكرة القدم</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Correspondence Card 3 - Outgoing */}
-                    <div className="disciplinary-premium-card">
-                      <div className="card-header-premium">
-                        <div className="action-type-pill" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 14px', borderRadius: '20px', fontWeight: 700, fontSize: '0.9rem' }}>
-                          <ArrowUpRight size={16} />
-                          <span>صادر</span>
-                        </div>
-                        <span className="card-subtitle-premium" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                          <Hash size={14} />
-                          م/2026/018
-                        </span>
-                      </div>
-                      
-                      <div className="card-body-premium">
-                        <div className="info-row-premium">
-                          <Calendar size={16} />
-                          <span><strong>التاريخ:</strong> 2026-07-20</span>
-                        </div>
-                        <div className="info-row-premium" style={{ alignItems: 'flex-start' }}>
-                          <Mail size={16} />
-                          <span><strong>الموضوع:</strong> إخطار اللاعب بتجديد عقده لموسمين إضافيين</span>
-                        </div>
-                        <div className="info-row-premium">
-                          <MapPin size={16} />
-                          <span><strong>الجهة:</strong> داخلي - إدارة النادي</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="dialog-footer no-print">
-              <button className="btn-cancel" onClick={closeDialog}>{t('members.close', 'إغلاق')}</button>
-            </div>
-          </div>
-        </div>
+      {isDialogOpen && selectedMember && !isMobile && (
+        <TrackingRecordDialog member={selectedMember} controller={controller} onClose={closeDialog} />
       )}
 
       {/* Evaluation Dialog */}
@@ -977,7 +636,16 @@ export const Members: React.FC = () => {
       ))}
 
       {/* Evaluation History Dialog */}
-      {controller.evalHistoryMember && (
+      {controller.evalHistoryMember && (isMobile ? (
+        // Full-screen archive on phones
+        <MobileEvaluationHistory
+          player={controller.evalHistoryMember}
+          evaluations={controller.evaluations}
+          onClose={controller.closeEvalHistory}
+          onEdit={(ev) => setEditingEvaluation({ player: controller.evalHistoryMember!, data: ev })}
+          onDelete={(id) => controller.deleteEvaluation(id)}
+        />
+      ) : (
         <EvaluationHistoryDialog 
           player={controller.evalHistoryMember}
           evaluations={controller.evaluations}
@@ -985,16 +653,23 @@ export const Members: React.FC = () => {
           onEdit={(ev) => setEditingEvaluation({ player: controller.evalHistoryMember!, data: ev })}
           onDelete={(id) => controller.deleteEvaluation(id)}
         />
-      )}
+      ))}
 
-      {isClearanceDialogOpen && selectedClearanceMember && (
+      {isClearanceDialogOpen && selectedClearanceMember && (isMobile ? (
+        // Full-screen clearance card on phones
+        <MobileClearance
+          player={selectedClearanceMember}
+          onClose={closeClearanceDialog}
+          onUpdate={controller.fetchMembers}
+        />
+      ) : (
         <ClearanceDialog
           isOpen={isClearanceDialogOpen}
           onClose={closeClearanceDialog}
           player={selectedClearanceMember}
           onUpdate={controller.fetchMembers}
         />
-      )}
+      ))}
 
     </div>
   );

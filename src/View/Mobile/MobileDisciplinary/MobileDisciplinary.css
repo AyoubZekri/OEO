@@ -1,0 +1,852 @@
+.md-page {
+
+  --md-card: #ffffff;
+
+  --md-field: #f8fafc;
+
+  --md-border: #e2e8f0;
+
+  --md-text: #0f172a;
+
+  --md-muted: #64748b;
+
+  --md-accent: #f97316;
+
+
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  color: var(--md-text);
+
+  font-family: var(--sans);
+
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+}
+
+
+
+body.dark-mode .md-page {
+
+  --md-card: linear-gradient(165deg, #1c1d21 0%, #141518 100%);
+
+  --md-field: rgba(255, 255, 255, 0.04);
+
+  --md-border: rgba(255, 255, 255, 0.08);
+
+  --md-text: #f4f4f5;
+
+  --md-muted: #a1a1aa;
+
+}
+
+
+
+/* ── Search + filter button ── */
+
+.md-toolbar {
+
+  display: flex;
+
+  gap: 8px;
+
+}
+
+
+
+.md-search {
+
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  height: 40px;
+
+  padding: 0 12px;
+
+  border-radius: 12px;
+
+  border: 1px solid var(--md-border);
+
+  background: var(--md-card);
+
+  color: var(--md-muted);
+
+}
+
+
+
+.md-search:focus-within {
+
+  border-color: var(--md-accent);
+
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+
+}
+
+
+
+/* Beats the global `body.dark-mode input` rule in index.css */
+
+.md-page .md-search input {
+
+  flex: 1;
+
+  min-width: 0;
+
+  height: 100%;
+
+  margin: 0;
+
+  padding: 0;
+
+  border: none !important;
+
+  outline: none;
+
+  box-shadow: none;
+
+  background: transparent !important;
+
+  color: var(--md-text) !important;
+
+  font: inherit;
+
+  font-size: 0.85rem;
+
+}
+
+
+
+.md-filter-btn {
+
+  position: relative;
+
+  width: 40px;
+
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 12px;
+
+  border: 1px solid var(--md-border);
+
+  background: var(--md-card);
+
+  color: var(--md-text);
+
+  cursor: pointer;
+
+}
+
+
+
+.md-filter-btn.active {
+
+  border-color: var(--md-accent);
+
+  color: var(--md-accent);
+
+  background: rgba(249, 115, 22, 0.1);
+
+}
+
+
+
+.md-filter-count {
+
+  position: absolute;
+
+  top: -6px;
+
+  left: -6px;
+
+  min-width: 18px;
+
+  height: 18px;
+
+  padding: 0 4px;
+
+  border-radius: 999px;
+
+  background: var(--md-accent);
+
+  color: #fff;
+
+  font-size: 0.68rem;
+
+  font-weight: 800;
+
+  line-height: 18px;
+
+  text-align: center;
+
+}
+
+
+
+/* Active filters, tap to remove */
+
+.md-active-filters {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 6px;
+
+}
+
+
+
+.md-active-filters button {
+
+  --md-status: var(--md-accent);
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 5px 10px;
+
+  border-radius: 10px;
+
+  border: 1px solid color-mix(in srgb, var(--md-status) 40%, transparent);
+
+  background: color-mix(in srgb, var(--md-status) 12%, transparent);
+
+  color: var(--md-status);
+
+  font: inherit;
+
+  font-size: 0.78rem;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+}
+
+
+
+/* ── Status colours ── */
+
+.md-page .open      { --md-status: #f59e0b; }
+
+.md-page .done      { --md-status: #10b981; }
+
+.md-page .failed    { --md-status: #ef4444; }
+
+.md-page .late      { --md-status: #f97316; }
+
+.md-page .cancelled { --md-status: #94a3b8; }
+
+
+
+
+
+/* ── Short rows (list) ── */
+
+.md-list {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  padding-bottom: 64px; /* keep the last card clear of the floating button */
+
+}
+
+
+
+.md-row {
+
+  --md-type: #64748b;
+
+  position: relative; /* anchors the ⋮ menu */
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 12px;
+
+  border-radius: 16px;
+
+  border: 1px solid var(--md-border);
+
+  background: var(--md-card);
+
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+
+  cursor: pointer;
+
+  transition: transform 0.15s ease, opacity 0.2s;
+
+}
+
+
+
+/* No press effect while the ⋮ menu is open: a transform would move the menu under the finger */
+.md-row:active:not(:has(.mrm-menu)) { transform: scale(0.985); }
+
+.md-row.deleting { opacity: 0.5; }
+
+
+
+.md-row-icon {
+
+  width: 42px;
+
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border-radius: 13px;
+
+  background: color-mix(in srgb, var(--md-type) 14%, transparent);
+
+  color: var(--md-type);
+
+}
+
+
+
+.md-row-text {
+
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+
+}
+
+
+
+.md-row-text strong {
+
+  font-size: 0.92rem;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+}
+
+
+
+.md-row-text small {
+
+  font-size: 0.74rem;
+
+  color: var(--md-muted);
+
+}
+
+
+
+/* ── Details hero (type, status, member) ── */
+
+.md-card {
+
+  --md-type: #64748b;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+  padding: 14px;
+
+  border-radius: 18px;
+
+  border: 1px solid var(--md-border);
+
+  background: var(--md-card);
+
+  box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.35);
+
+  transition: opacity 0.2s;
+
+}
+
+
+
+.md-card.deleting { opacity: 0.5; }
+
+
+
+.tone-amber  { --md-type: #f59e0b; }
+
+.tone-red    { --md-type: #ef4444; }
+
+.tone-blue   { --md-type: #3b82f6; }
+
+.tone-violet { --md-type: #8b5cf6; }
+
+.tone-slate  { --md-type: #64748b; }
+
+.tone-accent { --md-type: #f97316; }
+
+
+
+.md-card-top {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  min-width: 0;
+
+}
+
+
+
+.md-spacer { flex: 1; }
+
+
+
+.md-type {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  min-width: 0;
+
+  padding: 5px 10px;
+
+  border-radius: 10px;
+
+  background: color-mix(in srgb, var(--md-type) 14%, transparent);
+
+  color: var(--md-type);
+
+  font-size: 0.8rem;
+
+  font-weight: 800;
+
+  white-space: nowrap;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+}
+
+
+
+.md-type svg { flex-shrink: 0; }
+
+
+
+.md-status {
+
+  --md-status: #f59e0b;
+
+  flex-shrink: 0;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 3px;
+
+  padding: 5px 10px;
+
+  border-radius: 10px;
+
+  border: 1px solid color-mix(in srgb, var(--md-status) 35%, transparent);
+
+  background: color-mix(in srgb, var(--md-status) 12%, transparent);
+
+  color: var(--md-status);
+
+  font: inherit;
+
+  font-size: 0.76rem;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+}
+
+
+
+.md-status:disabled { cursor: default; }
+
+
+
+.md-member {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+}
+
+
+
+.md-member img {
+
+  width: 42px;
+
+  height: 42px;
+
+  flex-shrink: 0;
+
+  border-radius: 13px;
+
+  object-fit: cover;
+
+  background: #262a33;
+
+  border: 2px solid color-mix(in srgb, var(--md-type) 60%, transparent);
+
+}
+
+
+
+.md-member div {
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+
+}
+
+
+
+.md-member strong {
+
+  font-size: 0.95rem;
+
+  font-weight: 800;
+
+  overflow-wrap: anywhere;
+
+}
+
+
+
+.md-member span {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 4px;
+
+  font-size: 0.75rem;
+
+  color: var(--md-muted);
+
+}
+
+
+
+/* ── Empty ── */
+
+.md-empty {
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 50px 20px;
+
+  text-align: center;
+
+  color: var(--md-muted);
+
+}
+
+
+
+.md-empty strong {
+
+  color: var(--md-text);
+
+  font-size: 1.05rem;
+
+}
+
+
+
+.md-empty p { margin: 0; font-size: 0.85rem; }
+
+
+
+/* ── Floating add button (above the bottom nav) ── */
+
+.md-fab {
+
+  position: fixed;
+
+  right: 18px;
+
+  bottom: calc(88px + env(safe-area-inset-bottom));
+
+  z-index: 999;
+
+  width: 48px;
+
+  height: 48px;
+
+  border: none;
+
+  border-radius: 15px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+
+  color: #fff;
+
+  cursor: pointer;
+
+  box-shadow: 0 12px 26px -8px rgba(249, 115, 22, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+}
+
+
+
+.md-fab:active { transform: scale(0.92); }
+
+
+
+/* ── Filters sheet ── */
+
+.md-sheet-title {
+
+  margin: 4px 2px 10px;
+
+  font-size: 0.82rem;
+
+  font-weight: 800;
+
+  color: var(--msh-muted);
+
+}
+
+
+
+.md-options {
+
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 8px;
+
+  margin-bottom: 16px;
+
+}
+
+
+
+.md-options .md-option {
+
+  --md-status: #f97316;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 6px;
+
+  height: 44px;
+
+  border-radius: 13px;
+
+  border: 1px solid var(--msh-border);
+
+  background: var(--msh-soft);
+
+  color: var(--msh-text);
+
+  font: inherit;
+
+  font-size: 0.86rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+}
+
+
+
+.md-options .open      { --md-status: #f59e0b; }
+
+.md-options .done      { --md-status: #10b981; }
+
+.md-options .failed    { --md-status: #ef4444; }
+
+.md-options .late      { --md-status: #f97316; }
+
+.md-options .cancelled { --md-status: #94a3b8; }
+
+
+
+.md-options .md-option.active {
+
+  border-color: var(--md-status);
+
+  background: color-mix(in srgb, var(--md-status) 14%, transparent);
+
+  color: var(--md-status);
+
+  font-weight: 800;
+
+}
+
+
+
+.md-sheet-btn {
+
+  flex: 1;
+
+  height: 48px;
+
+  border-radius: 14px;
+
+  border: 1px solid var(--msh-border);
+
+  background: var(--msh-soft);
+
+  color: var(--msh-text);
+
+  font: inherit;
+
+  font-size: 0.92rem;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+}
+
+
+
+.md-sheet-btn.primary {
+
+  flex: 2;
+
+  border: none;
+
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+
+  color: #fff;
+
+}
+
+
+
+/* Details footer: two equal buttons, labels on one line */
+
+.me-btn.mdd-btn {
+
+  flex: 1;
+
+  white-space: nowrap;
+
+  font-size: 0.88rem;
+
+}
+
+/* --- Beautiful Hero Styles --- */
+.mdd-hero {
+  position: relative;
+  overflow: hidden;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+.mdd-hero.tone-amber {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+}
+.mdd-hero.tone-red {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
+}
+.mdd-hero.tone-blue {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+.mdd-hero.tone-violet {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%) !important;
+}
+.mdd-hero.tone-slate {
+  background: linear-gradient(135deg, #64748b 0%, #334155 100%) !important;
+}
+
+.mdd-hero .md-type,
+.mdd-hero .md-member strong,
+.mdd-hero .md-member span {
+  color: #ffffff !important;
+}
+
+.mdd-hero .md-status {
+  background: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  backdrop-filter: blur(4px);
+}
