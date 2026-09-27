@@ -84,7 +84,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
 
   return (
     <div className="mpy-page">
-      <MobileAppBar title="المدفوعات والمصاريف" />
+      <MobileAppBar title="المصاريف والمدفوعات" />
 
       {/* Totals */}
       <section className="mpy-hero">
