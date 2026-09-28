@@ -6,6 +6,8 @@ import type { Fund, TransactionType } from './fund_model';
 import { Wallet, Landmark, Mail, ArrowRightLeft, Plus, X, Edit2, Trash2 } from 'lucide-react';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileFunds } from '../../Mobile/MobileFunds/MobileFunds';
 import './Funds.css';
 
 export const Funds: React.FC = () => {
@@ -72,6 +74,21 @@ export const Funds: React.FC = () => {
       });
     }
   }, [isOperationDialogOpen]);
+
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileFunds
+        c={controller}
+        can={{
+          add: hasAccess(permissions.funds.add),
+          edit: hasAccess(permissions.funds.edit),
+          delete: hasAccess(permissions.funds.delete),
+          addTransaction: hasAccess(permissions.funds.addTransaction),
+        }}
+      />
+    );
+  }
 
   const handleFundSave = (e: React.FormEvent) => {
     e.preventDefault();

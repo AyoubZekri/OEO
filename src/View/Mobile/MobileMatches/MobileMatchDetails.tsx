@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Calendar, Clock, MapPin, Users, Trophy, Flag, CalendarClock, Ban, RotateCcw, Radio, Timer } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { Match } from '../../Screen/Matches/match_model';
-import { type MatchActions, matchActionItems, CLUB_NAME, CLUB_LOGO } from './matchActions';
+import { type MatchActions, matchActionItems, MATCH_ACTION_PERMISSION, CLUB_NAME, CLUB_LOGO } from './matchActions';
 import {
   type MatchState, matchDate, hasScore, resultOf, RESULT_LABEL, STATE_LABEL, opponentName, opponentLogo, opponentShort,
   timeText, longDateText, countdown,
@@ -27,13 +28,15 @@ const gatheringTime = (value?: string) => {
 
 // Full details of one match (phone): score board, facts, status changes and every action
 export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, state, now, actions, onClose }) => {
+  const can = useCan();
   const [rescheduling, setRescheduling] = useState(false);
   const [newDate, setNewDate] = useState(match.match_date?.replace(' ', 'T').slice(0, 16) || '');
   const date = matchDate(match);
   const result = resultOf(match);
   const stats = match.attendance_stats;
   const rate = stats && stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : null;
-  const items = matchActionItems(match, state, actions).filter(i => i.key !== 'edit' && i.key !== 'delete');
+  const allowed = (action: string) => can('matches', action);
+  const items = matchActionItems(match, state, actions, allowed).filter(i => i.key !== 'edit' && i.key !== 'delete');
 
   // Same status changes as the desktop status menus
   const statusButtons: { key: string; label: string; icon: React.ComponentType<{ size?: number }>; tone: string; onClick: () => void }[] = [
@@ -49,7 +52,7 @@ export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, s
     ...(state === 'cancelled' ? [
       { key: 'restore', label: 'إرجاع لمباراة قادمة', icon: RotateCcw, tone: 'green', onClick: () => actions.setStatus(match, 'upcoming') },
     ] : []),
-  ];
+  ].filter(b => allowed(MATCH_ACTION_PERMISSION[b.key] || 'view'));
 
   return (
     <MobileScreen

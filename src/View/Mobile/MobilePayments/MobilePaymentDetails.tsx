@@ -18,6 +18,7 @@ interface MobilePaymentDetailsProps {
   fundName?: string;
   contract?: ContractModel;
   canEdit: boolean;
+  canPrint: boolean;
   onPrint: () => void;
   onEdit: () => void;
   onUpload: () => void;
@@ -34,7 +35,7 @@ const Field: React.FC<{ icon: React.ComponentType<{ size?: number }>; label: str
 
 // One payment or expense (phone): amount, who, how, and its receipt
 export const MobilePaymentDetails: React.FC<MobilePaymentDetailsProps> = ({
-  payment: p, person, fundName, contract, canEdit, onPrint, onEdit, onUpload, onViewReceipt, onClose,
+  payment: p, person, fundName, contract, canEdit, canPrint, onPrint, onEdit, onUpload, onViewReceipt, onClose,
 }) => {
   const meta = kindMeta(p);
   const url = receiptUrl(p);
@@ -46,12 +47,12 @@ export const MobilePaymentDetails: React.FC<MobilePaymentDetailsProps> = ({
     <MobileScreen
       title="تفاصيل العملية"
       onBack={onClose}
-      footer={(
+      footer={(canPrint || canEdit) ? (
         <>
-          <button type="button" className="me-btn" onClick={onPrint}><Printer size={18} /> طباعة</button>
+          {canPrint && <button type="button" className="me-btn" onClick={onPrint}><Printer size={18} /> طباعة</button>}
           {canEdit && <button type="button" className="me-btn primary" onClick={onEdit}><Pencil size={18} /> تعديل</button>}
         </>
-      )}
+      ) : undefined}
     >
       <section className={`mpy-hero tone-${meta.tone}`}>
         <div className="mpy-hero-top">

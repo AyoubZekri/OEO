@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Calendar, Clock, MapPin, Users, ClipboardCheck, Pencil, ChevronDown, Timer, UserCheck, UserX, Dumbbell } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileSelect, type MobileSelectOption } from '../widgets/MobileSelect';
@@ -24,6 +25,7 @@ const STATUS_OPTIONS: MobileSelectOption[] = Object.entries(STATUS_LABELS).map((
 export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
   session, now, onChangeStatus, onAttendance, onEdit, onClose,
 }) => {
+  const can = useCan();
   const status = computedStatus(session, now);
   const minutes = durationOf(session.start, session.end);
   const stats = session.attendance_stats;
@@ -40,16 +42,20 @@ export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
     <MobileScreen
       title="تفاصيل الحصة"
       onBack={onClose}
-      footer={(
+      footer={(can('trainingSessions', 'edit') || can('trainingSessions', 'attendance')) ? (
         <>
-          <button type="button" className="me-btn msd-btn" onClick={onEdit}>
-            <Pencil size={18} /> تعديل
-          </button>
-          <button type="button" className="me-btn primary msd-btn" onClick={onAttendance}>
-            <ClipboardCheck size={18} /> تسجيل الحضور
-          </button>
+          {can('trainingSessions', 'edit') && (
+            <button type="button" className="me-btn msd-btn" onClick={onEdit}>
+              <Pencil size={18} /> تعديل
+            </button>
+          )}
+          {can('trainingSessions', 'attendance') && (
+            <button type="button" className="me-btn primary msd-btn" onClick={onAttendance}>
+              <ClipboardCheck size={18} /> تسجيل الحضور
+            </button>
+          )}
         </>
-      )}
+      ) : undefined}
     >
       <section className="msd-hero">
         <div className="msd-hero-top">
@@ -58,14 +64,16 @@ export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
             <small>حصة تدريبية #{session.id}</small>
             <strong>{session.team_name || 'بدون فئة'}</strong>
           </div>
-          <MobileSelect
-            label="حالة الحصة"
-            icon={Clock}
-            value={status}
-            options={STATUS_OPTIONS}
-            onChange={onChangeStatus}
-            renderTrigger={statusBadge}
-          />
+          {can('trainingSessions', 'edit') ? (
+            <MobileSelect
+              label="حالة الحصة"
+              icon={Clock}
+              value={status}
+              options={STATUS_OPTIONS}
+              onChange={onChangeStatus}
+              renderTrigger={statusBadge}
+            />
+          ) : statusBadge(() => undefined)}
         </div>
 
         {/* Time line of the session */}
@@ -120,7 +128,9 @@ export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
           <div className="msd-att-empty">
             <ClipboardCheck size={30} />
             <p>لم يُسجل الحضور لهذه الحصة بعد</p>
-            <button type="button" onClick={onAttendance}>تسجيل الحضور الآن</button>
+            {can('trainingSessions', 'attendance') && (
+              <button type="button" onClick={onAttendance}>تسجيل الحضور الآن</button>
+            )}
           </div>
         )}
       </section>

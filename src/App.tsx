@@ -11,6 +11,7 @@ import { Topbar } from './View/Screen/Topbar/Topbar';
 import { Home } from './View/Screen/Home/Home';
 import { Members } from './View/Screen/Members/Members';
 import { Contracts } from './View/Screen/Contracts/Contracts';
+import { RequirePermission } from './View/widget/RequirePermission';
 import { Teams } from './View/Screen/Teams/Teams';
 import { Payments } from './View/Screen/Payments/Payments';
 import { Funds } from './View/Screen/Funds/Funds';
@@ -38,7 +39,7 @@ import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -62,28 +63,28 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         <div style={{ padding: '20px', flex: 1 }}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path={Approutes.Roles} element={<Roles />} />
-            <Route path={Approutes.Users} element={<Users />} />
-            <Route path={Approutes.Members} element={<Members />} />
-            <Route path={Approutes.Contracts} element={<Contracts />} />
-            <Route path={Approutes.Payments} element={<Payments />} />
-            <Route path={Approutes.Funds} element={<Funds />} />
-            <Route path={Approutes.Reports} element={<Reports />} />
-            <Route path={Approutes.Teams} element={<Teams />} />
-            <Route path={Approutes.Equipment} element={<Equipment />} />
-            <Route path={Approutes.EquipmentOperations} element={<EquipmentOperations />} />
-            <Route path={Approutes.Correspondences} element={<Correspondences />} />
-            <Route path={Approutes.Disciplinary} element={<Disciplinary />} />
-            <Route path={Approutes.TrainingSessions} element={<TrainingSessions />} />
-            <Route path={Approutes.TakeAttendance} element={<TakeAttendance />} />
-            <Route path={Approutes.AbsenceRequests} element={<AbsenceRequests />} />
-            <Route path={Approutes.Matches} element={<Matches />} />
-            <Route path="/matches/:id/attendance" element={<MatchAttendance />} />
-            <Route path={Approutes.MedicalRecords} element={<Medical />} />
-            <Route path={Approutes.Meetings} element={<Meetings />} />
-            <Route path="/meetings/:id/attendance" element={<TakeMeetingAttendance />} />
-            <Route path={Approutes.Decisions} element={<Decisions />} />
-            <Route path={Approutes.Clubs} element={<Clubs />} />
+            <Route path={Approutes.Roles} element={<RequirePermission module="usersAndRoles" action="viewRoles"><Roles /></RequirePermission>} />
+            <Route path={Approutes.Users} element={<RequirePermission module="usersAndRoles" action="viewUsers"><Users /></RequirePermission>} />
+            <Route path={Approutes.Members} element={<RequirePermission module="members"><Members /></RequirePermission>} />
+            <Route path={Approutes.Contracts} element={<RequirePermission module="contracts"><Contracts /></RequirePermission>} />
+            <Route path={Approutes.Payments} element={<RequirePermission module="payments"><Payments /></RequirePermission>} />
+            <Route path={Approutes.Funds} element={<RequirePermission module="funds"><Funds /></RequirePermission>} />
+            <Route path={Approutes.Reports} element={<RequirePermission module="reports"><Reports /></RequirePermission>} />
+            <Route path={Approutes.Teams} element={<RequirePermission module="teams"><Teams /></RequirePermission>} />
+            <Route path={Approutes.Equipment} element={<RequirePermission module="equipment"><Equipment /></RequirePermission>} />
+            <Route path={Approutes.EquipmentOperations} element={<RequirePermission module="equipmentOperations"><EquipmentOperations /></RequirePermission>} />
+            <Route path={Approutes.Correspondences} element={<RequirePermission module="correspondences"><Correspondences /></RequirePermission>} />
+            <Route path={Approutes.Disciplinary} element={<RequirePermission module="disciplinary"><Disciplinary /></RequirePermission>} />
+            <Route path={Approutes.TrainingSessions} element={<RequirePermission module="trainingSessions"><TrainingSessions /></RequirePermission>} />
+            <Route path={Approutes.TakeAttendance} element={<RequirePermission module="trainingSessions" action="attendance"><TakeAttendance /></RequirePermission>} />
+            <Route path={Approutes.AbsenceRequests} element={<RequirePermission module="absences"><AbsenceRequests /></RequirePermission>} />
+            <Route path={Approutes.Matches} element={<RequirePermission module="matches"><Matches /></RequirePermission>} />
+            <Route path="/matches/:id/attendance" element={<RequirePermission module="matches" action="attendance"><MatchAttendance /></RequirePermission>} />
+            <Route path={Approutes.MedicalRecords} element={<RequirePermission module="medical"><Medical /></RequirePermission>} />
+            <Route path={Approutes.Meetings} element={<RequirePermission module="meetings"><Meetings /></RequirePermission>} />
+            <Route path="/meetings/:id/attendance" element={<RequirePermission module="meetings" action="attendance"><TakeMeetingAttendance /></RequirePermission>} />
+            <Route path={Approutes.Decisions} element={<RequirePermission module="decisions"><Decisions /></RequirePermission>} />
+            <Route path={Approutes.Clubs} element={<RequirePermission module="clubs"><Clubs /></RequirePermission>} />
             {/* Phone-only pages: widening the screen sends the user to the desktop home */}
             <Route path={Approutes.Operations} element={isMobile ? <Operations /> : <Navigate to="/" replace />} />
             <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />

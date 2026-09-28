@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Briefcase, Calendar, Clock, MapPin, ListChecks, Users, ClipboardCheck, Pencil, Timer } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { Meeting } from '../../Screen/Meetings/meeting_model';
@@ -16,6 +17,7 @@ interface MobileMeetingDetailsProps {
 
 // Full details of one meeting (phone): when and where, agenda, invited members and their attendance
 export const MobileMeetingDetails: React.FC<MobileMeetingDetailsProps> = ({ meeting, now, onAttendance, onEdit, onClose }) => {
+  const can = useCan();
   const start = meetingStart(meeting);
   const att = attendanceOf(meeting);
   const points = meeting.points || [];
@@ -26,12 +28,12 @@ export const MobileMeetingDetails: React.FC<MobileMeetingDetailsProps> = ({ meet
     <MobileScreen
       title="تفاصيل الاجتماع"
       onBack={onClose}
-      footer={(
+      footer={(can('meetings', 'edit') || can('meetings', 'attendance')) ? (
         <>
-          <button type="button" className="me-btn mmg-btn" onClick={onEdit}><Pencil size={18} /> تعديل</button>
-          <button type="button" className="me-btn primary mmg-btn" onClick={onAttendance}><ClipboardCheck size={18} /> تسجيل الحضور</button>
+          {can('meetings', 'edit') && <button type="button" className="me-btn mmg-btn" onClick={onEdit}><Pencil size={18} /> تعديل</button>}
+          {can('meetings', 'attendance') && <button type="button" className="me-btn primary mmg-btn" onClick={onAttendance}><ClipboardCheck size={18} /> تسجيل الحضور</button>}
         </>
-      )}
+      ) : undefined}
     >
       <section className="mmg-hero">
         <div className="mmg-hero-top">

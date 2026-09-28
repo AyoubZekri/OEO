@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { UserModel } from '../../View/Screen/UserManagement/Users/user_model';
-import {type AppPermissions, RoleModel, emptyPermissions } from '../../View/Screen/UserManagement/Roles/role_model';
+import {type AppPermissions, RoleModel, NO_ROLE_PERMISSIONS, emptyPermissions } from '../../View/Screen/UserManagement/Roles/role_model';
 import { Crud } from '../class/Crud';
 import { Applink } from '../../LinkApi';
 
@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const roleJson = localStorage.getItem('role');
 
     let user = null;
-    let permissions = emptyPermissions;
+    let permissions = NO_ROLE_PERMISSIONS;
     let isFullAccess = false;
 
     if (token) {
@@ -84,7 +84,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { user, role } = resBody.data;
             
             let parsedUser = null;
-            let permissions = emptyPermissions;
+            let permissions = NO_ROLE_PERMISSIONS;
             let isFullAccess = false;
             
             if (user) {
@@ -147,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     let parsedUser = null;
-    let permissions = emptyPermissions;
+    let permissions = NO_ROLE_PERMISSIONS;
     let isFullAccess = false;
 
     try {

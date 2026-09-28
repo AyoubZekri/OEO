@@ -117,7 +117,15 @@
       "usersAndRoles": "إدارة المستخدمين والصلاحيات",
       "equipment": "معدات الفريق",
       "equipmentOperations": "حركة العتاد",
-      "disciplinary": "الإجراءات التأديبية"
+      "disciplinary": "الإجراءات التأديبية",
+      "absences": "الغيابات والتبريرات",
+      "clubs": "الأندية الأخرى",
+      "trainingSessions": "حصص التدريب",
+      "matches": "المباريات",
+      "medical": "التقرير الطبي",
+      "meetings": "الاجتماعات",
+      "decisions": "القرارات",
+      "correspondences": "المراسلات"
     },
     "actions": {
       "view": "عرض",
@@ -146,7 +154,24 @@
       "sign": "توقيع بالاستلام",
       "changeStatus": "تغيير الحالة",
       "viewReply": "عرض الرد",
-      "editReply": "تعديل الرد"
+      "editReply": "تعديل الرد",
+      "evaluate": "تقييم اللاعبين",
+      "clearance": "الإخلاء والمغادرة",
+      "justify": "تبرير الغياب",
+      "attendance": "تسجيل الحضور",
+      "callups": "قائمة الاستدعاء",
+      "lineup": "التشكيلة",
+      "report": "التقرير والنتيجة والأحداث",
+      "progress": "متابعة الإنجاز"
+    },
+    "domains": {
+      "general": "عام",
+      "members": "الأعضاء والانضباط",
+      "sport": "الرياضي",
+      "admin": "الإدارة",
+      "finance": "المالية",
+      "equipment": "العتاد",
+      "system": "إدارة النظام"
     }
   },
   "users": {

@@ -1,292 +1,265 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Plus, Users, UserX, Clock, LogOut, Plane, Hourglass, ShieldCheck, Search, X, FileWarning, History, ClipboardList, Inbox } from 'lucide-react';
+import { useCan } from '../../../core/functions/useCan';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { useAbsenceRequestsController } from './AbsenceRequestsController';
-import { User, Calendar, Clock, FileText, Check, X, Paperclip, AlertCircle, FileWarning, Users, Plus, Trash2, Link } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { JustificationDialog } from './JustificationDialog';
 import { AddAbsenceDialog } from './AddAbsenceDialog';
 import { MemberAbsenceHistoryDialog } from './MemberAbsenceHistoryDialog';
-import { Pagination } from '../../widget/Pagination';
-import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
-import './AbsenceRequests.css';
+import { AbsenceCard } from './AbsenceCard';
+import {
+  ABSENCE_TYPES, EVENT_CATEGORIES, kindOf, STATUS_FILTERS, statusOf, countsOf, recordsOf, byDateDesc, memberName, memberRole, memberTeam, initials,
+} from './absenceUtils';
+import { MobileAbsences } from '../../Mobile/MobileAbsences/MobileAbsences';
+import './Absence.css';
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- members come untyped from the API */
+
+const PAGE = 24;
 
 export const AbsenceRequests: React.FC = () => {
   const controller = useAbsenceRequestsController();
-  const navigate = useNavigate();
+  const can = useCan();
+  const isMobile = useIsMobile();
+
+  const [query, setQuery] = useState('');
+  const [type, setType] = useState('');
+  const [role, setRole] = useState<'' | 'players' | 'staff'>('');
+  const [limit, setLimit] = useState(PAGE);
+
+  if (isMobile) return <MobileAbsences c={controller} />;
+
+  const s = controller.stats;
+  const q = query.trim().toLowerCase();
+  const pending = controller.absences.filter(a => statusOf(a) === 'pending').sort(byDateDesc);
+
+  const members = controller.members
+    .filter((m: any) => (role === 'players' ? m.type === 'player' : role === 'staff' ? m.type !== 'player' : true))
+    .filter((m: any) => !q || memberName(m).toLowerCase().includes(q))
+    .filter((m: any) => !controller.filterTeamId || String(m.team_id ?? m.team?.id ?? '') === String(controller.filterTeamId));
+
+  const registry = controller.absences
+    .filter(a => !type || kindOf(a) === type)
+    .filter(a => !q || (a.player_name || '').toLowerCase().includes(q))
+    .slice()
+    .sort(byDateDesc);
+
+  const decide = (id: number, status: 'مقبول' | 'مرفوض') => controller.handleUpdateJustification(id, status);
+  const cardProps = { onJustify: controller.openJustificationDialog, onDecide: decide, onDelete: controller.handleDelete };
+
+  const tiles = [
+    { key: 'absent', label: 'غياب', value: s.absent, icon: UserX, tone: 'red' },
+    { key: 'late', label: 'تأخر', value: s.late, icon: Clock, tone: 'amber' },
+    { key: 'leave', label: 'مغادرة', value: s.leave, icon: LogOut, tone: 'orange' },
+    { key: 'request', label: 'طلبات عطلة', value: s.request, icon: Plane, tone: 'violet' },
+    { key: 'pending', label: 'قيد الدراسة', value: s.pending, icon: Hourglass, tone: 'blue' },
+    { key: 'justified', label: 'مبررة', value: s.justified, icon: ShieldCheck, tone: 'green' },
+  ];
+
+  const tabs = [
+    { value: 'members', label: 'الأعضاء', icon: Users, count: controller.members.length },
+    { value: 'requests', label: 'طلبات التبرير', icon: Inbox, count: pending.length, alert: pending.length > 0 },
+    { value: 'registry', label: 'السجل العام', icon: ClipboardList, count: controller.absences.length },
+  ] as const;
+
+  const empty = (text: string) => (
+    <div className="ab-empty">
+      <span><FileWarning size={34} /></span>
+      <strong>{text}</strong>
+    </div>
+  );
 
   return (
-    <div className="absence-container">
-      <div className="absence-header" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{ width: '220px', zIndex: 10, height: '44px' }}>
-            <CustomDropdown
-              value={controller.activeTab}
-              onChange={(val) => controller.setActiveTab(val as any)}
-              options={[
-                { value: 'members', label: 'قائمة الأعضاء' },
-                { value: 'requests', label: 'طلبات التبرير المعلقة' },
-                { value: 'registry', label: 'سجل الغيابات العام' }
-              ]}
-            />
+    <div className="ab-page">
+      {/* Summary */}
+      <section className="ab-hero">
+        <div className="ab-hero-main">
+          <span className="ab-hero-icon"><FileWarning size={30} /></span>
+          <div>
+            <small>الغيابات والتبريرات</small>
+            <strong>{s.total} <span>سجل</span></strong>
           </div>
-          <div className="header-actions">
-            <button className="add-absence-btn" onClick={() => controller.openAddAbsenceDialog(undefined, false)} style={{ marginRight: '8px' }}>
-              <Plus size={18} /> تسجيل 
-            </button>
-            <button className="add-absence-btn multi-btn" onClick={() => controller.openAddAbsenceDialog(undefined, true)} style={{ background: 'var(--accent-secondary, #8b5cf6)' }}>
-              <Users size={18} /> تسجيل 
-            </button>
+          {can('absences', 'add') && (
+            <div className="ab-hero-actions">
+              <button type="button" className="ab-add" onClick={() => controller.openAddAbsenceDialog(undefined, false)}>
+                <Plus size={18} /> تسجيل حالة
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="ab-tiles">
+          {tiles.map(t => (
+            <div key={t.key} className={`ab-tile tone-${t.tone}`}>
+              <span><t.icon size={18} /></span>
+              <strong>{t.value}</strong>
+              <small>{t.label}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Tabs */}
+      <div className="ab-tabs" role="tablist">
+        {tabs.map(t => (
+          <button
+            key={t.value}
+            type="button"
+            role="tab"
+            aria-selected={controller.activeTab === t.value}
+            className={controller.activeTab === t.value ? 'on' : ''}
+            onClick={() => { controller.setActiveTab(t.value); setLimit(PAGE); }}
+          >
+            <t.icon size={17} /> {t.label}
+            <b className={'alert' in t && t.alert ? 'alert' : ''}>{t.count}</b>
+          </button>
+        ))}
+      </div>
+
+      {/* Toolbar */}
+      {controller.activeTab !== 'requests' && (
+        <div className="ab-toolbar">
+          <label className="ab-search">
+            <Search size={17} />
+            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العضو..." />
+            {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={14} /></button>}
+          </label>
+
+          {controller.activeTab === 'members' ? (
+            <div className="ab-chips">
+              {([['', 'الكل'], ['players', 'اللاعبون'], ['staff', 'الطاقم والإداريون']] as const).map(([v, l]) => (
+                <button key={v || 'all'} type="button" className={role === v ? 'on' : ''} onClick={() => setRole(v)}>{l}</button>
+              ))}
+            </div>
+          ) : (
+            <div className="ab-chips">
+              <button type="button" className={!type ? 'on' : ''} onClick={() => setType('')}>الكل</button>
+              {ABSENCE_TYPES.map(t => (
+                <button key={t.value} type="button" className={`tone-${t.tone} ${type === t.value ? 'on' : ''}`} onClick={() => setType(t.value)}>
+                  <t.icon size={14} /> {t.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="ab-selects">
+            <div className="ab-select">
+              <CustomDropdown
+                value={controller.filterTeamId}
+                onChange={val => controller.setFilterTeamId(val)}
+                options={[{ value: '', label: 'كل الفرق' }, ...controller.teams.map((t: any) => ({ value: String(t.id), label: t.name }))]}
+              />
+            </div>
+            {controller.activeTab === 'registry' && (
+              <>
+                <div className="ab-select">
+                  <CustomDropdown
+                    value={controller.filterCategory}
+                    onChange={val => controller.setFilterCategory(val)}
+                    options={[{ value: '', label: 'كل الفعاليات' }, ...EVENT_CATEGORIES.map(c => ({ value: c.value, label: c.value }))]}
+                  />
+                </div>
+                <div className="ab-select">
+                  <CustomDropdown
+                    value={controller.filterStatus}
+                    onChange={val => controller.setFilterStatus(val)}
+                    options={STATUS_FILTERS}
+                  />
+                </div>
+              </>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
-      <div className="unified-absence-layout">
-        
-        {/* Section: Members List */}
-        {controller.activeTab === 'members' && (() => {
-          const indexOfLastItem = controller.currentPage * controller.itemsPerPage;
-          const indexOfFirstItem = indexOfLastItem - controller.itemsPerPage;
-          const paginatedMembers = controller.members.slice(indexOfFirstItem, indexOfLastItem);
-
-          return (
-            <div className="absence-section">
-              <div className="table-pagination-wrapper">
-                <ItemsPerPageSelector 
-                  itemsPerPage={controller.itemsPerPage} 
-                  onItemsPerPageChange={controller.setItemsPerPage} 
-                  onPageChange={controller.setCurrentPage} 
-                />
-                <div className="members-table-wrapper">
-                  <table className="custom-table">
-                    <thead>
-                      <tr>
-                        <th>العضو</th>
-                        <th>المنصب</th>
-                        <th>الفريق</th>
-                        <th style={{ textAlign: 'center' }}>إجراءات</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {paginatedMembers.map((member: any) => (
-                        <tr key={`member-${member.id}`} className="member-row">
-                          <td data-label="العضو">
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                              <div className="avatar-circle" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent)', width: '40px', height: '40px' }}>
-                                <User size={20} />
-                              </div>
-                              <span style={{ fontWeight: '600', color: 'var(--text-h)' }}>{member.first_name} {member.last_name}</span>
-                            </div>
-                          </td>
-                          <td data-label="المنصب">
-                            <span className="req-type" style={{ background: 'var(--bg)' }}>
-                              {member.type === 'player' ? 'لاعب' : 
-                               member.type === 'coach' ? 'مدرب' : 
-                               member.type === 'assistant_coach' ? 'مساعد مدرب' : 
-                               member.type === 'goalkeeper_coach' ? 'مدرب حراس' : 
-                               member.type === 'employee' ? 'موظف/إداري' : 
-                               (member.type || 'لاعب')}
-                            </span>
-                          </td>
-                          <td data-label="الفريق">
-                            {member.team_name || 'الفريق الأول'}
-                          </td>
-                          <td data-label="إجراءات" className="actions-cell">
-                            <div className="action-buttons-wrapper" style={{ justifyContent: 'center' }}>
-                              <button 
-                                className="btn-action edit-btn"
-                                onClick={() => controller.openAddAbsenceDialog(member.id)}
-                                title="تسجيل"
-                              >
-                                <FileText size={18} />
-                              </button>
-                              <button 
-                                className="btn-action view-btn"
-                                onClick={() => controller.openHistoryDialog(member.id)}
-                                title="سجل الغيابات"
-                              >
-                                <Calendar size={18} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      {controller.members.length === 0 && (
-                        <tr>
-                          <td colSpan={4} style={{ textAlign: 'center', padding: '32px', color: '#64748b', fontSize: '1.1rem' }}>
-                            جاري تحميل الأعضاء...
-                          </td>
-                        </tr>
+      {/* Members */}
+      {controller.activeTab === 'members' && (
+        members.length === 0 ? empty(controller.members.length ? 'لا يوجد أعضاء بهذا البحث' : 'جاري تحميل الأعضاء...') : (
+          <>
+            <div className="ab-members">
+              {members.slice(0, limit).map((m: any) => {
+                const c = countsOf(recordsOf(controller.absences, m.id));
+                return (
+                  <article key={m.id} className="ab-member">
+                    <div className="ab-member-top">
+                      <span className="ab-avatar big">{initials(memberName(m))}</span>
+                      <div>
+                        <strong>{memberName(m)}</strong>
+                        <small>{memberRole(m)}{memberTeam(m) ? ` · ${memberTeam(m)}` : ''}</small>
+                      </div>
+                    </div>
+                    <div className="ab-counters">
+                      <span className="tone-red"><b>{c.absent}</b> غياب</span>
+                      <span className="tone-amber"><b>{c.late}</b> تأخر</span>
+                      <span className="tone-orange"><b>{c.leave}</b> مغادرة</span>
+                    </div>
+                    {c.pending > 0 ? (
+                      <p className="ab-flag blue"><Hourglass size={13} /> {c.pending} تبرير قيد الدراسة</p>
+                    ) : c.unjustified > 0 ? (
+                      <p className="ab-flag red"><UserX size={13} /> {c.unjustified} غياب بدون تبرير</p>
+                    ) : c.total === 0 ? (
+                      <p className="ab-flag green"><ShieldCheck size={13} /> لا توجد غيابات</p>
+                    ) : (
+                      <p className="ab-flag green"><ShieldCheck size={13} /> لا يوجد غياب بدون تبرير</p>
+                    )}
+                    <div className="ab-member-actions">
+                      {can('absences', 'add') && (
+                        <button type="button" className="ab-btn soft" onClick={() => controller.openAddAbsenceDialog(m.id)}>
+                          <Plus size={15} /> تسجيل
+                        </button>
                       )}
-                    </tbody>
-                  </table>
-                </div>
-                <Pagination 
-                  totalItems={controller.members.length} 
-                  itemsPerPage={controller.itemsPerPage} 
-                  currentPage={controller.currentPage} 
-                  onPageChange={controller.setCurrentPage} 
-                  onItemsPerPageChange={controller.setItemsPerPage} 
-                />
+                      <button type="button" className="ab-btn" onClick={() => controller.openHistoryDialog(m.id)}>
+                        <History size={15} /> السجل {c.total > 0 && <b>{c.total}</b>}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+            {members.length > limit && (
+              <button type="button" className="ab-more" onClick={() => setLimit(l => l + PAGE)}>عرض المزيد ({members.length - limit})</button>
+            )}
+          </>
+        )
+      )}
+
+      {/* Pending justifications */}
+      {controller.activeTab === 'requests' && (
+        pending.length === 0 ? empty('لا توجد طلبات تبرير معلقة حالياً') : (
+          <div className="ab-grid">
+            {pending.map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}
+          </div>
+        )
+      )}
+
+      {/* Registry */}
+      {controller.activeTab === 'registry' && (
+        controller.isLoading && !controller.absences.length ? empty('جاري تحميل السجل...') :
+          registry.length === 0 ? empty('لا توجد سجلات بهذه التصفية') : (
+            <>
+              <div className="ab-grid">
+                {registry.slice(0, limit).map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}
               </div>
-            </div>
-          );
-        })()}
-
-        {/* Section 1: Historical Absences */}
-        {controller.activeTab === 'registry' && (
-          <div className="absence-section">
-            <div className="absence-grid">
-              {controller.absences.map(abs => (
-                <div key={`abs-${abs.id}`} className="absence-card premium-card">
-                  <div className="card-top-bar">
-                    <span className={`status-pill ${(abs.justification_status === 'مقبول' || abs.justification_status === 'accepted') ? 'accepted' : (abs.justification_status === 'مرفوض' || abs.justification_status === 'rejected') ? 'rejected' : (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'pending' : 'rejected'}`}>
-                      {(abs.justification_status === 'مقبول' || abs.justification_status === 'accepted') ? 'غياب مبرر' : (abs.justification_status === 'مرفوض' || abs.justification_status === 'rejected') ? 'تبرير مرفوض' : (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'قيد مراجعة التبرير' : (abs.absence_type || 'غياب')}
-                    </span>
-                    <span className="time-ago" style={{ fontWeight: '600' }}>{abs.event_date || abs.session_date}</span>
-                  </div>
-
-                  <div className="player-info" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div className="avatar-circle" style={{ background: 'rgba(59, 130, 246, 0.1)', color: 'var(--accent, #3b82f6)' }}>
-                        <User size={24} />
-                      </div>
-                      <div>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{abs.player_name}</h3>
-                        {abs.event_category && (
-                          <span style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '5px',
-                            padding: '3px 10px', borderRadius: '8px', fontSize: '0.78rem', fontWeight: 700,
-                            background: abs.event_category === 'اجتماع' ? 'rgba(249,115,22,0.1)' : abs.event_category === 'مباراة' ? 'rgba(16,185,129,0.1)' : 'rgba(99,102,241,0.1)',
-                            color: abs.event_category === 'اجتماع' ? '#f97316' : abs.event_category === 'مباراة' ? '#10b981' : '#6366f1'
-                          }}>
-                            {abs.event_category}
-                            {abs.event_category === 'اجتماع' && abs.meeting_id && (
-                              <button
-                                onClick={() => navigate('/meetings/' + abs.meeting_id + '/attendance')}
-                                title={'الاجتماع: ' + (abs.meeting_topic || '')}
-                                style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', color: 'inherit' }}
-                              >
-                                <Link size={12} />
-                              </button>
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button className="btn-icon delete no-print" onClick={() => controller.handleDelete(abs.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-
-                  {abs.justification_status !== 'لا_يوجد' && abs.justification_status !== 'none' && (
-                    <div className="details-list" style={{ flex: 1, background: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'rgba(245, 158, 11, 0.05)' : 'var(--bg, #f9fafb)', border: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? '1px solid rgba(245, 158, 11, 0.3)' : 'none' }}>
-                      <div className="detail-row">
-                        <FileWarning size={16} color={abs.is_justified ? '#10b981' : '#ef4444'} />
-                        <span>الحالة: <strong style={{ color: abs.is_justified ? '#10b981' : '#ef4444' }}>
-                          {abs.is_justified ? 'تم قبول التبرير' : 'لا يوجد تبرير مقبول'}
-                        </strong></span>
-                      </div>
-                      {abs.reason && (
-                        <div className="detail-row reason-box" style={{ borderColor: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? 'rgba(245, 158, 11, 0.3)' : 'var(--border, #e5e7eb)' }}>
-                          <FileText size={16} color={(abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? '#d97706' : '#9ca3af'} />
-                          <p>التبرير: <span style={{ color: (abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') ? '#b45309' : 'var(--text-h, #1f2937)' }}>{abs.reason}</span></p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {(abs.justification_status === 'لا_يوجد' || abs.justification_status === 'none') && (
-                    <div className="action-buttons-row" style={{ marginTop: '16px' }}>
-                      <button className="btn-accept" style={{ background: 'linear-gradient(135deg, var(--accent, #3b82f6) 0%, var(--accent-secondary, #8b5cf6) 100%)', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)', width: '100%' }} onClick={() => controller.openJustificationDialog(abs.id)}>
-                        <FileText size={18} /> تقديم تبرير
-                      </button>
-                    </div>
-                  )}
-                  {(abs.justification_status === 'قيد_الدراسة' || abs.justification_status === 'pending') && (
-                    <div className="action-buttons-row" style={{ marginTop: '16px' }}>
-                      <button className="btn-accept" onClick={() => controller.handleUpdateJustification(abs.id, 'مقبول')}>
-                        <Check size={18} /> قبول التبرير
-                      </button>
-                      <button className="btn-reject" onClick={() => controller.handleUpdateJustification(abs.id, 'مرفوض')}>
-                        <X size={18} /> رفض التبرير
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Section 2: Requests & Justifications */}
-        {controller.activeTab === 'requests' && (
-          <div className="absence-section">
-            <div className="absence-grid">
-              {/* Render Justifications */}
-              {controller.absences.filter(a => a.justification_status === 'قيد_الدراسة').map(just => (
-                <div key={`just-${just.id}`} className="absence-card premium-card">
-                  <div className="card-top-bar">
-                    <span className={`status-pill ${just.justification_status === 'مقبول' ? 'accepted' : just.justification_status === 'مرفوض' ? 'rejected' : 'pending'}`}>
-                      {just.justification_status === 'مقبول' ? 'مقبول' : just.justification_status === 'مرفوض' ? 'مرفوض' : 'قيد الانتظار'}
-                    </span>
-                    <span className="time-ago" style={{ fontWeight: '600' }}>{just.event_date || just.session_date}</span>
-                  </div>
-
-                  <div className="player-info" style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div className="avatar-circle" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-secondary, #8b5cf6)' }}>
-                        <User size={24} />
-                      </div>
-                      <div>
-                        <h3 style={{ fontSize: '1.2rem', marginBottom: '4px', color: 'var(--text-h, #1f2937)' }}>{just.player_name}</h3>
-                        <span className="req-type alert-type" style={{ background: 'rgba(139, 92, 246, 0.1)', color: 'var(--accent-secondary, #8b5cf6)' }}>
-                          <AlertCircle size={14} style={{ display: 'inline', verticalAlign: 'middle', marginLeft: '4px' }} />
-                          تبرير غياب
-                        </span>
-                      </div>
-                    </div>
-                    <button className="btn-icon delete no-print" onClick={() => controller.handleDelete(just.id)} title="حذف الغياب" style={{ color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer', padding: '8px' }}>
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-
-                  <div className="details-list" style={{ flex: 1, background: 'var(--bg, #f9fafb)', border: 'none' }}>
-                    <div className="detail-row">
-                      <Calendar size={16} color="var(--text-p, #6b7280)" />
-                      <span>تاريخ الغياب: <strong>{just.event_date || just.session_date}</strong></span>
-                    </div>
-                    <div className="detail-row reason-box" style={{ borderColor: 'var(--border, #e5e7eb)' }}>
-                      <FileText size={16} color="var(--text-p, #6b7280)" />
-                      <p>التبرير: <span style={{ color: 'var(--text-h, #1f2937)' }}>{just.reason}</span></p>
-                    </div>
-                  </div>
-
-                  {just.justification_status === 'قيد_الدراسة' && (
-                    <div className="action-buttons-row" style={{ marginTop: '16px' }}>
-                      <button className="btn-accept" onClick={() => controller.handleUpdateJustification(just.id, 'مقبول')}>
-                        <Check size={18} /> قبول
-                      </button>
-                      <button className="btn-reject" onClick={() => controller.handleUpdateJustification(just.id, 'مرفوض')}>
-                        <X size={18} /> رفض
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {controller.absences.filter(a => a.justification_status === 'قيد_الدراسة').length === 0 && (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-p)' }}>
-                  لا توجد طلبات تبرير معلقة حالياً.
-                </div>
+              {registry.length > limit && (
+                <button type="button" className="ab-more" onClick={() => setLimit(l => l + PAGE)}>عرض المزيد ({registry.length - limit})</button>
               )}
-            </div>
-          </div>
-        )}
+            </>
+          )
+      )}
 
-      </div>
-
-      <AddAbsenceDialog 
-        isOpen={controller.isAddAbsenceDialogOpen} 
-        onClose={controller.closeAddAbsenceDialog} 
+      {/* The member file first, so add / justify dialogs open on top of it */}
+      <MemberAbsenceHistoryDialog
+        key={controller.selectedMemberId ?? 'none'}
+        isOpen={controller.isHistoryDialogOpen}
+        onClose={controller.closeHistoryDialog}
+        member={controller.members.find((m: any) => String(m.id) === String(controller.selectedMemberId))}
+        absences={controller.selectedMemberId !== null ? recordsOf(controller.absences, controller.selectedMemberId) : []}
+        onAdd={() => controller.selectedMemberId !== null && controller.openAddAbsenceDialog(controller.selectedMemberId)}
+        {...cardProps}
+      />
+      <AddAbsenceDialog
+        isOpen={controller.isAddAbsenceDialogOpen}
+        onClose={controller.closeAddAbsenceDialog}
         onSubmit={controller.handleAddAbsence}
         defaultPlayerId={controller.selectedMemberForAbsenceId}
         isMultiMode={controller.isMultiMode}
@@ -294,18 +267,11 @@ export const AbsenceRequests: React.FC = () => {
       />
       <JustificationDialog
         isOpen={controller.isJustificationDialogOpen}
+        absence={controller.selectedAbsence}
         onClose={controller.closeJustificationDialog}
         onSubmit={controller.submitJustification}
-      />
-      <MemberAbsenceHistoryDialog
-        isOpen={controller.isHistoryDialogOpen}
-        onClose={controller.closeHistoryDialog}
-        member={controller.members.find(m => m.id === controller.selectedMemberId)}
-        absences={controller.absences.filter(a => a.player_id === controller.selectedMemberId)}
-        onUpdateJustification={controller.handleUpdateJustification}
-        openJustificationDialog={controller.openJustificationDialog}
-        onDelete={controller.handleDelete}
       />
     </div>
   );
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */

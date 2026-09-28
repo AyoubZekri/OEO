@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { useTranslation } from 'react-i18next';
 import { useDecisionsController } from './DecisionsController';
 import type { Decision } from './decision_model';
@@ -117,6 +118,7 @@ export const Decisions: React.FC = () => {
   };
 
   const isMobile = useIsMobile();
+  const can = useCan();
 
   if (isMobile) {
     // Same rules as handleSubmit below
@@ -167,13 +169,15 @@ export const Decisions: React.FC = () => {
               ]}
             />
           </div>
-          <button 
-            className="add-eq-btn"
-            onClick={openAdd}
-          >
-            <Plus size={20} />
-            <span>{t('admin_docs.add_decision', 'إضافة قرار')}</span>
-          </button>
+          {can('decisions', 'add') && (
+            <button 
+              className="add-eq-btn"
+              onClick={openAdd}
+            >
+              <Plus size={20} />
+              <span>{t('admin_docs.add_decision', 'إضافة قرار')}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -211,14 +215,16 @@ export const Decisions: React.FC = () => {
             <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
               لم يتم إضافة أي قرارات حتى الآن. يمكنك البدء بإضافة قرار جديد لمتابعته وتعيين المسؤولين عنه.
             </p>
-            <button 
-              className="add-eq-btn" 
-              style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem', background: 'linear-gradient(135deg, var(--accent), #10b981)' }}
-              onClick={openAdd}
-            >
-              <Plus size={22} />
-              <span>إضافة قرار جديد</span>
-            </button>
+            {can('decisions', 'add') && (
+              <button 
+                className="add-eq-btn" 
+                style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem', background: 'linear-gradient(135deg, var(--accent), #10b981)' }}
+                onClick={openAdd}
+              >
+                <Plus size={22} />
+                <span>إضافة قرار جديد</span>
+              </button>
+            )}
           </div>
         ) : (
           filteredDecisions.map(decision => {
@@ -267,18 +273,22 @@ export const Decisions: React.FC = () => {
                         <Eye size={18} />
                       </button>
                     )}
-                    <button onClick={() => openEdit(decision)} className="decision-action-btn" title="تعديل" disabled={isSubmitting || deletingId === decision.id}>
-                      <Edit2 size={16} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(decision.id)} 
-                      className="decision-action-btn delete" 
-                      title="حذف"
-                      disabled={deletingId === decision.id}
-                      style={{ opacity: deletingId === decision.id ? 0.5 : 1 }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {can('decisions', 'edit') && (
+                      <button onClick={() => openEdit(decision)} className="decision-action-btn" title="تعديل" disabled={isSubmitting || deletingId === decision.id}>
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                    {can('decisions', 'delete') && (
+                      <button 
+                        onClick={() => handleDelete(decision.id)} 
+                        className="decision-action-btn delete" 
+                        title="حذف"
+                        disabled={deletingId === decision.id}
+                        style={{ opacity: deletingId === decision.id ? 0.5 : 1 }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -339,6 +349,7 @@ export const Decisions: React.FC = () => {
                           type="range" min="0" max="100" step="5"
                           value={decision.progress}
                           onChange={e => updateProgress(decision.id, parseInt(e.target.value))}
+                          disabled={!can('decisions', 'progress')}
                           className={`premium-slider-new ${isCompleted ? 'completed' : ''}`}
                           title="تغيير نسبة الإنجاز"
                         />
@@ -640,6 +651,7 @@ export const Decisions: React.FC = () => {
                           <input 
                             type="checkbox" 
                             checked={item.checked}
+                            disabled={!can('decisions', 'progress')}
                             onChange={() => {
                               toggleChecklistItem(detailsDecision.id, item.id);
                               

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
+import { countsOf, statusOf } from './absenceUtils';
 
 export interface AbsenceRecord {
   id: number;
@@ -22,6 +23,9 @@ export interface AbsenceRecord {
   justification_status: 'لا_يوجد' | 'قيد_الدراسة' | 'مقبول' | 'مرفوض' | 'none' | 'pending' | 'accepted' | 'rejected';
   record_source: string;
 }
+
+// The API answers either with the list itself or with { data: [...] }
+const listOf = (body: any): any[] => (Array.isArray(body) ? body : Array.isArray(body?.data) ? body.data : []);
 
 export const useAbsenceRequestsController = () => {
   const [absences, setAbsences] = useState<AbsenceRecord[]>([]);
@@ -61,7 +65,7 @@ export const useAbsenceRequestsController = () => {
       const res = await axios.get(`${Applink.server}/teams`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setTeams(res.data);
+      setTeams(listOf(res.data));
     } catch (err) {
       console.error('Error fetching teams', err);
     }
@@ -72,7 +76,7 @@ export const useAbsenceRequestsController = () => {
       const res = await axios.get(`${Applink.server}/meetings`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setMeetings(Array.isArray(res.data) ? res.data : []);
+      setMeetings(listOf(res.data));
     } catch (err) {
       console.error('Error fetching meetings', err);
     }
@@ -83,7 +87,7 @@ export const useAbsenceRequestsController = () => {
       const res = await axios.get(Applink.individuals, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setMembers(res.data);
+      setMembers(listOf(res.data));
     } catch (err) {
       console.error('Error fetching members', err);
     }
@@ -101,7 +105,7 @@ export const useAbsenceRequestsController = () => {
         params,
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      setAbsences(res.data);
+      setAbsences(listOf(res.data));
     } catch (err) {
       console.error('Error fetching absences', err);
     } finally {
@@ -150,7 +154,7 @@ export const useAbsenceRequestsController = () => {
     setIsJustificationDialogOpen(false);
   };
 
-  const submitJustification = async (text: string, _file: File | null) => {
+  const submitJustification = async (text: string) => {
     if (selectedAbsenceId !== null) {
       await handleUpdateJustification(selectedAbsenceId, 'قيد_الدراسة', text);
     }
@@ -208,14 +212,10 @@ export const useAbsenceRequestsController = () => {
 
   const selectedAbsence = absences.find(a => a.id === selectedAbsenceId) ?? null;
 
+  // Same status rule as the cards (see statusOf)
   const stats = {
-    total: absences.length,
-    late: absences.filter(a => a.absence_type === 'تأخر').length,
-    absent: absences.filter(a => a.absence_type === 'غياب').length,
-    leaves: absences.filter(a => a.absence_type === 'مغادرة').length,
-    requests: absences.filter(a => a.absence_type === 'طلب عطلة').length,
-    justified: absences.filter(a => a.justification_status === 'مقبول').length,
-    pending: absences.filter(a => a.justification_status === 'قيد_الدراسة').length,
+    ...countsOf(absences),
+    justified: absences.filter(a => statusOf(a) === 'accepted').length,
   };
 
   return {

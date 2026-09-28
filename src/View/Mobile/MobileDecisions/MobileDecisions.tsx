@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Plus, Eye, Pencil, Trash2, Gavel, Filter, ChevronDown, Calendar, ListChecks } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -28,6 +29,7 @@ export interface MobileDecisionsProps {
 export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
   decisions, isLoading, meetings, members, onSave, onDelete, onProgress, onToggleTask,
 }) => {
+  const can = useCan();
   const [meetingId, setMeetingId] = useState('');
   const [detailsId, setDetailsId] = useUrlDetails('decision');
   // undefined = form closed, null = new decision
@@ -47,8 +49,8 @@ export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
 
   const menuItems = (d: Decision): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(d.id) },
-    { key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setEditing(d) },
-    { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => remove(d) },
+    ...(can('decisions', 'edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setEditing(d) }] : []),
+    ...(can('decisions', 'delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => remove(d) }] : []),
   ];
 
   return (
@@ -138,9 +140,11 @@ export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
         </>
       )}
 
-      <button type="button" className="mdc-fab" onClick={() => setEditing(null)} aria-label="إضافة قرار" title="إضافة قرار">
-        <Plus size={22} strokeWidth={2.5} />
-      </button>
+      {can('decisions', 'add') && (
+        <button type="button" className="mdc-fab" onClick={() => setEditing(null)} aria-label="إضافة قرار" title="إضافة قرار">
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
+      )}
 
       {details && (
         <MobileDecisionDetails

@@ -22,8 +22,27 @@ export interface MatchActions {
 export const CLUB_NAME = 'أولمبيك ليو'; // as on the desktop cards
 export const CLUB_LOGO = '/LOGO.webp';
 
-// Actions of one match, with the same conditions as the desktop card buttons
-export const matchActionItems = (m: Match, state: MatchState, a: MatchActions): MobileRowMenuItem[] => {
+/** Role permission (matches section) needed for each match action */
+export const MATCH_ACTION_PERMISSION: Record<string, string> = {
+  viewReport: 'view',
+  timeline: 'report',
+  result: 'report',
+  end: 'report',
+  report: 'report',
+  stats: 'report',
+  callups: 'callups',
+  lineup: 'lineup',
+  attendance: 'attendance',
+  postpone: 'changeStatus',
+  cancel: 'changeStatus',
+  reschedule: 'changeStatus',
+  restore: 'changeStatus',
+  edit: 'edit',
+  delete: 'delete',
+};
+
+// Actions of one match, with the same conditions as the desktop card buttons, limited to what the role `can` do
+export const matchActionItems = (m: Match, state: MatchState, a: MatchActions, can: (action: string) => boolean = () => true): MobileRowMenuItem[] => {
   const scored = hasScore(m);
   const date = matchDate(m);
   const started = !date || date <= new Date();
@@ -45,6 +64,6 @@ export const matchActionItems = (m: Match, state: MatchState, a: MatchActions): 
     ] : []),
     { key: 'edit', label: 'تعديل', icon: Pencil, color: orange, onClick: () => a.edit(m) },
     { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => a.remove(m) },
-  ];
+  ].filter(item => can(MATCH_ACTION_PERMISSION[item.key] || 'view'));
 };
 

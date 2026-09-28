@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, Users, ClipboardList, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TrainingSessionDialog } from './TrainingSessionDialog';
@@ -19,6 +20,7 @@ const TrainingSessions: React.FC = () => {
   const controller = useTrainingSessionsController();
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
   const isMobile = useIsMobile();
+  const can = useCan();
 
   if (isMobile) return <MobileTrainingSessions controller={controller} />;
 
@@ -100,10 +102,12 @@ const TrainingSessions: React.FC = () => {
               placeholder="تصفية حسب الفئة"
             />
           </div>
-          <button type="button" className="add-session-btn" onClick={controller.openAddDialog}>
-            <Plus size={20} />
-            إضافة حصة
-          </button>
+          {can('trainingSessions', 'add') && (
+            <button type="button" className="add-session-btn" onClick={controller.openAddDialog}>
+              <Plus size={20} />
+              إضافة حصة
+            </button>
+          )}
         </div>
       </div>
 
@@ -136,6 +140,7 @@ const TrainingSessions: React.FC = () => {
                     <button
                       type="button"
                       className={`sc-status-label ${status.cls}`}
+                      disabled={!can('trainingSessions', 'edit')}
                       onClick={() => setOpenStatusMenu(isMenuOpen ? null : (session.id ?? idx))}
                     >
                       {status.label}
@@ -230,16 +235,22 @@ const TrainingSessions: React.FC = () => {
 
                 {/* Footer actions */}
                 <div className="sc-footer">
-                  <Link to={`/training-sessions/${session.id}/attendance`} className="sc-action-btn edit" title="تسجيل الحضور والغياب">
-                    <ClipboardList size={15} />
-                  </Link>
+                  {can('trainingSessions', 'attendance') && (
+                    <Link to={`/training-sessions/${session.id}/attendance`} className="sc-action-btn edit" title="تسجيل الحضور والغياب">
+                      <ClipboardList size={15} />
+                    </Link>
+                  )}
                   <div className="sc-icon-actions">
-                    <button type="button" className="sc-action-btn edit" onClick={() => controller.openEditDialog(session)} title="تعديل">
-                      <Edit2 size={15} />
-                    </button>
-                    <button type="button" className="sc-action-btn delete" onClick={() => controller.handleDeleteSession(session.id)} title="حذف">
-                      <Trash2 size={15} />
-                    </button>
+                    {can('trainingSessions', 'edit') && (
+                      <button type="button" className="sc-action-btn edit" onClick={() => controller.openEditDialog(session)} title="تعديل">
+                        <Edit2 size={15} />
+                      </button>
+                    )}
+                    {can('trainingSessions', 'delete') && (
+                      <button type="button" className="sc-action-btn delete" onClick={() => controller.handleDeleteSession(session.id)} title="حذف">
+                        <Trash2 size={15} />
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>

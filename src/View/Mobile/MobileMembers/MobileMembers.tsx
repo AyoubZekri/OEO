@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, ClipboardList, LogOut, FileText } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import type { useMembersController } from '../../Screen/Members/MembersController';
@@ -23,6 +24,7 @@ const getPhoto = (member: MemberModel) =>
   member.photo && !member.photo.includes('ui-avatars.com') ? member.photo : defaultAvatar;
 
 export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onAddEvaluation }) => {
+  const can = useCan();
   const { filteredMembers, searchQuery, setSearchQuery, filterTeamId, setFilterTeamId, teams } = controller;
   const categories = [{ id: '', name: 'الكل' }, ...teams];
 
@@ -39,7 +41,7 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
   }, [actionMember]);
 
   // Evaluations are for players only, same as desktop
-  const hasActions = (member: MemberModel) => member.type === 'player' || canViewRecord || canEdit || canDelete;
+  const hasActions = (member: MemberModel) => member.type === 'player' || canViewRecord || canEdit || canDelete || can('members', 'clearance');
 
   const openMenu = (member: MemberModel) =>
     setActionMember(current => (current?.id === member.id ? null : member));
@@ -131,7 +133,7 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
                 <>
                   <div className="mm-menu-backdrop" onClick={() => setActionMember(null)} />
                   <div ref={revealMenu} className="mm-menu" style={menuPos} role="menu" aria-label="خيارات العضو">
-                    {member.type === 'player' && (
+                    {member.type === 'player' && can('members', 'evaluate') && (
                       <button role="menuitem" className="mm-menu-item eval" onClick={() => runAction(onAddEvaluation)}>
                         <TrendingUp size={17} />
                         إضافة تقييم
@@ -155,7 +157,7 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
                         تعديل
                       </button>
                     )}
-                    {canEdit && (
+                    {can('members', 'clearance') && (
                       <button role="menuitem" className="mm-menu-item clearance" onClick={() => runAction(controller.openClearanceDialog)}>
                         <LogOut size={17} />
                         الإخلاء والمغادرة

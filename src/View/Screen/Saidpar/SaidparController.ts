@@ -111,7 +111,7 @@ export const useSaidparController = (onLogout?: () => void) => {
           route: Approutes.Members,
         }] : []),
 
-        ...(hasAccess(permissions.members.view) ? [{
+        ...(hasAccess(permissions.disciplinary.view) ? [{
           name: 'Disciplinary',
           icon: Scale,
           isDropdown: false,
@@ -125,54 +125,54 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'فئات الفرق',
           route: Approutes.Teams,
         }] : []),
-        ...(hasAccess(true) ? [{
+        ...(hasAccess(permissions.clubs.view) ? [{
           name: 'Clubs',
           icon: Shield,
           isDropdown: false,
           label: 'الأندية الأخرى',
           route: Approutes.Clubs,
         }] : []),
-        ...(hasAccess(true) ? [{
+        ...(hasAccess(permissions.trainingSessions.view) ? [{
           name: 'TrainingSessions',
           icon: Calendar,
           isDropdown: false,
           label: 'حصص التدريب',
           route: Approutes.TrainingSessions,
         }] : []),
-        ...(hasAccess(true) ? [{
+        ...(hasAccess(permissions.absences.view) ? [{
           name: 'AbsenceRequests',
           icon: FileWarning,
           isDropdown: false,
           label: 'sidebar.absence_requests',
           route: Approutes.AbsenceRequests,
         }] : []),
-        ...(hasAccess(true) ? [{
+        ...(hasAccess(permissions.matches.view) ? [{
           name: 'Matches',
           icon: Calendar,
           isDropdown: false,
           label: 'المباريات',
           route: Approutes.Matches,
         }] : []),
-        ...(hasAccess(true) ? [{
+        ...((hasAccess(permissions.meetings.view) || hasAccess(permissions.decisions.view)) ? [{
           name: 'MeetingsGroup',
           icon: Briefcase,
           isDropdown: true,
           label: 'إدارة الاجتماعات',
           subItems: [
-            {
+            ...(hasAccess(permissions.meetings.view) ? [{
               name: 'Meetings',
               label: 'الاجتماعات',
               route: Approutes.Meetings,
-            },
-            {
+            }] : []),
+            ...(hasAccess(permissions.decisions.view) ? [{
               name: 'Decisions',
               label: 'القرارات',
               route: Approutes.Decisions,
-            }
+            }] : []),
           ]
         }] : []),
         
-        ...(hasAccess(true) ? [{
+        ...(hasAccess(permissions.medical.view) ? [{
           name: 'MedicalRecords',
           icon: Stethoscope,
           isDropdown: false,

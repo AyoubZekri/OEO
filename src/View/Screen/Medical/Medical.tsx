@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Plus, HeartPulse, Activity, User, Calendar, Stethoscope, AlertCircle, Edit2, Trash2, CheckCircle, FileText, Clock, Check } from 'lucide-react';
 import { useMedicalController } from './MedicalController';
 import { AddMedicalRecordDialog } from './AddMedicalRecordDialog';
@@ -40,6 +41,7 @@ export const Medical: React.FC = () => {
 
   const [memberFilter, setMemberFilter] = useState<string>('');
   const isMobile = useIsMobile();
+  const can = useCan();
 
   if (isMobile) return <MobileMedical c={controller} />;
 
@@ -62,18 +64,20 @@ export const Medical: React.FC = () => {
               placeholder="تصفية حسب العضو"
             />
           </div>
-          <button className="add-btn" onClick={openAddDialog} style={{
-            display: 'flex', alignItems: 'center', gap: '10px',
-            background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%)',
-            color: 'white', border: 'none', padding: '0 24px', height: '44px', borderRadius: '12px',
-            fontSize: '1rem', fontWeight: 700, cursor: 'pointer',
-            boxShadow: '0 8px 16px -4px var(--accent-bg)', transition: 'all 0.3s ease'
-          }}
-            onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
-            onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
-          >
-            <Plus size={20} /> إضافة ملف إصابة
-          </button>
+          {can('medical', 'add') && (
+            <button className="add-btn" onClick={openAddDialog} style={{
+              display: 'flex', alignItems: 'center', gap: '10px',
+              background: 'linear-gradient(135deg, var(--accent) 0%, var(--accent-secondary) 100%)',
+              color: 'white', border: 'none', padding: '0 24px', height: '44px', borderRadius: '12px',
+              fontSize: '1rem', fontWeight: 700, cursor: 'pointer',
+              boxShadow: '0 8px 16px -4px var(--accent-bg)', transition: 'all 0.3s ease'
+            }}
+              onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+              onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+            >
+              <Plus size={20} /> إضافة ملف إصابة
+            </button>
+          )}
         </div>
       </div>
 
@@ -127,8 +131,12 @@ export const Medical: React.FC = () => {
                 <div className="med-card-top">
                   <span className={`med-status tone-${tone}`}><i /> {record.record_status}</span>
                   <div className="med-card-actions">
-                    <button type="button" onClick={() => openEditDialog(record, 'injury')} title="تعديل الإصابة"><Edit2 size={16} /></button>
-                    <button type="button" className="danger" onClick={() => handleDelete(record.id)} title="حذف"><Trash2 size={16} /></button>
+                    {can('medical', 'edit') && (
+                      <button type="button" onClick={() => openEditDialog(record, 'injury')} title="تعديل الإصابة"><Edit2 size={16} /></button>
+                    )}
+                    {can('medical', 'delete') && (
+                      <button type="button" className="danger" onClick={() => handleDelete(record.id)} title="حذف"><Trash2 size={16} /></button>
+                    )}
                   </div>
                 </div>
 
@@ -176,7 +184,7 @@ export const Medical: React.FC = () => {
                   <div className="med-path-track"><div style={{ width: `${((stage - 1) / 3) * 100}%` }} /></div>
                   <div className="med-steps">
                     {steps.map(st => (
-                      <button key={st.key} type="button" className={`med-step ${st.done ? 'done' : ''}`} onClick={st.onClick}>
+                      <button key={st.key} type="button" className={`med-step ${st.done ? 'done' : ''}`} onClick={st.onClick} disabled={!st.done && !can('medical', 'edit')}>
                         <span className="med-step-icon">{st.done ? <Check size={15} strokeWidth={3} /> : <st.icon size={15} />}</span>
                         <strong>{st.title}</strong>
                         <small>{st.done ? 'مكتمل' : st.todo}</small>

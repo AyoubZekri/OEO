@@ -3,8 +3,8 @@ import { X, User, Calendar, Clock, FileText, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { CustomDropdown } from '../../widget/CustomDropdown';
-import { CustomInput } from '../../widget/CustomInput';
 import { CustomMultiSelect } from '../../widget/CustomMultiSelect';
+import { ABSENCE_TYPES, EVENT_CATEGORIES } from './absenceUtils';
 
 interface AddAbsenceDialogProps {
   isOpen: boolean;
@@ -120,109 +120,78 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
+  const modes = ABSENCE_TYPES.filter(t => !(isMultiMode && t.mode === 'request'));
+  const current = ABSENCE_TYPES.find(t => t.mode === recordMode) || ABSENCE_TYPES[0];
+  const title = recordMode === 'request' ? 'تقديم طلب عطلة'
+    : recordMode === 'late' ? 'تسجيل حالة تأخر'
+      : recordMode === 'leave' ? 'تسجيل حالة مغادرة'
+        : isMultiMode ? 'تسجيل غياب جماعي' : 'تسجيل حالة غياب';
+
   return (
-    <div className="task-dialog-overlay" onClick={onClose} style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.4)' }}>
-      <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '650px', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }} onClick={(e) => e.stopPropagation()}>
-        <div className="task-dialog-header">
-          <h2>
-            {recordMode === 'request' ? 'تقديم طلب عطلة' :
-              recordMode === 'late' ? 'تسجيل حالة تأخر' :
-              recordMode === 'leave' ? 'تسجيل حالة مغادرة' :
-                'تسجيل حالة غياب'}
-          </h2>
-          <button type="button" className="close-btn" onClick={onClose}><X size={20} /></button>
-        </div>
+    <div className="ab-overlay" onClick={onClose}>
+      <form className={`ab-dialog tone-${current.tone}`} onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit} role="dialog" aria-modal="true" aria-label={title}>
+        <header className="ab-dialog-head">
+          <span className="ab-dialog-icon"><current.icon size={22} /></span>
+          <div className="ab-dialog-title">
+            <h2>{title}</h2>
+            <p>{isMultiMode ? 'اختر كل الأعضاء المعنيين دفعة واحدة' : 'سجل الحالة ثم يمكن تبريرها لاحقاً'}</p>
+          </div>
+          <button type="button" className="ab-close" onClick={onClose} aria-label="إغلاق"><X size={20} /></button>
+        </header>
 
-        <form onSubmit={handleSubmit} className="task-form">
-
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: 'var(--bg-hover-strong, var(--border, #f1f5f9))', padding: '6px', borderRadius: '12px' }}>
-            <button
-              type="button"
-              onClick={() => handleModeChange('record')}
-              style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: recordMode === 'record' ? '#fff' : 'transparent', color: recordMode === 'record' ? '#dc2626' : '#64748b', fontWeight: recordMode === 'record' ? '700' : '600', boxShadow: recordMode === 'record' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' }}
-            >
-              غياب
-            </button>
-            <button
-              type="button"
-              onClick={() => handleModeChange('late')}
-              style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: recordMode === 'late' ? '#fff' : 'transparent', color: recordMode === 'late' ? '#d97706' : '#64748b', fontWeight: recordMode === 'late' ? '700' : '600', boxShadow: recordMode === 'late' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' }}
-            >
-              تأخر
-            </button>
-            {!isMultiMode && (
-              <button
-                type="button"
-                onClick={() => handleModeChange('request')}
-                style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: recordMode === 'request' ? '#fff' : 'transparent', color: recordMode === 'request' ? 'var(--accent-secondary, #8b5cf6)' : '#64748b', fontWeight: recordMode === 'request' ? '700' : '600', boxShadow: recordMode === 'request' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' }}
-              >
-                طلب عطلة
+        <div className="ab-dialog-body">
+          {/* Kind of record */}
+          <div className={`ab-modes n${modes.length}`}>
+            {modes.map(m => (
+              <button key={m.mode} type="button" className={`tone-${m.tone} ${recordMode === m.mode ? 'on' : ''}`} onClick={() => handleModeChange(m.mode)}>
+                <span><m.icon size={20} /></span>
+                {m.label}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={() => handleModeChange('leave')}
-              style={{ flex: 1, padding: '12px', borderRadius: '10px', border: 'none', background: recordMode === 'leave' ? '#fff' : 'transparent', color: recordMode === 'leave' ? '#f97316' : '#64748b', fontWeight: recordMode === 'leave' ? '700' : '600', boxShadow: recordMode === 'leave' ? '0 4px 6px -1px rgba(0,0,0,0.1)' : 'none', cursor: 'pointer', transition: 'all 0.3s ease', fontSize: '0.95rem' }}
-            >
-              مغادرة
-            </button>
+            ))}
           </div>
 
-          <div style={{ marginBottom: '16px' }}>
+          {/* Who */}
+          <div className="ab-field">
+            <span><User size={15} /> {isMultiMode ? 'الأعضاء *' : 'العضو *'}</span>
             {isMultiMode ? (
               <CustomMultiSelect
-                label={<><User size={16} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> الأعضاء *</>}
                 values={formData.player_ids}
                 onChange={(vals) => setFormData({ ...formData, player_ids: vals })}
-                options={players.map(p => ({
-                  value: p.id.toString(),
-                  label: `${p.first_name} ${p.last_name}`
-                }))}
+                options={players.map(p => ({ value: p.id.toString(), label: `${p.first_name} ${p.last_name}` }))}
                 placeholder="-- اختر الأعضاء --"
               />
             ) : (
               <CustomDropdown<string>
-                label={<><User size={16} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> العضو *</>}
                 value={formData.player_ids[0] || ''}
                 onChange={(val) => setFormData({ ...formData, player_ids: [val] })}
-                options={players.map(p => ({
-                  value: p.id.toString(),
-                  label: `${p.first_name} ${p.last_name}`
-                }))}
+                options={players.map(p => ({ value: p.id.toString(), label: `${p.first_name} ${p.last_name}` }))}
                 placeholder="-- اختر العضو --"
               />
             )}
+            {isMultiMode && formData.player_ids.length > 0 && <small className="ab-hint">{formData.player_ids.length} عضو محدد</small>}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: formData.event_category === 'أخرى' ? '1fr 1fr' : '1fr', gap: '16px', marginTop: '16px' }}>
-            <CustomDropdown<string>
-              label={<><FileText size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }} /> الفعالية</>}
-              value={formData.event_category}
-              onChange={(val) => setFormData({ ...formData, event_category: val })}
-              options={[
-                { value: 'تدريب', label: 'تدريب' },
-                { value: 'مباراة', label: 'مباراة' },
-                { value: 'اجتماع', label: 'اجتماع' },
-                { value: 'أخرى', label: 'أخرى' }
-              ]}
-            />
-            {formData.event_category === 'أخرى' && (
-              <CustomInput
-                type="text"
-                label="تحديد الفعالية *"
-                value={customEventCategory}
-                onChange={(e) => setCustomEventCategory(e.target.value)}
-                placeholder="أدخل نوع الفعالية"
-                required
-              />
-            )}
+          {/* Event */}
+          <div className="ab-field">
+            <span><FileText size={15} /> الفعالية</span>
+            <div className="ab-cats">
+              {EVENT_CATEGORIES.map(cat => (
+                <button key={cat.value} type="button" className={formData.event_category === cat.value ? 'on' : ''} onClick={() => setFormData({ ...formData, event_category: cat.value })}>
+                  <cat.icon size={16} /> {cat.value}
+                </button>
+              ))}
+            </div>
           </div>
-
-          {/* Meeting selector when event_category is 'اجتماع' */}
+          {formData.event_category === 'أخرى' && (
+            <label className="ab-field">
+              <span>تحديد الفعالية *</span>
+              <input type="text" value={customEventCategory} onChange={(e) => setCustomEventCategory(e.target.value)} placeholder="أدخل نوع الفعالية" required />
+            </label>
+          )}
           {formData.event_category === 'اجتماع' && meetings.length > 0 && (
-            <div style={{ marginTop: '16px' }}>
+            <div className="ab-field">
+              <span>الاجتماع (اختياري)</span>
               <CustomDropdown<string>
-                label={<><FileText size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }} /> الاجتماع (اختياري)</>}
                 value={formData.meeting_id}
                 onChange={(val) => setFormData({ ...formData, meeting_id: val })}
                 options={[
@@ -234,39 +203,38 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: (recordMode === 'request' || recordMode === 'late') ? '1fr 1fr' : '1fr', gap: '16px', marginTop: '16px' }}>
-            <CustomInput
-              type="date"
-              label="التاريخ *"
-              value={formData.event_date}
-              onChange={(e) => setFormData({ ...formData, event_date: e.target.value })}
-              required
-            />
+          {/* When */}
+          <div className={`ab-row ${(recordMode === 'request' || recordMode === 'late') ? 'two' : ''}`}>
+            <label className="ab-field">
+              <span><Calendar size={15} /> التاريخ *</span>
+              <input type="date" dir="ltr" value={formData.event_date} onChange={(e) => setFormData({ ...formData, event_date: e.target.value })} required />
+            </label>
             {(recordMode === 'request' || recordMode === 'late') && (
-              <CustomInput
-                type="text"
-                label={recordMode === 'late' ? "مدة التأخر (اختياري)" : "المدة (اختياري)"}
-                placeholder={recordMode === 'late' ? "مثال: 15 دقيقة..." : "مثال: يومان، ساعتان..."}
-                value={formData.duration}
-                onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-              />
+              <label className="ab-field">
+                <span><Clock size={15} /> {recordMode === 'late' ? 'مدة التأخر (اختياري)' : 'المدة (اختياري)'}</span>
+                <input
+                  type="text"
+                  value={formData.duration}
+                  onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                  placeholder={recordMode === 'late' ? 'مثال: 15 دقيقة' : 'مثال: يومان، ساعتان'}
+                />
+              </label>
             )}
           </div>
+          <p className="ab-hint"><AlertCircle size={13} /> يمكن تقديم التبرير لاحقاً من بطاقة الحالة.</p>
+        </div>
 
-
-
-          <div className="form-actions" style={{ marginTop: '24px' }}>
-            <button type="button" className="btn-cancel" onClick={onClose} disabled={isSubmitting}>إلغاء</button>
-            <button type="submit" className="btn-submit" disabled={isSubmitting}>
-              {isSubmitting ? 'جاري الحفظ...' :
-                recordMode === 'request' ? 'إرسال الطلب' :
-                  recordMode === 'late' ? 'تسجيل التأخر' :
-                    recordMode === 'leave' ? 'تسجيل المغادرة' :
-                      'حفظ الغياب'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <footer className="ab-dialog-foot">
+          <button type="button" className="ab-btn" onClick={onClose} disabled={isSubmitting}>إلغاء</button>
+          <button type="submit" className="ab-btn primary" disabled={isSubmitting}>
+            {isSubmitting ? 'جاري الحفظ...' :
+              recordMode === 'request' ? 'إرسال الطلب' :
+                recordMode === 'late' ? 'تسجيل التأخر' :
+                  recordMode === 'leave' ? 'تسجيل المغادرة' :
+                    'حفظ الغياب'}
+          </button>
+        </footer>
+      </form>
     </div>
   );
 };

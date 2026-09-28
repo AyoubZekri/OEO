@@ -232,7 +232,8 @@ body.dark-mode .ms-backdrop {
 .ms-option-hint {
   flex-shrink: 0;
   min-width: 42px;
-  padding: 3px 0;
+  padding: 3px 8px;
+  white-space: nowrap;
   border-radius: 8px;
   background: var(--ms-soft);
   color: var(--ms-muted);

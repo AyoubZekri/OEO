@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Plus, Search, Eye, Clock, MapPin, Radio, Trophy, Calendar } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -34,6 +35,7 @@ const useNow = () => {
 
 // Phone version of the matches page
 export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading, actions }) => {
+  const can = useCan();
   const now = useNow();
   const [tab, setTab] = useState<Tab>('upcoming');
   const [query, setQuery] = useState('');
@@ -156,7 +158,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
                       </span>
                       <MobileRowMenu items={[
                         { key: 'details', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: open },
-                        ...matchActionItems(m, state, actions),
+                        ...matchActionItems(m, state, actions, action => can('matches', action)),
                       ]} label="إجراءات المباراة" />
                     </div>
 
@@ -190,9 +192,11 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
         </>
       )}
 
-      <button type="button" className="mmt-fab" onClick={actions.add} aria-label="إضافة مباراة" title="إضافة مباراة">
-        <Plus size={22} strokeWidth={2.5} />
-      </button>
+      {can('matches', 'add') && (
+        <button type="button" className="mmt-fab" onClick={actions.add} aria-label="إضافة مباراة" title="إضافة مباراة">
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
+      )}
 
       {details && (
         <MobileMatchDetails

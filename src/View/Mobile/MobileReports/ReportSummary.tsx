@@ -1,0 +1,95 @@
+import React from 'react';
+import { FileText, Landmark, CreditCard, AlertCircle, Wallet, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import type { useReportsController } from '../../Screen/Reports/ReportsController';
+import { moneyText } from '../MobileContracts/contractUtils';
+import { fundIcon } from '../MobileFunds/fundUtils';
+import { CATEGORIES } from './reportUtils';
+
+type Icon = React.ComponentType<{ size?: number }>;
+
+const Stat: React.FC<{ icon: Icon; label: string; value: string; tone: string }> = ({ icon: I, label, value, tone }) => (
+  <div className={`mrp-stat tone-${tone}`}>
+    <span><I size={16} /></span>
+    <small>{label}</small>
+    <strong dir="ltr">{value}</strong>
+  </div>
+);
+
+// The report's totals: the same numbers as the desktop metric cards
+export const ReportSummary: React.FC<{ c: ReturnType<typeof useReportsController> }> = ({ c }) => {
+  const meta = CATEGORIES.find(x => x.id === c.activeCategory) || CATEGORIES[0];
+
+  let main: { label: string; value: number };
+  let stats: React.ReactNode = null;
+  let extra: React.ReactNode = null;
+
+  if (c.activeCategory === 'individuals') {
+    const s = c.getIndividualSummary();
+    main = { label: 'قيمة العقد', value: s.contractValue };
+    stats = (
+      <>
+        <Stat icon={FileText} label="المستحق حتى اليوم" value={moneyText(s.remaining)} tone="violet" />
+        <Stat icon={Landmark} label="المدفوع" value={moneyText(s.paid)} tone="green" />
+        <Stat icon={CreditCard} label="السلف" value={moneyText(s.advances)} tone="amber" />
+      </>
+    );
+  } else if (c.activeCategory === 'expenses') {
+    const s = c.getExpenseSummary();
+    main = { label: 'إجمالي المصاريف', value: s.totalAmount };
+    stats = <Stat icon={FileText} label="مجموع العمليات" value={String(s.payments.length)} tone="blue" />;
+  } else if (c.activeCategory === 'contracts') {
+    const s = c.getContractsSummary();
+    const pct = s.totalValue > 0 ? Math.min(100, Math.round((s.totalPaid / s.totalValue) * 100)) : 0;
+    main = { label: 'إجمالي قيمة العقود', value: s.totalValue };
+    stats = (
+      <>
+        <Stat icon={Landmark} label="إجمالي المدفوع" value={moneyText(s.totalPaid)} tone="green" />
+        <Stat icon={AlertCircle} label="المتبقي" value={moneyText(s.totalRemaining)} tone="red" />
+      </>
+    );
+    extra = (
+      <div className="mrp-progress">
+        <div className="mrp-bar"><div style={{ width: `${pct}%` }} /></div>
+        <span>تم دفع <b>{pct}%</b> من قيمة العقود</span>
+      </div>
+    );
+  } else {
+    const s = c.getFundsSummary();
+    main = { label: 'إجمالي رصيد الصناديق', value: s.totalBalance };
+    extra = s.fundsWithBalance.length > 0 && (
+      <ul className="mrp-funds">
+        {s.fundsWithBalance.map(f => {
+          const ic = fundIcon(f.icon);
+          return (
+            <li key={f.id} className={`ic-${ic.value}`}>
+              <span className="mrp-fund-icon"><ic.icon size={16} /></span>
+              <span className="mrp-fund-text">
+                <strong>{f.name}</strong>
+                <small>
+                  <em className="in"><ArrowDownLeft size={11} /> <span dir="ltr">{moneyText(f.totalDeposits)}</span></em>
+                  <em className="out"><ArrowUpRight size={11} /> <span dir="ltr">{moneyText(f.totalWithdrawals)}</span></em>
+                </small>
+              </span>
+              <b dir="ltr">{moneyText(f.balance)}</b>
+            </li>
+          );
+        })}
+      </ul>
+    );
+  }
+
+  return (
+    <section className="mrp-hero">
+      <div className="mrp-hero-top">
+        <span className="mrp-hero-icon"><meta.icon size={24} /></span>
+        <div>
+          <small>{meta.label} · {main.label}</small>
+          <strong dir="ltr">{moneyText(main.value)}</strong>
+        </div>
+      </div>
+      {stats && <div className="mrp-stats">{stats}</div>}
+      {extra}
+      {c.activeCategory === 'funds' && <p className="mrp-hint"><Wallet size={12} /> الرصيد الحالي لكل صندوق مع مجموع ما دخله وما خرج منه</p>}
+    </section>
+  );
+};

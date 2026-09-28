@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import {
   Activity, Calendar, Stethoscope, FileText, ClipboardCheck, Flag, ShieldCheck, Pencil, Trash2, Plus, Check, Clock, Lock,
 } from 'lucide-react';
@@ -35,6 +36,7 @@ const Field: React.FC<{ label: string; value?: string | null; wide?: boolean; se
 export const MobileMedicalDetails: React.FC<MobileMedicalDetailsProps> = ({
   record, onEdit, onDeleteInitial, onDeleteFinal, onDeleteTreatment, onClose,
 }) => {
+  const can = useCan();
   const stage = stageOf(record);
   const since = daysSince(record.injury_date);
   const photo = personPhoto(record.player);
@@ -103,7 +105,7 @@ export const MobileMedicalDetails: React.FC<MobileMedicalDetailsProps> = ({
     <MobileScreen
       title="الملف الطبي"
       onBack={onClose}
-      footer={<button type="button" className="me-btn primary" onClick={() => onEdit('injury')}><Pencil size={18} /> تعديل الإصابة</button>}
+      footer={can('medical', 'edit') ? <button type="button" className="me-btn primary" onClick={() => onEdit('injury')}><Pencil size={18} /> تعديل الإصابة</button> : undefined}
     >
       <section className={`mmd2-hero tone-${toneOf(record)}`}>
         <div className="mmd2-player">
@@ -153,10 +155,12 @@ export const MobileMedicalDetails: React.FC<MobileMedicalDetailsProps> = ({
                 {st.done && st.body}
                 {st.done ? (
                   <div className="mmd2-step-actions">
-                    <button type="button" onClick={() => onEdit(st.key)}><Pencil size={14} /> تعديل</button>
-                    {st.onDelete && <button type="button" className="danger" onClick={st.onDelete}><Trash2 size={14} /> حذف</button>}
+                    {can('medical', 'edit') && (
+                      <button type="button" onClick={() => onEdit(st.key)}><Pencil size={14} /> تعديل</button>
+                    )}
+                    {can('medical', 'delete') && st.onDelete && <button type="button" className="danger" onClick={st.onDelete}><Trash2 size={14} /> حذف</button>}
                   </div>
-                ) : st.available ? (
+                ) : st.available && can('medical', 'edit') ? (
                   <button type="button" className="mmd2-add" onClick={() => onEdit(st.key)}><Plus size={15} /> {st.addLabel}</button>
                 ) : null}
               </div>

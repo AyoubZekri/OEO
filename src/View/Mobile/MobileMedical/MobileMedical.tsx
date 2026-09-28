@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Plus, Eye, Pencil, Trash2, HeartPulse, Filter, ChevronDown, Users, Activity, Calendar } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -15,6 +16,7 @@ import './MobileMedical.css';
 
 // Phone version of the medical records page: summary, member filter, short cards, details with the recovery path
 export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController> }> = ({ c }) => {
+  const can = useCan();
   const [memberId, setMemberId] = useState('');
   const [detailsId, setDetailsId] = useUrlDetails('record');
 
@@ -31,8 +33,8 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
 
   const menuItems = (r: PlayerMedicalRecord): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(r.id) },
-    { key: 'edit', label: 'تعديل الإصابة', icon: Pencil, color: '#f97316', onClick: () => c.openEditDialog(r, 'injury') },
-    { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => c.handleDelete(r.id) },
+    ...(can('medical', 'edit') ? [{ key: 'edit', label: 'تعديل الإصابة', icon: Pencil, color: '#f97316', onClick: () => c.openEditDialog(r, 'injury') }] : []),
+    ...(can('medical', 'delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => c.handleDelete(r.id) }] : []),
   ];
 
   return (
@@ -123,9 +125,11 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
         </>
       )}
 
-      <button type="button" className="mmd2-fab" onClick={c.openAddDialog} aria-label="إضافة ملف إصابة" title="إضافة ملف إصابة">
-        <Plus size={22} strokeWidth={2.5} />
-      </button>
+      {can('medical', 'add') && (
+        <button type="button" className="mmd2-fab" onClick={c.openAddDialog} aria-label="إضافة ملف إصابة" title="إضافة ملف إصابة">
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
+      )}
 
       {details && (
         <MobileMedicalDetails

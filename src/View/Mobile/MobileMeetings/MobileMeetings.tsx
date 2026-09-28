@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Eye, ClipboardCheck, Pencil, Trash2, MapPin, Clock, Briefcase, Calendar } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -25,6 +26,7 @@ const attendancePath = (m: Meeting) => `/meetings/${m.id}/attendance`;
 // Phone version of the meetings page: next meeting, upcoming / past, meetings grouped by day
 export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => {
   const navigate = useNavigate();
+  const can = useCan();
   const now = useNow();
   const [period, setPeriod] = useState<Period>('upcoming');
   const [detailsId, setDetailsId] = useUrlDetails('meeting');
@@ -57,9 +59,9 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
 
   const menuItems = (m: Meeting): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(m.id) },
-    { key: 'attendance', label: 'تسجيل الحضور', icon: ClipboardCheck, color: '#f97316', onClick: () => navigate(attendancePath(m)) },
-    { key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => c.openEdit(m) },
-    { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => remove(m) },
+    ...(can('meetings', 'attendance') ? [{ key: 'attendance', label: 'تسجيل الحضور', icon: ClipboardCheck, color: '#f97316', onClick: () => navigate(attendancePath(m)) }] : []),
+    ...(can('meetings', 'edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => c.openEdit(m) }] : []),
+    ...(can('meetings', 'delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => remove(m) }] : []),
   ];
 
   return (

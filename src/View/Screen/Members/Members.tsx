@@ -278,7 +278,7 @@ export const Members: React.FC = () => {
                       label="إجراءات العضو"
                       items={[
                         ...(member.type === 'player' ? [
-                          { key: 'eval', label: 'إضافة تقييم', icon: TrendingUp, color: '#8b5cf6', onClick: () => setEvalMember(member) },
+                          ...(hasAccess(permissions.members.evaluate) ? [{ key: 'eval', label: 'إضافة تقييم', icon: TrendingUp, color: '#8b5cf6', onClick: () => setEvalMember(member) }] : []),
                           { key: 'evals', label: 'عرض التقييمات', icon: ClipboardList, color: '#0ea5e9', onClick: () => controller.openEvalHistory(member) },
                         ] : []),
                         ...(hasAccess(permissions.members.viewFinancialRecord) ? [
@@ -286,6 +286,8 @@ export const Members: React.FC = () => {
                         ] : []),
                         ...(hasAccess(permissions.members.edit) ? [
                           { key: 'edit', label: 'تعديل', icon: Edit2, color: '#3b82f6', onClick: () => openEditMemberDialog(member) },
+                        ] : []),
+                        ...(hasAccess(permissions.members.clearance) ? [
                           { key: 'clearance', label: 'الإخلاء والمغادرة', icon: LogOut, color: '#f59e0b', onClick: () => openClearanceDialog(member) },
                         ] : []),
                         ...(hasAccess(permissions.members.delete) ? [

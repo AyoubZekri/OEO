@@ -7,6 +7,8 @@ import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useEquipmentOperationController } from './EquipmentOperationController';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileEquipmentOps } from '../../Mobile/MobileEquipment/MobileEquipmentOps';
 import './Equipment.css';
 import './EquipmentOperations.css';
 
@@ -26,6 +28,22 @@ export const EquipmentOperations: React.FC = () => {
   
   const selectedOperation = selectedOperationId ? operations.find(op => op.id === selectedOperationId) : null;
   const paginatedOperations = operations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileEquipmentOps
+        c={controller}
+        can={{
+          create: hasAccess(permissions.equipmentOperations.handover) || hasAccess(permissions.equipmentOperations.return),
+          edit: hasAccess(permissions.equipmentOperations.edit),
+          delete: hasAccess(permissions.equipmentOperations.delete),
+          print: hasAccess(permissions.equipmentOperations.print),
+          giveBack: hasAccess(permissions.equipmentOperations.return),
+        }}
+      />
+    );
+  }
 
   const handleEdit = (op: any) => {
     setEditingOperation(op);

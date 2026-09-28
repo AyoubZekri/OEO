@@ -4,6 +4,8 @@ import { MovementDialog } from './MovementDialog';
 import { LocationsDialog } from './LocationsDialog';
 import { EquipmentDialog } from './EquipmentDialog';
 import { useAuth } from '../../../core/context/AuthContext';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileEquipment } from '../../Mobile/MobileEquipment/MobileEquipment';
 import './Equipment.css';
 
 import { useEquipmentController } from './EquipmentController';
@@ -27,6 +29,22 @@ export const Equipment: React.FC = () => {
     handleSaveEquipment,
     handleDeleteEquipment,
   } = useEquipmentController();
+
+  const controller = { equipments, isEquipmentDialogOpen, equipmentToEdit, isLoading, openAddDialog, openEditDialog, closeDialog, handleSaveEquipment, handleDeleteEquipment };
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileEquipment
+        c={controller}
+        can={{
+          add: hasAccess(permissions.equipment.add),
+          edit: hasAccess(permissions.equipment.edit),
+          delete: hasAccess(permissions.equipment.delete),
+          viewMovements: hasAccess(permissions.equipmentOperations.view),
+        }}
+      />
+    );
+  }
 
   const openMovement = (eq: any) => {
     setSelectedEq(eq);

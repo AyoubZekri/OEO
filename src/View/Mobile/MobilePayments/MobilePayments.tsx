@@ -71,7 +71,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
     const url = receiptUrl(p);
     return [
       { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(p.id) },
-      { key: 'print', label: 'طباعة الوصل', icon: Printer, color: '#ea580c', onClick: () => onPrint(p) },
+      ...(can.print ? [{ key: 'print', label: 'طباعة الوصل', icon: Printer, color: '#ea580c', onClick: () => onPrint(p) }] : []),
       { key: 'upload', label: 'إرفاق وصل العملية', icon: Paperclip, color: '#3b82f6', onClick: () => c.openUploadDialog(p) },
       ...(url ? [{ key: 'receipt', label: 'عرض الوصل', icon: CheckCircle2, color: '#10b981', onClick: () => setViewing(url) }] : []),
       ...(can.edit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => form.handleOpenDialog(p) }] : []),
@@ -218,6 +218,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
           fundName={fundOf(details, c.funds)?.name}
           contract={c.contracts.find(x => String(x.id) === String(details.contract_id))}
           canEdit={can.edit}
+          canPrint={can.print}
           onPrint={() => onPrint(details)}
           onEdit={() => form.handleOpenDialog(details)}
           onUpload={() => c.openUploadDialog(details)}

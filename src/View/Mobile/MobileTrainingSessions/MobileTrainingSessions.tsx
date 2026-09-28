@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, Calendar, Clock, MapPin, ClipboardCheck, Dumbbell, Eye, Radio, Users, Filter, ChevronDown } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -27,6 +28,7 @@ const attendancePath = (s: TrainingSessionModel) => `/training-sessions/${s.id}/
 // Phone version of the training sessions page: next session, filters, sessions grouped by day
 export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ controller }) => {
   const navigate = useNavigate();
+  const can = useCan();
   const now = useNow();
   const [period, setPeriod] = useState<Period>('upcoming');
   const [detailsId, setDetailsId] = useUrlDetails('session');
@@ -58,9 +60,9 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
 
   const menuItems = (s: TrainingSessionModel): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(s.id ?? null) },
-    { key: 'attendance', label: 'تسجيل الحضور', icon: ClipboardCheck, color: '#f97316', onClick: () => navigate(attendancePath(s)) },
-    { key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => controller.openEditDialog(s) },
-    { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDeleteSession(s.id) },
+    ...(can('trainingSessions', 'attendance') ? [{ key: 'attendance', label: 'تسجيل الحضور', icon: ClipboardCheck, color: '#f97316', onClick: () => navigate(attendancePath(s)) }] : []),
+    ...(can('trainingSessions', 'edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => controller.openEditDialog(s) }] : []),
+    ...(can('trainingSessions', 'delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDeleteSession(s.id) }] : []),
   ];
 
   const teamOptions = [{ value: '', label: 'كل الفئات' }, ...teams.map(t => ({ value: String(t.id), label: t.name as string }))];
@@ -98,9 +100,11 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
                   <div style={{ width: `${Math.min(100, Math.max(0, ((now.getTime() - startOf(next).getTime()) / (endOf(next).getTime() - startOf(next).getTime())) * 100))}%` }} />
                 </div>
               )}
-              <button type="button" className="mts-hero-btn" onClick={() => navigate(attendancePath(next))}>
-                <ClipboardCheck size={17} /> تسجيل الحضور
-              </button>
+              {can('trainingSessions', 'attendance') && (
+                <button type="button" className="mts-hero-btn" onClick={() => navigate(attendancePath(next))}>
+                  <ClipboardCheck size={17} /> تسجيل الحضور
+                </button>
+              )}
             </>
           ) : (
             <div className="mts-hero-empty">
@@ -204,9 +208,11 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
         </div>
       )}
 
-      <button type="button" className="mts-fab" onClick={controller.openAddDialog} aria-label="إضافة حصة" title="إضافة حصة">
-        <Plus size={22} strokeWidth={2.5} />
-      </button>
+      {can('trainingSessions', 'add') && (
+        <button type="button" className="mts-fab" onClick={controller.openAddDialog} aria-label="إضافة حصة" title="إضافة حصة">
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
+      )}
 
       {detailsSession && (
         <MobileSessionDetails

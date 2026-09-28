@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { useTranslation } from 'react-i18next';
 import { Shield, Plus, Edit2, Trash2, Camera, X, UploadCloud, Search } from 'lucide-react';
 import { useClubsController } from './ClubsController';
@@ -13,6 +14,7 @@ export const Clubs: React.FC = () => {
   const controller = useClubsController();
   const { clubs, addClub, updateClub, deleteClub, isLoading } = controller;
   const isMobile = useIsMobile();
+  const can = useCan();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -82,10 +84,12 @@ export const Clubs: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <button className="add-eq-btn" onClick={openAdd}>
-            <Plus size={20} />
-            <span>إضافة نادي</span>
-          </button>
+          {can('clubs', 'add') && (
+            <button className="add-eq-btn" onClick={openAdd}>
+              <Plus size={20} />
+              <span>إضافة نادي</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -123,24 +127,28 @@ export const Clubs: React.FC = () => {
                 zIndex: 10
               }}
             >
-              <button 
-                onClick={(e) => { e.stopPropagation(); openEdit(club); }} 
-                style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: 'var(--text-h)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-                onMouseOver={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
-                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-h)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-                title="تعديل"
-              >
-                <Edit2 size={18} />
-              </button>
-              <button 
-                onClick={(e) => { e.stopPropagation(); handleDelete(club.id); }} 
-                style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
-                onMouseOver={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = '#EF4444'; }}
-                onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.borderColor = 'var(--border)'; }}
-                title="حذف"
-              >
-                <Trash2 size={18} />
-              </button>
+              {can('clubs', 'edit') && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); openEdit(club); }} 
+                  style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: 'var(--text-h)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                  onMouseOver={e => { e.currentTarget.style.background = 'var(--accent)'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-h)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  title="تعديل"
+                >
+                  <Edit2 size={18} />
+                </button>
+              )}
+              {can('clubs', 'delete') && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); handleDelete(club.id); }} 
+                  style={{ background: 'transparent', border: '1px solid var(--border)', borderRadius: '12px', padding: '10px', cursor: 'pointer', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}
+                  onMouseOver={e => { e.currentTarget.style.background = '#EF4444'; e.currentTarget.style.color = 'white'; e.currentTarget.style.borderColor = '#EF4444'; }}
+                  onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                  title="حذف"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
             </div>
             
             <div style={{ 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle, ClipboardList, ChevronDown, Activity, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -108,6 +109,7 @@ export const Matches = () => {
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useIsMobile();
+  const can = useCan();
   // Bumped when the phone report form closes, so the report page shown under it reloads
   const [reportVersion, setReportVersion] = useState(0);
 
@@ -343,9 +345,11 @@ export const Matches = () => {
               className="search-input"
             />
           </div>
-          <button className="btn-primary" onClick={openAddDialog}>
-            <Plus size={20} /> إضافة مباراة
-          </button>
+          {can('matches', 'add') && (
+            <button className="btn-primary" onClick={openAddDialog}>
+              <Plus size={20} /> إضافة مباراة
+            </button>
+          )}
         </div>
       </div>
 
@@ -374,12 +378,16 @@ export const Matches = () => {
                 <span className="mc-badge mc-badge-blue">{match.team?.name || 'الفريق الأول'}</span>
               </div>
               <div className="mc-actions">
-                <button className="mc-icon-btn" onClick={() => handleDelete(match.id)} title="حذف">
-                  <Trash2 size={18} />
-                </button>
-                <button className="mc-icon-btn" onClick={() => openEditDialog(match)} title="تعديل">
-                  <Edit2 size={18} />
-                </button>
+                {can('matches', 'delete') && (
+                  <button className="mc-icon-btn" onClick={() => handleDelete(match.id)} title="حذف">
+                    <Trash2 size={18} />
+                  </button>
+                )}
+                {can('matches', 'edit') && (
+                  <button className="mc-icon-btn" onClick={() => openEditDialog(match)} title="تعديل">
+                    <Edit2 size={18} />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -407,7 +415,7 @@ export const Matches = () => {
                     >
                       مؤجلة
                     </div>
-                    {statusDropdownOpen === match.id && (
+                    {can('matches', 'changeStatus') && statusDropdownOpen === match.id && (
                       <div style={{ position: 'absolute', top: '110%', left: '50%', transform: 'translateX(-50%)', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.18)', border: '1px solid var(--border)', zIndex: 99, minWidth: '200px', overflow: 'hidden' }}>
                         {rescheduleMatchId === match.id ? (
                           /* Date picker inline */
@@ -467,7 +475,7 @@ export const Matches = () => {
                     >
                       ملغاة
                     </div>
-                    {statusDropdownOpen === match.id && (
+                    {can('matches', 'changeStatus') && statusDropdownOpen === match.id && (
                       <div style={{ position: 'absolute', top: '110%', left: '50%', transform: 'translateX(-50%)', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 30px rgba(0,0,0,0.18)', border: '1px solid var(--border)', zIndex: 99, minWidth: '150px', overflow: 'hidden' }}>
                         <div
                           onClick={() => { handleUpdateStatus(match, 'upcoming'); }}
@@ -490,22 +498,24 @@ export const Matches = () => {
                         {match.team_score > match.opponent_score ? 'فوز' : match.team_score < match.opponent_score ? 'خسارة' : 'تعادل'}
                       </div>
                     </div>
-                    <button 
-                      onClick={() => openTimelineDialog(match)}
-                      style={{ 
-                        background: 'var(--primary)', 
-                        color: 'white', 
-                        border: 'none', 
-                        padding: '6px 16px', 
-                        borderRadius: '20px', 
-                        fontSize: '0.85rem', 
-                        fontWeight: 'bold', 
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                      }}
-                    >
-                      أحداث المباراة
-                    </button>
+                    {can('matches', 'report') && (
+                      <button 
+                        onClick={() => openTimelineDialog(match)}
+                        style={{ 
+                          background: 'var(--primary)', 
+                          color: 'white', 
+                          border: 'none', 
+                          padding: '6px 16px', 
+                          borderRadius: '20px', 
+                          fontSize: '0.85rem', 
+                          fontWeight: 'bold', 
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                        }}
+                      >
+                        أحداث المباراة
+                      </button>
+                    )}
                   </div>
                 ) : isMatchLive(match.match_date) ? (
                   <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
@@ -518,24 +528,26 @@ export const Matches = () => {
                       مباراة جارية
                     </div>
 
-                    <button 
-                      onClick={() => openTimelineDialog(match)}
-                      style={{ 
-                        background: 'var(--primary)', 
-                        color: 'white', 
-                        border: 'none', 
-                        padding: '6px 16px', 
-                        borderRadius: '20px', 
-                        fontSize: '0.85rem', 
-                        fontWeight: 'bold', 
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                      }}
-                    >
-                      أحداث المباراة
-                    </button>
+                    {can('matches', 'report') && (
+                      <button 
+                        onClick={() => openTimelineDialog(match)}
+                        style={{ 
+                          background: 'var(--primary)', 
+                          color: 'white', 
+                          border: 'none', 
+                          padding: '6px 16px', 
+                          borderRadius: '20px', 
+                          fontSize: '0.85rem', 
+                          fontWeight: 'bold', 
+                          cursor: 'pointer',
+                          boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                        }}
+                      >
+                        أحداث المباراة
+                      </button>
+                    )}
 
-                    {statusDropdownOpen === match.id && (
+                    {can('matches', 'changeStatus') && statusDropdownOpen === match.id && (
                       <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', border: '1px solid var(--border)', zIndex: 10, minWidth: '160px', overflow: 'hidden' }}>
                         <div 
                           onClick={() => { setStatusDropdownOpen(null); openResultDialog(match); }}
@@ -575,7 +587,7 @@ export const Matches = () => {
                         مواجهة قادمة
                       </div>
                     </div>
-                    {statusDropdownOpen === match.id && (
+                    {can('matches', 'changeStatus') && statusDropdownOpen === match.id && (
                       <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '8px', background: 'var(--card-bg)', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.15)', border: '1px solid var(--border)', zIndex: 99, minWidth: '150px', overflow: 'hidden' }}>
                         <div
                           onClick={() => { handleUpdateStatus(match, 'مؤجلة'); }}
@@ -720,32 +732,44 @@ export const Matches = () => {
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {!(match.team_score !== undefined && match.team_score !== null && match.opponent_score !== undefined && match.opponent_score !== null) && !isMatchLive(match.match_date) && (
                 <>
-                  <button className="mc-action-btn" onClick={() => openCallupsDialog(match)}>
-                    <Users size={16} /> الاستدعاء
-                  </button>
-                  <button className="mc-action-btn" onClick={() => openViewCallupsDialog(match)}>
-                    <List size={16} /> التشكيلة
-                  </button>
+                  {can('matches', 'callups') && (
+                    <button className="mc-action-btn" onClick={() => openCallupsDialog(match)}>
+                      <Users size={16} /> الاستدعاء
+                    </button>
+                  )}
+                  {can('matches', 'lineup') && (
+                    <button className="mc-action-btn" onClick={() => openViewCallupsDialog(match)}>
+                      <List size={16} /> التشكيلة
+                    </button>
+                  )}
                 </>
               )}
               
               {(!match.match_date || new Date(match.match_date) <= new Date()) && (
                 <>
-                  <button className="mc-action-btn" onClick={() => navigate(`/matches/${match.id}/attendance`)}>
-                    <ClipboardList size={16} /> الحضور
-                  </button>
-                  <button className="mc-action-btn" onClick={() => openResultDialog(match)}>
-                    <CheckCircle size={16} /> النتيجة
-                  </button>
+                  {can('matches', 'attendance') && (
+                    <button className="mc-action-btn" onClick={() => navigate(`/matches/${match.id}/attendance`)}>
+                      <ClipboardList size={16} /> الحضور
+                    </button>
+                  )}
+                  {can('matches', 'report') && (
+                    <button className="mc-action-btn" onClick={() => openResultDialog(match)}>
+                      <CheckCircle size={16} /> النتيجة
+                    </button>
+                  )}
 
                   {match.team_score !== undefined && match.team_score !== null && match.opponent_score !== undefined && match.opponent_score !== null && (
                     <>
-                      <button className="mc-action-btn" onClick={() => openAdministrativeReportDialog(match)}>
-                        <FileText size={16} /> التقرير
-                      </button>
-                      <button className="mc-action-btn" onClick={() => openPlayerStatsDialog(match)}>
-                        <Activity size={16} /> تقييم اللاعبين
-                      </button>
+                      {can('matches', 'report') && (
+                        <button className="mc-action-btn" onClick={() => openAdministrativeReportDialog(match)}>
+                          <FileText size={16} /> التقرير
+                        </button>
+                      )}
+                      {can('matches', 'report') && (
+                        <button className="mc-action-btn" onClick={() => openPlayerStatsDialog(match)}>
+                          <Activity size={16} /> تقييم اللاعبين
+                        </button>
+                      )}
                     </>
                   )}
                 </>

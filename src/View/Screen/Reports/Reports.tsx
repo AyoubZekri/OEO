@@ -10,6 +10,8 @@ import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { MobileReports } from '../../Mobile/MobileReports/MobileReports';
 import './Reports.css';
 
 export const Reports: React.FC = () => {
@@ -37,6 +39,17 @@ export const Reports: React.FC = () => {
       controller.setActiveCategory(categories[0].id);
     }
   }, [categories, controller.activeCategory, controller]);
+
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileReports
+        c={controller}
+        allowed={categories.map(cat => cat.id)}
+        canDeleteTransaction={hasAccess(permissions.funds.delete)}
+      />
+    );
+  }
 
   const renderFilters = () => {
     return (

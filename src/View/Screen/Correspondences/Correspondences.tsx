@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 
 import { useCorrespondencesController } from './CorrespondencesController';
 import { Search, Eye, Trash2, Edit2, Plus, Calendar, User, FileText, Tag, ChevronDown, Check } from 'lucide-react';
@@ -8,7 +9,7 @@ import { CorrespondenceDialog } from './CorrespondenceDialog';
 import './Correspondences.css';
 import '../Members/Members.css';
 
-const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+const StatusDropdown = ({ value, onChange, disabled }: { value: string, onChange: (val: string) => void, disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -34,10 +35,11 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
     <div className="status-dropdown-container" ref={ref}>
       <div 
         className={`status-select-modern ${currentOption.colorClass}`} 
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => { if (!disabled) setIsOpen(!isOpen); }}
+        style={disabled ? { cursor: 'default' } : undefined}
       >
         <span>{currentOption.label}</span>
-        <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }} />
+        {!disabled && <ChevronDown size={14} style={{ transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }} />}
       </div>
 
       {isOpen && (
@@ -64,6 +66,7 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
 export const Correspondences: React.FC = () => {
   // const { t } = useTranslation();
   const controller = useCorrespondencesController();
+  const can = useCan();
 
   const statusOptions = [
     { value: '', label: 'جميع الحالات' },
@@ -96,10 +99,12 @@ export const Correspondences: React.FC = () => {
             onChange={(val) => controller.setFilterStatus(val)}
             placeholder="جميع الحالات"
           />
-          <button className="btn-primary" onClick={controller.openAddDialog}>
-            <Plus size={18} />
-            إضافة مراسلة
-          </button>
+          {can('correspondences', 'add') && (
+            <button className="btn-primary" onClick={controller.openAddDialog}>
+              <Plus size={18} />
+              إضافة مراسلة
+            </button>
+          )}
         </div>
       </div>
 
@@ -155,6 +160,7 @@ export const Correspondences: React.FC = () => {
                 <div className="status-control-modern">
                   <StatusDropdown 
                     value={c.status} 
+                    disabled={!can('correspondences', 'changeStatus')}
                     onChange={(val) => controller.handleUpdateStatus(c.id, val as any)} 
                   />
                 </div>
@@ -165,9 +171,11 @@ export const Correspondences: React.FC = () => {
                   <button className="btn-action-premium edit-btn" onClick={() => {}} title="تعديل">
                     <Edit2 size={16} />
                   </button>
-                  <button className="btn-action-premium delete-btn" onClick={() => controller.handleDelete(c.id)} title="حذف">
-                    <Trash2 size={16} />
-                  </button>
+                  {can('correspondences', 'delete') && (
+                    <button className="btn-action-premium delete-btn" onClick={() => controller.handleDelete(c.id)} title="حذف">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

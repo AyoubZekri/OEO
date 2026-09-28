@@ -10,6 +10,7 @@ export interface PaymentPermissions {
   add: boolean;
   edit: boolean;
   delete: boolean;
+  print: boolean;
 }
 
 export const KINDS: { value: TransactionKind; label: string; short: string; icon: typeof Users; tone: string }[] = [

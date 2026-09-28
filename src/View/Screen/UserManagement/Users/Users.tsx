@@ -7,11 +7,14 @@ import { useRolesController } from '../Roles/RolesController';
 import { useAuth } from '../../../../core/context/AuthContext';
 import { Pagination } from '../../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../../widget/ItemsPerPageSelector';
+import { useIsMobile } from '../../../../core/functions/useIsMobile';
+import { MobileUsers } from '../../../Mobile/MobileUsers/MobileUsers';
 import './Users.css';
 
 export const Users: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
+  const usersController = useUsersController();
   const {
     users,
     isDialogOpen,
@@ -21,7 +24,7 @@ export const Users: React.FC = () => {
     closeDialog,
     handleSaveUser,
     handleDeleteUser,
-  } = useUsersController();
+  } = usersController;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -30,6 +33,21 @@ export const Users: React.FC = () => {
 
   const { roles } = useRolesController();
   const { t } = useTranslation();
+
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileUsers
+        c={usersController}
+        roles={roles}
+        can={{
+          add: hasAccess(permissions.usersAndRoles.addUsers),
+          edit: hasAccess(permissions.usersAndRoles.editUsers),
+          delete: hasAccess(permissions.usersAndRoles.deleteUsers),
+        }}
+      />
+    );
+  }
 
   const getRoleName = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);

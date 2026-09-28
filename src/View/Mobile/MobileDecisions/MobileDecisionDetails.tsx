@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Gavel, ListChecks, Calendar, Clock, Users, Pencil, Check, FileText, Minus, Plus } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
@@ -26,6 +27,8 @@ const STEPS = [0, 25, 50, 75, 100];
 export const MobileDecisionDetails: React.FC<MobileDecisionDetailsProps> = ({
   decision, meetingName, members, onProgress, onToggleTask, onEdit, onClose,
 }) => {
+  const can = useCan();
+  const canProgress = can('decisions', 'progress');
   const state = decisionState(decision);
   const progress = decision.progress || 0;
   const due = deadlineText(decision.deadline);
@@ -39,7 +42,7 @@ export const MobileDecisionDetails: React.FC<MobileDecisionDetailsProps> = ({
     <MobileScreen
       title="تفاصيل القرار"
       onBack={onClose}
-      footer={<button type="button" className="me-btn primary" onClick={onEdit}><Pencil size={18} /> تعديل القرار</button>}
+      footer={can('decisions', 'edit') ? <button type="button" className="me-btn primary" onClick={onEdit}><Pencil size={18} /> تعديل القرار</button> : undefined}
     >
       <section className="mdc-hero">
         <div className="mdc-hero-top">
@@ -66,7 +69,7 @@ export const MobileDecisionDetails: React.FC<MobileDecisionDetailsProps> = ({
             </div>
             <div className="mdc-tasks">
               {(decision.checklistItems || []).map(item => (
-                <button key={item.id} type="button" className={`mdc-task ${item.checked ? 'done' : ''}`} onClick={() => onToggleTask(item.id)}>
+                <button key={item.id} type="button" className={`mdc-task ${item.checked ? 'done' : ''}`} onClick={() => onToggleTask(item.id)} disabled={!canProgress}>
                   <i>{item.checked && <Check size={14} strokeWidth={3} />}</i>
                   <span>{item.text}</span>
                 </button>
@@ -77,9 +80,9 @@ export const MobileDecisionDetails: React.FC<MobileDecisionDetailsProps> = ({
         ) : (
           <>
             <div className="mdc-stepper">
-              <button type="button" onClick={() => onProgress(Math.max(0, progress - 5))} aria-label="إنقاص"><Minus size={18} /></button>
+              <button type="button" onClick={() => onProgress(Math.max(0, progress - 5))} aria-label="إنقاص" disabled={!canProgress}><Minus size={18} /></button>
               <strong>{progress}%</strong>
-              <button type="button" onClick={() => onProgress(Math.min(100, progress + 5))} aria-label="زيادة"><Plus size={18} /></button>
+              <button type="button" onClick={() => onProgress(Math.min(100, progress + 5))} aria-label="زيادة" disabled={!canProgress}><Plus size={18} /></button>
             </div>
             <input
               className="mdc-range"
@@ -89,11 +92,12 @@ export const MobileDecisionDetails: React.FC<MobileDecisionDetailsProps> = ({
               step={5}
               value={progress}
               onChange={e => onProgress(parseInt(e.target.value))}
+              disabled={!canProgress}
               style={{ '--mdc-p': progress } as React.CSSProperties}
             />
             <div className="mdc-steps">
               {STEPS.map(v => (
-                <button key={v} type="button" className={progress === v ? 'active' : ''} onClick={() => onProgress(v)}>{v}%</button>
+                <button key={v} type="button" className={progress === v ? 'active' : ''} onClick={() => onProgress(v)} disabled={!canProgress}>{v}%</button>
               ))}
             </div>
           </>

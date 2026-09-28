@@ -141,6 +141,7 @@ export const Payments: React.FC = () => {
             add: hasAccess(permissions.payments.add),
             edit: hasAccess(permissions.payments.edit),
             delete: hasAccess(permissions.payments.delete),
+            print: hasAccess(permissions.payments.print),
           }}
           onPrint={payment => handleNativePrint(payment, getMemberDetails(payment.memberId), contractFor(payment))}
           printOpen={!!printOptionsDialog?.isOpen}
@@ -263,12 +264,14 @@ export const Payments: React.FC = () => {
                     <td data-label={t('payments.col_method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
                     <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <PrintReceiptButton 
-                          payment={payment} 
-                          member={member} 
-                          contract={contractFor(payment)}
-                          onPrint={handleNativePrint}
-                        />
+                        {hasAccess(permissions.payments.print) && (
+                          <PrintReceiptButton 
+                            payment={payment} 
+                            member={member} 
+                            contract={contractFor(payment)}
+                            onPrint={handleNativePrint}
+                          />
+                        )}
                         {hasAccess(permissions.payments.edit) && (
                           <button className="btn-icon edit" onClick={() => handleOpenDialog(payment)}>
                             <Edit size={18} />

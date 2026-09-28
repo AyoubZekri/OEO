@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Plus, Pencil, Trash2, Shield, Search } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -19,6 +20,7 @@ interface MobileClubsProps {
 
 // Phone version of the other clubs page: logo grid, add / edit on its own page
 export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
+  const can = useCan();
   const { clubs, isLoading } = controller;
   const [query, setQuery] = useState('');
   // undefined = form closed, null = new club
@@ -35,8 +37,8 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
   };
 
   const menuItems = (club: Club): MobileRowMenuItem[] => [
-    { key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setEditing(club) },
-    { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => remove(club) },
+    ...(can('clubs', 'edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setEditing(club) }] : []),
+    ...(can('clubs', 'delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => remove(club) }] : []),
   ];
 
   return (
@@ -105,9 +107,11 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
             </div>
           )}
 
-          <button type="button" className="mcl-fab" onClick={() => setEditing(null)} aria-label="إضافة نادي" title="إضافة نادي">
-            <Plus size={22} strokeWidth={2.5} />
-          </button>
+          {can('clubs', 'add') && (
+            <button type="button" className="mcl-fab" onClick={() => setEditing(null)} aria-label="إضافة نادي" title="إضافة نادي">
+              <Plus size={22} strokeWidth={2.5} />
+            </button>
+          )}
         </>
       )}
 

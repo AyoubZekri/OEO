@@ -1,33 +1,37 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Shield, X, CheckCircle2, ShieldCheck, ShieldAlert, Activity, Users, UsersRound, FileText, Wallet, Vault, PieChart, Package, ArrowLeftRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Shield, X, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { useRolesController } from './RolesController';
 import { RoleDialog } from './RoleDialog';
 import { useAuth } from '../../../../core/context/AuthContext';
-import { defaultPermissions } from './role_model';
+import { defaultPermissions, type PermissionModule } from './role_model';
+import { MODULE_ICONS } from './permissionIcons';
+import { useIsMobile } from '../../../../core/functions/useIsMobile';
+import { MobileRoles } from '../../../Mobile/MobileUsers/MobileRoles';
 import './Roles.css';
 
-const getModuleIcon = (moduleKey: string) => {
-  switch (moduleKey) {
-    case 'dashboard': return <Activity size={22} />;
-    case 'members': return <Users size={22} />;
-    case 'teams': return <UsersRound size={22} />;
-    case 'contracts': return <FileText size={22} />;
-    case 'payments': return <Wallet size={22} />;
-    case 'funds': return <Vault size={22} />;
-    case 'reports': return <PieChart size={22} />;
-    case 'usersAndRoles': return <Shield size={22} />;
-    case 'equipment': return <Package size={22} />;
-    case 'equipmentOperations': return <ArrowLeftRight size={22} />;
-    default: return <Shield size={22} />;
-  }
-};
+// Section icons come from the shared permission icons
+const getModuleIcon = (moduleKey: string) => React.createElement(MODULE_ICONS[moduleKey as PermissionModule] || Shield, { size: 22 });
 
 export const Roles: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useRolesController();
   const { t } = useTranslation();
+
+  const isMobile = useIsMobile();
+  if (isMobile) {
+    return (
+      <MobileRoles
+        c={controller}
+        can={{
+          add: hasAccess(permissions.usersAndRoles.addRoles),
+          edit: hasAccess(permissions.usersAndRoles.editRoles),
+          delete: hasAccess(permissions.usersAndRoles.deleteRoles),
+        }}
+      />
+    );
+  }
 
 
   return (

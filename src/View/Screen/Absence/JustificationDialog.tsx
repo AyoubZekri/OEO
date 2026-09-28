@@ -1,91 +1,83 @@
 import React, { useState } from 'react';
-import { X, UploadCloud } from 'lucide-react';
+import { X, FileText, Send, AlertCircle } from 'lucide-react';
+import type { AbsenceRecord } from './AbsenceRequestsController';
+import { typeMeta, dateOf } from './absenceUtils';
 
 interface JustificationDialogProps {
   isOpen: boolean;
+  /** The record being justified, shown as a reminder */
+  absence?: AbsenceRecord | null;
   onClose: () => void;
-  onSubmit: (text: string, file: File | null) => void;
+  onSubmit: (text: string) => void;
 }
 
-export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen, onClose, onSubmit }) => {
-  const [justificationText, setJustificationText] = useState('');
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+// Write the justification of one record; it then waits for acceptance or refusal
+export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen, absence, onClose, onSubmit }) => {
+  const [text, setText] = useState('');
+  const [error, setError] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const close = () => {
+    setText('');
+    setError(false);
+    onClose();
+  };
+
+  const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!justificationText.trim() && !selectedFile) {
-      alert('الرجاء إدخال نص التبرير أو إرفاق وثيقة');
+    if (!text.trim()) {
+      setError(true);
       return;
     }
-    onSubmit(justificationText, selectedFile);
-    setJustificationText('');
-    setSelectedFile(null);
+    onSubmit(text.trim());
+    setText('');
+    setError(false);
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedFile(e.target.files[0]);
-    }
-  };
+  const type = absence ? typeMeta(absence.absence_type) : null;
 
   return (
-    <div className="task-dialog-overlay" onClick={onClose}>
-      <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)' }} onClick={(e) => e.stopPropagation()}>
-        <div className="task-dialog-header">
-          <h2>تقديم تبرير الغياب</h2>
-          <button type="button" className="close-btn" onClick={onClose}><X size={20} /></button>
+    <div className="ab-overlay" onClick={close}>
+      <form className="ab-dialog" onClick={e => e.stopPropagation()} onSubmit={submit} role="dialog" aria-modal="true" aria-label="تقديم تبرير">
+        <header className="ab-dialog-head">
+          <span className="ab-dialog-icon"><FileText size={22} /></span>
+          <div className="ab-dialog-title">
+            <h2>تقديم تبرير</h2>
+            <p>يبقى التبرير قيد الدراسة حتى يتم قبوله أو رفضه</p>
+          </div>
+          <button type="button" className="ab-close" onClick={close} aria-label="إغلاق"><X size={20} /></button>
+        </header>
+
+        <div className="ab-dialog-body">
+          {absence && type && (
+            <div className={`ab-remind tone-${type.tone}`}>
+              <span><type.icon size={18} /></span>
+              <div>
+                <strong>{absence.player_name}</strong>
+                <small>{type.label}{absence.event_category ? ` · ${absence.event_category}` : ''} · <b dir="ltr">{dateOf(absence)}</b></small>
+              </div>
+            </div>
+          )}
+
+          <label className="ab-field">
+            <span>نص التبرير</span>
+            <textarea
+              value={text}
+              onChange={e => { setText(e.target.value); setError(false); }}
+              placeholder="اكتب سبب الغياب بوضوح (مرض، ظرف عائلي، دراسة...)"
+              rows={5}
+              autoFocus
+            />
+          </label>
+          {error && <p className="ab-error"><AlertCircle size={14} /> اكتب نص التبرير</p>}
         </div>
 
-        <form onSubmit={handleSubmit} className="task-form">
-          <div className="form-group" style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: 'var(--text-h, #374151)' }}>نص التبرير</label>
-            <textarea 
-              value={justificationText}
-              onChange={(e) => setJustificationText(e.target.value)}
-              placeholder="اكتب سبب الغياب هنا بوضوح..."
-              style={{
-                width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid var(--border, #d1d5db)',
-                minHeight: '120px', fontFamily: 'inherit', outline: 'none', background: 'var(--bg, #f9fafb)',
-                color: 'var(--text-h, #1f2937)', resize: 'vertical', transition: 'border-color 0.3s'
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = 'var(--accent, var(--accent, #3b82f6))'}
-              onBlur={e => e.currentTarget.style.borderColor = 'var(--border, #d1d5db)'}
-            />
-          </div>
-
-          <div className="form-group" style={{ marginBottom: '32px' }}>
-            <label style={{ display: 'block', marginBottom: '10px', fontWeight: '600', color: 'var(--text-h, #374151)' }}>إرفاق وثيقة (اختياري)</label>
-            <div style={{
-              border: '2px dashed var(--accent, var(--accent, #3b82f6))', borderRadius: '12px', padding: '24px',
-              textAlign: 'center', position: 'relative', background: 'rgba(59, 130, 246, 0.05)',
-              transition: 'background 0.3s'
-            }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'}
-            onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'}
-            >
-              <UploadCloud size={36} color="var(--accent, var(--accent, #3b82f6))" style={{ marginBottom: '12px' }} />
-              <p style={{ margin: 0, color: 'var(--text-h, #1f2937)', fontSize: '0.95rem', fontWeight: '500' }}>
-                {selectedFile ? selectedFile.name : 'اضغط هنا أو قم بسحب الملف'}
-              </p>
-              <input 
-                type="file" 
-                onChange={handleFileChange}
-                style={{
-                  position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-                  opacity: 0, cursor: 'pointer'
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="form-actions" style={{ marginTop: '24px' }}>
-            <button type="button" className="btn-cancel" onClick={onClose}>إلغاء</button>
-            <button type="submit" className="btn-submit">إرسال التبرير</button>
-          </div>
-        </form>
-      </div>
+        <footer className="ab-dialog-foot">
+          <button type="button" className="ab-btn" onClick={close}>إلغاء</button>
+          <button type="submit" className="ab-btn primary"><Send size={16} /> إرسال التبرير</button>
+        </footer>
+      </form>
     </div>
   );
 };

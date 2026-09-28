@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, Check, CalendarX, FolderOpen, ClipboardCheck, FileWarning } from 'lucide-react';
 import { useMeetingsController } from './MeetingsController';
@@ -48,6 +49,7 @@ export const Meetings: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
   const isMobile = useIsMobile();
+  const can = useCan();
 
   if (isMobile) return <MobileMeetings c={controller} canAdd={hasAccess(permissions.meetings.add)} />;
 
@@ -144,12 +146,16 @@ export const Meetings: React.FC = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px', background: 'var(--bg)', padding: '4px', borderRadius: '12px' }}>
-                  <button onClick={() => openEdit(meeting)} className="premium-icon-btn" style={{ width: '32px', height: '32px' }} title={t('admin_docs.edit', 'تعديل')}>
-                    <Edit2 size={16} />
-                  </button>
-                  <button onClick={() => handleDelete(meeting.id)} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
-                    <Trash2 size={16} />
-                  </button>
+                  {can('meetings', 'edit') && (
+                    <button onClick={() => openEdit(meeting)} className="premium-icon-btn" style={{ width: '32px', height: '32px' }} title={t('admin_docs.edit', 'تعديل')}>
+                      <Edit2 size={16} />
+                    </button>
+                  )}
+                  {can('meetings', 'delete') && (
+                    <button onClick={() => handleDelete(meeting.id)} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -190,12 +196,14 @@ export const Meetings: React.FC = () => {
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: 'auto' }}>
-                <button
-                  className="mc-action-btn"
-                  onClick={() => navigate(`/meetings/${meeting.id}/attendance`)}
-                >
-                  <ClipboardCheck size={16} /> تسجيل الحضور
-                </button>
+                {can('meetings', 'attendance') && (
+                  <button
+                    className="mc-action-btn"
+                    onClick={() => navigate(`/meetings/${meeting.id}/attendance`)}
+                  >
+                    <ClipboardCheck size={16} /> تسجيل الحضور
+                  </button>
+                )}
                 <button
                   className="mc-action-btn"
                   onClick={() => setExpandedMeetingId(meeting.id)}

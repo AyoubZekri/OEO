@@ -8,6 +8,15 @@ export interface MembersPermissions {
   edit: boolean;
   delete: boolean;
   viewFinancialRecord: boolean;
+  evaluate: boolean;
+  clearance: boolean;
+}
+
+export interface AbsencesPermissions {
+  view: boolean;
+  add: boolean;
+  justify: boolean;
+  delete: boolean;
 }
 
 export interface MeetingsPermissions {
@@ -15,9 +24,59 @@ export interface MeetingsPermissions {
   add: boolean;
   edit: boolean;
   delete: boolean;
+  attendance: boolean;
+}
+
+export interface DecisionsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  progress: boolean;
+}
+
+export interface CorrespondencesPermissions {
+  view: boolean;
+  add: boolean;
+  changeStatus: boolean;
+  delete: boolean;
 }
 
 export interface TeamsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
+export interface ClubsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
+export interface TrainingSessionsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  attendance: boolean;
+}
+
+export interface MatchesPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  changeStatus: boolean;
+  callups: boolean;
+  lineup: boolean;
+  attendance: boolean;
+  report: boolean;
+}
+
+export interface MedicalPermissions {
   view: boolean;
   add: boolean;
   edit: boolean;
@@ -38,6 +97,7 @@ export interface PaymentsPermissions {
   add: boolean;
   edit: boolean;
   delete: boolean;
+  print: boolean;
 }
 
 export interface FundsPermissions {
@@ -100,47 +160,128 @@ export interface DisciplinaryPermissions {
 export interface AppPermissions {
   dashboard: DashboardPermissions;
   members: MembersPermissions;
+  absences: AbsencesPermissions;
+  disciplinary: DisciplinaryPermissions;
   teams: TeamsPermissions;
+  clubs: ClubsPermissions;
+  trainingSessions: TrainingSessionsPermissions;
+  matches: MatchesPermissions;
+  medical: MedicalPermissions;
+  meetings: MeetingsPermissions;
+  decisions: DecisionsPermissions;
+  correspondences: CorrespondencesPermissions;
   contracts: ContractsPermissions;
   payments: PaymentsPermissions;
   funds: FundsPermissions;
   reports: ReportsPermissions;
-  usersAndRoles: UsersRolesPermissions;
   equipment: EquipmentPermissions;
   equipmentOperations: EquipmentOperationsPermissions;
-  disciplinary: DisciplinaryPermissions;
-  meetings: MeetingsPermissions;
+  usersAndRoles: UsersRolesPermissions;
 }
 
-export const defaultPermissions: AppPermissions = {
-  dashboard: { view: true },
-  members: { view: true, add: true, edit: true, delete: true, viewFinancialRecord: true },
-  teams: { view: true, add: true, edit: true, delete: true },
-  contracts: { view: true, add: true, edit: true, delete: true, print: true, renew: true },
-  payments: { view: true, add: true, edit: true, delete: true },
-  funds: { view: true, add: true, edit: true, delete: true, addTransaction: true },
-  reports: { view: true, viewIndividuals: true, viewTeams: true, viewContracts: true, viewFunds: true },
-  usersAndRoles: { view: true, viewUsers: true, addUsers: true, editUsers: true, deleteUsers: true, viewRoles: true, addRoles: true, editRoles: true, deleteRoles: true },
-  equipment: { view: true, add: true, edit: true, delete: true, print: true },
-  equipmentOperations: { view: true, handover: true, return: true, print: true, edit: true, delete: true },
-  disciplinary: { view: true, add: true, edit: true, delete: true, print: true, sign: true, changeStatus: true, viewReply: true, editReply: true },
-  meetings: { view: true, add: true, edit: true, delete: true },
+export type PermissionModule = keyof AppPermissions;
+
+/**
+ * Every section of the app and its actions ("view" = opening the page is always first and implied).
+ * Single source for the role editors, the role views and the defaults below.
+ */
+export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
+  dashboard: [],
+  members: ['add', 'edit', 'delete', 'viewFinancialRecord', 'evaluate', 'clearance'],
+  absences: ['add', 'justify', 'delete'],
+  disciplinary: ['add', 'edit', 'delete', 'print', 'sign', 'changeStatus', 'viewReply', 'editReply'],
+  teams: ['add', 'edit', 'delete'],
+  clubs: ['add', 'edit', 'delete'],
+  trainingSessions: ['add', 'edit', 'delete', 'attendance'],
+  matches: ['add', 'edit', 'delete', 'changeStatus', 'callups', 'lineup', 'attendance', 'report'],
+  medical: ['add', 'edit', 'delete'],
+  meetings: ['add', 'edit', 'delete', 'attendance'],
+  decisions: ['add', 'edit', 'delete', 'progress'],
+  correspondences: ['add', 'changeStatus', 'delete'],
+  contracts: ['add', 'edit', 'delete', 'print', 'renew'],
+  payments: ['add', 'edit', 'delete', 'print'],
+  funds: ['add', 'edit', 'delete', 'addTransaction'],
+  reports: ['viewIndividuals', 'viewTeams', 'viewContracts', 'viewFunds'],
+  equipment: ['add', 'edit', 'delete', 'print'],
+  equipmentOperations: ['handover', 'return', 'edit', 'delete', 'print'],
+  usersAndRoles: ['viewUsers', 'addUsers', 'editUsers', 'deleteUsers', 'viewRoles', 'addRoles', 'editRoles', 'deleteRoles'],
 };
 
-export const emptyPermissions: AppPermissions = {
-  dashboard: { view: false },
-  members: { view: false, add: false, edit: false, delete: false, viewFinancialRecord: false },
-  teams: { view: false, add: false, edit: false, delete: false },
-  contracts: { view: false, add: false, edit: false, delete: false, print: false, renew: false },
-  payments: { view: false, add: false, edit: false, delete: false },
-  funds: { view: false, add: false, edit: false, delete: false, addTransaction: false },
-  reports: { view: false, viewIndividuals: false, viewTeams: false, viewContracts: false, viewFunds: false },
-  usersAndRoles: { view: false, viewUsers: false, addUsers: false, editUsers: false, deleteUsers: false, viewRoles: false, addRoles: false, editRoles: false, deleteRoles: false },
-  equipment: { view: false, add: false, edit: false, delete: false, print: false },
-  equipmentOperations: { view: false, handover: false, return: false, print: false, edit: false, delete: false },
-  disciplinary: { view: false, add: false, edit: false, delete: false, print: false, sign: false, changeStatus: false, viewReply: false, editReply: false },
-  meetings: { view: false, add: false, edit: false, delete: false },
+/** The sections grouped by domain, in the order the role editors show them */
+export const PERMISSION_DOMAINS: { key: string; label: string; modules: PermissionModule[] }[] = [
+  { key: 'general', label: 'عام', modules: ['dashboard'] },
+  { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
+  { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical'] },
+  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'correspondences'] },
+  { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'reports'] },
+  { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
+  { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
+];
+
+export const ALL_MODULES = PERMISSION_DOMAINS.flatMap(d => d.modules);
+
+const buildPermissions = (value: boolean): AppPermissions => {
+  const result: Record<string, Record<string, boolean>> = {};
+  ALL_MODULES.forEach(m => {
+    result[m] = { view: value };
+    MODULE_ACTIONS[m].forEach(a => { result[m][a] = value; });
+  });
+  // usersAndRoles keeps its own "view" flag next to viewUsers / viewRoles
+  return result as unknown as AppPermissions;
 };
+
+export const defaultPermissions: AppPermissions = buildPermissions(true);
+export const emptyPermissions: AppPermissions = buildPermissions(false);
+
+/** Version written with every saved role; roles saved before it get the migration below */
+const PERMISSIONS_VERSION = 2;
+
+/** Pages that had no permission check before version 2: everyone could open and use them */
+const OPEN_BEFORE_V2: PermissionModule[] = ['absences', 'clubs', 'trainingSessions', 'matches', 'medical', 'meetings', 'decisions', 'correspondences'];
+
+/** Actions added to existing sections in version 2 */
+const NEW_ACTIONS_V2: Partial<Record<PermissionModule, string[]>> = {
+  members: ['evaluate', 'clearance'],
+  payments: ['print'],
+};
+
+/* eslint-disable @typescript-eslint/no-explicit-any -- roles come untyped from the API */
+
+/**
+ * Stored permissions → full AppPermissions.
+ * Roles saved before version 2 keep what they could do: pages that were open stay open,
+ * and new actions of an existing section follow that section's "view".
+ */
+export const parsePermissions = (parsed: any): AppPermissions => {
+  const legacy = !parsed || parsed._v !== PERMISSIONS_VERSION;
+  const result: Record<string, Record<string, boolean>> = {};
+
+  ALL_MODULES.forEach(m => {
+    const empty = emptyPermissions[m] as unknown as Record<string, boolean>;
+    const full = defaultPermissions[m] as unknown as Record<string, boolean>;
+    const stored = parsed?.[m];
+
+    if (legacy && OPEN_BEFORE_V2.includes(m)) {
+      result[m] = { ...full };
+      return;
+    }
+
+    const merged = { ...empty, ...(stored || {}) };
+    if (legacy) {
+      (NEW_ACTIONS_V2[m] || []).forEach(a => {
+        if (stored?.[a] === undefined) merged[a] = merged.view === true;
+      });
+      // The disciplinary page used to be listed for everyone who could view members
+      if (m === 'disciplinary' && stored?.view === undefined) merged.view = parsed?.members?.view === true;
+    }
+    result[m] = merged;
+  });
+
+  return result as unknown as AppPermissions;
+};
+
+/** What a user with no role (or a role without stored permissions) could do before version 2 */
+export const NO_ROLE_PERMISSIONS: AppPermissions = parsePermissions(null);
 
 export class RoleModel {
   id: string;
@@ -161,7 +302,7 @@ export class RoleModel {
     }
     const accessLevelRaw = json?.type || json?.accessLevel || 'partial';
     const accessLevel = String(accessLevelRaw).toLowerCase();
-    
+
     if (accessLevel === 'full') {
       return new RoleModel({
         id: json.id?.toString() || '',
@@ -172,26 +313,12 @@ export class RoleModel {
     }
 
     let parsedPermissions = emptyPermissions;
-    
+
     if (json.permissions) {
       try {
         const parsed = typeof json.permissions === 'string' ? JSON.parse(json.permissions) : json.permissions;
-        // Merge with emptyPermissions to ensure all keys exist
-        parsedPermissions = {
-          dashboard: { ...emptyPermissions.dashboard, ...(parsed.dashboard || {}) },
-          members: { ...emptyPermissions.members, ...(parsed.members || {}) },
-          teams: { ...emptyPermissions.teams, ...(parsed.teams || {}) },
-          contracts: { ...emptyPermissions.contracts, ...(parsed.contracts || {}) },
-          payments: { ...emptyPermissions.payments, ...(parsed.payments || {}) },
-          funds: { ...emptyPermissions.funds, ...(parsed.funds || {}) },
-          reports: { ...emptyPermissions.reports, ...(parsed.reports || {}) },
-          usersAndRoles: { ...emptyPermissions.usersAndRoles, ...(parsed.usersAndRoles || {}) },
-          equipment: { ...emptyPermissions.equipment, ...(parsed.equipment || {}) },
-          equipmentOperations: { ...emptyPermissions.equipmentOperations, ...(parsed.equipmentOperations || {}) },
-          disciplinary: { ...emptyPermissions.disciplinary, ...(parsed.disciplinary || {}) },
-          meetings: { ...emptyPermissions.meetings, ...(parsed.meetings || {}) }
-        };
-      } catch (e) {
+        parsedPermissions = parsePermissions(parsed);
+      } catch {
         parsedPermissions = emptyPermissions;
       }
     }
@@ -209,7 +336,8 @@ export class RoleModel {
       id: this.id,
       name: this.name,
       type: this.accessLevel,
-      permissions: JSON.stringify(this.permissions)
+      permissions: JSON.stringify({ ...this.permissions, _v: PERMISSIONS_VERSION })
     };
   }
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

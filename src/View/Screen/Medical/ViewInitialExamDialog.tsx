@@ -1,4 +1,5 @@
 import React from 'react';
+import { useCan } from '../../../core/functions/useCan';
 import { Edit2, Trash2, FileText, Calendar, Stethoscope, Activity, ClipboardList, ArrowRight } from 'lucide-react';
 import type { PlayerMedicalRecord } from './medical_model';
 
@@ -17,6 +18,7 @@ export const ViewInitialExamDialog: React.FC<ViewInitialExamDialogProps> = ({
   onEdit, 
   onDelete 
 }) => {
+  const can = useCan();
   if (!isOpen || !recordData) return null;
 
   return (
@@ -35,12 +37,16 @@ export const ViewInitialExamDialog: React.FC<ViewInitialExamDialogProps> = ({
           </h2>
           
           <div className="desktop-actions" style={{ position: 'absolute', left: '24px', display: 'flex', gap: '8px', alignItems: 'center', zIndex: 10 }}>
-            <button onClick={() => { onClose(); onEdit(recordData); }} style={{ background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--accent, var(--accent, #3b82f6))', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="تعديل التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.borderColor = '#bfdbfe';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border, var(--border, #e2e8f0))';}}>
-              <Edit2 size={16} />
-            </button>
-            <button onClick={() => { onClose(); onDelete(recordData); }} style={{ background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--danger, var(--danger, #ef4444))', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="حذف التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border, var(--border, #e2e8f0))';}}>
-              <Trash2 size={16} />
-            </button>
+            {can('medical', 'edit') && (
+              <button onClick={() => { onClose(); onEdit(recordData); }} style={{ background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--accent, var(--accent, #3b82f6))', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="تعديل التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#eff6ff'; e.currentTarget.style.borderColor = '#bfdbfe';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border, var(--border, #e2e8f0))';}}>
+                <Edit2 size={16} />
+              </button>
+            )}
+            {can('medical', 'delete') && (
+              <button onClick={() => { onClose(); onDelete(recordData); }} style={{ background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--danger, var(--danger, #ef4444))', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s ease' }} title="حذف التشخيص" onMouseOver={e => {e.currentTarget.style.background = '#fef2f2'; e.currentTarget.style.borderColor = '#fecaca';}} onMouseOut={e => {e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = 'var(--border, var(--border, #e2e8f0))';}}>
+                <Trash2 size={16} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -106,12 +112,16 @@ export const ViewInitialExamDialog: React.FC<ViewInitialExamDialogProps> = ({
         
         {/* Mobile Actions Footer */}
         <div className="mobile-actions" style={{ padding: '16px 24px', background: 'var(--bg-body, #f8fafc)', borderTop: '1px solid var(--border, var(--border, #e2e8f0))', display: 'none', gap: '12px', justifyContent: 'center' }}>
-          <button onClick={() => { onClose(); onEdit(recordData); }} style={{ flex: 1, padding: '12px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--accent, var(--accent, #3b82f6))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
-            <Edit2 size={18} /> تعديل
-          </button>
-          <button onClick={() => { onClose(); onDelete(recordData); }} style={{ flex: 1, padding: '12px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--danger, var(--danger, #ef4444))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
-            <Trash2 size={18} /> حذف
-          </button>
+          {can('medical', 'edit') && (
+            <button onClick={() => { onClose(); onEdit(recordData); }} style={{ flex: 1, padding: '12px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--accent, var(--accent, #3b82f6))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
+              <Edit2 size={18} /> تعديل
+            </button>
+          )}
+          {can('medical', 'delete') && (
+            <button onClick={() => { onClose(); onDelete(recordData); }} style={{ flex: 1, padding: '12px', background: 'var(--card-bg, white)', border: '1px solid var(--border, var(--border, #e2e8f0))', color: 'var(--danger, var(--danger, #ef4444))', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', fontWeight: 600, cursor: 'pointer' }}>
+              <Trash2 size={18} /> حذف
+            </button>
+          )}
         </div>
 
       </div>
