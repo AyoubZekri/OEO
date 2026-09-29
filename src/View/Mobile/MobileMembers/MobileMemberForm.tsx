@@ -21,6 +21,7 @@ const TYPE_OPTIONS = [
   { value: 'assistant_coach', label: 'مساعد مدرب' },
   { value: 'goalkeeper_coach', label: 'مدرب حراس' },
   { value: 'physical_trainer', label: 'محضر بدني' },
+  { value: 'equipment_manager', label: 'مسؤول العتاد' },
   { value: 'employee', label: 'موظف' },
   { value: 'admin', label: 'إداري' },
   { value: 'doctor', label: 'طبيب' },

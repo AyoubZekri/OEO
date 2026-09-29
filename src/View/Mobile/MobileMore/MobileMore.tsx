@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt,
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo,
 } from 'lucide-react';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Approutes } from '../../../core/constant/routes';
@@ -28,7 +28,7 @@ const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Corresp
 const GROUPS: { title: string; names: string[] }[] = [
   { title: 'الرياضي', names: ['Teams', 'Matches', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Reports'] },
-  { title: 'الإدارة', names: ['Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'الإدارة', names: ['Tasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
@@ -44,6 +44,7 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   Payments: { icon: Banknote, color: '#10b981' },
   Funds: { icon: Wallet, color: '#f97316' },
   Reports: { icon: BarChart3, color: '#6366f1' },
+  Tasks: { icon: ListTodo, color: '#f97316' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
   Equipment: { icon: Package, color: '#f59e0b' },

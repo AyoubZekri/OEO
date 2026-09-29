@@ -6,7 +6,7 @@ import { PaymentsData } from '../Payments/payments_data';
 import type { PaymentRecord } from '../Payments/payment_model';
 import { FundsData } from '../Funds/funds_data';
 import type { Fund, FundTransaction } from '../Funds/fund_model';
-import { buildOperations, getOperationDirection } from './operation_model';
+import { buildOperations, operationTotals } from './operation_model';
 import type { Operation, OperationDirection } from './operation_model';
 
 export type OperationsFilter = 'all' | OperationDirection;
@@ -19,6 +19,7 @@ const asList = <T,>(res: unknown): T[] => {
 
 export const useOperationsController = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<OperationsFilter>('all');
@@ -39,8 +40,10 @@ export const useOperationsController = () => {
       ]);
 
       const members = asList(membersRes).map(MemberModel.fromJson);
+      const paymentList = asList<PaymentRecord>(paymentsRes);
+      setPayments(paymentList);
       setOperations(buildOperations(
-        asList<PaymentRecord>(paymentsRes),
+        paymentList,
         members,
         asList<Fund>(fundsRes),
         asList<FundTransaction>(transactionsRes)
@@ -51,20 +54,12 @@ export const useOperationsController = () => {
     fetchData();
   }, []);
 
-  const totals = useMemo(() => operations.reduce(
-    (acc, op) => {
-      const dir = getOperationDirection(op.type);
-      if (dir === 'in') acc.in += op.amount;
-      else if (dir === 'out') acc.out += op.amount;
-      return acc;
-    },
-    { in: 0, out: 0 }
-  ), [operations]);
+  const totals = useMemo(() => operationTotals(operations, payments), [operations, payments]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return operations.filter(op =>
-      (filter === 'all' || getOperationDirection(op.type) === filter) &&
+      (filter === 'all' || op.direction === filter) &&
       (!q || op.name.toLowerCase().includes(q) || op.type.toLowerCase().includes(q))
     );
   }, [operations, search, filter]);

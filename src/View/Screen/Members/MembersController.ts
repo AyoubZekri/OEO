@@ -189,7 +189,7 @@ export const useMembersController = () => {
         fetchMembers();
         closeAddMemberDialog();
       } else {
-        alert('حدث خطأ أثناء التعديل');
+        alert(response?.serverMessage || 'حدث خطأ أثناء التعديل');
       }
     } else {
       const response = await membersData.saveMemberFormData(Applink.createIndividual, fd);
@@ -197,7 +197,7 @@ export const useMembersController = () => {
         fetchMembers();
         closeAddMemberDialog();
       } else {
-        alert('حدث خطأ أثناء الإضافة');
+        alert(response?.serverMessage || 'حدث خطأ أثناء الإضافة');
       }
     }
     setIsLoading(false);
@@ -209,6 +209,8 @@ export const useMembersController = () => {
       const response = await membersData.deleteMember(id);
       if (response && !response.error) {
         fetchMembers();
+        // The member's account is deleted with it, unless that would lose history: say why it was kept
+        if (response.account_kept) alert(`حُذف العضو. ${response.account_kept}`);
       } else {
         alert('حدث خطأ أثناء الحذف');
       }
@@ -324,7 +326,7 @@ export const useMembersController = () => {
 
   const filteredMembers = members.filter(member => {
     const searchLower = searchQuery.toLowerCase();
-    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : 'موظف';
+    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'equipment_manager' ? 'مسؤول العتاد' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : 'موظف';
     
     const matchesSearch = 
       member.first_name.toLowerCase().includes(searchLower) ||

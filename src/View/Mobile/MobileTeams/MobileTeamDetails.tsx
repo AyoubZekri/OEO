@@ -19,7 +19,7 @@ interface MobileTeamDetailsProps {
 }
 
 const POSITION_ORDER = LINES.flatMap(line => line.positions);
-const STAFF_ORDER = ['coach', 'assistant_coach', 'goalkeeper_coach', 'physical_trainer', 'doctor', 'admin', 'employee'];
+const STAFF_ORDER = ['coach', 'assistant_coach', 'goalkeeper_coach', 'physical_trainer', 'equipment_manager', 'doctor', 'admin', 'employee'];
 
 const rank = (order: string[], value: string) => {
   const i = order.indexOf(value);

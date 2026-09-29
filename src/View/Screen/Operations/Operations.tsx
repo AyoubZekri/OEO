@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Search, Inbox, TrendingUp, TrendingDown } from 'lucide-react';
 import { useOperationsController } from './OperationsController';
 import type { OperationsFilter } from './OperationsController';
-import { getOperationDirection } from './operation_model';
 import { MobileLoader } from '../../Mobile/widgets/MobileLoader';
+import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
 import './Operations.css';
 
-const formatAmount = (amount: number) => `${Math.round(amount || 0).toLocaleString('en-US')} د.ج`;
+// Same amount format as the desktop: 1.250.000,00 د.ج
+const formatAmount = moneyText;
 
 const FILTERS: { key: OperationsFilter; label: string }[] = [
   { key: 'all', label: 'الكل' },
@@ -98,7 +99,7 @@ export const Operations: React.FC = () => {
             <h2 className="ops-group-title">{month}</h2>
             <ul className="ops-list">
               {ops.map(op => {
-                const dir = getOperationDirection(op.type);
+                const dir = op.direction;
                 const Icon = DIRECTION_ICON[dir];
                 const date = new Date(op.date);
                 return (

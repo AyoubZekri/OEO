@@ -38,13 +38,5 @@ export const monthTitle = (key: string) => {
   return y && m ? `${getMonthName(m)} ${y}` : 'بدون تاريخ';
 };
 
-/** Short amount for tight places: 1,2 مليون / 450 ألف */
-export const compactMoney = (n: number) => {
-  const fmt = (v: number) => (Math.round(v * 10) / 10).toString().replace('.', ',');
-  if (n >= 1e6) return `${fmt(n / 1e6)} مليون`;
-  if (n >= 1e3) return `${fmt(n / 1e3)} ألف`;
-  return String(Math.round(n));
-};
-
 export const initials = (first?: string, last?: string) => `${(first || '').charAt(0)}${(last || '').charAt(0)}` || '؟';
 /* eslint-enable @typescript-eslint/no-explicit-any */

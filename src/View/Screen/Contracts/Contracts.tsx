@@ -86,6 +86,7 @@ export const Contracts: React.FC = () => {
               { value: 'مدرب', label: 'مدرب' },
               { value: 'مساعد مدرب', label: 'مساعد مدرب' },
               { value: 'مدرب حراس', label: 'مدرب حراس' },
+              { value: 'مسؤول العتاد', label: 'مسؤول العتاد' },
               { value: 'لاعب', label: 'لاعب' },
               { value: 'اداري', label: 'إداري' },
               { value: 'اخرى', label: 'أخرى' }
@@ -198,7 +199,7 @@ export const Contracts: React.FC = () => {
                       placeholder="-- اختر المستفيد --"
                       options={individuals.map(ind => ({ 
                         value: String(ind.id), 
-                        label: `${ind.first_name} ${ind.last_name} (${ind.type === 'player' ? 'لاعب' : ind.type === 'coach' ? 'مدرب' : ind.type === 'assistant_coach' ? 'مساعد مدرب' : ind.type === 'goalkeeper_coach' ? 'مدرب حراس' : 'إداري'})` 
+                        label: `${ind.first_name} ${ind.last_name} (${ind.type === 'player' ? 'لاعب' : ind.type === 'coach' ? 'مدرب' : ind.type === 'assistant_coach' ? 'مساعد مدرب' : ind.type === 'goalkeeper_coach' ? 'مدرب حراس' : ind.type === 'equipment_manager' ? 'مسؤول العتاد' : 'إداري'})` 
                       }))}
                       onChange={(val) => setFormDataValue('individuals_id', val)}
                     />

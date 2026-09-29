@@ -46,6 +46,13 @@ const isMatchPlayed = (m: Match) =>
   m.match_status === 'منتهية' ||
   (m.team_score !== null && m.team_score !== undefined && m.opponent_score !== null && m.opponent_score !== undefined);
 
+// The football season starts on 1 July (same rule as the season fields of contracts and payments)
+const seasonStart = () => {
+  const d = new Date();
+  const year = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
+  return `${year}-07-01`;
+};
+
 const toList = <T,>(res: { data?: unknown } | null): T[] => {
   const body = res?.data as { data?: unknown } | T[] | undefined;
   if (Array.isArray(body)) return body;
@@ -124,12 +131,16 @@ export const useHomeController = () => {
       let paidToStaff = 0;
       let otherExpenses = 0;
 
+      // "Since the start of the season": only this season's payments
+      const fromDate = seasonStart();
       payments.forEach(p => {
-        if (p.amountNature === 'إرجاع سلفة') return; // Skip return of advance
+        const date = String(p.paymentDate || (p as PaymentRecord & { Date?: string }).Date || '').slice(0, 10);
+        if (!date || date < fromDate) return;
 
-        const amt = Number(p.amount) || 0;
+        // An advance paid back reduces what was spent (the advance itself was counted when it was paid)
+        const amt = (Number(p.amount) || 0) * (p.amountNature === 'إرجاع سلفة' ? -1 : 1);
         if (p.memberId) {
-           const member = members.find(m => m.id === p.memberId);
+           const member = members.find(m => String(m.id) === String(p.memberId));
            if (member?.type === 'player' || member?.type === 'لاعب') paidToPlayers += amt;
            else paidToStaff += amt;
         } else {
@@ -154,7 +165,7 @@ export const useHomeController = () => {
          let isOverdue = false;
 
          let memberPayments = payments
-            .filter(p => p.memberId === c.individuals_id && p.amountNature === 'رقم دفعة')
+            .filter(p => String(p.memberId) === String(c.individuals_id) && p.amountNature === 'رقم دفعة')
             .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
          const start = new Date(c.startDate).getTime() || today;
          const end = new Date(c.endDate).getTime() || today;

@@ -145,6 +145,16 @@ export interface EquipmentOperationsPermissions {
   delete: boolean;
 }
 
+export interface TasksPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  review: boolean;
+  manage: boolean;
+  templates: boolean;
+}
+
 export interface DisciplinaryPermissions {
   view: boolean;
   add: boolean;
@@ -170,6 +180,7 @@ export interface AppPermissions {
   meetings: MeetingsPermissions;
   decisions: DecisionsPermissions;
   correspondences: CorrespondencesPermissions;
+  tasks: TasksPermissions;
   contracts: ContractsPermissions;
   payments: PaymentsPermissions;
   funds: FundsPermissions;
@@ -198,6 +209,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   meetings: ['add', 'edit', 'delete', 'attendance'],
   decisions: ['add', 'edit', 'delete', 'progress'],
   correspondences: ['add', 'changeStatus', 'delete'],
+  tasks: ['add', 'edit', 'delete', 'review', 'manage', 'templates'],
   contracts: ['add', 'edit', 'delete', 'print', 'renew'],
   payments: ['add', 'edit', 'delete', 'print'],
   funds: ['add', 'edit', 'delete', 'addTransaction'],
@@ -212,7 +224,7 @@ export const PERMISSION_DOMAINS: { key: string; label: string; modules: Permissi
   { key: 'general', label: 'عام', modules: ['dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical'] },
-  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'correspondences'] },
+  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'correspondences', 'tasks'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
@@ -274,6 +286,8 @@ export const parsePermissions = (parsed: any): AppPermissions => {
       // The disciplinary page used to be listed for everyone who could view members
       if (m === 'disciplinary' && stored?.view === undefined) merged.view = parsed?.members?.view === true;
     }
+    // Roles saved before the tasks section: everyone sees the tasks given to them (same rule as the server)
+    if (m === 'tasks' && stored === undefined) merged.view = true;
     result[m] = merged;
   });
 

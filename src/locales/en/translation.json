@@ -22,7 +22,8 @@
     "contracts": "Contracts",
     "payments": "Payments",
     "funds": "Funds",
-    "reports": "Financial Reports"
+    "reports": "Financial Reports",
+    "tasks": "Tasks"
   },
   "topbar": {
     "admin": "System Admin",
@@ -119,6 +120,7 @@
       "meetings": "Meetings",
       "decisions": "Decisions",
       "correspondences": "Correspondences",
+      "tasks": "Tasks",
       "dashboard": "Dashboard",
       "equipment": "Team Equipment",
       "equipmentOperations": "Equipment Movements",
@@ -161,7 +163,10 @@
       "sign": "Sign receipt",
       "changeStatus": "Change status",
       "viewReply": "View reply",
-      "editReply": "Edit reply"
+      "editReply": "Edit reply",
+      "review": "Review & approve tasks",
+      "manage": "Follow all tasks & dashboard",
+      "templates": "Periodic & event tasks"
     },
     "domains": {
       "general": "General",

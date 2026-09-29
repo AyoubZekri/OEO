@@ -73,6 +73,7 @@ export const MEMBER_ROLES: Record<string, string> = {
   assistant_coach: 'مساعد مدرب',
   goalkeeper_coach: 'مدرب حراس',
   physical_trainer: 'محضر بدني',
+  equipment_manager: 'مسؤول العتاد',
   employee: 'موظف/إداري',
   admin: 'إداري',
   doctor: 'طبيب',

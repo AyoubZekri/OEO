@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 
@@ -102,6 +102,13 @@ export const useSaidparController = (onLogout?: () => void) => {
           isDropdown: false,
           label: 'sidebar.home',
           route: '/',
+        }] : []),
+        ...(hasAccess(permissions.tasks?.view ?? true) ? [{
+          name: 'Tasks',
+          icon: ListTodo,
+          isDropdown: false,
+          label: 'sidebar.tasks',
+          route: Approutes.Tasks,
         }] : []),
         ...(hasAccess(permissions.members.view) ? [{
           name: 'Members',

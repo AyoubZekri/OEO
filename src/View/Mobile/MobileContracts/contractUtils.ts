@@ -10,13 +10,14 @@ export interface ContractPermissions {
   delete: boolean;
 }
 
-// Same amount format as the desktop (1.250.000,00 د.ج) without the ",00" of whole amounts
-export const moneyText = (amount: number) => {
-  const n = amount || 0;
-  const whole = Number.isInteger(n);
-  const text = n.toLocaleString('en-US', { minimumFractionDigits: whole ? 0 : 2, maximumFractionDigits: 2 });
-  return `${text.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.')} د.ج`;
-};
+/** The number part of an amount, exactly as the desktop writes it: 1.250.000,00 */
+export const amountText = (amount: number) =>
+  (amount || 0)
+    .toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    .replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
+
+// Same amount format as the desktop (formatCurrency): 1.250.000,00 د.ج
+export const moneyText = (amount: number) => `${amountText(amount)} د.ج`;
 
 export const contractNumber = (c: ContractModel) => String(c.id).padStart(4, '0');
 

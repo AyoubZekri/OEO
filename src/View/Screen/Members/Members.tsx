@@ -130,6 +130,7 @@ export const Members: React.FC = () => {
     { value: 'assistant_coach', label: 'مساعد مدرب' },
     { value: 'goalkeeper_coach', label: 'مدرب حراس' },
     { value: 'physical_trainer', label: 'محضر بدني' },
+    { value: 'equipment_manager', label: 'مسؤول العتاد' },
     { value: 'employee', label: 'موظف' },
     { value: 'admin', label: 'إداري' },
     { value: 'doctor', label: 'طبيب' }
@@ -238,7 +239,7 @@ export const Members: React.FC = () => {
                     {member.first_name} {member.last_name}
                   </td>
                   <td data-label={t('members.type', 'المنصب')}>
-                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'physical_trainer' ? 'محضر بدني' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : member.type}
+                    {member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'physical_trainer' ? 'محضر بدني' : member.type === 'equipment_manager' ? 'مسؤول العتاد' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : member.type}
                   </td>
                   <td data-label={t('members.jersey', 'رقم القميص')} className="jersey-cell">
                     {member.Shirt_number ? <span className="jersey-number">{member.Shirt_number}</span> : '-'}

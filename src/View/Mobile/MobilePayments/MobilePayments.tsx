@@ -15,7 +15,7 @@ import { type usePaymentForm, MEMBER_NATURES, EXPENSE_NATURES } from '../../Scre
 import { paymentNatureText, receiptUrl } from '../../Screen/Payments/paymentText';
 import { moneyText } from '../MobileContracts/contractUtils';
 import {
-  type PaymentPermissions, KINDS, kindOf, kindMeta, amountOf, dateOf, methodOf, fundOf, monthKey, monthTitle, compactMoney,
+  type PaymentPermissions, KINDS, kindOf, kindMeta, amountOf, dateOf, methodOf, fundOf, monthKey, monthTitle,
 } from './paymentUtils';
 import { MobilePaymentDetails } from './MobilePaymentDetails';
 import { MobilePaymentForm } from './MobilePaymentForm';
@@ -99,7 +99,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
           {KINDS.map(k => (
             <div key={k.value} className={`tone-${k.tone}`}>
               <small><k.icon size={12} /> {k.short}</small>
-              <strong>{compactMoney(sumOf(c.payments.filter(p => kindOf(p) === k.value)))}</strong>
+              <strong dir="ltr">{moneyText(sumOf(c.payments.filter(p => kindOf(p) === k.value)))}</strong>
             </div>
           ))}
         </div>

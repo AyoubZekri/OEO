@@ -43,6 +43,7 @@ const TYPE_LABELS: Record<string, string> = {
   assistant_coach: 'مساعد مدرب',
   goalkeeper_coach: 'مدرب حراس',
   physical_trainer: 'محضر بدني',
+  equipment_manager: 'مسؤول العتاد',
   employee: 'موظف',
   admin: 'إداري',
   doctor: 'طبيب',

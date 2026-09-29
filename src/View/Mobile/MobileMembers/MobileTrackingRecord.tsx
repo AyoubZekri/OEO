@@ -53,6 +53,7 @@ const TYPE_LABELS: Record<string, string> = {
   coach: 'مدرب',
   assistant_coach: 'مساعد مدرب',
   goalkeeper_coach: 'مدرب حراس',
+  equipment_manager: 'مسؤول العتاد',
 };
 
 const DISCIPLINARY_ICONS: Record<string, React.ComponentType<{ size?: number }>> = {

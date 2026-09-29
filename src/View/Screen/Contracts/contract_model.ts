@@ -32,6 +32,7 @@ export class ContractModel {
       else if (data.individual.type === 'coach') this.contractType = 'مدرب';
       else if (data.individual.type === 'assistant_coach') this.contractType = 'مساعد مدرب';
       else if (data.individual.type === 'goalkeeper_coach') this.contractType = 'مدرب حراس';
+      else if (data.individual.type === 'equipment_manager') this.contractType = 'مسؤول العتاد';
       else this.contractType = 'موظف / إداري / طبيب';
     } else {
       this.beneficiary = 'مستفيد غير معروف';

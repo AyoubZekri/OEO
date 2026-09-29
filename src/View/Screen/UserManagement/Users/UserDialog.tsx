@@ -6,6 +6,8 @@ import { CustomDropdown } from '../../../widget/CustomDropdown';
 import { validInput } from '../../../../core/functions/valiedinput';
 import { UserModel } from './user_model';
 import { useRolesController } from '../Roles/RolesController';
+import { useCan } from '../../../../core/functions/useCan';
+import { PasswordReveal } from './PasswordReveal';
 
 interface UserDialogProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
   // Fetch roles from RolesController
   const { roles } = useRolesController();
   const { t } = useTranslation();
+  const can = useCan();
 
   useEffect(() => {
     if (isOpen) {
@@ -58,8 +61,6 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
     const passErr = validInput(password, 6, 50, 'text', !!userToEdit);
     if (passErr && (!userToEdit || password.length > 0)) newErrors.password = passErr;
     
-    if (!roleId) newErrors.roleId = "يرجى اختيار دور";
-    
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
@@ -72,10 +73,11 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
     }
   };
 
-  const roleOptions = roles.map(role => ({
+  // Member accounts have no role: "no role" is a valid choice
+  const roleOptions = [{ value: '', label: 'بدون دور' }, ...roles.map(role => ({
     value: role.id,
     label: role.name
-  }));
+  }))];
 
   return (
     <div className="task-dialog-overlay" onClick={onClose}>
@@ -108,8 +110,10 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
             error={errors.email}
           />
 
+          {userToEdit && can('usersAndRoles', 'editUsers') && <PasswordReveal userId={userToEdit.id} />}
+
           <CustomInput 
-            label={t('users.password')} 
+            label={userToEdit ? 'تغيير كلمة المرور (اتركها فارغة للإبقاء عليها)' : t('users.password')} 
             required={!userToEdit} 
             type="password" 
             value={password} 

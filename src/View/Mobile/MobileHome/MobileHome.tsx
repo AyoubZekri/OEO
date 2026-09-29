@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { moneyText, amountText } from '../MobileContracts/contractUtils';
 import { useNavigate } from 'react-router-dom';
 import { Users, Landmark, Wallet, TrendingDown, CalendarClock, History, ChevronLeft } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
@@ -13,8 +14,8 @@ interface MobileHomeProps {
 
 const CLUB_NAME = 'أولمبيك الوادي';
 
-const formatDzd = (amount: number) =>
-  `${Math.round(amount || 0).toLocaleString('en-US')} دج`;
+// Same amount format as the desktop home
+const formatDzd = moneyText;
 
 const percent = (part: number, total: number) => (total > 0 ? Math.round((part / total) * 100) : 0);
 
@@ -66,8 +67,8 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
           <span className="mh-funds-label">إجمالي رصيد الصناديق</span>
         </div>
         <div className="mh-funds-total" dir="ltr">
-          <span className="mh-funds-value">{Math.round(metrics.totalBalance || 0).toLocaleString('en-US')}</span>
-          <span className="mh-funds-currency">دج</span>
+          <span className="mh-funds-value">{amountText(metrics.totalBalance)}</span>
+          <span className="mh-funds-currency">د.ج</span>
         </div>
         <div className="mh-funds-bottom">
           <span>نادي {CLUB_NAME}</span>

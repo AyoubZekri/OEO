@@ -38,6 +38,7 @@ export class MembersData {
       const token = localStorage.getItem('token');
       const headers = {
         'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
       };
       const response = await fetch(url, {
         method: 'POST',
@@ -47,7 +48,10 @@ export class MembersData {
       if (response.status === 200 || response.status === 201) {
         return await response.json();
       }
-      return { status: 'error', message: 'Error saving data' };
+      // The server's reason (e.g. the email is already another account's login), shown to the user
+      const body = await response.json().catch(() => null);
+      const firstError = body?.errors ? Object.values(body.errors).flat()[0] : null;
+      return { status: 'error', message: 'Error saving data', serverMessage: (typeof firstError === 'string' && firstError) || body?.message || null };
     } catch (e) {
       return { status: 'error', message: String(e) };
     }

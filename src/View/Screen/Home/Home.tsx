@@ -1,9 +1,15 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHomeController } from './HomeController';
-import { Wallet, Users, UserCog, CreditCard, Landmark, CalendarClock, History, ArrowUpRight, ArrowDownLeft, TrendingDown } from 'lucide-react';
+import { Wallet, Users, UserCog, CreditCard, Landmark, CalendarClock, History, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, TrendingDown } from 'lucide-react';
 import { MobileHome } from '../../Mobile/MobileHome/MobileHome';
+import type { Operation, OperationDirection } from '../Operations/operation_model';
 import './Home.css';
+
+// Payments and withdrawals are money going out; deposits and returns come in; transfers only move money between funds
+const dirOf = (op: Operation) => op.direction;
+const SIGN: Record<OperationDirection, string> = { out: '-', in: '+', transfer: '' };
+const AMOUNT_CLASS: Record<OperationDirection, string> = { out: 'amount-negative', in: 'amount-positive', transfer: '' };
 
 export const Home: React.FC = () => {
   const { t } = useTranslation();
@@ -124,7 +130,7 @@ export const Home: React.FC = () => {
                   <td data-label={t('home.name', 'الاسم')}>
                     <div className="op-name-cell">
                       <div className="op-icon-wrapper">
-                        {op.type === 'سحب' ? <ArrowUpRight size={18} color="#ef4444" /> : <ArrowDownLeft size={18} color="#10b981" />}
+                        {dirOf(op) === 'out' ? <ArrowUpRight size={18} color="#ef4444" /> : dirOf(op) === 'in' ? <ArrowDownLeft size={18} color="#10b981" /> : <ArrowLeftRight size={18} color="#3b82f6" />}
                       </div>
                       <span>{op.name}</span>
                     </div>
@@ -135,8 +141,8 @@ export const Home: React.FC = () => {
                       {op.type}
                     </span>
                   </td>
-                  <td className={`amount-cell ${op.type === 'سحب' ? 'amount-negative' : 'amount-positive'}`} data-label={t('home.amount', 'المبلغ')}>
-                    {op.type === 'سحب' ? '-' : '+'}{formatCurrency(op.amount)}
+                  <td className={`amount-cell ${AMOUNT_CLASS[dirOf(op)]}`} data-label={t('home.amount', 'المبلغ')}>
+                    {SIGN[dirOf(op)]}{formatCurrency(op.amount)}
                   </td>
                 </tr>
               ))}
@@ -171,7 +177,7 @@ export const Home: React.FC = () => {
                         <td data-label={t('home.name', 'الاسم')}>
                           <div className="op-name-cell">
                             <div className="op-icon-wrapper">
-                              {op.type === 'سحب' ? <ArrowUpRight size={18} color="#ef4444" /> : <ArrowDownLeft size={18} color="#10b981" />}
+                              {dirOf(op) === 'out' ? <ArrowUpRight size={18} color="#ef4444" /> : dirOf(op) === 'in' ? <ArrowDownLeft size={18} color="#10b981" /> : <ArrowLeftRight size={18} color="#3b82f6" />}
                             </div>
                             <span>{op.name}</span>
                           </div>
@@ -182,8 +188,8 @@ export const Home: React.FC = () => {
                             {op.type}
                           </span>
                         </td>
-                        <td className={`amount-cell ${op.type === 'سحب' ? 'amount-negative' : 'amount-positive'}`} data-label={t('home.amount', 'المبلغ')}>
-                          {op.type === 'سحب' ? '-' : '+'}{formatCurrency(op.amount)}
+                        <td className={`amount-cell ${AMOUNT_CLASS[dirOf(op)]}`} data-label={t('home.amount', 'المبلغ')}>
+                          {SIGN[dirOf(op)]}{formatCurrency(op.amount)}
                         </td>
                       </tr>
                     ))}
