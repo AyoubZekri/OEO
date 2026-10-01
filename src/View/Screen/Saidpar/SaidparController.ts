@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 
@@ -104,11 +104,14 @@ export const useSaidparController = (onLogout?: () => void) => {
           route: '/',
         }] : []),
         ...(hasAccess(permissions.tasks?.view ?? true) ? [{
-          name: 'Tasks',
+          name: 'TasksGroup',
           icon: ListTodo,
-          isDropdown: false,
+          isDropdown: true,
           label: 'sidebar.tasks',
-          route: Approutes.Tasks,
+          subItems: [
+            { name: 'Tasks', label: 'المهام', route: Approutes.Tasks },
+            { name: 'PeriodicTasks', label: 'المهام الدورية', route: Approutes.PeriodicTasks },
+          ],
         }] : []),
         ...(hasAccess(permissions.members.view) ? [{
           name: 'Members',
@@ -179,6 +182,13 @@ export const useSaidparController = (onLogout?: () => void) => {
           ]
         }] : []),
         
+        ...(hasAccess(permissions.travels?.view ?? false) ? [{
+          name: 'Travels',
+          icon: Bus,
+          isDropdown: false,
+          label: 'التنقلات',
+          route: Approutes.Travels,
+        }] : []),
         ...(hasAccess(permissions.medical.view) ? [{
           name: 'MedicalRecords',
           icon: Stethoscope,

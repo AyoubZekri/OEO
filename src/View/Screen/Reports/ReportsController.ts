@@ -8,7 +8,8 @@ import { PaymentsData } from '../Payments/payments_data';
 import type { PaymentRecord } from '../Payments/payment_model';
 import { FundsData } from '../Funds/funds_data';
 import type { Fund, FundTransaction } from '../Funds/fund_model';
-import type { ReportCategory, IndividualReportType, ExpenseReportType, ContractReportType, FundReportType } from './report_model';
+import type { ReportCategory, IndividualReportType, ExpenseReportType, ContractReportType } from './report_model';
+import { contractCommitments, expenseSummary, fundSummary, individualSummary, inRange, normDate, presetRange } from './reportMath';
 
 export const useReportsController = () => {
   const [activeCategory, setActiveCategory] = useState<ReportCategory>('individuals');
@@ -31,72 +32,9 @@ export const useReportsController = () => {
 
   const handlePresetDateChange = (preset: string) => {
     setPresetDate(preset);
-    const today = new Date();
-    
-    // Helper to format date to YYYY-MM-DD
-    const formatDate = (date: Date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
-    };
-
-    const start = new Date(today);
-    const end = new Date(today);
-
-    switch (preset) {
-      case 'today':
-        setFromDate(formatDate(today));
-        setToDate(formatDate(today));
-        break;
-      case 'yesterday':
-        start.setDate(today.getDate() - 1);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(start));
-        break;
-      case 'this_week':
-        const firstDayOfWeek = today.getDate() - today.getDay(); 
-        start.setDate(firstDayOfWeek);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(today));
-        break;
-      case 'last_week':
-        const firstDayOfLastWeek = today.getDate() - today.getDay() - 7;
-        start.setDate(firstDayOfLastWeek);
-        end.setDate(firstDayOfLastWeek + 6);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(end));
-        break;
-      case 'this_month':
-        start.setDate(1);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(today));
-        break;
-      case 'last_month':
-        start.setMonth(today.getMonth() - 1);
-        start.setDate(1);
-        end.setMonth(today.getMonth());
-        end.setDate(0);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(end));
-        break;
-      case 'this_year':
-        start.setMonth(0, 1);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(today));
-        break;
-      case 'last_year':
-        start.setFullYear(today.getFullYear() - 1, 0, 1);
-        end.setFullYear(today.getFullYear() - 1, 11, 31);
-        setFromDate(formatDate(start));
-        setToDate(formatDate(end));
-        break;
-      default:
-        // custom or all
-        setFromDate('');
-        setToDate('');
-        break;
-    }
+    const range = presetRange(preset);
+    setFromDate(range.from);
+    setToDate(range.to);
   };
 
   // Data
@@ -159,133 +97,39 @@ export const useReportsController = () => {
     window.print();
   };
 
-  // Calculations for Individuals Report
+  // Calculations for Individuals Report: see reportMath.individualSummary
   const getIndividualSummary = () => {
-    let relevantContracts = [...contracts];
-    let allMemberPayments = [...payments];
-
-    // Filter by member/type
-    if (selectedMember && selectedMember !== '') {
-      relevantContracts = relevantContracts.filter(c => c.individuals_id === selectedMember);
-      allMemberPayments = allMemberPayments.filter(p => p.memberId === selectedMember);
-    } else {
-      // Filter by type (player, coach, employee)
-      const filteredMembers = members.filter(m => m.type === activeIndividualTab).map(m => m.id);
-      relevantContracts = relevantContracts.filter(c => filteredMembers.includes(c.individuals_id));
-      allMemberPayments = allMemberPayments.filter(p => p.memberId && filteredMembers.includes(p.memberId));
-    }
-
-    const contractValue = relevantContracts.reduce((sum, c) => sum + (Number(c.contractValue) || 0), 0);
-    const dueTillToday = relevantContracts.reduce((sum, c) => sum + (Number(c.contractValue) || 0), 0); // Simplified, adjust if needed
-    
-    // Calculate global contract paid (BEFORE any date/type filters)
-    let globalContractPaid = 0;
-    allMemberPayments.forEach(p => {
-      if (p.amountNature === 'رقم دفعة') {
-        globalContractPaid += (Number(p.amount) || 0);
-      }
+    const summary = individualSummary({
+      members,
+      contracts,
+      payments,
+      memberId: selectedMember,
+      group: activeIndividualTab,
+      nature: individualPaymentTypeFilter,
+      from: fromDate,
+      to: toDate,
     });
-    
-    // Remaining is calculated using all payments, so it doesn't change with date filters
-    const remaining = contractValue - globalContractPaid;
-
-    // Filter payments by date range for the displayed report
-    let relevantPayments = [...allMemberPayments];
-    if (fromDate) {
-      relevantPayments = relevantPayments.filter(p => p.paymentDate >= fromDate);
-    }
-    if (toDate) {
-      relevantPayments = relevantPayments.filter(p => p.paymentDate <= toDate);
-    }
-
-    // Filter by payment type if selected
-    if (individualPaymentTypeFilter) {
-      relevantPayments = relevantPayments.filter(p => p.amountNature === individualPaymentTypeFilter);
-    }
-
-    let paid = 0;
-    let deductions = 0;
-    let advances = 0;
-
-    relevantPayments.forEach(p => {
-      const amount = Number(p.amount) || 0;
-      if (p.amountNature === 'سلفة') {
-        advances += amount;
-      } else if (p.amountNature === 'إرجاع سلفة') {
-        advances -= amount;
-      } else if (p.amountNature === 'استقطاع' || p.amountNature === 'خصم') {
-        deductions += amount;
-      } else if (p.amountNature === 'رقم دفعة' || p.amountNature === 'راتب شهري') {
-        paid += amount;
-      }
-    });
-
     return {
-      contractValue,
-      dueTillToday,
-      paid,
-      deductions,
-      advances,
-      remaining,
-      payments: relevantPayments
+      ...summary,
+      // Kept for the existing screens
+      dueTillToday: summary.due,
+      payments: summary.rows,
     };
   };
 
-  // Calculations for Expenses Report
+  // Calculations for Expenses Report (payments & expenses table): see reportMath.expenseSummary
   const getExpenseSummary = () => {
-    let relevantPayments = [...payments].filter(p => p != null);
-    
-    if (expenseTransactionTypeFilter) {
-      if (relevantPayments.length > 0 && !(window as any).hasLoggedPaymentInfo) {
-         console.log("=== API PAYMENT RECORD ===");
-         console.log(relevantPayments[0]);
-         console.log("=========================");
-         (window as any).hasLoggedPaymentInfo = true;
-      }
-
-      relevantPayments = relevantPayments.filter(p => {
-        const tType = (
-          p.transactionType || 
-          (p as any).transaction_type || 
-          (p as any).type || 
-          (p as any).Transaction_Type ||
-          (p as any).Transaction_type ||
-          (p as any).transaction_Type ||
-          (p as any).TransactionType ||
-          ''
-        ).trim();
-        
-        // Fallback ONLY for legacy 'مصروف' and 'دفع', since 'مصاريف استثنائية' was just added
-        // and relies entirely on tType being correctly saved in DB.
-        // Removed fallback logic to guarantee strict separation between 'مصروف' and 'مصاريف استثنائية'
-        // If the backend returns tType as empty, it will NOT be shown in the filter.
-
-        
-        return tType === expenseTransactionTypeFilter;
-      });
-    }
-    
-    // Filter payments by date range
-    if (fromDate) {
-      relevantPayments = relevantPayments.filter(p => p.paymentDate && p.paymentDate >= fromDate);
-    }
-    if (toDate) {
-      relevantPayments = relevantPayments.filter(p => p.paymentDate && p.paymentDate <= toDate);
-    }
-
-    // Filter by expense type if selected
-    if (expenseTypeFilter) {
-      relevantPayments = relevantPayments.filter(p => p.amountNature === expenseTypeFilter);
-    }
-
-    let totalAmount = 0;
-    relevantPayments.forEach(p => {
-      totalAmount += (Number(p.amount) || 0);
+    const summary = expenseSummary(payments, {
+      kind: expenseTransactionTypeFilter,
+      nature: expenseTypeFilter,
+      from: fromDate,
+      to: toDate,
     });
-
     return {
-      totalAmount,
-      payments: relevantPayments
+      ...summary,
+      // Kept for the existing screens: the net total and the filtered rows
+      totalAmount: summary.net,
+      payments: summary.rows,
     };
   };
 
@@ -313,12 +157,7 @@ export const useReportsController = () => {
     if (selectedMember && selectedMember !== '') {
       paymentsForTotal = paymentsForTotal.filter(p => p.memberId === selectedMember);
     }
-    if (fromDate) {
-      paymentsForTotal = paymentsForTotal.filter(p => p.paymentDate && p.paymentDate >= fromDate);
-    }
-    if (toDate) {
-      paymentsForTotal = paymentsForTotal.filter(p => p.paymentDate && p.paymentDate <= toDate);
-    }
+    paymentsForTotal = paymentsForTotal.filter(p => inRange(normDate(p.paymentDate), fromDate, toDate));
 
     paymentsForTotal.forEach(p => {
       const nature = p.amountNature || '';
@@ -372,75 +211,30 @@ export const useReportsController = () => {
     };
   };
 
-  // Calculations for Funds Report
+  // Calculations for Funds Report: balance at the end of the period and what was paid from each fund (see reportMath.fundSummary)
   const getFundsSummary = () => {
-    const relevantFunds = [...funds];
-    let relevantTransactions = [...fundTransactions];
+    const summary = fundSummary(funds, fundTransactions, payments, { fund: fundFilter, from: fromDate, to: toDate });
+    const idOf = (v: unknown) => (v === null || v === undefined ? '' : String(v));
 
-    const fundsWithBalance = relevantFunds.map(fund => {
-      let txs = fundTransactions.filter(t => {
-        const tFundId = t.fundId || (t as any).fund_id;
-        const tToFundId = t.toFundId || (t as any).to_fund_id;
-        return tFundId === fund.id || tToFundId === fund.id;
-      });
-      if (toDate) {
-         txs = txs.filter(t => t.date <= toDate);
-      }
-      
-      const balance = Number(fund.initialBalance) || 0;
-      let totalDeposits = 0;
-      let totalWithdrawals = 0;
-
-      txs.forEach(t => {
-        const amt = Number(t.amount) || 0;
-        const tFundId = t.fundId || (t as any).fund_id;
-        const tToFundId = t.toFundId || (t as any).to_fund_id;
-        
-        if (t.type === 'إيداع' && tFundId === fund.id) {
-          totalDeposits += amt;
-        } else if (t.type === 'سحب' && tFundId === fund.id) {
-          totalWithdrawals += amt;
-        } else if (t.type === 'تحويل') {
-          if (tFundId === fund.id) {
-            totalWithdrawals += amt;
-          }
-          if (tToFundId === fund.id) {
-            totalDeposits += amt;
-          }
-        }
-      });
-      return { ...fund, balance, totalDeposits, totalWithdrawals };
+    // The movements list, with the same period and fund
+    const transactions = fundTransactions.filter(t => {
+      const from = idOf(t.fundId ?? (t as unknown as { fund_id?: string }).fund_id);
+      const to = idOf(t.toFundId ?? (t as unknown as { to_fund_id?: string }).to_fund_id);
+      return inRange(normDate(t.date), fromDate, toDate)
+        && (!fundFilter || from === fundFilter || to === fundFilter)
+        && (!fundTransactionTypeFilter || t.type === fundTransactionTypeFilter);
     });
 
-    if (fromDate) {
-       relevantTransactions = relevantTransactions.filter(t => t.date >= fromDate);
-    }
-    if (toDate) {
-       relevantTransactions = relevantTransactions.filter(t => t.date <= toDate);
-    }
-
-    if (fundFilter && fundFilter !== '') {
-       relevantTransactions = relevantTransactions.filter(t => {
-         const tFundId = t.fundId || (t as any).fund_id;
-         const tToFundId = t.toFundId || (t as any).to_fund_id;
-         return tFundId === fundFilter || tToFundId === fundFilter;
-       });
-    }
-
-    if (fundTransactionTypeFilter && fundTransactionTypeFilter !== '') {
-       relevantTransactions = relevantTransactions.filter(t => t.type === fundTransactionTypeFilter);
-    }
-
-    const filteredTransactions = relevantTransactions;
-
-    const totalBalance = fundsWithBalance.reduce((sum, f) => sum + f.balance, 0);
-
     return {
-      fundsWithBalance,
-      transactions: filteredTransactions,
-      totalBalance
+      ...summary,
+      // Kept for the existing screens
+      fundsWithBalance: summary.funds,
+      transactions,
     };
   };
+
+  /** Monthly salaries and transport expenses of the active contracts (what is owed each month, not what was paid) */
+  const getContractCommitments = () => contractCommitments(contracts);
 
   const deleteFundTransaction = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه المعاملة؟')) {
@@ -501,6 +295,7 @@ export const useReportsController = () => {
     getExpenseSummary,
     getContractsSummary,
     getFundsSummary,
+    getContractCommitments,
     deleteFundTransaction,
     formatCurrency,
 

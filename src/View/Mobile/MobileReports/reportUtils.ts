@@ -1,6 +1,7 @@
 import { Users, CreditCard, Briefcase, Landmark } from 'lucide-react';
 import type { ReportCategory, IndividualReportType } from '../../Screen/Reports/report_model';
 import { MEMBER_NATURES, EXPENSE_NATURES } from '../../Screen/Payments/usePaymentForm';
+import { naturesFor, TRANSACTION_KINDS } from '../../Screen/Reports/reportMath';
 
 export const CATEGORIES: { id: ReportCategory; label: string; short: string; icon: typeof Users; tone: string }[] = [
   { id: 'individuals', label: 'تقارير الأفراد', short: 'الأفراد', icon: Users, tone: 'orange' },
@@ -34,12 +35,10 @@ export const INDIVIDUAL_NATURES = [
   'تسوية جزئية', 'تسوية نهائية', 'سلفة', 'إرجاع سلفة', 'استقطاع', 'خصم', 'اخرى',
 ];
 
-export const EXPENSE_TYPES = ['دفع', 'مصروف', 'مصاريف استثنائية'];
+export const EXPENSE_TYPES: string[] = TRANSACTION_KINDS;
 
-export const expenseNatures = (type: string) =>
-  type === 'دفع' ? MEMBER_NATURES
-    : type ? EXPENSE_NATURES
-      : [...MEMBER_NATURES.filter(n => n !== 'اخرى'), 'مصاريف استثنائية', ...EXPENSE_NATURES];
+/** Same choices as the desktop: the natures of the chosen type, all of them without repeats otherwise */
+export const expenseNatures = (type: string) => naturesFor(type, MEMBER_NATURES, EXPENSE_NATURES);
 
 export const FUND_TX_TYPES = ['إيداع', 'سحب', 'تحويل', 'إرجاع'];
 

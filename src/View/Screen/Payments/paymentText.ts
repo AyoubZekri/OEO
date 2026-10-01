@@ -102,6 +102,17 @@ export const paymentNatureText = (payment: PaymentRecord) => {
   return occasionVal ? `${amountNatureVal} - ${occasionVal}` : amountNatureVal;
 };
 
+/**
+ * The reason / occasion of a payment alone (what follows the nature): the installment ("الدفعة الأولى"),
+ * the salary month(s), or the occasion text. "" when there is none. Same source as the payments page.
+ */
+export const paymentOccasionText = (payment: PaymentRecord) => {
+  const nature = String(payment.amountNature || '').trim();
+  const full = paymentNatureText(payment);
+  if (nature && full.startsWith(`${nature} - `)) return full.slice(nature.length + 3).trim();
+  return full === nature ? '' : full;
+};
+
 /** Full URL of an uploaded receipt, or null */
 export const receiptUrl = (payment: PaymentRecord) => {
   const file = payment.receipt_file;

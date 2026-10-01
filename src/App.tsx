@@ -32,6 +32,8 @@ import { Decisions } from './View/Screen/Decisions/Decisions';
 import { Clubs } from './View/Screen/Clubs/Clubs'; 
 import { Operations } from './View/Screen/Operations/Operations';
 import { Tasks } from './View/Screen/Tasks/Tasks';
+import { PeriodicTasks } from './View/Screen/Tasks/PeriodicTasks';
+import { Travels } from './View/Screen/Travels/Travels';
 import { MobileMore } from './View/Mobile/MobileMore/MobileMore';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
@@ -40,7 +42,7 @@ import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -87,6 +89,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Decisions} element={<RequirePermission module="decisions"><Decisions /></RequirePermission>} />
             <Route path={Approutes.Clubs} element={<RequirePermission module="clubs"><Clubs /></RequirePermission>} />
             <Route path={Approutes.Tasks} element={<RequirePermission module="tasks"><Tasks /></RequirePermission>} />
+            <Route path={Approutes.PeriodicTasks} element={<RequirePermission module="tasks"><PeriodicTasks /></RequirePermission>} />
+            <Route path={Approutes.Travels} element={<RequirePermission module="travels"><Travels /></RequirePermission>} />
             {/* Phone-only pages: widening the screen sends the user to the desktop home */}
             <Route path={Approutes.Operations} element={isMobile ? <Operations /> : <Navigate to="/" replace />} />
             <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />

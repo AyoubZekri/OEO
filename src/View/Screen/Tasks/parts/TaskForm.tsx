@@ -9,7 +9,7 @@ import { EventPicker } from './EventPicker';
 import type { TasksController } from '../useTasksController';
 import {
   buildRRule, DEFAULT_RECURRENCE, parseRRule, recurrenceText, offsetText, minutesText, toApiDate, toInputDate, nowInput, parseDate, dateText,
-  PERIODIC_LEAD_DAYS, TRIGGERS, WEEK_DAYS, type Recurrence, type Task, type TaskEvent, type TaskKind, type TaskTemplate,
+  eventMeta, PERIODIC_LEAD_DAYS, TRIGGERS, WEEK_DAYS, type Recurrence, type Task, type TaskEvent, type TaskKind, type TaskTemplate,
 } from '../taskUtils';
 
 const UNITS = [
@@ -29,7 +29,7 @@ const toLocal = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
 
 const KINDS: Record<TaskKind, { label: string; hint: string; icon: typeof Repeat }> = {
   once: { label: 'مرة واحدة', hint: 'بتاريخ محدد', icon: CalendarCheck },
-  event: { label: 'مرتبطة بحدث', hint: 'مباراة أو تدريب', icon: Trophy },
+  event: { label: 'مرتبطة بحدث', hint: 'مباراة، تدريب، اجتماع، تنقل', icon: Trophy },
   periodic: { label: 'دورية', hint: 'تتكرر حسب جدول', icon: Repeat },
   trigger: { label: 'مع كل حدث جديد', hint: 'تُنشأ تلقائياً', icon: Zap },
 };
@@ -112,7 +112,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ c, task, template, kind: ini
     if (!title.trim()) return setError('اكتب عنوان المهمة');
     if (!assignee) return setError('اختر المكلف بالمهمة');
     if (kind === 'once' && startsAt && dueAt && dueAt < startsAt) return setError('آخر أجل يجب أن يكون بعد تاريخ البداية');
-    if (kind === 'event' && !event) return setError(eventType === 'match' ? 'اختر المباراة' : 'اختر الحصة التدريبية');
+    if (kind === 'event' && !event) return setError(eventMeta(eventType).pick);
     if (kind === 'event' && !eventDue) return setError('هذا الحدث بدون تاريخ، حدد آخر أجل من خيار «مرة واحدة»');
     if (kind === 'event' && eventDue && eventDue.getTime() < Date.now()) return setError('آخر أجل المحسوب مرّ، غيّر المدة قبل الحدث');
     if ((kind === 'periodic' || kind === 'trigger') && !(duration > 0)) return setError('حدد المدة المتاحة للإنجاز');
@@ -169,7 +169,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({ c, task, template, kind: ini
     </div>
   );
 
-  const heading = task ? 'تعديل المهمة' : template ? 'تعديل مهمة تلقائية' : kinds.includes('once') || kinds.includes('event') ? 'مهمة جديدة' : 'مهمة تلقائية جديدة';
+  const heading = task ? 'تعديل المهمة'
+    : template ? (template.kind === 'periodic' ? 'تعديل المهمة الدورية' : 'تعديل مهمة تلقائية')
+      : kinds.includes('once') || kinds.includes('event') ? 'مهمة جديدة' : 'مهمة دورية جديدة';
   const HeadIcon = KINDS[kind]?.icon || ListTodo;
 
   return (
@@ -238,11 +240,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({ c, task, template, kind: ini
         )}
 
         {kind === 'event' && (
-          <Section icon={Trophy} title="الحدث" hint="المباريات القادمة أو الحصص التدريبية المتاحة">
+          <Section icon={Trophy} title="الحدث" hint="المباريات، الحصص التدريبية، الاجتماعات والتنقلات القادمة">
             <EventPicker type={eventType} onType={setEventType} value={event} onChange={setEvent} />
             {offsetFields}
             {event && eventDue && (
-              <p className="tk-preview"><CalendarClock size={14} />آخر أجل: {dateText(toLocal(eventDue))} ({offsetText(offset || 0).replace('الحدث', event.type === 'match' ? 'المباراة' : 'الحصة')})</p>
+              <p className="tk-preview"><CalendarClock size={14} />آخر أجل: {dateText(toLocal(eventDue))} ({offsetText(offset || 0).replace('الحدث', eventMeta(event.type).the)})</p>
             )}
           </Section>
         )}

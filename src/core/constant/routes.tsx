@@ -22,5 +22,7 @@ export class Approutes {
   static readonly Clubs = "/clubs";
   static readonly Operations = "/operations";
   static readonly Tasks = "/tasks";
+  static readonly PeriodicTasks = "/tasks/periodic";
+  static readonly Travels = "/travels";
   static readonly More = "/more";
 }

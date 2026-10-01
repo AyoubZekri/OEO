@@ -2,7 +2,7 @@ import {
   Activity, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Package, ArrowLeftRight, Gavel, FileWarning,
   ShieldHalf, Dumbbell, Trophy, Stethoscope, Briefcase, ListChecks, Mail, Plus, Pencil, Trash2, Printer, Search, RefreshCw,
   PenTool, CheckCircle, MessageSquare, RotateCw, TrendingUp, LogOut, FileCheck, ClipboardCheck, LayoutGrid, Megaphone,
-  ClipboardList, Target, Eye, ListTodo, BadgeCheck, BarChart3, Repeat,
+  ClipboardList, Target, Eye, Bus, ListTodo, BadgeCheck, BarChart3, Repeat,
 } from 'lucide-react';
 import type { PermissionModule } from './role_model';
 
@@ -18,6 +18,7 @@ export const MODULE_ICONS: Record<PermissionModule, PermissionIcon> = {
   trainingSessions: Dumbbell,
   matches: Trophy,
   medical: Stethoscope,
+  travels: Bus,
   meetings: Briefcase,
   decisions: ListChecks,
   correspondences: Mail,

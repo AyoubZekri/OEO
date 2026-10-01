@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Search, X, ListTodo, RefreshCw, Inbox, Filter, ChevronDown, Layers } from 'lucide-react';
+import { Search, X, ListTodo, RefreshCw, Inbox, Filter, ChevronDown, Layers, Trash2 } from 'lucide-react';
 import { MobileSelect } from '../../../Mobile/widgets/MobileSelect';
 import { TaskCard } from './TaskCard';
+import { MobileTaskCard } from './MobileTaskCard';
+import { TaskPanel } from './TaskPanel';
 import { TaskLoader } from './TaskLoader';
 import type { TasksController } from '../useTasksController';
-import { filterTasks, KIND_FILTERS, TASK_FILTERS } from '../taskUtils';
+import { filterTasks, KIND_FILTERS, TASK_FILTERS, type Task } from '../taskUtils';
 
 const PAGE = 30;
 
@@ -20,6 +22,7 @@ export const TaskList: React.FC<{ c: TasksController; mobile: boolean }> = ({ c,
   const [kind, setKind] = useState('');
   const [query, setQuery] = useState('');
   const [limit, setLimit] = useState(PAGE);
+  const [toDelete, setToDelete] = useState<Task | null>(null);
 
   const counts = useMemo(() => Object.fromEntries(TASK_FILTERS.map(f => [f.value, c.tasks.filter(f.test).length])), [c.tasks]);
   const visible = filterTasks(c.tasks, filter, query, kind);
@@ -86,11 +89,31 @@ export const TaskList: React.FC<{ c: TasksController; mobile: boolean }> = ({ c,
         </div>
       ) : (
         <div className={mobile ? 'tk-list' : 'tk-grid'}>
-          {visible.slice(0, limit).map(t => <TaskCard key={t.id} task={t} onOpen={c.openTask} userId={c.userId} />)}
+          {visible.slice(0, limit).map(t => (mobile
+            ? <MobileTaskCard key={t.id} c={c} task={t} onDelete={setToDelete} />
+            : <TaskCard key={t.id} task={t} onOpen={c.openTask} userId={c.userId} />))}
         </div>
       )}
       {visible.length > limit && (
         <button type="button" className="tk-more" onClick={() => setLimit(l => l + PAGE)}>عرض المزيد ({visible.length - limit})</button>
+      )}
+      {toDelete && (
+        <TaskPanel
+          mobile={mobile}
+          sheet
+          size="sm"
+          layer={2}
+          title="حذف المهمة"
+          onClose={() => setToDelete(null)}
+          footer={(
+            <>
+              <button type="button" className="tk-btn ghost" onClick={() => setToDelete(null)}>إلغاء</button>
+              <button type="button" className="tk-btn danger" onClick={() => { c.deleteTask(toDelete); setToDelete(null); }}><Trash2 size={17} />حذف</button>
+            </>
+          )}
+        >
+          <p className="tk-text">تُنقل المهمة «{toDelete.title}» إلى الأرشيف مع سجلها وإثباتاتها.</p>
+        </TaskPanel>
       )}
     </div>
   );

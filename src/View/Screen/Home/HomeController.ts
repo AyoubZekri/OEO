@@ -13,6 +13,7 @@ import { FundsData } from '../Funds/funds_data';
 import type { Fund, FundTransaction } from '../Funds/fund_model';
 import { buildOperations } from '../Operations/operation_model';
 import type { Operation } from '../Operations/operation_model';
+import { contractDues, homeExpenses, seasonStartOf } from '../Reports/reportMath';
 
 export interface FinancialMetrics {
   totalExpenses: number;
@@ -45,13 +46,6 @@ export const parseMatchDate = (matchDate?: string): Date | null => {
 const isMatchPlayed = (m: Match) =>
   m.match_status === 'منتهية' ||
   (m.team_score !== null && m.team_score !== undefined && m.opponent_score !== null && m.opponent_score !== undefined);
-
-// The football season starts on 1 July (same rule as the season fields of contracts and payments)
-const seasonStart = () => {
-  const d = new Date();
-  const year = d.getMonth() >= 6 ? d.getFullYear() : d.getFullYear() - 1;
-  return `${year}-07-01`;
-};
 
 const toList = <T,>(res: { data?: unknown } | null): T[] => {
   const body = res?.data as { data?: unknown } | T[] | undefined;
@@ -126,71 +120,21 @@ export const useHomeController = () => {
         else cashBalance += balance;
       });
 
-      // Calculate Payments Metrics
-      let paidToPlayers = 0;
-      let paidToStaff = 0;
-      let otherExpenses = 0;
+      // Spent since the start of the season (advance returns subtracted), by who was paid
+      const memberType = new Map(members.map(m => [String(m.id), m.type]));
+      const spent = homeExpenses(payments, id => memberType.get(id), seasonStartOf());
+      const paidToPlayers = spent.players;
+      const paidToStaff = spent.staff;
+      const otherExpenses = spent.other;
+      const totalExpenses = spent.total;
 
-      // "Since the start of the season": only this season's payments
-      const fromDate = seasonStart();
-      payments.forEach(p => {
-        const date = String(p.paymentDate || (p as PaymentRecord & { Date?: string }).Date || '').slice(0, 10);
-        if (!date || date < fromDate) return;
+      // Debts (instalments already due and unpaid) and upcoming dues, from the active contracts
+      const dues = contractDues(contracts, payments);
+      const totalDebts = dues.debts;
+      // "المستحقات القادمة": what is left to pay on the instalments of the active contracts
+      const upcomingEntitlements = dues.remaining;
+      const overdueContracts = dues.overdueContracts;
 
-        // An advance paid back reduces what was spent (the advance itself was counted when it was paid)
-        const amt = (Number(p.amount) || 0) * (p.amountNature === 'إرجاع سلفة' ? -1 : 1);
-        if (p.memberId) {
-           const member = members.find(m => String(m.id) === String(p.memberId));
-           if (member?.type === 'player' || member?.type === 'لاعب') paidToPlayers += amt;
-           else paidToStaff += amt;
-        } else {
-           otherExpenses += amt;
-        }
-      });
-
-      const totalExpenses = paidToPlayers + paidToStaff + otherExpenses;
-
-      // Calculate Debts and Upcoming Entitlements
-      let totalDebts = 0;
-      let upcomingEntitlements = 0;
-      let overdueContracts = 0;
-      const today = new Date().getTime();
-
-      contracts.forEach(c => {
-         const contractValue = c.contractValue || 0;
-         const numPayments = c.numberOfPayments || 1;
-         const paymentValue = numPayments > 0 ? contractValue / numPayments : 0;
-         
-         if (paymentValue <= 0) return;
-         let isOverdue = false;
-
-         let memberPayments = payments
-            .filter(p => String(p.memberId) === String(c.individuals_id) && p.amountNature === 'رقم دفعة')
-            .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
-         const start = new Date(c.startDate).getTime() || today;
-         const end = new Date(c.endDate).getTime() || today;
-         const duration = end - start > 0 ? end - start : 0;
-         const interval = numPayments > 0 ? duration / numPayments : 0;
-
-         for (let i = 1; i <= numPayments; i++) {
-           const dueDate = start + (interval * i);
-           
-           if (memberPayments >= paymentValue) {
-             memberPayments -= paymentValue;
-           } else {
-             const unpaidPortion = paymentValue - memberPayments;
-             memberPayments = 0;
-             if (dueDate <= today) {
-               totalDebts += unpaidPortion;
-               isOverdue = true;
-             } else {
-               upcomingEntitlements += unpaidPortion;
-             }
-           }
-         }
-         if (isOverdue) overdueContracts++;
-      });
-      
       setMetrics({
         totalExpenses,
         paidToPlayers,

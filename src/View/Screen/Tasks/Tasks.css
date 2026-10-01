@@ -1606,3 +1606,256 @@ body.dark-mode .tk-page .tk-scope {
 @media (max-width: 900px) {
   .tk-dialog .tk-view-grid { grid-template-columns: 1fr; }
 }
+
+/* ── Base periodic tasks (their own page) ── */
+.tk-main-col { min-width: 0; display: flex; flex-direction: column; gap: 14px; }
+.tk-base-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; align-items: start; }
+.tk-base-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 64px; }
+.tk-base { --sr: #8b5cf6; }
+
+/* One base task */
+.tk-base {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  transition: border-color 0.15s ease;
+}
+
+.tk-base:hover { border-color: color-mix(in srgb, var(--sr) 45%, var(--tk-border)); }
+.tk-base.off { background: var(--tk-field); }
+.tk-base.off .tk-base-icon, .tk-base.off .tk-base-date { filter: grayscale(1); opacity: 0.6; }
+.tk-base.off .tk-base-title strong { color: var(--tk-muted); }
+
+.tk-base-head { display: flex; align-items: flex-start; gap: 10px; }
+
+.tk-base-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--sr) 12%, transparent);
+  color: var(--sr);
+}
+
+.tk-base-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tk-base-title strong { font-size: 0.93rem; font-weight: 800; line-height: 1.4; color: var(--tk-text); overflow-wrap: anywhere; }
+.tk-base-title small { color: var(--tk-muted); font-size: 0.75rem; font-weight: 600; line-height: 1.5; }
+
+.tk-base-switch {
+  width: 40px;
+  height: 23px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding: 3px;
+  border: none;
+  border-radius: 99px;
+  background: var(--tk-border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tk-base-switch i { display: block; width: 17px; height: 17px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); transition: transform 0.15s ease; }
+.tk-base-switch.on { background: #10b981; }
+[dir='rtl'] .tk-base-switch.on i { transform: translateX(-17px); }
+[dir='ltr'] .tk-base-switch.on i { transform: translateX(17px); }
+
+.tk-base-state { flex-shrink: 0; padding: 2px 8px; border-radius: 7px; background: rgba(100, 116, 139, 0.14); color: var(--tk-muted); font-size: 0.68rem; font-weight: 800; }
+.tk-base-state.on { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+
+.tk-base-next {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--tk-field);
+}
+
+.tk-base.off .tk-base-next { background: var(--tk-card); }
+
+.tk-base-date {
+  width: 40px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 9px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+}
+
+.tk-base-date small { width: 100%; padding: 1px 0; background: var(--sr); color: #fff; font-size: 0.6rem; font-weight: 800; text-align: center; }
+.tk-base-date b { font-size: 1.02rem; font-weight: 900; line-height: 1.35; color: var(--tk-text); }
+
+.tk-base-next-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.tk-base-next-text small { color: var(--tk-muted); font-size: 0.68rem; font-weight: 700; }
+.tk-base-next-text strong { font-size: 0.84rem; font-weight: 800; color: var(--tk-text); }
+.tk-base-meta { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; color: var(--tk-muted); font-size: 0.7rem; font-weight: 700; }
+
+.tk-base-foot { display: flex; align-items: center; gap: 8px; }
+.tk-base-person { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px; color: var(--tk-text); font-size: 0.78rem; font-weight: 700; }
+.tk-base-person > span:last-child { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+.tk-base-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 7px;
+  background: var(--tk-field);
+  color: var(--tk-muted);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.tk-base-actions { display: inline-flex; gap: 4px; }
+
+.tk-base-actions button {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  color: var(--tk-muted);
+  cursor: pointer;
+}
+
+.tk-base-actions button:hover { color: var(--tk-accent); border-color: var(--tk-accent); }
+.tk-base-actions button.danger:hover { color: #ef4444; border-color: rgba(239, 68, 68, 0.5); }
+
+.tk-mpage .tk-base { box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35); }
+
+
+
+/* ── Phone: base periodic task card, same build as the other phone cards ── */
+.tk-mbase {
+  position: relative; /* anchors the ⋮ menu */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.tk-mbase:active:not(:has(.mrm-menu)) { transform: scale(0.985); }
+.tk-mbase-top { display: flex; align-items: center; gap: 12px; }
+
+.tk-mbase-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  color: #fff;
+}
+
+.tk-mbase.off .tk-mbase-icon { background: var(--tk-field); color: var(--tk-muted); }
+
+.tk-mbase-text { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+.tk-mbase-text strong { font-size: 0.93rem; font-weight: 800; color: var(--tk-text); overflow-wrap: anywhere; }
+.tk-mbase-text small { font-size: 0.74rem; color: var(--tk-muted); }
+.tk-mbase.off .tk-mbase-text strong { color: var(--tk-muted); }
+
+.tk-mbase-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--tk-border);
+}
+
+.tk-mbase-chips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--tk-field);
+  color: var(--tk-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.tk-mbase-chips em {
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.tk-mbase-chips em.on { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.tk-mbase-chips em.off { background: rgba(100, 116, 139, 0.14); color: var(--tk-muted); }
+
+/* ── Phone: task card, same build as the other phone cards ── */
+.tk-mcard {
+  position: relative; /* anchors the ⋮ menu */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.tk-mcard:active:not(:has(.mrm-menu)) { transform: scale(0.985); }
+.tk-mcard.done { opacity: 0.8; }
+
+.tk-mcard-status {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--tk-t) 14%, transparent);
+  color: var(--tk-t);
+}
+
+.tk-mcard .tk-mbase-text small { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; direction: rtl; }
+.tk-mcard .tk-mbase-text small b { color: var(--tk-t); font-weight: 800; }
+.tk-mcard.done .tk-mbase-text strong { color: var(--tk-muted); }
+
+.tk-mcard-note {
+  margin: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--tk-t) 9%, transparent);
+  color: var(--tk-t);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.tk-mcard-note svg { flex-shrink: 0; margin-top: 2px; }
+.tk-mbase-chips span.late { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+.tk-mbase-chips span.prio { background: color-mix(in srgb, var(--tk-t) 11%, transparent); color: var(--tk-t); }
+.tk-list { padding-bottom: 64px; }

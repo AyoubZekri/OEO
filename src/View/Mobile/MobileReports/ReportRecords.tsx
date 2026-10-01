@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { paymentOccasionText } from '../../Screen/Payments/paymentText';
 import { List, SearchX, Calendar, Trash2, ChevronDown, ArrowLeft } from 'lucide-react';
 import type { useReportsController } from '../../Screen/Reports/ReportsController';
 import { moneyText } from '../MobileContracts/contractUtils';
@@ -50,18 +51,22 @@ export const ReportRecords: React.FC<{ c: ReturnType<typeof useReportsController
     const list = c.getExpenseSummary().payments;
     title = 'سجل المصاريف';
     count = list.length;
-    items = list.slice(0, limit).map(p => (
-      <article key={p.id} className="mrp-row tone-red">
-        <div className="mrp-row-main">
-          <strong>{p.amountNature}</strong>
-          <small>{p.occasion ? `${p.occasion} · ` : ''}{p.paymentMethod}</small>
-        </div>
-        <div className="mrp-row-side">
-          <b dir="ltr">{moneyText(Number(p.amount) || 0)}</b>
-          <small dir="ltr"><Calendar size={11} /> {p.paymentDate}</small>
-        </div>
-      </article>
-    ));
+    items = list.slice(0, limit).map(p => {
+      const member = p.memberId ? c.members.find(m => String(m.id) === String(p.memberId)) : undefined;
+      return (
+        <article key={p.id} className={`mrp-row ${p.isReturn ? 'tone-green' : 'tone-red'}`}>
+          <div className="mrp-row-main">
+            <strong>{p.amountNature}</strong>
+            {paymentOccasionText(p) && <small className="mrp-occasion">{paymentOccasionText(p)}</small>}
+            <small>{p.kind}{member ? ` · ${member.first_name} ${member.last_name}` : ''} · {p.paymentMethod}</small>
+          </div>
+          <div className="mrp-row-side">
+            <b dir="ltr">{p.isReturn ? '+ ' : ''}{moneyText(Number(p.amount) || 0)}</b>
+            <small dir="ltr"><Calendar size={11} /> {p.day || p.paymentDate || '—'}</small>
+          </div>
+        </article>
+      );
+    });
   } else if (cat === 'contracts') {
     const list = c.getContractsSummary().contracts;
     title = 'سجل العقود';

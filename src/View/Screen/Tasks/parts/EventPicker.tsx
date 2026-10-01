@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Trophy, Dumbbell, Loader2, MapPin, Users, CalendarX, Check } from 'lucide-react';
+import { Loader2, MapPin, Users, CalendarX, Check } from 'lucide-react';
 import { apiError, taskApi } from '../taskApi';
-import { dateText, parseDate, type TaskEvent } from '../taskUtils';
+import { dateText, eventMeta, EVENT_TYPES, parseDate, type TaskEvent } from '../taskUtils';
 
 const DAYS = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
@@ -20,7 +20,7 @@ interface EventPickerProps {
   onChange: (e: TaskEvent | null) => void;
 }
 
-/** Match or training session, then one of the upcoming ones */
+/** Match, training session, meeting or travel, then one of the upcoming ones */
 export const EventPicker: React.FC<EventPickerProps> = ({ type, onType, value, onChange }) => {
   const [events, setEvents] = useState<Record<string, TaskEvent[]>>({});
   const [loading, setLoading] = useState(false);
@@ -48,21 +48,22 @@ export const EventPicker: React.FC<EventPickerProps> = ({ type, onType, value, o
 
   return (
     <div className="tk-event-picker">
-      <div className="tk-seg two">
-        <button type="button" className={type === 'match' ? 'on' : ''} onClick={() => pickType('match')}><Trophy size={15} />مباراة</button>
-        <button type="button" className={type === 'training' ? 'on' : ''} onClick={() => pickType('training')}><Dumbbell size={15} />حصة تدريبية</button>
+      <div className="tk-seg four">
+        {EVENT_TYPES.map(e => (
+          <button key={e.value} type="button" className={type === e.value ? 'on' : ''} onClick={() => pickType(e.value)}><e.icon size={15} />{e.label}</button>
+        ))}
       </div>
 
-      <div className="tk-event-list" role="listbox" aria-label={type === 'match' ? 'المباريات القادمة' : 'الحصص التدريبية المتاحة'}>
+      <div className="tk-event-list" role="listbox" aria-label={eventMeta(type).list}>
         {loading && !list ? (
           <p className="tk-muted center"><Loader2 size={15} className="tk-spin" />جاري التحميل...</p>
         ) : error ? (
           <p className="tk-muted center">{error}</p>
         ) : !list?.length ? (
-          <p className="tk-muted center"><CalendarX size={16} />{type === 'match' ? 'لا توجد مباريات قادمة' : 'لا توجد حصص تدريبية قادمة'}</p>
+          <p className="tk-muted center"><CalendarX size={16} />{eventMeta(type).empty}</p>
         ) : list.map(e => {
           const on = value?.type === e.type && value.id === e.id;
-          const Icon = e.type === 'match' ? Trophy : Dumbbell;
+          const Icon = eventMeta(e.type).icon;
           return (
             <button key={`${e.type}-${e.id}`} type="button" role="option" aria-selected={on} className={`tk-event ${on ? 'on' : ''}`} onClick={() => onChange(on ? null : e)}>
               <span className="tk-event-icon"><Icon size={17} /></span>
@@ -70,7 +71,7 @@ export const EventPicker: React.FC<EventPickerProps> = ({ type, onType, value, o
                 <strong>{e.title}</strong>
                 <small>
                   <b>{whenText(e.at)}</b>
-                  {e.team && e.type === 'match' && <span><Users size={11} />{e.team}</span>}
+                  {e.team && e.type !== 'training' && <span><Users size={11} />{e.team}</span>}
                   {e.place && <span><MapPin size={11} />{e.place}</span>}
                 </small>
               </span>

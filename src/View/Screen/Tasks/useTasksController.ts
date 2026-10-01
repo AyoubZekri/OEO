@@ -6,18 +6,20 @@ import { showSnackbar } from '../../../core/functions/Snacpar';
 import { useUrlDetails } from '../../Mobile/widgets/useUrlDetails';
 import { apiError, taskApi } from './taskApi';
 import type { Task, TaskAction, TaskAttachment, TaskStats, TaskTemplate, TaskUser } from './taskUtils';
-import { ACTION_META, dateText, type TaskKind } from './taskUtils';
+import type { TaskKind } from './taskUtils';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- form bodies are plain JSON */
 
 /** tasks: the list for the signed-in account; the others are extra views for managers */
 export type TasksTab = 'tasks' | 'dashboard' | 'templates' | 'archive';
 
-const ok = (text: string) => showSnackbar('تم', text, '#10b981');
 const fail = (text: string) => showSnackbar('خطأ', text, '#ef4444');
 
-/** Everything the tasks pages (desktop and phone) share: lists, details, forms and workflow actions */
-export const useTasksController = () => {
+/**
+ * Everything the tasks pages (desktop and phone) share: lists, details, forms and workflow actions.
+ * view "tasks": the created tasks; view "periodic": the base periodic / automatic tasks (their own page).
+ */
+export const useTasksController = (view: 'tasks' | 'periodic' = 'tasks') => {
   const { user } = useAuth();
   const canDo = useCan();
   const can = useCallback((action: string) => canDo('tasks', action), [canDo]);
@@ -56,7 +58,7 @@ export const useTasksController = () => {
   const isList = tab !== 'dashboard' && tab !== 'templates';
 
   const loadList = useCallback(async () => {
-    if (!isList) return;
+    if (!isList || view === 'periodic') return;
     setLoading(true);
     setError('');
     try {
@@ -66,7 +68,7 @@ export const useTasksController = () => {
     } finally {
       setLoading(false);
     }
-  }, [tab, isList]);
+  }, [tab, isList, view]);
 
   const loadStats = useCallback(async () => {
     setLoading(true);
@@ -92,14 +94,24 @@ export const useTasksController = () => {
     }
   }, []);
 
+  /** The base periodic / automatic tasks, shown in their own panel next to the list (quiet: no page loader) */
+  const loadSeries = useCallback(async () => {
+    try {
+      setTemplates(await taskApi.templates());
+    } catch { /* the panel just stays empty */ }
+  }, []);
+
   const reload = useCallback(() => {
+    if (view === 'periodic') return loadTemplates();
     if (tab === 'dashboard') return loadStats();
     if (tab === 'templates') return loadTemplates();
     return loadList();
-  }, [tab, loadList, loadStats, loadTemplates]);
+  }, [view, tab, loadList, loadStats, loadTemplates]);
 
   /* eslint-disable react-hooks/set-state-in-effect -- loading data from the server when the tab / open task changes */
   useEffect(() => { reload(); }, [reload]);
+  // The tasks page needs the base tasks only to edit one from a task's details
+  useEffect(() => { if (view === 'tasks') loadSeries(); }, [view, loadSeries]);
 
   /** People for the assignee / reviewer pickers, loaded the first time a form opens */
   const ensureUsers = useCallback(async () => {
@@ -138,6 +150,7 @@ export const useTasksController = () => {
   const refreshAfter = async (id?: number) => {
     await Promise.all([
       loadList(),
+      loadSeries(),
       id && detailsId && String(id) === detailsId ? loadDetails(detailsId) : Promise.resolve(),
     ]);
   };
@@ -151,7 +164,6 @@ export const useTasksController = () => {
     } catch (e) {
       throw new Error(apiError(e), { cause: e });
     }
-    ok(`${ACTION_META[action].label}: ${task.title}`);
     await refreshAfter(task.id);
   };
 
@@ -161,7 +173,6 @@ export const useTasksController = () => {
     } catch (e) {
       throw new Error(apiError(e, 'تعذر رفع الإثبات'), { cause: e });
     }
-    ok('أضيف الإثبات');
     await refreshAfter(task.id);
   };
 
@@ -194,7 +205,6 @@ export const useTasksController = () => {
     } catch (e) {
       throw new Error(apiError(e), { cause: e });
     }
-    ok(data.id ? 'عُدلت المهمة' : `أنشئت المهمة ${saved.reference || ''}`);
     setForm(null);
     await refreshAfter(saved.id);
   };
@@ -202,7 +212,6 @@ export const useTasksController = () => {
   const deleteTask = async (task: Task) => {
     try {
       await taskApi.remove(task.id);
-      ok('نُقلت المهمة إلى الأرشيف');
       closeTask();
       await refreshAfter();
     } catch (e) {
@@ -213,7 +222,6 @@ export const useTasksController = () => {
   const restoreTask = async (task: Task) => {
     try {
       await taskApi.restore(task.id);
-      ok('استُرجعت المهمة');
       closeTask();
       await refreshAfter();
     } catch (e) {
@@ -231,25 +239,19 @@ export const useTasksController = () => {
   };
 
   const saveTemplate = async (data: Record<string, any>) => {
-    let saved: TaskTemplate;
     try {
-      saved = await taskApi.saveTemplate(data);
+      await taskApi.saveTemplate(data);
     } catch (e) {
       throw new Error(apiError(e), { cause: e });
     }
-    ok(data.id
-      ? 'عُدلت المهمة التلقائية'
-      : saved.kind === 'periodic'
-        ? `ستُنشأ المهمة تلقائياً، أول مرة: ${dateText(saved.next_run_at)}`
-        : 'ستُنشأ المهمة تلقائياً مع كل حدث');
     setForm(null);
-    if (tab === 'templates') await loadTemplates();
+    await Promise.all([loadSeries(), loadList()]);
   };
 
   const toggleTemplate = async (template: TaskTemplate) => {
     try {
       await taskApi.toggleTemplate(template.id, !template.active);
-      await loadTemplates();
+      await Promise.all([loadSeries(), loadList()]);
     } catch (e) {
       fail(apiError(e));
     }
@@ -258,8 +260,7 @@ export const useTasksController = () => {
   const deleteTemplate = async (template: TaskTemplate) => {
     try {
       await taskApi.removeTemplate(template.id);
-      ok('حُذفت المهمة التلقائية');
-      await loadTemplates();
+      await Promise.all([loadSeries(), loadList()]);
     } catch (e) {
       fail(apiError(e));
     }
@@ -267,14 +268,11 @@ export const useTasksController = () => {
 
   /* ── The periodic series of an open task ── */
 
-  const withdrawnText = (n: number) => (n > 0 ? ` وأُلغيت ${n} مهمة قادمة لم تبدأ بعد` : '');
-
   /** Stop (no more tasks are created) or restart the series a task comes from */
   const setSeriesActive = async (task: Task, active: boolean) => {
     if (!task.template) return;
     try {
-      const withdrawn = await taskApi.toggleTemplate(task.template.id, active);
-      ok(active ? 'استُؤنف التكرار' : `أوقف التكرار${withdrawnText(withdrawn)}`);
+      await taskApi.toggleTemplate(task.template.id, active);
       await refreshAfter(task.id);
     } catch (e) {
       fail(apiError(e));
@@ -284,8 +282,7 @@ export const useTasksController = () => {
   const deleteSeries = async (task: Task) => {
     if (!task.template) return;
     try {
-      const withdrawn = await taskApi.removeTemplate(task.template.id);
-      ok(`حُذف التكرار${withdrawnText(withdrawn)}`);
+      await taskApi.removeTemplate(task.template.id);
       await refreshAfter(task.id);
     } catch (e) {
       fail(apiError(e));

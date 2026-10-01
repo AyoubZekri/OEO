@@ -145,6 +145,13 @@ export interface EquipmentOperationsPermissions {
   delete: boolean;
 }
 
+export interface TravelsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
 export interface TasksPermissions {
   view: boolean;
   add: boolean;
@@ -177,6 +184,7 @@ export interface AppPermissions {
   trainingSessions: TrainingSessionsPermissions;
   matches: MatchesPermissions;
   medical: MedicalPermissions;
+  travels: TravelsPermissions;
   meetings: MeetingsPermissions;
   decisions: DecisionsPermissions;
   correspondences: CorrespondencesPermissions;
@@ -206,6 +214,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   trainingSessions: ['add', 'edit', 'delete', 'attendance'],
   matches: ['add', 'edit', 'delete', 'changeStatus', 'callups', 'lineup', 'attendance', 'report'],
   medical: ['add', 'edit', 'delete'],
+  travels: ['add', 'edit', 'delete'],
   meetings: ['add', 'edit', 'delete', 'attendance'],
   decisions: ['add', 'edit', 'delete', 'progress'],
   correspondences: ['add', 'changeStatus', 'delete'],
@@ -223,7 +232,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
 export const PERMISSION_DOMAINS: { key: string; label: string; modules: PermissionModule[] }[] = [
   { key: 'general', label: 'عام', modules: ['dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
-  { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical'] },
+  { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical', 'travels'] },
   { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'correspondences', 'tasks'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },

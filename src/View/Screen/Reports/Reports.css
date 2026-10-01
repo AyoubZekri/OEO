@@ -585,3 +585,44 @@ body.dark-mode .empty-state {
   color: var(--text-muted) !important;
 }
 
+
+/* Monthly commitments from the active contracts (owed, not paid) */
+.commitments { margin-top: 18px; }
+.commitments h4 { margin: 0 0 10px; font-size: 0.98rem; font-weight: 800; color: var(--text-h); }
+.commitments h4 small { color: var(--text-muted, #64748b); font-weight: 600; font-size: 0.8rem; }
+.commitments-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+
+.commitment {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px dashed var(--border);
+  background: var(--card-bg);
+}
+
+.commitment.total { border-style: solid; border-color: rgba(249, 115, 22, 0.35); }
+
+.commitment-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(249, 115, 22, 0.1);
+  color: var(--accent, #f97316);
+}
+
+.commitment-icon.salary { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; }
+.commitment-icon.transport { background: rgba(14, 165, 233, 0.1); color: #0ea5e9; }
+.commitment-text { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.commitment-text small { color: var(--text-muted, #64748b); font-size: 0.8rem; font-weight: 700; }
+.commitment-text b { font-size: 1.15rem; font-weight: 900; color: var(--text-h); direction: ltr; text-align: end; }
+.commitment-text em { font-style: normal; color: var(--text-muted, #64748b); font-size: 0.74rem; }
+
+@media (max-width: 900px) {
+  .commitments-grid { grid-template-columns: 1fr; }
+}

@@ -87,10 +87,12 @@ export const buildOperations = (
 
 /**
  * The totals shown above the list.
- * Expenses are the sum of every recorded payment / expense, exactly like "إجمالي المصاريف" in the financial reports.
+ * Expenses are every recorded payment / expense minus the advances paid back, exactly like "الصافي" in the
+ * expenses report.
  * Money in is every deposit made to the funds (refunds of cancelled payments are not income).
  */
 export const operationTotals = (ops: Operation[], payments: PaymentRecord[]) => ({
   in: ops.filter(op => op.direction === 'in' && !op.refund && op.id.startsWith('f_')).reduce((sum, op) => sum + op.amount, 0),
-  out: payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0),
+  // Money paid out, an advance paid back reduces it (same rule as the home page and the expenses report)
+  out: payments.reduce((sum, p) => sum + (Number(p.amount) || 0) * (String(p.amountNature ?? '').trim() === 'إرجاع سلفة' ? -1 : 1), 0),
 });

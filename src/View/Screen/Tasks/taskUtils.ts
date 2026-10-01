@@ -1,5 +1,5 @@
 import {
-  CircleDot, PlayCircle, PauseCircle, Eye, CheckCircle2, Undo2, Trophy, Dumbbell, Briefcase,
+  CircleDot, PlayCircle, PauseCircle, Eye, CheckCircle2, Undo2, Trophy, Dumbbell, Briefcase, Bus,
 } from 'lucide-react';
 
 export type TaskStatus = 'assigned' | 'in_progress' | 'blocked' | 'in_review' | 'approved' | 'returned';
@@ -80,7 +80,7 @@ export const PERIODIC_LEAD_DAYS = 3;
 
 /** An upcoming match or training session a task can be linked to */
 export interface TaskEvent {
-  type: 'match' | 'training';
+  type: 'match' | 'training' | 'meeting' | 'travel';
   id: number;
   title: string;
   at: string | null;
@@ -107,6 +107,8 @@ export interface TaskTemplate {
   duration_minutes: number;
   active: boolean;
   tasks_count: number | null;
+  /** May edit / stop / delete it (templates permission, or created it) */
+  can_manage?: boolean;
 }
 
 export interface TaskStatsRow {
@@ -160,9 +162,22 @@ export const blockReasonText = (task: Pick<Task, 'block_reason' | 'block_note'>)
   return task.block_note ? `${label}: ${task.block_note}` : label;
 };
 
+/** The events a task can be linked to, with their words and icon */
+export const EVENT_TYPES: {
+  value: TaskEvent['type']; label: string; the: string; linked: string; pick: string; empty: string; list: string; icon: typeof Trophy;
+}[] = [
+  { value: 'match', label: 'مباراة', the: 'المباراة', linked: 'المباراة المرتبطة', pick: 'اختر المباراة', empty: 'لا توجد مباريات قادمة', list: 'المباريات القادمة', icon: Trophy },
+  { value: 'training', label: 'تدريب', the: 'الحصة', linked: 'الحصة التدريبية المرتبطة', pick: 'اختر الحصة التدريبية', empty: 'لا توجد حصص تدريبية قادمة', list: 'الحصص التدريبية المتاحة', icon: Dumbbell },
+  { value: 'meeting', label: 'اجتماع', the: 'الاجتماع', linked: 'الاجتماع المرتبط', pick: 'اختر الاجتماع', empty: 'لا توجد اجتماعات قادمة', list: 'الاجتماعات القادمة', icon: Briefcase },
+  { value: 'travel', label: 'تنقل', the: 'التنقل', linked: 'التنقل المرتبط', pick: 'اختر التنقل', empty: 'لا توجد تنقلات قادمة', list: 'التنقلات القادمة', icon: Bus },
+];
+
+export const eventMeta = (type: string | undefined) => EVENT_TYPES.find(e => e.value === type) || EVENT_TYPES[0];
+
 export const TRIGGERS: { value: string; label: string; event: string; icon: typeof Trophy }[] = [
   { value: 'match.created', label: 'عند إضافة مباراة', event: 'المباراة', icon: Trophy },
   { value: 'training.created', label: 'عند إضافة حصة تدريبية', event: 'الحصة', icon: Dumbbell },
+  { value: 'travel.created', label: 'عند إضافة تنقل', event: 'التنقل', icon: Bus },
   { value: 'meeting.created', label: 'عند إضافة اجتماع', event: 'الاجتماع', icon: Briefcase },
 ];
 
@@ -197,7 +212,7 @@ export type TaskKind = 'once' | 'periodic' | 'event' | 'trigger';
 export const sourceText = (task: Pick<Task, 'source_type' | 'source_ref'>) => {
   if (task.source_type !== 'event' || !task.source_ref) return SOURCE_LABELS[task.source_type] || '';
   const kind = task.source_ref.split(':')[0];
-  return ({ match: 'مرتبطة بمباراة', training: 'مرتبطة بحصة تدريبية', meeting: 'مرتبطة باجتماع' } as Record<string, string>)[kind] || SOURCE_LABELS.event;
+  return ({ match: 'مرتبطة بمباراة', training: 'مرتبطة بحصة تدريبية', meeting: 'مرتبطة باجتماع', travel: 'مرتبطة بتنقل' } as Record<string, string>)[kind] || SOURCE_LABELS.event;
 };
 
 /* ── Dates ── */

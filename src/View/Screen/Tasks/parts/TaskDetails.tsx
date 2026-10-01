@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   CalendarClock, CalendarPlus, UserRound, UserCheck, PenLine, Paperclip, History, PauseCircle,
   CheckCircle2, Undo2, Pencil, Trash2, ArchiveRestore, Loader2, AlertTriangle, FileText, Image as ImageIcon, Link2, Type,
-  Plus, X, ShieldCheck, AlertCircle, ListTodo, Trophy, Dumbbell, Repeat, Power, Hourglass, Users,
+  Plus, X, ShieldCheck, AlertCircle, ListTodo, Repeat, Power, Hourglass, Users,
 } from 'lucide-react';
 import { TaskPanel } from './TaskPanel';
 import { OverdueBadge, PriorityBadge, KindBadge } from './TaskBadges';
@@ -11,7 +11,7 @@ import { ReasonPrompt } from './ReasonPrompt';
 import { ProofForm } from './ProofForm';
 import type { TasksController } from '../useTasksController';
 import {
-  abilitiesOf, PERIODIC_LEAD_DAYS, recurrenceText, TRIGGERS, blockReasonText, dateText, dueText, HISTORY_LABELS, initials, STATUS_META,
+  abilitiesOf, eventMeta, PERIODIC_LEAD_DAYS, recurrenceText, TRIGGERS, blockReasonText, dateText, dueText, HISTORY_LABELS, initials, STATUS_META,
   type Task, type TaskAction, type TaskAttachment, type TaskStatus,
 } from '../taskUtils';
 
@@ -27,6 +27,8 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmSeries, setConfirmSeries] = useState<'stop' | 'delete' | null>(null);
   const series = task.template;
+  // The full base task (for its edit form), from the panel's list
+  const seriesBase = series ? c.templates.find(x => x.id === series.id) : undefined;
 
   const attachments = task.attachments || [];
   const history = task.history || [];
@@ -212,9 +214,9 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
 
             {task.event && (
               <div className="tk-linked">
-                <span className="tk-linked-icon">{task.event.type === 'match' ? <Trophy size={18} /> : <Dumbbell size={18} />}</span>
+                <span className="tk-linked-icon">{React.createElement(eventMeta(task.event.type).icon, { size: 18 })}</span>
                 <span>
-                  <small>{task.event.type === 'match' ? 'المباراة المرتبطة' : 'الحصة التدريبية المرتبطة'}</small>
+                  <small>{eventMeta(task.event.type).linked}</small>
                   <strong>{task.event.title}</strong>
                   <em>{[dateText(task.event.at), task.event.team, task.event.place].filter(Boolean).join(' · ')}</em>
                 </span>
@@ -235,8 +237,11 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
                     {' · '}{series.tasks_count} مهمة أنشئت
                   </small>
                 </div>
-                {series.can_manage && (
+                {(series.can_manage ?? c.can('templates')) && (
                   <div className="tk-series-actions">
+                    {seriesBase && (
+                      <button type="button" className="tk-btn ghost sm" onClick={() => c.openTemplateForm(seriesBase)}><Pencil size={15} />تعديل المهمة الدورية</button>
+                    )}
                     {series.active ? (
                       <button type="button" className="tk-btn ghost sm" onClick={() => setConfirmSeries('stop')}><Power size={15} />إيقاف التكرار</button>
                     ) : (

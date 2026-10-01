@@ -61,29 +61,33 @@ export const TaskBoard: React.FC<{ c: TasksController; addButton: React.ReactNod
         {addButton}
       </div>
 
-      {c.tab === 'dashboard' ? <TaskDashboard c={c} mobile={false} />
-        : c.tab === 'templates' ? <TemplateList c={c} mobile={false} />
-          : c.loading && !c.tasks.length ? (
-            <TaskLoader mobile={false} />
-          ) : c.error ? (
-            <div className="tk-state">
-              <ListTodo size={30} /><p>{c.error}</p>
-              <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
-            </div>
-          ) : visible.length === 0 ? (
-            <div className="tk-state"><Inbox size={32} /><p>{c.tasks.length === 0 ? EMPTY[c.tab] || 'لا توجد مهام' : 'لا توجد مهام بهذه التصفية'}</p></div>
-          ) : (
-            <>
-              <div className="tk-grid">
-                {cards.map(t => <TaskCard key={t.id} task={t} onOpen={c.openTask} userId={c.userId} />)}
-              </div>
-              {visible.length > perPage && (
-                <div className="tk-pagination">
-                  <Pagination totalItems={visible.length} itemsPerPage={perPage} currentPage={page} onPageChange={setPage} onItemsPerPageChange={setPerPage} />
+      <div>
+        <div className="tk-main-col">
+          {c.tab === 'dashboard' ? <TaskDashboard c={c} mobile={false} />
+            : c.tab === 'templates' ? <TemplateList c={c} mobile={false} />
+              : c.loading && !c.tasks.length ? (
+                <TaskLoader mobile={false} />
+              ) : c.error ? (
+                <div className="tk-state">
+                  <ListTodo size={30} /><p>{c.error}</p>
+                  <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
                 </div>
+              ) : visible.length === 0 ? (
+                <div className="tk-state"><Inbox size={32} /><p>{c.tasks.length === 0 ? EMPTY[c.tab] || 'لا توجد مهام' : 'لا توجد مهام بهذه التصفية'}</p></div>
+              ) : (
+                <>
+                  <div className="tk-grid">
+                    {cards.map(t => <TaskCard key={t.id} task={t} onOpen={c.openTask} userId={c.userId} />)}
+                  </div>
+                  {visible.length > perPage && (
+                    <div className="tk-pagination">
+                      <Pagination totalItems={visible.length} itemsPerPage={perPage} currentPage={page} onPageChange={setPage} onItemsPerPageChange={setPerPage} />
+                    </div>
+                  )}
+                </>
               )}
-            </>
-          )}
+        </div>
+      </div>
     </>
   );
 };

@@ -1,10 +1,11 @@
 import React from 'react';
+import { groupOf, naturesFor } from './reportMath';
+import { paymentOccasionText } from '../Payments/paymentText';
+import { MEMBER_NATURES, EXPENSE_NATURES } from '../Payments/usePaymentForm';
 import { useTranslation } from 'react-i18next';
 import { useReportsController } from './ReportsController';
 import type { ReportCategory, IndividualReportType } from './report_model';
-import { 
-  FileText, Printer, Users, CreditCard, Briefcase, Landmark, SearchX, AlertCircle, List, Trash2
-} from 'lucide-react';
+import { FileText, Printer, Users, CreditCard, Briefcase, Landmark, SearchX, AlertCircle, List, Trash2, Wallet, Bus } from 'lucide-react';
 
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -99,7 +100,7 @@ export const Reports: React.FC = () => {
               options={[
                 { value: '', label: 'الكل' },
                 ...controller.members
-                  .filter(m => controller.activeCategory === 'individuals' ? m.type === controller.activeIndividualTab : true)
+                  .filter(m => controller.activeCategory === 'individuals' ? groupOf(m.type) === groupOf(controller.activeIndividualTab) : true)
                   .map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}` }))
               ]}
               value={controller.selectedMember}
@@ -160,72 +161,10 @@ export const Reports: React.FC = () => {
             <div className="filter-group">
               <label>طبيعة المصروف</label>
             <CustomDropdown
-              options={
-                controller.expenseTransactionTypeFilter === 'دفع' ? [
-                  { value: '', label: 'الكل' },
-                  { value: 'راتب شهري', label: 'راتب شهري' },
-                  { value: 'رقم دفعة', label: 'رقم دفعة' },
-                  { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
-                  { value: 'منحة مقابلات', label: 'منحة مقابلات' },
-                  { value: 'مصاريف التنقل', label: 'مصاريف التنقل' },
-                  { value: 'نتيجة', label: 'نتيجة' },
-                  { value: 'تحفيز', label: 'تحفيز' },
-                  { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
-                  { value: 'باقي المستحقات', label: 'باقي المستحقات' },
-                  { value: 'تسوية جزئية', label: 'تسوية جزئية' },
-                  { value: 'تسوية نهائية', label: 'تسوية نهائية' },
-                  { value: 'سلفة', label: 'سلفة' },
-                  { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
-                  { value: 'اخرى', label: 'اخرى' }
-                ] : controller.expenseTransactionTypeFilter === 'مصاريف استثنائية' ? [
-                  { value: '', label: 'الكل' },
-                  { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
-                  { value: 'تنقل', label: 'تنقل' },
-                  { value: 'اقامة', label: 'اقامة' },
-                  { value: 'إطعام', label: 'إطعام' },
-                  { value: 'تجهيزات', label: 'تجهيزات' },
-                  { value: 'صيانة', label: 'صيانة' },
-                  { value: 'فواتير', label: 'فواتير' },
-                  { value: 'كراء', label: 'كراء' },
-                  { value: 'اخرى', label: 'اخرى' }
-                ] : controller.expenseTransactionTypeFilter === 'مصروف' ? [
-                  { value: '', label: 'الكل' },
-                  { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
-                  { value: 'تنقل', label: 'تنقل' },
-                  { value: 'اقامة', label: 'اقامة' },
-                  { value: 'إطعام', label: 'إطعام' },
-                  { value: 'تجهيزات', label: 'تجهيزات' },
-                  { value: 'صيانة', label: 'صيانة' },
-                  { value: 'فواتير', label: 'فواتير' },
-                  { value: 'كراء', label: 'كراء' },
-                  { value: 'اخرى', label: 'اخرى' }
-                ] : [
-                  { value: '', label: 'الكل' },
-                  { value: 'راتب شهري', label: 'راتب شهري' },
-                  { value: 'رقم دفعة', label: 'رقم دفعة' },
-                  { value: 'تسجيل أهداف', label: 'تسجيل أهداف' },
-                  { value: 'منحة مقابلات', label: 'منحة مقابلات' },
-                  { value: 'مصاريف التنقل', label: 'مصاريف التنقل' },
-                  { value: 'نتيجة', label: 'نتيجة' },
-                  { value: 'تحفيز', label: 'تحفيز' },
-                  { value: 'جزء من المستحقات', label: 'جزء من المستحقات' },
-                  { value: 'باقي المستحقات', label: 'باقي المستحقات' },
-                  { value: 'تسوية جزئية', label: 'تسوية جزئية' },
-                  { value: 'تسوية نهائية', label: 'تسوية نهائية' },
-                  { value: 'سلفة', label: 'سلفة' },
-                  { value: 'إرجاع سلفة', label: 'إرجاع سلفة' },
-                  { value: 'مصاريف استثنائية', label: 'مصاريف استثنائية' },
-                  { value: 'تعويض مصاريف', label: 'تعويض مصاريف' },
-                  { value: 'تنقل', label: 'تنقل' },
-                  { value: 'اقامة', label: 'اقامة' },
-                  { value: 'إطعام', label: 'إطعام' },
-                  { value: 'تجهيزات', label: 'تجهيزات' },
-                  { value: 'صيانة', label: 'صيانة' },
-                  { value: 'فواتير', label: 'فواتير' },
-                  { value: 'كراء', label: 'كراء' },
-                  { value: 'اخرى', label: 'اخرى' }
-                ]
-              }
+              options={[
+                { value: '', label: 'الكل' },
+                ...naturesFor(controller.expenseTransactionTypeFilter, MEMBER_NATURES, EXPENSE_NATURES).map(n => ({ value: n, label: n })),
+              ]}
               value={controller.expenseTypeFilter}
               onChange={(val) => controller.setExpenseTypeFilter(val)}
               placeholder="اختر طبيعة المصروف"
@@ -366,6 +305,14 @@ export const Reports: React.FC = () => {
                     <div className="fc-icon" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}><FileText size={28} /></div>
                     <div className="fc-content">
                       <span className="fc-title">المستحق حتى اليوم</span>
+                      <span className="fc-value text-danger">{controller.formatCurrency(summary.due)}</span>
+                    </div>
+                  </div>
+
+                  <div className="financial-card">
+                    <div className="fc-icon" style={{ background: 'rgba(100, 116, 139, 0.1)', color: '#64748b' }}><Briefcase size={28} /></div>
+                    <div className="fc-content">
+                      <span className="fc-title">المتبقي من العقد</span>
                       <span className="fc-value">{controller.formatCurrency(summary.remaining)}</span>
                     </div>
                   </div>
@@ -396,26 +343,38 @@ export const Reports: React.FC = () => {
             (() => {
               const summary = controller.getExpenseSummary();
               return (
-                <div className="report-metrics">
-                  <div className="report-metric-card">
-                    <div className="report-metric-icon">
-                      <FileText size={24} />
+                <>
+                  <div className="financial-cards-grid">
+                    <div className="financial-card">
+                      <div className="fc-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}><FileText size={28} /></div>
+                      <div className="fc-content">
+                        <span className="fc-title">عدد العمليات</span>
+                        <span className="fc-value">{summary.count}</span>
+                      </div>
                     </div>
-                    <div className="report-metric-info">
-                      <span className="report-metric-title">مجموع العمليات</span>
-                      <span className="report-metric-value">{summary.payments.length}</span>
+                    <div className="financial-card">
+                      <div className="fc-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><CreditCard size={28} /></div>
+                      <div className="fc-content">
+                        <span className="fc-title">إجمالي المصروف</span>
+                        <span className="fc-value text-danger">{controller.formatCurrency(summary.spent)}</span>
+                      </div>
+                    </div>
+                    <div className="financial-card">
+                      <div className="fc-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><Landmark size={28} /></div>
+                      <div className="fc-content">
+                        <span className="fc-title">إرجاع السلف</span>
+                        <span className="fc-value text-success">{controller.formatCurrency(summary.returned)}</span>
+                      </div>
+                    </div>
+                    <div className="financial-card highlight-card">
+                      <div className="fc-icon"><AlertCircle size={28} /></div>
+                      <div className="fc-content">
+                        <span className="fc-title">الصافي (المصروف − الإرجاع)</span>
+                        <span className="fc-value">{controller.formatCurrency(summary.net)}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="report-metric-card">
-                    <div className="report-metric-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                      <Landmark size={24} />
-                    </div>
-                    <div className="report-metric-info">
-                      <span className="report-metric-title">إجمالي المصاريف</span>
-                      <span className="report-metric-value text-danger">{controller.formatCurrency(summary.totalAmount)}</span>
-                    </div>
-                  </div>
-                </div>
+                </>
               );
             })()
           ) : controller.activeCategory === 'contracts' ? (
@@ -450,21 +409,74 @@ export const Reports: React.FC = () => {
           ) : controller.activeCategory === 'funds' ? (
             (() => {
               const summary = controller.getFundsSummary();
+              const fundName = controller.fundFilter ? summary.funds[0]?.name : '';
               return (
                 <div className="financial-cards-grid">
                   <div className="financial-card highlight-card">
                     <div className="fc-icon" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}><Landmark size={28} /></div>
                     <div className="fc-content">
-                      <span className="fc-title">إجمالي رصيد الصناديق</span>
+                      <span className="fc-title">{controller.toDate ? `الرصيد في ${controller.toDate}` : 'الرصيد الحالي'}{fundName ? ` · ${fundName}` : ''}</span>
                       <span className="fc-value">{controller.formatCurrency(summary.totalBalance)}</span>
                     </div>
                   </div>
+                  <div className="financial-card">
+                    <div className="fc-icon" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}><CreditCard size={28} /></div>
+                    <div className="fc-content">
+                      <span className="fc-title">المدفوع من {fundName ? 'الصندوق' : 'الصناديق'}</span>
+                      <span className="fc-value text-danger">{controller.formatCurrency(summary.totalPaid)}</span>
+                    </div>
+                  </div>
+                  {/* Deposits: each fund on its own */}
+                  {summary.funds.map(f => (
+                    <div key={f.id} className="financial-card">
+                      <div className="fc-icon" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}><Wallet size={28} /></div>
+                      <div className="fc-content">
+                        <span className="fc-title">إيداعات {f.name}</span>
+                        <span className="fc-value text-success">{controller.formatCurrency(f.totalDeposits)}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               );
             })()
           ) : (
             renderEmptyState()
           )}
+
+          {/* What the active contracts commit the club to each month (not what was paid) */}
+          {(controller.activeCategory === 'expenses' || controller.activeCategory === 'contracts') && (() => {
+            const k = controller.getContractCommitments();
+            return (
+              <div className="commitments">
+                <div className="commitments-grid">
+                  <div className="commitment">
+                    <span className="commitment-icon salary"><Wallet size={22} /></span>
+                    <span className="commitment-text">
+                      <small>مجموع الرواتب الشهرية</small>
+                      <b>{controller.formatCurrency(k.salaryTotal)}</b>
+                      <em>{k.salaryCount} عضو يتقاضى راتباً شهرياً</em>
+                    </span>
+                  </div>
+                  <div className="commitment">
+                    <span className="commitment-icon transport"><Bus size={22} /></span>
+                    <span className="commitment-text">
+                      <small>مجموع مصاريف التنقل</small>
+                      <b>{controller.formatCurrency(k.transportTotal)}</b>
+                      <em>{k.transportCount} عضو لديه مصاريف تنقل في العقد</em>
+                    </span>
+                  </div>
+                  <div className="commitment total">
+                    <span className="commitment-icon"><Landmark size={22} /></span>
+                    <span className="commitment-text">
+                      <small>المجموع الشهري</small>
+                      <b>{controller.formatCurrency(Math.round((k.salaryTotal + k.transportTotal) * 100) / 100)}</b>
+                      <em>الرواتب + التنقل</em>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         <div className="report-table-wrapper" style={{ marginTop: '32px' }}>
@@ -534,7 +546,10 @@ export const Reports: React.FC = () => {
                     <thead>
                       <tr>
                         <th>التاريخ</th>
+                        <th>نوع العملية</th>
+                        <th>المستفيد</th>
                         <th>طبيعة المصروف</th>
+                        <th>السبب / المناسبة</th>
                         <th>طريقة الدفع</th>
                         <th>المبلغ</th>
                       </tr>
@@ -545,21 +560,29 @@ export const Reports: React.FC = () => {
                         if (summary.payments.length === 0) {
                           return (
                             <tr>
-                              <td colSpan={4} className="text-center py-4 text-muted">
+                              <td colSpan={7} className="text-center py-4 text-muted">
                                 {t('reports.no_data', 'لا توجد بيانات')}
                               </td>
                             </tr>
                           );
                         }
                         const paginatedExpenses = summary.payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
-                        return paginatedExpenses.map(payment => (
-                          <tr key={payment.id}>
-                            <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.paymentDate}</td>
-                            <td data-label={t('reports.expense_nature', 'طبيعة المصروف')}>{payment.amountNature} {payment.occasion ? `(${payment.occasion})` : ''}</td>
-                            <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
-                            <td className="amount-cell text-danger" data-label={t('reports.amount', 'المبلغ')}>{controller.formatCurrency(payment.amount)}</td>
-                          </tr>
-                        ));
+                        return paginatedExpenses.map(payment => {
+                          const member = payment.memberId ? controller.members.find(m => String(m.id) === String(payment.memberId)) : undefined;
+                          return (
+                            <tr key={payment.id}>
+                              <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{payment.day || payment.paymentDate || '—'}</td>
+                              <td data-label="نوع العملية">{payment.kind}</td>
+                              <td data-label="المستفيد">{member ? `${member.first_name} ${member.last_name}` : '—'}</td>
+                              <td data-label={t('reports.expense_nature', 'طبيعة المصروف')}>{payment.amountNature}</td>
+                              <td data-label="السبب / المناسبة">{paymentOccasionText(payment) || '—'}</td>
+                              <td data-label={t('reports.method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                              <td className={`amount-cell ${payment.isReturn ? 'text-success' : 'text-danger'}`} data-label={t('reports.amount', 'المبلغ')}>
+                                {payment.isReturn ? '+ ' : ''}{controller.formatCurrency(Number(payment.amount) || 0)}
+                              </td>
+                            </tr>
+                          );
+                        });
                       })()}
                     </tbody>
                     </table>

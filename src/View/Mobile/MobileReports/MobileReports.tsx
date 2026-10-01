@@ -6,6 +6,7 @@ import { MobileSelect, type MobileSelectOption } from '../widgets/MobileSelect';
 import type { useReportsController } from '../../Screen/Reports/ReportsController';
 import type { ReportCategory } from '../../Screen/Reports/report_model';
 import { TYPE_LABELS } from '../MobileMembers/memberLabels';
+import { groupOf } from '../../Screen/Reports/reportMath';
 import {
   CATEGORIES, INDIVIDUAL_TABS, PERIODS, INDIVIDUAL_NATURES, EXPENSE_TYPES, expenseNatures, FUND_TX_TYPES, withAll,
 } from './reportUtils';
@@ -56,7 +57,7 @@ export const MobileReports: React.FC<MobileReportsProps> = ({ c, allowed, canDel
   const memberOptions = [
     { value: '', label: 'الكل' },
     ...c.members
-      .filter(m => (cat === 'individuals' ? m.type === c.activeIndividualTab : true))
+      .filter(m => (cat === 'individuals' ? groupOf(m.type) === groupOf(c.activeIndividualTab) : true))
       .map(m => ({ value: m.id, label: `${m.first_name} ${m.last_name}`, group: cat === 'contracts' ? TYPE_LABELS[m.type] || 'أخرى' : undefined })),
   ];
 

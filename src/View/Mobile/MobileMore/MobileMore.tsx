@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo,
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat,
 } from 'lucide-react';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Approutes } from '../../../core/constant/routes';
@@ -26,15 +26,16 @@ type IconType = React.ComponentType<{ size?: number }>;
 const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Correspondences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
-  { title: 'الرياضي', names: ['Teams', 'Matches', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
+  { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Reports'] },
-  { title: 'الإدارة', names: ['Tasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
 const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   Teams: { icon: Shirt, color: '#22c55e' },
   Matches: { icon: Trophy, color: '#f97316' },
+  Travels: { icon: Bus, color: '#0ea5e9' },
   TrainingSessions: { icon: Calendar, color: '#0ea5e9' },
   AbsenceRequests: { icon: FileWarning, color: '#f59e0b' },
   MedicalRecords: { icon: Stethoscope, color: '#ef4444' },
@@ -45,6 +46,7 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   Funds: { icon: Wallet, color: '#f97316' },
   Reports: { icon: BarChart3, color: '#6366f1' },
   Tasks: { icon: ListTodo, color: '#f97316' },
+  PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
   Equipment: { icon: Package, color: '#f59e0b' },
