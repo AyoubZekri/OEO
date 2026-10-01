@@ -97,7 +97,7 @@ export const ReportRecords: React.FC<{ c: ReturnType<typeof useReportsController
     items = list.slice(0, limit).map(tx => {
       const from = nameOf(txFund(tx)) || '-';
       const to = tx.type === 'تحويل' ? nameOf(txTo(tx)) : undefined;
-      const tone = tx.type === 'إيداع' ? 'green' : tx.type === 'سحب' ? 'red' : 'blue';
+      const tone = tx.type === 'إيداع' ? 'green' : tx.type === 'سحب' || tx.type === 'تسديد دين' ? 'red' : 'blue';
       return (
         <article key={tx.id} className={`mrp-row tone-${tone}`}>
           <div className="mrp-row-main">

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaymentsController } from './PaymentsController';
 import type { PaymentRecord } from './payment_model';
-import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen, AlertCircle } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen, AlertCircle, CheckCircle2, Clock, HandCoins } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -17,6 +17,13 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobilePayments } from '../../Mobile/MobilePayments/MobilePayments';
 import { usePaymentForm } from './usePaymentForm';
 import { paymentNatureText } from './paymentText';
+import { useDebtsController } from '../Debts/useDebtsController';
+import { DebtOverlays } from '../Debts/parts/DebtOverlays';
+import { creditRows, isCredit } from './creditRows';
+import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
+import '../Tasks/Tasks.css';
+import '../Travels/Travels.css';
+import '../Debts/Debts.css';
 import './Payments.css';
 
 const PrintReceiptButton = ({ payment, member, contract, onPrint }: any) => {
@@ -39,7 +46,6 @@ export const Payments: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const paginatedPayments = controller.payments.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const [printOptionsDialog, setPrintOptionsDialog] = useState<{
     isOpen: boolean;
@@ -98,7 +104,6 @@ export const Payments: React.FC = () => {
     }, 200); // Wait for the component to render before printing
   };
   const {
-    payments,
     members,
     funds,
     contracts,
@@ -114,8 +119,22 @@ export const Payments: React.FC = () => {
     setFilterNature,
   } = controller;
 
+  // Expenses bought on credit (purchase debts): followed and paid from this page
+  const credit = useDebtsController({ kind: 'purchase', onChange: controller.reload });
+  // The list: purchases on credit still unpaid first, then the payments and expenses
+  const rows = [
+    ...creditRows(credit.debts, { search: controller.searchQuery, nature: controller.filterNature, fund: controller.selectedFundFilter }),
+    ...controller.payments,
+  ];
+  const paginatedPayments = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   // Form State (shared with the phone page)
-  const form = usePaymentForm(controller);
+  const form = usePaymentForm(controller, {
+    saveCredit: async data => {
+      await credit.save(data);
+      controller.closeDialog();
+    },
+  });
   const {
     transactionType, setTransactionType, memberId, setMemberId, fundId, setFundId, amount, setAmount,
     postalCheck, setPostalCheck, paymentMethod, setPaymentMethod, paymentDate, setPaymentDate,
@@ -137,6 +156,7 @@ export const Payments: React.FC = () => {
         <MobilePayments
           c={controller}
           form={form}
+          credit={credit}
           can={{
             add: hasAccess(permissions.payments.add),
             edit: hasAccess(permissions.payments.edit),
@@ -244,7 +264,7 @@ export const Payments: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {payments.length === 0 ? (
+            {rows.length === 0 ? (
               <tr>
                 <td colSpan={6} className="text-center py-4 text-muted">
                   {t('payments.no_data', 'لا توجد بيانات')}
@@ -252,6 +272,45 @@ export const Payments: React.FC = () => {
               </tr>
             ) : (
               paginatedPayments.map(payment => {
+                if (isCredit(payment)) {
+                  const d = payment.credit;
+                  return (
+                    <tr key={payment.id} className="credit-row">
+                      <td className="text-muted" data-label={t('payments.col_date', 'التاريخ')}>{payment.paymentDate}</td>
+                      <td className="font-weight-bold" data-label={t('payments.col_member', 'المستفيد')}>
+                        {d.creditor}
+                        <span className="credit-sub">شراء بالدين</span>
+                      </td>
+                      <td data-label={t('payments.col_nature', 'طبيعة المبلغ')}>{paymentNatureText(payment)}</td>
+                      <td className="amount-cell credit-amount" data-label={t('payments.col_amount', 'المبلغ')}>
+                        {formatCurrency(d.remaining)}
+                        {d.repaid > 0 && <span className="credit-sub">من أصل {moneyText(d.amount)}</span>}
+                      </td>
+                      <td data-label={t('payments.col_method', 'طريقة الدفع')}>
+                        <span className={`credit-badge ${d.overdue ? 'late' : ''}`}>
+                          <Clock size={13} />{d.overdue ? 'غير مدفوع · متأخر' : d.repaid > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}
+                        </span>
+                      </td>
+                      <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
+                        <div style={{ display: 'flex', gap: '8px' }}>
+                          {hasAccess(permissions.payments.add) && (
+                            <button className="btn-pay" onClick={() => credit.openRepay(d)} title="دفع">
+                              <HandCoins size={16} />دفع
+                            </button>
+                          )}
+                          <button className="btn-icon view" onClick={() => credit.openDebt(d)} title="التفاصيل" style={{ color: '#f97316' }}>
+                            <Eye size={18} />
+                          </button>
+                          {hasAccess(permissions.payments.edit) && (
+                            <button className="btn-icon edit" onClick={() => credit.openForm(d)} title="تعديل">
+                              <Edit size={18} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }
                 const member = getMemberDetails(payment.memberId);
                 return (
                   <tr key={payment.id}>
@@ -317,13 +376,15 @@ export const Payments: React.FC = () => {
         </table>
         </div>
         <Pagination 
-          totalItems={controller.payments.length} 
+          totalItems={rows.length} 
           itemsPerPage={itemsPerPage} 
           currentPage={currentPage} 
           onPageChange={setCurrentPage} 
           onItemsPerPageChange={setItemsPerPage} 
         />
       </div>
+
+      <DebtOverlays c={credit} mobile={false} />
 
       {/* Add/Edit Modal */}
       {isDialogOpen && (
@@ -394,6 +455,42 @@ export const Payments: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Expense paid now, or bought on credit (paid later from "مشتريات بالدين") */}
+                {transactionType === 'مصروف' && !editingPayment && form.canCredit && (
+                  <div className="form-group mb-4">
+                    <label>حالة الدفع</label>
+                    <div className="transaction-type-selector two">
+                      <label className="transaction-type-option">
+                        <input type="radio" name="creditMode" checked={!form.onCredit} onChange={() => form.setOnCredit(false)} />
+                        <div className="transaction-type-card">
+                          <div className="transaction-type-icon"><CheckCircle2 size={24} /></div>
+                          <span className="transaction-type-label">مدفوع الآن</span>
+                        </div>
+                      </label>
+                      <label className="transaction-type-option">
+                        <input type="radio" name="creditMode" checked={form.onCredit} onChange={() => form.setOnCredit(true)} />
+                        <div className="transaction-type-card">
+                          <div className="transaction-type-icon"><Clock size={24} /></div>
+                          <span className="transaction-type-label">بالدين (يُدفع لاحقاً)</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {form.creditMode && (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>البائع / المحل <span style={{ color: '#ef4444', marginRight: '4px' }}>*</span></label>
+                      <input type="text" className="form-control" value={form.creditor} onChange={e => form.setCreditor(e.target.value)} placeholder="مثال: محل الرياضة" />
+                    </div>
+                    <div className="form-group">
+                      <label>هاتف البائع (اختياري)</label>
+                      <input type="text" dir="ltr" className="form-control" value={form.creditorPhone} onChange={e => form.setCreditorPhone(e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
                 {/* Member Selection */}
                 {transactionType === 'دفع' && (
                   <div className="form-group mb-3">
@@ -413,7 +510,7 @@ export const Payments: React.FC = () => {
                 )}
 
                 {/* Fund Selection */}
-                {transactionType !== 'مصاريف استثنائية' && (
+                {transactionType !== 'مصاريف استثنائية' && !form.creditMode && (
                   <div className="form-group mb-3">
                     <label>
                       {t('payments.form_select_fund', 'تحديد صندوق الدفع')}
@@ -468,11 +565,25 @@ export const Payments: React.FC = () => {
                   </div>
                 )}
 
+                {form.creditMode ? (
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label>تاريخ الشراء</label>
+                      <input type="date" className="form-control" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required />
+                    </div>
+                    <div className="form-group">
+                      <label>آخر أجل للدفع (اختياري)</label>
+                      <input type="date" className="form-control" value={form.dueDate} min={paymentDate} onChange={e => form.setDueDate(e.target.value)} />
+                    </div>
+                  </div>
+                ) : (
                 <div className="form-group">
                   <label>{t('payments.form_payment_date', 'تاريخ الدفع')}</label>
                   <input type="date" className="form-control" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required />
                 </div>
+                )}
 
+                {!form.creditMode && (
                 <div className="form-row">
                   <div className="form-group">
                     <label>{t('payments.form_method', 'طريقة الدفع')}</label>
@@ -496,6 +607,7 @@ export const Payments: React.FC = () => {
                     </div>
                   )}
                 </div>
+                )}
 
                 <div className="form-row">
                   <div className="form-group" style={{ width: '100%' }}>
@@ -627,7 +739,7 @@ export const Payments: React.FC = () => {
 
                 {!['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة مقابلات', 'مصاريف التنقل'].includes(amountNature) && (
                   <div className="form-group">
-                    <label>{t('payments.form_occasion', 'المناسبة / السبب')}</label>
+                    <label>{form.creditMode ? 'ماذا اشترينا' : t('payments.form_occasion', 'المناسبة / السبب')}</label>
                     <input type="text" className="form-control" value={occasion} onChange={e => setOccasion(e.target.value)} required={amountNature === 'اخرى'} />
                   </div>
                 )}
@@ -648,9 +760,17 @@ export const Payments: React.FC = () => {
                 </div>
 
 
+                {form.creditMode && (
+                  <p className="payment-credit-note">
+                    <Clock size={15} />
+                    لا يُسحب أي مبلغ الآن ولا يُحسب مصروفاً: يظهر في «مشتريات بالدين»، وكل تسديد منه يُسجل مصروفاً.
+                  </p>
+                )}
+                {form.creditMode && form.creditError && <p className="payment-credit-error"><AlertCircle size={15} />{form.creditError}</p>}
+
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
                   <button type="button" className="btn-cancel" onClick={closeDialog}>{t('payments.cancel', 'إلغاء')}</button>
-                  <button type="submit" className="btn-primary">{t('payments.save', 'حفظ الدفعة')}</button>
+                  <button type="submit" className="btn-primary" disabled={form.creditSaving}>{form.creditMode ? 'تسجيل الشراء بالدين' : t('payments.save', 'حفظ الدفعة')}</button>
                 </div>
               </form>
             </div>

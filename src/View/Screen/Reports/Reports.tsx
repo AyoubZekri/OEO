@@ -194,7 +194,9 @@ export const Reports: React.FC = () => {
                   { value: 'إيداع', label: 'إيداع' },
                   { value: 'سحب', label: 'سحب' },
                   { value: 'تحويل', label: 'تحويل' },
-                  { value: 'إرجاع', label: 'إرجاع' }
+                  { value: 'إرجاع', label: 'إرجاع' },
+                  { value: 'استلاف', label: 'استلاف (دين)' },
+                  { value: 'تسديد دين', label: 'تسديد دين' }
                 ]}
                 value={controller.fundTransactionTypeFilter}
                 onChange={(val) => controller.setFundTransactionTypeFilter(val)}
@@ -691,7 +693,7 @@ export const Reports: React.FC = () => {
                                   <td className="text-muted" data-label={t('reports.date', 'التاريخ')}>{tx.date}</td>
                                   <td className="font-weight-bold" data-label={t('reports.fund', 'الصندوق')}>{fundNameDisplay}</td>
                                   <td data-label={t('reports.type', 'النوع')}>
-                                    <span className={`status-badge ${tx.type === 'إيداع' ? 'active' : tx.type === 'سحب' ? 'inactive' : 'pending'}`}>
+                                    <span className={`status-badge ${tx.type === 'إيداع' ? 'active' : tx.type === 'سحب' || tx.type === 'تسديد دين' ? 'inactive' : 'pending'}`}>
                                       {tx.type}
                                     </span>
                                   </td>

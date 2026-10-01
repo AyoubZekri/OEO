@@ -74,7 +74,7 @@ export const MobileFundDetails: React.FC<MobileFundDetailsProps> = ({
             <ul className="mfd-tx">
               {list.map(t => {
                 const sign = txSign(t, id);
-                const op = OPERATIONS.find(o => o.value === t.type) || OPERATIONS[0];
+                const op = OPERATIONS.find(o => o.value === t.type) || (sign > 0 ? OPERATIONS[0] : OPERATIONS[1]);
                 return (
                   <li key={t.id} className={sign > 0 ? 'in' : 'out'}>
                     <span className="mfd-tx-icon"><op.icon size={17} /></span>

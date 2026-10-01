@@ -31,6 +31,9 @@ body.dark-mode .mpy-page {
 .m-screen .tone-blue { --mpy-s: #3b82f6; }
 .mpy-page .tone-red,
 .m-screen .tone-red { --mpy-s: #ef4444; }
+.m-screen .tone-green { --mpy-s: #10b981; }
+.m-screen .tone-amber { --mpy-s: #f59e0b; }
+.mpy-page .tone-amber { --mpy-s: #f59e0b; }
 
 /* ── Dark hero ── */
 .mpy-hero {
@@ -1029,3 +1032,9 @@ body.dark-mode .mpy-page {
 @keyframes mpy-spin {
   to { transform: rotate(360deg); }
 }
+
+/* Purchase on credit not paid yet */
+.mpy-card.mpy-credit { background: color-mix(in srgb, #f59e0b 6%, var(--ms-card, #fff)); }
+.mpy-chip.credit { background: rgba(245, 158, 11, 0.14); color: #b45309; font-weight: 800; }
+.mpy-chip.credit.late { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.mpy-credit .mpy-amount { color: #d97706; }

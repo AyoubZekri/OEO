@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Save, Loader2, UserRound, User, ChevronDown, Wallet, Tag, Calendar, CreditCard, Hash, StickyNote, AlertCircle, Minus, Plus,
-  FileSignature, Sparkles, Phone, CalendarDays,
+  FileSignature, Sparkles, Phone, CalendarDays, CheckCircle2, Clock, Store,
 } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileSelect } from '../widgets/MobileSelect';
@@ -38,7 +38,8 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
 
   const errors = {
     member: f.transactionType === 'دفع' && !f.memberId ? 'اختر العضو المستفيد' : null,
-    fund: f.transactionType !== 'مصاريف استثنائية' && !f.fundId ? 'اختيار الصندوق إجباري' : null,
+    fund: f.transactionType !== 'مصاريف استثنائية' && !f.creditMode && !f.fundId ? 'اختيار الصندوق إجباري' : null,
+    creditor: f.creditMode && !f.creditor.trim() ? 'اكتب اسم البائع أو المحل' : null,
     date: !f.paymentDate ? 'حدد تاريخ الدفع' : null,
     installment: f.amountNature === 'رقم دفعة' && !f.installmentNumber.trim() ? 'حدد رقم الدفعة' : null,
     goals: f.amountNature === 'تسجيل أهداف' && !(parseInt(f.numberOfGoals) >= 1) ? 'حدد عدد الأهداف' : null,
@@ -72,9 +73,9 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
       onBack={c.closeDialog}
       layer={2}
       footer={(
-        <button type="button" className="me-btn primary" onClick={save} disabled={c.isLoading}>
-          {c.isLoading ? <Loader2 size={18} className="mpy-spin" /> : <Save size={18} />}
-          {c.isLoading ? 'جاري الحفظ...' : 'حفظ العملية'}
+        <button type="button" className="me-btn primary" onClick={save} disabled={c.isLoading || f.creditSaving}>
+          {c.isLoading || f.creditSaving ? <Loader2 size={18} className="mpy-spin" /> : <Save size={18} />}
+          {c.isLoading || f.creditSaving ? 'جاري الحفظ...' : f.creditMode ? 'تسجيل الشراء بالدين' : 'حفظ العملية'}
         </button>
       )}
     >
@@ -91,7 +92,38 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         </div>
       </section>
 
-      {/* Who and from which fund */}
+      {/* Expense paid now, or bought on credit (paid later from "مشتريات بالدين") */}
+      {f.transactionType === 'مصروف' && !c.editingPayment && f.canCredit && (
+        <section className="me-card">
+          <h3 className="me-section-title"><span><Clock size={16} /></span>حالة الدفع</h3>
+          <div className="mpy-kinds two">
+            <button type="button" className={`tone-green ${!f.onCredit ? 'on' : ''}`} onClick={() => f.setOnCredit(false)}>
+              <span className="mpy-kind-icon"><CheckCircle2 size={19} /></span>
+              مدفوع الآن
+            </button>
+            <button type="button" className={`tone-amber ${f.onCredit ? 'on' : ''}`} onClick={() => f.setOnCredit(true)}>
+              <span className="mpy-kind-icon"><Clock size={19} /></span>
+              بالدين
+            </button>
+          </div>
+          {f.creditMode && <p className="mpy-note">لا يُسحب أي مبلغ الآن: يظهر في «مشتريات بالدين»، وكل تسديد منه يُسجل مصروفاً.</p>}
+        </section>
+      )}
+
+      {f.creditMode ? (
+        <section className="me-card">
+          <h3 className="me-section-title"><span><Store size={16} /></span>البائع</h3>
+          <label className="me-field">
+            <span className="me-label"><Store size={14} /> البائع / المحل *</span>
+            <input className="me-input" type="text" value={f.creditor} onChange={e => f.setCreditor(e.target.value)} placeholder="مثال: محل الرياضة" />
+          </label>
+          {show(errors.creditor)}
+          <label className="me-field">
+            <span className="me-label"><Phone size={14} /> الهاتف (اختياري)</span>
+            <input className="me-input" type="tel" dir="ltr" value={f.creditorPhone} onChange={e => f.setCreditorPhone(e.target.value)} />
+          </label>
+        </section>
+      ) : (
       <section className="me-card">
         <h3 className="me-section-title"><span><Wallet size={16} /></span>{f.transactionType === 'دفع' ? 'المستفيد والصندوق' : 'الصندوق'}</h3>
 
@@ -170,6 +202,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
           <p className="mpy-note">لا تحتاج المصاريف الاستثنائية إلى تحديد صندوق.</p>
         )}
       </section>
+      )}
 
       {/* Nature of the amount and its details */}
       <section className="me-card">
@@ -264,7 +297,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         {hasOccasion && (
           <>
             <label className="me-field">
-              <span className="me-label"><StickyNote size={14} /> المناسبة / السبب{f.amountNature === 'اخرى' ? ' *' : ''}</span>
+              <span className="me-label"><StickyNote size={14} /> {f.creditMode ? 'ماذا اشترينا' : 'المناسبة / السبب'}{f.amountNature === 'اخرى' ? ' *' : ''}</span>
               <input className="me-input" type="text" value={f.occasion} onChange={e => f.setOccasion(e.target.value)} />
             </label>
             {show(errors.occasion)}
@@ -274,7 +307,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
 
       {/* Amount, date and method */}
       <section className="me-card">
-        <h3 className="me-section-title"><span><CreditCard size={16} /></span>المبلغ والدفع</h3>
+        <h3 className="me-section-title"><span><CreditCard size={16} /></span>{f.creditMode ? 'المبلغ والتاريخ' : 'المبلغ والدفع'}</h3>
         <label className="me-field">
           <span className="me-label">المبلغ (د.ج)</span>
           <CurrencyInput className="me-input mpy-big-input" value={f.amount} onChangeValue={f.setAmount} inputMode="numeric" />
@@ -283,7 +316,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         {show(errors.amount)}
 
         <label className="me-field">
-          <span className="me-label"><Calendar size={14} /> تاريخ الدفع</span>
+          <span className="me-label"><Calendar size={14} /> {f.creditMode ? 'تاريخ الشراء' : 'تاريخ الدفع'}</span>
           <input className="me-input" type="date" dir="ltr" value={f.paymentDate} onChange={e => f.setPaymentDate(e.target.value)} />
         </label>
         <div className="mpy-quick">
@@ -293,6 +326,14 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         </div>
         {show(errors.date)}
 
+        {f.creditMode && (
+          <label className="me-field">
+            <span className="me-label"><CalendarDays size={14} /> آخر أجل للدفع (اختياري)</span>
+            <input className="me-input" type="date" dir="ltr" value={f.dueDate} min={f.paymentDate} onChange={e => f.setDueDate(e.target.value)} />
+          </label>
+        )}
+
+        {!f.creditMode && (
         <div className="me-field">
           <span className="me-label"><CreditCard size={14} /> طريقة الدفع</span>
           <div className="mpy-methods">
@@ -301,12 +342,14 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
             ))}
           </div>
         </div>
-        {f.paymentMethod === 'صك' && (
+        )}
+        {!f.creditMode && f.paymentMethod === 'صك' && (
           <label className="me-field">
             <span className="me-label"><Hash size={14} /> رقم الصك</span>
             <input className="me-input" type="text" dir="ltr" value={f.postalCheck} onChange={e => f.setPostalCheck(e.target.value)} />
           </label>
         )}
+        {f.creditMode && f.creditError && <p className="mpy-form-error"><AlertCircle size={14} /> {f.creditError}</p>}
       </section>
 
       <section className="me-card">

@@ -15,6 +15,7 @@ import { RequirePermission } from './View/widget/RequirePermission';
 import { Teams } from './View/Screen/Teams/Teams';
 import { Payments } from './View/Screen/Payments/Payments';
 import { Funds } from './View/Screen/Funds/Funds';
+import { Debts } from './View/Screen/Debts/Debts';
 import { Reports } from './View/Screen/Reports/Reports';
 import { Equipment } from './View/Screen/Equipment/Equipment';
 import { EquipmentOperations } from './View/Screen/Equipment/EquipmentOperations';
@@ -42,7 +43,7 @@ import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -72,6 +73,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Contracts} element={<RequirePermission module="contracts"><Contracts /></RequirePermission>} />
             <Route path={Approutes.Payments} element={<RequirePermission module="payments"><Payments /></RequirePermission>} />
             <Route path={Approutes.Funds} element={<RequirePermission module="funds"><Funds /></RequirePermission>} />
+            <Route path={Approutes.Debts} element={<RequirePermission module="debts"><Debts /></RequirePermission>} />
             <Route path={Approutes.Reports} element={<RequirePermission module="reports"><Reports /></RequirePermission>} />
             <Route path={Approutes.Teams} element={<RequirePermission module="teams"><Teams /></RequirePermission>} />
             <Route path={Approutes.Equipment} element={<RequirePermission module="equipment"><Equipment /></RequirePermission>} />

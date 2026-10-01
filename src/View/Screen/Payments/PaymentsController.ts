@@ -227,6 +227,7 @@ export const usePaymentsController = () => {
   });
 
   return {
+    reload: fetchPayments,
     payments: filteredPayments,
     members,
     funds,

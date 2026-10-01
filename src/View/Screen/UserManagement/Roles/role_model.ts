@@ -108,6 +108,14 @@ export interface FundsPermissions {
   addTransaction: boolean;
 }
 
+export interface DebtsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+  repay: boolean;
+}
+
 export interface ReportsPermissions {
   view: boolean;
   viewIndividuals: boolean;
@@ -192,6 +200,7 @@ export interface AppPermissions {
   contracts: ContractsPermissions;
   payments: PaymentsPermissions;
   funds: FundsPermissions;
+  debts: DebtsPermissions;
   reports: ReportsPermissions;
   equipment: EquipmentPermissions;
   equipmentOperations: EquipmentOperationsPermissions;
@@ -222,6 +231,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   contracts: ['add', 'edit', 'delete', 'print', 'renew'],
   payments: ['add', 'edit', 'delete', 'print'],
   funds: ['add', 'edit', 'delete', 'addTransaction'],
+  debts: ['add', 'edit', 'delete', 'repay'],
   reports: ['viewIndividuals', 'viewTeams', 'viewContracts', 'viewFunds'],
   equipment: ['add', 'edit', 'delete', 'print'],
   equipmentOperations: ['handover', 'return', 'edit', 'delete', 'print'],
@@ -234,7 +244,7 @@ export const PERMISSION_DOMAINS: { key: string; label: string; modules: Permissi
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical', 'travels'] },
   { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'correspondences', 'tasks'] },
-  { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'reports'] },
+  { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
 ];
@@ -297,6 +307,11 @@ export const parsePermissions = (parsed: any): AppPermissions => {
     }
     // Roles saved before the tasks section: everyone sees the tasks given to them (same rule as the server)
     if (m === 'tasks' && stored === undefined) merged.view = true;
+    // Roles saved before the debts section: whoever manages the funds manages the debts
+    if (m === 'debts' && stored === undefined) {
+      const funds = parsed?.funds || {};
+      Object.assign(merged, { view: funds.view === true, add: funds.add === true, edit: funds.edit === true, delete: funds.delete === true, repay: funds.addTransaction === true });
+    }
     result[m] = merged;
   });
 

@@ -30,7 +30,10 @@ export const txFund = (t: FundTransaction) => String(t.fundId ?? (t as any).fund
 export const txTo = (t: FundTransaction) => String(t.toFundId ?? (t as any).to_fund_id ?? '');
 export const txAmount = (t: FundTransaction) => Number(t.amount) || 0;
 
+/** Types that put money into the fund: deposits, refunds of cancelled payments, loans received (debts) */
+const MONEY_IN: string[] = ['إيداع', 'إرجاع', 'استلاف'];
+
 /** How a transaction moves this fund's money: +1 in, -1 out */
 export const txSign = (t: FundTransaction, fundId: string) =>
-  t.type === 'إيداع' || (t.type === 'تحويل' && txTo(t) === fundId && txFund(t) !== fundId) ? 1 : -1;
+  MONEY_IN.includes(t.type) || (t.type === 'تحويل' && txTo(t) === fundId && txFund(t) !== fundId) ? 1 : -1;
 /* eslint-enable @typescript-eslint/no-explicit-any */

@@ -40,7 +40,7 @@ export const EXPENSE_TYPES: string[] = TRANSACTION_KINDS;
 /** Same choices as the desktop: the natures of the chosen type, all of them without repeats otherwise */
 export const expenseNatures = (type: string) => naturesFor(type, MEMBER_NATURES, EXPENSE_NATURES);
 
-export const FUND_TX_TYPES = ['إيداع', 'سحب', 'تحويل', 'إرجاع'];
+export const FUND_TX_TYPES = ['إيداع', 'سحب', 'تحويل', 'إرجاع', 'استلاف', 'تسديد دين'];
 
 /** Options of a bottom-sheet filter, with "الكل" first */
 export const withAll = (values: string[]) => [{ value: '', label: 'الكل' }, ...values.map(v => ({ value: v, label: v }))];

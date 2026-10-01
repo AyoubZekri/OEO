@@ -26,7 +26,24 @@ const getDefaultSeasonYear = () => {
 };
 
 // Add / edit payment form state, shared by the desktop dialog and the phone page
-export const usePaymentForm = (controller: ReturnType<typeof usePaymentsController>) => {
+/** A purchase on credit as the debts API takes it */
+export interface CreditPurchase {
+  kind: 'purchase';
+  creditor: string;
+  creditor_phone: string | null;
+  title: string | null;
+  amount: number;
+  debt_date: string;
+  due_date: string | null;
+  expense_nature: string;
+  notes: string | null;
+}
+
+/**
+ * `saveCredit`: records an expense bought on credit (not paid yet) as a purchase debt;
+ * it is paid later, in parts or at once, from the "مشتريات بالدين" view of the same page.
+ */
+export const usePaymentForm = (controller: ReturnType<typeof usePaymentsController>, { saveCredit }: { saveCredit?: (data: CreditPurchase) => Promise<void> } = {}) => {
   const { contracts, editingPayment, openDialog, savePayment, getMemberDetails } = controller;
 
   const [transactionType, setTransactionType] = useState<TransactionKind>('دفع');
@@ -48,6 +65,13 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
   const [notes, setNotes] = useState('');
   const [selectedContractId, setSelectedContractId] = useState('');
   const [formSubmitted, setFormSubmitted] = useState(false);
+  // Expense bought on credit: who we owe, and when it is due
+  const [onCredit, setOnCredit] = useState(false);
+  const [creditor, setCreditor] = useState('');
+  const [creditorPhone, setCreditorPhone] = useState('');
+  const [dueDate, setDueDate] = useState('');
+  const [creditSaving, setCreditSaving] = useState(false);
+  const [creditError, setCreditError] = useState('');
 
   // Auto-calculate amount based on contract and amountNature
   /* eslint-disable react-hooks/set-state-in-effect -- original desktop behaviour, moved here unchanged */
@@ -88,7 +112,12 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
   }, [memberId, amountNature, numberOfGoals, installmentNumber, numberOfMonths, contracts, editingPayment, selectedContractId]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const handleOpenDialog = (payment?: PaymentRecord) => {
+  const handleOpenDialog = (payment?: PaymentRecord, credit = false) => {
+    setOnCredit(credit);
+    setCreditor('');
+    setCreditorPhone('');
+    setDueDate('');
+    setCreditError('');
     if (payment) {
       setTransactionType(payment.transactionType || (payment as any).transaction_type || (payment as any).type || 'دفع');
       setMemberId(payment.memberId || (payment as any).id_individuals?.toString() || '');
@@ -157,6 +186,10 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
       setNumberOfGoals('');
       setNotes('');
       setSelectedContractId('');
+      if (credit) {
+        setTransactionType('مصروف');
+        setAmountNature('تجهيزات');
+      }
     }
     setFormSubmitted(false);
     openDialog(payment);
@@ -172,9 +205,42 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
     }
   };
 
+  /** The expense is on credit: only a new expense (مصروف) can be, and only when the page handles it */
+  const creditMode = onCredit && transactionType === 'مصروف' && !editingPayment && !!saveCredit;
+
+  const saveOnCredit = async () => {
+    if (!creditor.trim()) return setCreditError('اكتب اسم البائع أو المحل');
+    if (!(parseFloat(amount) > 0)) return setCreditError('اكتب المبلغ');
+    if (!paymentDate) return setCreditError('حدد تاريخ الشراء');
+    if (dueDate && dueDate < paymentDate) return setCreditError('تاريخ الاستحقاق يجب أن يكون بعد تاريخ الشراء');
+    setCreditError('');
+    setCreditSaving(true);
+    try {
+      await saveCredit!({
+        kind: 'purchase',
+        creditor: creditor.trim(),
+        creditor_phone: creditorPhone.trim() || null,
+        title: occasion.trim() || null,
+        amount: parseFloat(amount) || 0,
+        debt_date: paymentDate,
+        due_date: dueDate || null,
+        expense_nature: amountNature,
+        notes: notes.trim() || null,
+      });
+    } catch (err) {
+      setCreditError((err as Error).message);
+    } finally {
+      setCreditSaving(false);
+    }
+  };
+
   const handleSave = (e?: React.FormEvent) => {
     e?.preventDefault();
     setFormSubmitted(true);
+    if (creditMode) {
+      saveOnCredit();
+      return;
+    }
     if (transactionType === 'دفع' && !memberId) return;
     if (transactionType !== 'مصاريف استثنائية' && !fundId) return;
 
@@ -235,6 +301,12 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
     handleOpenDialog,
     handleSave,
     selectedMemberDetails,
+    canCredit: !!saveCredit,
+    onCredit, setOnCredit, creditMode,
+    creditor, setCreditor,
+    creditorPhone, setCreditorPhone,
+    dueDate, setDueDate,
+    creditSaving, creditError,
   };
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */

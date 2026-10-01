@@ -18,7 +18,8 @@ export const Home: React.FC = () => {
 
   const getBadgeClass = (type: string) => {
     if (type === 'إيداع' || type === 'دفعة عقد' || type === 'راتب') return 'badge badge-green';
-    if (type === 'سحب') return 'badge badge-red';
+    if (type === 'سحب' || type === 'تسديد دين') return 'badge badge-red';
+    if (type === 'استلاف') return 'badge badge-blue';
     if (type === 'تحويل') return 'badge badge-blue';
     return 'badge badge-purple';
   };

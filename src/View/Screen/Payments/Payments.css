@@ -485,3 +485,42 @@ body.dark-mode .transaction-type-option input[type="radio"]:checked + .transacti
     width: 100%;
   }
 }
+
+/* Purchases on credit not paid yet, in the list with the payments */
+.custom-table tr.credit-row td { background: rgba(245, 158, 11, 0.06); }
+.credit-sub { display: block; margin-top: 2px; color: var(--text-muted, #64748b); font-size: 0.75rem; font-weight: 600; }
+.credit-amount { color: #d97706 !important; }
+
+.credit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.credit-badge.late { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+
+.btn-pay {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  background: #10b981;
+  color: #fff;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-pay:hover { background: #059669; }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat,
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark,
 } from 'lucide-react';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Approutes } from '../../../core/constant/routes';
@@ -27,7 +27,7 @@ const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Corresp
 
 const GROUPS: { title: string; names: string[] }[] = [
   { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
-  { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Reports'] },
+  { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
   { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
@@ -44,6 +44,7 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   Contracts: { icon: FileText, color: '#3b82f6' },
   Payments: { icon: Banknote, color: '#10b981' },
   Funds: { icon: Wallet, color: '#f97316' },
+  Debts: { icon: Landmark, color: '#ef4444' },
   Reports: { icon: BarChart3, color: '#6366f1' },
   Tasks: { icon: ListTodo, color: '#f97316' },
   PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },

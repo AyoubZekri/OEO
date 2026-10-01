@@ -200,8 +200,9 @@ const effectOn = (t: FundTx, fundId: string) => {
   const type = String(t.type || '').trim();
   if (type === 'تحويل') return (to === fundId ? amount : 0) - (from === fundId ? amount : 0);
   if (from !== fundId) return 0;
-  if (type === 'إيداع' || type === 'إرجاع') return amount;
-  if (type === 'سحب') return -amount;
+  // استلاف / تسديد دين: a loan received into the fund, and paid back from it (debts)
+  if (type === 'إيداع' || type === 'إرجاع' || type === 'استلاف') return amount;
+  if (type === 'سحب' || type === 'تسديد دين') return -amount;
   return 0;
 };
 

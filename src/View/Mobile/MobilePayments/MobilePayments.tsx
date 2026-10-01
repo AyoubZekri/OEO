@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Plus, Eye, Pencil, Trash2, Search, X, Filter, ChevronDown, Wallet, Banknote, Printer, Paperclip, RefreshCw, Calendar,
-  CheckCircle2, BookOpen,
+  CheckCircle2, BookOpen, Clock, HandCoins,
 } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -17,6 +17,9 @@ import { moneyText } from '../MobileContracts/contractUtils';
 import {
   type PaymentPermissions, KINDS, kindOf, kindMeta, amountOf, dateOf, methodOf, fundOf, monthKey, monthTitle,
 } from './paymentUtils';
+import type { DebtsController } from '../../Screen/Debts/useDebtsController';
+import { DebtOverlays } from '../../Screen/Debts/parts/DebtOverlays';
+import { creditRows, isCredit } from '../../Screen/Payments/creditRows';
 import { MobilePaymentDetails } from './MobilePaymentDetails';
 import { MobilePaymentForm } from './MobilePaymentForm';
 import { MobileReceiptUpload, MobileReceiptView } from './MobileReceipt';
@@ -25,6 +28,8 @@ import './MobilePayments.css';
 interface MobilePaymentsProps {
   c: ReturnType<typeof usePaymentsController>;
   form: ReturnType<typeof usePaymentForm>;
+  /** Expenses bought on credit */
+  credit: DebtsController;
   can: PaymentPermissions;
   onPrint: (payment: PaymentRecord) => void;
   printOpen: boolean;
@@ -40,15 +45,17 @@ const NATURE_OPTIONS = [
 
 // Phone version of the payments page: totals, search, filters, operations grouped by month; every action on its own page
 export const MobilePayments: React.FC<MobilePaymentsProps> = ({
-  c, form, can, onPrint, printOpen, onPrintChoose, onPrintClose,
+  c, form, credit, can, onPrint, printOpen, onPrintChoose, onPrintClose,
 }) => {
   const [kind, setKind] = useState('');
   const [detailsId, setDetailsId] = useUrlDetails('payment');
   const [viewing, setViewing] = useState<string | null>(null);
 
-  // c.payments is already filtered by search, fund and nature
-  const list = (kind ? c.payments.filter(p => kindOf(p) === kind) : c.payments)
-    .slice()
+  // c.payments is already filtered by search, fund and nature; the unpaid purchases on credit are expenses
+  const unpaid = kind && kind !== 'مصروف'
+    ? []
+    : creditRows(credit.debts, { search: c.searchQuery, nature: c.filterNature, fund: c.selectedFundFilter });
+  const list = [...unpaid, ...(kind ? c.payments.filter(p => kindOf(p) === kind) : c.payments)]
     .sort((a, b) => dateOf(b).localeCompare(dateOf(a)));
   const groups = list.reduce<{ key: string; items: PaymentRecord[] }[]>((acc, p) => {
     const key = monthKey(p);
@@ -58,7 +65,8 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
     return acc;
   }, []);
 
-  const sumOf = (items: PaymentRecord[]) => items.reduce((s, p) => s + amountOf(p), 0);
+  // Money paid: an unpaid purchase on credit is not counted
+  const sumOf = (items: PaymentRecord[]) => items.reduce((s, p) => s + (isCredit(p) ? 0 : amountOf(p)), 0);
   const details = detailsId ? c.payments.find(p => String(p.id) === detailsId) : undefined;
   const fund = c.funds.find(f => String(f.id) === c.selectedFundFilter);
   const personOf = (p: PaymentRecord) => c.getMemberDetails(p.memberId);
@@ -170,6 +178,41 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
                 <span dir="ltr">{moneyText(sumOf(g.items))}</span>
               </header>
               {g.items.map(p => {
+                if (isCredit(p)) {
+                  const d = p.credit;
+                  const openDebt = () => credit.openDebt(d);
+                  return (
+                    <article
+                      key={p.id}
+                      className="mpy-card tone-amber mpy-credit"
+                      role="button"
+                      tabIndex={0}
+                      onClick={openDebt}
+                      onKeyDown={e => { if (e.key === 'Enter') openDebt(); }}
+                    >
+                      <div className="mpy-card-top">
+                        <span className="mpy-kind-icon"><Clock size={19} /></span>
+                        <span className="mpy-card-text">
+                          <strong>{d.creditor}</strong>
+                          <small>{paymentNatureText(p)}</small>
+                        </span>
+                        <MobileRowMenu
+                          label="إجراءات الشراء بالدين"
+                          items={[
+                            ...(can.add ? [{ key: 'pay', label: 'دفع', icon: HandCoins, color: '#10b981', onClick: () => credit.openRepay(d) }] : []),
+                            { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: openDebt },
+                            ...(can.edit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => credit.openForm(d) }] : []),
+                          ]}
+                        />
+                      </div>
+                      <div className="mpy-card-foot">
+                        <em className="mpy-chip"><Calendar size={12} /> <span dir="ltr">{dateOf(p) || '—'}</span></em>
+                        <em className={`mpy-chip credit ${d.overdue ? 'late' : ''}`}>{d.overdue ? 'غير مدفوع · متأخر' : d.repaid > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}</em>
+                        <b className="mpy-amount" dir="ltr">{moneyText(d.remaining)}</b>
+                      </div>
+                    </article>
+                  );
+                }
                 const meta = kindMeta(p);
                 const name = nameOf(p);
                 const nature = paymentNatureText(p);
@@ -206,7 +249,13 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
       )}
 
       {can.add && (
-        <button type="button" className="mpy-fab" onClick={() => form.handleOpenDialog()} aria-label="إضافة دفعة أو مصروف" title="إضافة دفعة أو مصروف">
+        <button
+          type="button"
+          className="mpy-fab"
+          onClick={() => form.handleOpenDialog()}
+          aria-label="إضافة دفعة أو مصروف"
+          title="إضافة دفعة أو مصروف"
+        >
           <Plus size={22} strokeWidth={2.5} />
         </button>
       )}
@@ -228,6 +277,8 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
       )}
 
       {c.isDialogOpen && <MobilePaymentForm c={c} form={form} />}
+
+      <DebtOverlays c={credit} mobile />
 
       {c.isUploadDialogOpen && c.paymentForUpload && (
         <MobileReceiptUpload

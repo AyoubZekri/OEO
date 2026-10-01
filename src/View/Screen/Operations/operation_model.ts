@@ -18,7 +18,7 @@ export interface Operation {
 // Fund transaction types: deposits and refunds come in, transfers move money between funds, the rest goes out
 export const getOperationDirection = (type: string): OperationDirection => {
   if (type === 'تحويل') return 'transfer';
-  if (type === 'إيداع' || type === 'إرجاع' || type === 'إرجاع سلفة') return 'in';
+  if (type === 'إيداع' || type === 'إرجاع' || type === 'إرجاع سلفة' || type === 'استلاف') return 'in';
   return 'out';
 };
 
@@ -92,7 +92,8 @@ export const buildOperations = (
  * Money in is every deposit made to the funds (refunds of cancelled payments are not income).
  */
 export const operationTotals = (ops: Operation[], payments: PaymentRecord[]) => ({
-  in: ops.filter(op => op.direction === 'in' && !op.refund && op.id.startsWith('f_')).reduce((sum, op) => sum + op.amount, 0),
+  // A loan received (استلاف) puts money in a fund but is not income: it is a debt
+  in: ops.filter(op => op.direction === 'in' && !op.refund && op.type !== 'استلاف' && op.id.startsWith('f_')).reduce((sum, op) => sum + op.amount, 0),
   // Money paid out, an advance paid back reduces it (same rule as the home page and the expenses report)
   out: payments.reduce((sum, p) => sum + (Number(p.amount) || 0) * (String(p.amountNature ?? '').trim() === 'إرجاع سلفة' ? -1 : 1), 0),
 });
