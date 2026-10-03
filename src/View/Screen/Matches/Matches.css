@@ -780,3 +780,9 @@ body.dark-mode .mc-attendance-segbar {
     padding: 16px !important;
   }
 }
+
+/* The match opened from an alert */
+.match-card-new.focused {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}

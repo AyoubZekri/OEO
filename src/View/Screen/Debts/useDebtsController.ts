@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
+import { HandCoins, Eye, Pencil, Trash2 } from 'lucide-react';
+import type { MobileRowMenuItem } from '../../Mobile/widgets/MobileRowMenu';
 import { useCan } from '../../../core/functions/useCan';
 import { showSnackbar } from '../../../core/functions/Snacpar';
 import { useUrlDetails } from '../../Mobile/widgets/useUrlDetails';
@@ -105,8 +107,25 @@ export const useDebtsController = ({ kind, onChange }: { kind: DebtKind; onChang
 
   const debts = allDebts.filter(d => d.kind === kind);
 
+  const confirmRemove = (d: Debt) => {
+    const text = d.kind === 'loan'
+      ? `هل أنت متأكد من حذف دين «${d.creditor}»؟ يُسحب مبلغه من رصيد الصندوق وتُعاد مبالغ التسديدات إلى صناديقها.`
+      : `هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`;
+    if (window.confirm(text)) remove(d);
+  };
+
+  /** A debt's actions, shown on its card (icons on desktop, the ⋮ menu on phones), not in its details */
+  const actionsFor = (d: Debt): MobileRowMenuItem[] => [
+    ...(can('repay') && d.status !== 'paid'
+      ? [{ key: 'pay', label: kind === 'purchase' ? 'دفع' : 'تسديد', icon: HandCoins, color: '#10b981', onClick: () => setRepaying(d) }]
+      : []),
+    { key: 'view', label: 'التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => setDetailsId(d.id) },
+    ...(can('edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setForm({ debt: d, kind: d.kind }) }] : []),
+    ...(can('delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, color: '#ef4444', danger: true, onClick: () => confirmRemove(d) }] : []),
+  ];
+
   return {
-    can, debts, funds, loading, error, reload: load,
+    can, debts, funds, loading, error, reload: load, actionsFor,
     details, openDebt: (d: Debt) => setDetailsId(d.id), closeDebt: () => setDetailsId(null),
     kind,
     form, openForm: (debt: Debt | null = null) => setForm({ debt, kind: debt?.kind || kind }), closeForm: () => setForm(null),

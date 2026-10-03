@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, User, Shield, Users, List, FileText, CheckCircle, ClipboardList, ChevronDown, Activity, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
 import { AddMatchDialog } from './AddMatchDialog';
 import { MatchCallupsDialog } from './MatchCallupsDialog';
@@ -23,6 +23,8 @@ import { MobileMatchReport, MobileMatchReportForm } from '../../Mobile/MobileMat
 import { MobileMatchResult } from '../../Mobile/MobileMatches/MobileMatchResult';
 import { MobileMatchTimeline } from '../../Mobile/MobileMatches/MobileMatchTimeline';
 import { MobileMatchPlayerStats } from '../../Mobile/MobileMatches/MobileMatchPlayerStats';
+import { MyMatchParticipation } from '../../Mobile/MobileMatches/MyMatchParticipation';
+import { matchState } from '../../Mobile/MobileMatches/matchUtils';
 import '../Members/Members.css';
 import './Matches.css';
 
@@ -62,7 +64,8 @@ const isMatchEnded = (matchDate?: string) => {
   return diffHours > 2.5;
 };
 
-export const Matches = () => {
+/** personal: the personal space's page (the matches of my category, read only, with my call-up and attendance) */
+export const Matches = ({ personal = false }: { personal?: boolean }) => {
   const navigate = useNavigate();
   const {
     matches,
@@ -102,14 +105,23 @@ export const Matches = () => {
     selectedMatchForPlayerStats,
     openPlayerStatsDialog,
     closePlayerStatsDialog
-  } = useMatchesController();
+  } = useMatchesController({ personal });
 
   const [statusDropdownOpen, setStatusDropdownOpen] = useState<number | null>(null);
   const [rescheduleMatchId, setRescheduleMatchId] = useState<number | null>(null);
   const [rescheduleDate, setRescheduleDate] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const isMobile = useIsMobile();
-  const can = useCan();
+  // Personal space: read only, every management action is hidden
+  const allowed = useCan();
+  const can: typeof allowed = (...args) => !personal && allowed(...args);
+  // ?match=ID (from an alert): the match's card is brought into view and marked
+  const [params] = useSearchParams();
+  const focusId = isMobile ? null : params.get('match');
+  useEffect(() => {
+    if (!focusId || isLoading) return;
+    document.getElementById(`match-card-${focusId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusId, isLoading, matches]);
   // Bumped when the phone report form closes, so the report page shown under it reloads
   const [reportVersion, setReportVersion] = useState(0);
 
@@ -309,6 +321,7 @@ export const Matches = () => {
         <MobileMatches
           matches={matches}
           isLoading={isLoading}
+          personal={personal}
           actions={{
             add: openAddDialog,
             edit: openEditDialog,
@@ -366,7 +379,7 @@ export const Matches = () => {
       ) : (
         <div className="matches-grid">
           {filteredMatches.map((match) => (
-          <div key={match.id} className="match-card-new">
+          <div key={match.id} id={`match-card-${match.id}`} className={`match-card-new ${focusId && String(match.id) === focusId ? 'focused' : ''}`}>
 
             {/* Top Bar */}
             <div className="mc-top-bar">
@@ -682,8 +695,15 @@ export const Matches = () => {
                   </div>
                 </div>
               </div>
-              {/* Attendance Visual Bar */}
-              {(() => {
+              {/* My participation (personal space), or the category's attendance */}
+              {personal ? (
+                <div className="mc-attendance-bar-wrap">
+                  <div className="mc-attendance-bar-header">
+                    <span className="mc-attendance-bar-title">مشاركتي</span>
+                  </div>
+                  <MyMatchParticipation match={match} state={matchState(match)} />
+                </div>
+              ) : (() => {
                 const stats = match.attendance_stats;
                 const total = stats?.total ?? 0;
                 const present = stats?.present ?? 0;
@@ -712,8 +732,8 @@ export const Matches = () => {
 
 
 
-              {/* View Report Row */}
-              {match.team_score !== undefined && match.team_score !== null &&
+              {/* View Report Row (the administration's report: not in the personal space) */}
+              {!personal && match.team_score !== undefined && match.team_score !== null &&
                match.opponent_score !== undefined && match.opponent_score !== null && (
                 <button
                   className="mc-view-report-row"
@@ -726,7 +746,7 @@ export const Matches = () => {
               )}
 
             {/* Actions Divider */}
-            <div style={{ height: '1px', background: 'var(--border)', margin: '16px 0 12px 0', opacity: 0.6 }}></div>
+            {!personal && <div style={{ height: '1px', background: 'var(--border)', margin: '16px 0 12px 0', opacity: 0.6 }}></div>}
 
             {/* Actions */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -782,7 +802,7 @@ export const Matches = () => {
           <div className="no-matches">
             <Calendar size={48} style={{ color: 'var(--border)', marginBottom: '8px' }} />
             <h3>لا توجد مباريات</h3>
-            <p>{matches.length === 0 ? 'انقر على "إضافة مباراة" لإدراج مباراة جديدة في السجل.' : 'لا توجد نتائج للبحث، جرب اسم فريق مختلف.'}</p>
+            <p>{matches.length === 0 ? (personal ? 'لا توجد مباريات لفئتك.' : 'انقر على "إضافة مباراة" لإدراج مباراة جديدة في السجل.') : 'لا توجد نتائج للبحث، جرب اسم فريق مختلف.'}</p>
           </div>
         )}
       </div>

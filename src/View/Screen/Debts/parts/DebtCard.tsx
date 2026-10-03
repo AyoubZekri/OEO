@@ -1,7 +1,8 @@
 import React from 'react';
-import { Landmark, ShoppingBag, CalendarClock, ChevronLeft, HandCoins, Wallet, Tag } from 'lucide-react';
+import { Landmark, ShoppingBag, CalendarClock, ChevronLeft, Wallet, Tag } from 'lucide-react';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
 import { initials } from '../../Tasks/taskUtils';
+import { MobileRowMenu, type MobileRowMenuItem } from '../../../Mobile/widgets/MobileRowMenu';
 import { dayText, dueText, KIND_META, paidPercent, STATUS_META, toneOf, type Debt } from '../debtUtils';
 
 export const KindIcon: React.FC<{ debt: Debt; size?: number }> = ({ debt, size = 20 }) =>
@@ -50,7 +51,7 @@ export const StatusPill: React.FC<{ debt: Debt }> = ({ debt: d }) => {
  * One debt: the creditor, what is left (with the paid ring and bar), then the fund or nature and the due date.
  * `compact` (phones): creditor, what is left and the status.
  */
-export const DebtCard: React.FC<{ debt: Debt; onOpen: (d: Debt) => void; onRepay?: (d: Debt) => void; compact?: boolean }> = ({ debt: d, onOpen, onRepay, compact }) => {
+export const DebtCard: React.FC<{ debt: Debt; onOpen: (d: Debt) => void; actions?: MobileRowMenuItem[]; compact?: boolean }> = ({ debt: d, onOpen, actions = [], compact }) => {
   const tone = toneOf(d);
   const due = dueText(d);
   const paid = d.status === 'paid';
@@ -70,7 +71,9 @@ export const DebtCard: React.FC<{ debt: Debt; onOpen: (d: Debt) => void; onRepay
           </div>
           <DebtBar debt={d} />
         </div>
-        <ChevronLeft size={18} className="db-compact-go" aria-hidden="true" />
+        {actions.length
+          ? <span className="db-card-menu" onClick={e => e.stopPropagation()}><MobileRowMenu items={actions} label="إجراءات الدين" /></span>
+          : <ChevronLeft size={18} className="db-compact-go" aria-hidden="true" />}
       </article>
     );
   }
@@ -104,10 +107,22 @@ export const DebtCard: React.FC<{ debt: Debt; onOpen: (d: Debt) => void; onRepay
         <span className={`db-meta ${d.overdue ? 'late' : ''}`}>
           <CalendarClock size={14} />{due || (d.due_date ? dayText(d.due_date) : 'بدون أجل')}
         </span>
-        {onRepay && !paid && (
-          <button type="button" className="db-repay-btn" onClick={e => { e.stopPropagation(); onRepay(d); }}>
-            <HandCoins size={15} />تسديد
-          </button>
+        {actions.length > 0 && (
+          <span className="db-actions" onClick={e => e.stopPropagation()}>
+            {actions.filter(x => x.key !== 'view').map(x => (
+              <button
+                key={x.key}
+                type="button"
+                className={`db-act ${x.danger ? 'danger' : ''}`}
+                style={{ '--act': x.color } as React.CSSProperties}
+                title={x.label}
+                aria-label={x.label}
+                onClick={x.onClick}
+              >
+                <x.icon size={17} />
+              </button>
+            ))}
+          </span>
         )}
       </footer>
     </article>

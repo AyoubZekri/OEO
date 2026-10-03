@@ -23,7 +23,6 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
   const [saving, setSaving] = useState(false);
 
   const value = Number(amount.replace(',', '.')) || 0;
-  const fund = c.funds.find(f => String(f.id) === fundId);
   const after = Math.max(0, Math.round((d.remaining - value) * 100) / 100);
   const quick = [
     { label: 'كل الباقي', v: d.remaining },
@@ -68,7 +67,7 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
           {!mobile && <button type="button" className="btn-cancel tk-dlg-btn" onClick={c.closeRepay}>إلغاء</button>}
           <button type="button" className={`tk-btn primary ${mobile ? 'block' : 'tk-dlg-btn'}`} onClick={save} disabled={saving}>
             {saving ? <Loader2 size={17} className="tk-spin" /> : <HandCoins size={17} />}
-            {d.kind === 'purchase' ? 'دفع' : 'تسديد'} {value > 0 ? moneyText(value) : ''}
+            {d.kind === 'purchase' ? 'دفع' : 'تسديد'}
           </button>
         </>
       )}
@@ -117,9 +116,6 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
             onChange={setMethod}
           />
         </div>
-        {fund && value > (Number(fund.initialBalance) || 0) && (
-          <small className="tk-hint warn"><AlertCircle size={12} />رصيد «{fund.name}» ({moneyText(Number(fund.initialBalance) || 0)}) أقل من المبلغ</small>
-        )}
 
         <label className="tk-field">
           <span className="tk-label"><CalendarDays size={14} />تاريخ التسديد</span>
@@ -131,12 +127,12 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
           <input className="tk-input" value={notes} onChange={e => setNotes(e.target.value)} placeholder="مثال: الدفعة الأولى" />
         </label>
 
-        <small className="tk-hint">
-          <Info size={12} />
-          {d.kind === 'loan'
-            ? 'يُنقص المبلغ من رصيد الصندوق المختار مباشرة (لا يُسجل عملية في الصندوق ولا يُحسب مصروفاً).'
-            : 'يُسجل المبلغ مصروفاً في جدول المصاريف والمدفوعات، ويُسحب من الصندوق المختار.'}
-        </small>
+        {d.kind === 'loan' && (
+          <small className="tk-hint">
+            <Info size={12} />
+            يُنقص المبلغ من رصيد الصندوق المختار مباشرة (لا يُسجل عملية في الصندوق ولا يُحسب مصروفاً).
+          </small>
+        )}
 
         {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>

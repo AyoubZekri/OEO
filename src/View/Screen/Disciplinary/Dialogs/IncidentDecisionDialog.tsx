@@ -61,7 +61,7 @@ export const IncidentDecisionDialog: React.FC<IncidentDecisionDialogProps> = ({
               <Scale size={24} />
             </div>
             <h2>
-              <span className="desktop-title">قرار الإدارة وأقوال اللاعب (واقعة)</span>
+              <span className="desktop-title">قرار الإدارة وأقوال العضو (واقعة)</span>
               <span className="mobile-title">تعديل الرد والقرار</span>
             </h2>
           </div>
@@ -80,7 +80,7 @@ export const IncidentDecisionDialog: React.FC<IncidentDecisionDialogProps> = ({
               <div className="epic-section-header-icon">
                 <MessageSquare size={18} />
               </div>
-              <h3>أقوال اللاعب وتبريراته</h3>
+              <h3>أقوال العضو وتبريراته</h3>
             </div>
             
             <div className="modern-form-group">
@@ -89,7 +89,7 @@ export const IncidentDecisionDialog: React.FC<IncidentDecisionDialogProps> = ({
                 onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
                 className="modern-form-input modern-form-textarea"
                 rows={3}
-                placeholder="أدخل أقوال وتبريرات اللاعب هنا..."
+                placeholder="أدخل أقوال وتبريرات العضو هنا..."
               />
             </div>
           </div>

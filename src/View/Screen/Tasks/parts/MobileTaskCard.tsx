@@ -11,13 +11,13 @@ import { abilitiesOf, blockReasonText, dueText, priorityMeta, STATUS_META, type 
 export const MobileTaskCard: React.FC<{ c: TasksController; task: Task; onDelete: (t: Task) => void }> = ({ c, task: t, onDelete }) => {
   const meta = STATUS_META[t.status] || STATUS_META.assigned;
   const tone = t.is_overdue ? 'red' : meta.tone;
-  const me = abilitiesOf(t, c.userId, c.can);
+  const me = abilitiesOf(t, c.userId, c.can, c.readOnly);
   const mine = String(t.assignee_id) === String(c.userId ?? '');
   const prio = priorityMeta(t.priority);
   const KindIcon = t.source_type === 'periodic' ? Repeat : t.source_type === 'event' ? Zap : null;
 
   const items: MobileRowMenuItem[] = [
-    { key: 'open', label: 'التفاصيل وتغيير الحالة', icon: Eye, color: '#3b82f6', onClick: () => c.openTask(t) },
+    { key: 'open', label: c.readOnly ? 'التفاصيل' : 'التفاصيل وتغيير الحالة', icon: Eye, color: '#3b82f6', onClick: () => c.openTask(t) },
     ...(me.canEdit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#10b981', onClick: () => c.openForm(t) }] : []),
     ...(me.canDelete ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => onDelete(t) }] : []),
   ];

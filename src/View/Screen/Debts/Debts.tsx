@@ -71,7 +71,7 @@ export const Debts: React.FC = () => {
           <div className="tk-state"><Inbox size={32} /><p>{c.debts.length ? 'لا توجد ديون بهذه التصفية' : 'لا توجد ديون بعد'}</p></div>
         ) : (
           <div className="tk-grid">
-            {visible.map(d => <DebtCard key={d.id} debt={d} onOpen={c.openDebt} onRepay={c.can('repay') ? c.openRepay : undefined} />)}
+            {visible.map(d => <DebtCard key={d.id} debt={d} onOpen={c.openDebt} actions={c.actionsFor(d)} />)}
           </div>
         )}
 

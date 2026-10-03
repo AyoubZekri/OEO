@@ -25,14 +25,14 @@ interface PrintChoice {
 const choicesFor = (actionType: string): PrintChoice[] => {
   if (actionType === 'استدعاء جلسة') {
     return [
-      { type: 'summons', label: 'استدعاء جلسة', hint: 'ورقة استدعاء اللاعب للجلسة', icon: Calendar },
-      { type: 'hearing', label: 'محضر جلسة', hint: 'أقوال اللاعب وقرارات اللجنة', icon: FileText },
+      { type: 'summons', label: 'استدعاء جلسة', hint: 'ورقة استدعاء العضو للجلسة', icon: Calendar },
+      { type: 'hearing', label: 'محضر جلسة', hint: 'أقوال العضو وقرارات اللجنة', icon: FileText },
     ];
   }
   if (actionType === 'طلب توضيح') {
     return [
-      { type: 'clarification_request', label: 'طلب توضيح', hint: 'الطلب الموجه إلى اللاعب', icon: HelpCircle },
-      { type: 'clarification_reply', label: 'رد على طلب التوضيح', hint: 'رد اللاعب وملاحظات الإدارة', icon: MessageSquare },
+      { type: 'clarification_request', label: 'طلب توضيح', hint: 'الطلب الموجه إلى العضو', icon: HelpCircle },
+      { type: 'clarification_reply', label: 'رد على طلب التوضيح', hint: 'رد العضو وملاحظات الإدارة', icon: MessageSquare },
     ];
   }
   return [

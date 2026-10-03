@@ -96,11 +96,11 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
         <form onSubmit={handleSubmit} className="modern-dialog-body">
           <div className="modern-form-group">
             <CustomDropdown
-              label="اللاعب / العضو"
+              label="العضو المعني"
               value={formData.memberId || ''}
               onChange={(val) => handleMemberSelect(val)}
               options={members.map(m => ({ value: String(m.id), label: `${m.first_name} ${m.last_name}`, icon: <User size={16} /> }))}
-              placeholder="اختر اللاعب..."
+              placeholder="اختر العضو..."
             />
           </div>
 
@@ -112,8 +112,6 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               options={[
                 { value: 'طلب توضيح', label: 'طلب توضيح', icon: <AlertTriangle size={16} /> },
                 { value: 'استدعاء جلسة', label: 'استدعاء جلسة', icon: <AlertTriangle size={16} /> },
-
-                { value: 'واقعة', label: 'واقعة', icon: <AlertTriangle size={16} /> },
               ]}
               placeholder="اختر النوع..."
             />

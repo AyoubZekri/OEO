@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Search, Plus, Scale, AlertTriangle, MessageSquare, Calendar, Gavel, FileWarning, Eye, Pencil, Trash2,
-  Printer, UploadCloud, FileText, SlidersHorizontal, X, Check,
+  Printer, UploadCloud, FileText, SlidersHorizontal, X, Check, PenLine,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -16,6 +16,7 @@ import { MobileDisciplinaryPrint } from './MobileDisciplinaryPrint';
 import { MobileDisciplinaryForm } from './MobileDisciplinaryForm';
 import type { useDisciplinaryController } from '../../Screen/Disciplinary/DisciplinaryController';
 import type { DisciplinaryModel } from '../../Screen/Disciplinary/disciplinary_data';
+import { canPrintNow, memberCanReply } from '../../Screen/Disciplinary/clarification';
 import './MobileDisciplinary.css';
 
 interface MobileDisciplinaryProps {
@@ -28,14 +29,24 @@ interface MobileDisciplinaryProps {
     viewReply: boolean;
     print: boolean;
     changeStatus: boolean;
+    /** View the signed document without being able to replace it (personal space) */
+    viewDocument?: boolean;
+    /** Edit the reply / decision from its page (default: yes) */
+    editReply?: boolean;
+    /** The member answers a clarification request (personal space) */
+    memberReply?: boolean;
   };
+  title?: string;
+  /** Open this action's details (an alert pointed to it) */
+  openId?: string | null;
 }
 
 // Pages opened from an action; each has its own full screen
-type ActionPage = 'reply' | 'upload' | 'document' | 'print';
+type ActionPage = 'reply' | 'answer' | 'decision' | 'upload' | 'document' | 'print';
 
 // Same filters as the desktop page ('الكل' = no filter)
-const TYPE_FILTERS = ['طلب توضيح', 'استدعاء جلسة', 'واقعة'];
+// "واقعة" is no longer created (a clarification request, then the incident file): old ones still show
+const TYPE_FILTERS = ['طلب توضيح', 'استدعاء جلسة'];
 
 const STATUS_OPTIONS: MobileSelectOption[] = [
   { value: 'مفتوح', label: 'مفتوح' },
@@ -76,9 +87,11 @@ const formatDate = (value?: string) => {
 };
 
 // Phone version of the disciplinary actions page: short cards, filters in a sheet, details on their own page
-export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controller, can }) => {
+export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controller, can, title, openId }) => {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [detailsId, setDetailsId] = useState<string | null>(null);
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- opening the action an alert pointed to
+  useEffect(() => { if (openId) setDetailsId(openId); }, [openId]);
   const [page, setPage] = useState<{ kind: ActionPage; id: string } | null>(null);
 
   const list = controller.disciplinaryList;
@@ -97,12 +110,23 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
   const menuItems = (item: DisciplinaryModel): MobileRowMenuItem[] => [
     ...(can.view ? [{ key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(item.id) }] : []),
     ...(hasReply(item) && can.viewReply
-      ? [{ key: 'reply', label: 'الرد والقرارات', icon: MessageSquare, color: '#f97316', onClick: open('reply', item) }]
+      ? item.actionType === 'طلب توضيح'
+        ? [
+          { key: 'reply', label: 'رد العضو', icon: MessageSquare, color: '#f97316', onClick: open('answer', item) },
+          { key: 'decision', label: 'القرار', icon: Gavel, color: '#f97316', onClick: open('decision', item) },
+        ]
+        : [{ key: 'reply', label: 'الرد والقرارات', icon: MessageSquare, color: '#f97316', onClick: open('reply', item) }]
       : []),
     ...(can.edit ? [item.signed_document
       ? { key: 'doc', label: 'عرض الوثيقة الممضاة', icon: FileText, color: '#f97316', onClick: open('document', item) }
-      : { key: 'doc', label: 'رفع الوثيقة الممضاة', icon: UploadCloud, color: '#f97316', onClick: open('upload', item) }] : []),
-    ...(can.print ? [{ key: 'print', label: 'طباعة المحضر', icon: Printer, color: '#f97316', onClick: open('print', item) }] : []),
+      : { key: 'doc', label: 'رفع الوثيقة الممضاة', icon: UploadCloud, color: '#f97316', onClick: open('upload', item) }]
+      : can.viewDocument && item.signed_document
+        ? [{ key: 'doc', label: 'عرض الوثيقة الممضاة', icon: FileText, color: '#f97316', onClick: open('document', item) }]
+        : []),
+    ...(can.memberReply && memberCanReply(item)
+      ? [{ key: 'answer', label: item.player_statements ? 'تعديل ردي' : 'الرد على الطلب', icon: PenLine, color: '#10b981', onClick: () => controller.openResponseDialog(item) }]
+      : []),
+    ...(can.print && canPrintNow(item) ? [{ key: 'print', label: 'طباعة المحضر', icon: Printer, color: '#f97316', onClick: open('print', item) }] : []),
     ...(can.edit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => controller.openEditDialog(item) }] : []),
     ...(can.delete ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDelete(item.id) }] : []),
   ];
@@ -116,7 +140,7 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
 
   return (
     <div className="md-page">
-      <MobileAppBar title="الإجراءات التأديبية" />
+      <MobileAppBar title={title || 'الإجراءات التأديبية'} />
 
       {/* Search + filter button */}
       <div className="md-toolbar">
@@ -124,7 +148,7 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
           <Search size={17} />
           <input
             type="search"
-            placeholder="ابحث باسم اللاعب أو السبب..."
+            placeholder="ابحث باسم العضو أو السبب..."
             value={controller.searchQuery}
             onChange={e => controller.setSearchQuery(e.target.value)}
           />
@@ -242,20 +266,22 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
           statusTone={STATUS_TONE}
           canChangeStatus={can.changeStatus}
           onChangeStatus={status => controller.handleUpdateStatus(detailsItem.id, status)}
-          onViewReply={hasReply(detailsItem) && can.viewReply ? open('reply', detailsItem) : undefined}
+          onViewReply={hasReply(detailsItem) && can.viewReply ? open(detailsItem.actionType === 'طلب توضيح' ? 'decision' : 'reply', detailsItem) : undefined}
+          onViewMemberReply={detailsItem.actionType === 'طلب توضيح' && can.viewReply ? open('answer', detailsItem) : undefined}
           onEdit={can.edit ? () => controller.openEditDialog(detailsItem) : undefined}
-          onViewDocument={can.edit && detailsItem.signed_document ? open('document', detailsItem) : undefined}
+          onViewDocument={(can.edit || can.viewDocument) && detailsItem.signed_document ? open('document', detailsItem) : undefined}
           onUploadDocument={can.edit && !detailsItem.signed_document ? open('upload', detailsItem) : undefined}
-          onPrint={can.print ? open('print', detailsItem) : undefined}
+          onPrint={can.print && canPrintNow(detailsItem) ? open('print', detailsItem) : undefined}
           onClose={() => setDetailsId(null)}
         />
       )}
 
       {/* Action pages, above the details page */}
-      {pageItem && page?.kind === 'reply' && (
+      {pageItem && (page?.kind === 'reply' || page?.kind === 'answer' || page?.kind === 'decision') && (
         <MobileDisciplinaryReplyView
           item={pageItem}
-          onEdit={() => controller.openResponseDialog(pageItem)}
+          section={page.kind === 'answer' ? 'reply' : page.kind === 'decision' ? 'decision' : undefined}
+          onEdit={can.editReply === false ? undefined : () => controller.openResponseDialog(pageItem)}
           onClose={() => setPage(null)}
         />
       )}
@@ -295,8 +321,9 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
           key={replyItem.id}
           item={replyItem}
           isSubmitting={controller.isSubmitting}
-          onSave={controller.handleSave}
+          onSave={can.memberReply ? controller.handleMemberReply : controller.handleSave}
           onClose={controller.closeDialog}
+          mode={can.memberReply ? 'member' : 'admin'}
         />
       )}
     </div>

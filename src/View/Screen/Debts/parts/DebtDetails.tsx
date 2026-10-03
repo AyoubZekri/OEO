@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Landmark, Pencil, Trash2, HandCoins, Wallet, Tag, CalendarDays, CalendarClock, Phone, FileText, History, X, CreditCard, Scale, CircleCheck,
+  Landmark, HandCoins, Wallet, Tag, CalendarDays, CalendarClock, Phone, FileText, History, X, CreditCard, Scale, CircleCheck,
 } from 'lucide-react';
 import { TaskPanel } from '../../Tasks/parts/TaskPanel';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
@@ -24,23 +24,14 @@ const DayTile: React.FC<{ date: string | null }> = ({ date }) => {
 
 /** A debt: who and what (head), the three amounts with the paid ring, every repayment, and the debt's facts */
 export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boolean }> = ({ c, debt: d, mobile }) => {
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [cancelling, setCancelling] = useState<DebtRepayment | null>(null);
   const tone = toneOf(d);
   const due = dueText(d);
-  const paid = d.status === 'paid';
 
-  const footer = (
-    <div className="tk-actions">
-      {c.can('repay') && !paid && (
-        <button type="button" className="tk-btn primary" onClick={() => c.openRepay(d)}><HandCoins size={16} />تسديد</button>
-      )}
-      {c.can('edit') && <button type="button" className="tk-btn ghost" onClick={() => c.openForm(d)}><Pencil size={16} />تعديل</button>}
-      {c.can('delete') && <button type="button" className="tk-btn ghost danger-text" onClick={() => setConfirmDelete(true)}><Trash2 size={16} />حذف</button>}
-      {!mobile && <button type="button" className="btn-cancel tk-dlg-btn tk-actions-side" onClick={c.closeDebt}>إغلاق</button>}
-    </div>
-  );
-  const hasFooter = !mobile || c.can('repay') || c.can('edit') || c.can('delete');
+  // The actions (pay, edit, delete) are on the debt's card / row, not here
+  const footer = !mobile
+    ? <div className="tk-actions"><button type="button" className="btn-cancel tk-dlg-btn tk-actions-side" onClick={c.closeDebt}>إغلاق</button></div>
+    : undefined;
 
   const facts = [
     d.kind === 'loan'
@@ -52,7 +43,7 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
   ];
 
   return (
-    <TaskPanel mobile={mobile} size="lg" icon={Landmark} title={d.kind === 'loan' ? 'تفاصيل الدين' : 'تفاصيل الشراء بالدين'} onClose={c.closeDebt} footer={hasFooter ? footer : undefined}>
+    <TaskPanel mobile={mobile} size="lg" icon={Landmark} title={d.kind === 'loan' ? 'تفاصيل الدين' : 'تفاصيل الشراء بالدين'} onClose={c.closeDebt} footer={footer}>
       <div className="tk-view db-view">
         {/* Head: who and what, then the amounts */}
         <section className={`db-sheet tone-${tone}`}>
@@ -95,7 +86,6 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
                 <div className="db-empty">
                   <HandCoins size={26} />
                   <p>لم يُسدد أي مبلغ بعد</p>
-                  {c.can('repay') && !paid && <button type="button" className="tk-btn ghost sm" onClick={() => c.openRepay(d)}><HandCoins size={15} />تسديد الآن</button>}
                 </div>
               ) : (
                 <ol className="db-timeline">
@@ -148,28 +138,6 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
           </aside>
         </div>
       </div>
-
-      {confirmDelete && (
-        <TaskPanel
-          mobile={mobile}
-          sheet
-          size="sm"
-          layer={2}
-          title="حذف الدين"
-          onClose={() => setConfirmDelete(false)}
-          footer={(
-            <>
-              <button type="button" className="tk-btn ghost" onClick={() => setConfirmDelete(false)}>إلغاء</button>
-              <button type="button" className="tk-btn danger" onClick={() => { setConfirmDelete(false); c.remove(d); }}><Trash2 size={17} />حذف</button>
-            </>
-          )}
-        >
-          <p className="tk-text">
-            يُحذف دين «{d.creditor}» نهائياً مع كل تسديداته
-            {d.kind === 'loan' ? '، ويُسحب مبلغه من رصيد الصندوق وتُعاد مبالغ التسديدات إلى صناديقها.' : '، وتُحذف مصاريف تسديداته وتُعاد مبالغها إلى صناديقها.'}
-          </p>
-        </TaskPanel>
-      )}
 
       {cancelling && (
         <TaskPanel

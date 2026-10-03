@@ -190,3 +190,6 @@
   }
 }
 
+
+/* Search right next to the add button */
+.users-search { flex: 0 1 320px; }

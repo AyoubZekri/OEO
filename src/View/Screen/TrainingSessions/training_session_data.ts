@@ -15,6 +15,9 @@ export interface TrainingSessionModel {
     present: number;
     absent: number;
   };
+  /** Personal space: my absence / late record in this session (null when none) */
+  my_absence?: string | null;
+  my_absence_note?: string;
 }
 
 export const TrainingSessionData = {
@@ -33,6 +36,14 @@ export const TrainingSessionData = {
       console.error('Error fetching training sessions:', error);
       throw error;
     }
+  },
+
+  /** Personal space: the sessions of my category, with my attendance */
+  getMySessions: async (): Promise<TrainingSessionModel[]> => {
+    const response = await axios.get(`${Applink.server}/training-sessions/mine?t=${Date.now()}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    });
+    return response.data;
   },
 
   saveSession: async (session: TrainingSessionModel): Promise<any> => {

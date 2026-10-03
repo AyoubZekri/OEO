@@ -500,3 +500,6 @@ body.dark-mode .mmt-page {
 }
 
 .mmt-fab:active { transform: scale(0.92); }
+
+/* Personal space: my participation under the card */
+.mmt-card .mmp { margin-top: 10px; }

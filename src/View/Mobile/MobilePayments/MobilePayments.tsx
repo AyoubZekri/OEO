@@ -51,11 +51,14 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   const [detailsId, setDetailsId] = useUrlDetails('payment');
   const [viewing, setViewing] = useState<string | null>(null);
 
-  // c.payments is already filtered by search, fund and nature; the unpaid purchases on credit are expenses
-  const unpaid = kind && kind !== 'مصروف'
-    ? []
-    : creditRows(credit.debts, { search: c.searchQuery, nature: c.filterNature, fund: c.selectedFundFilter });
-  const list = [...unpaid, ...(kind ? c.payments.filter(p => kindOf(p) === kind) : c.payments)]
+  // c.payments is already filtered by search, fund and nature (purchases on credit paid in full included);
+  // the purchases not fully paid are expenses too. "unpaid": only those.
+  const unpaid = creditRows(credit.debts, { search: c.searchQuery, nature: c.filterNature, fund: c.selectedFundFilter });
+  const byStatus = (status: string) => unpaid.filter(r => r.credit.status === status);
+  const list = (kind === 'open' || kind === 'partial' ? byStatus(kind) : [
+    ...(kind && kind !== 'مصروف' ? [] : unpaid),
+    ...(kind ? c.payments.filter(p => kindOf(p) === kind) : c.payments),
+  ])
     .sort((a, b) => dateOf(b).localeCompare(dateOf(a)));
   const groups = list.reduce<{ key: string; items: PaymentRecord[] }[]>((acc, p) => {
     const key = monthKey(p);
@@ -66,13 +69,16 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   }, []);
 
   // Money paid: an unpaid purchase on credit is not counted
-  const sumOf = (items: PaymentRecord[]) => items.reduce((s, p) => s + (isCredit(p) ? 0 : amountOf(p)), 0);
+  // Money paid: a purchase on credit counts for what has been paid on it
+  const sumOf = (items: PaymentRecord[]) => items.reduce((s, p) => s + (isCredit(p) ? p.credit.repaid : amountOf(p)), 0);
+  // Every operation, purchases on credit included (one row each), for the totals
+  const everything: PaymentRecord[] = [...unpaid, ...c.payments];
   const details = detailsId ? c.payments.find(p => String(p.id) === detailsId) : undefined;
   const fund = c.funds.find(f => String(f.id) === c.selectedFundFilter);
   const personOf = (p: PaymentRecord) => c.getMemberDetails(p.memberId);
   const nameOf = (p: PaymentRecord) => {
     const m = personOf(p);
-    return m ? `${m.firstName} ${m.lastName}`.trim() : null;
+    return m ? `${m.firstName} ${m.lastName}`.trim() : p.creditor || null;
   };
 
   const menuItems = (p: PaymentRecord): MobileRowMenuItem[] => {
@@ -99,15 +105,15 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
         <div className="mpy-hero-top">
           <span className="mpy-hero-icon"><Banknote size={26} /></span>
           <div>
-            <small>مجموع العمليات · {c.payments.length}</small>
-            <strong dir="ltr">{moneyText(sumOf(c.payments))}</strong>
+            <small>مجموع العمليات · {everything.length}</small>
+            <strong dir="ltr">{moneyText(sumOf(everything))}</strong>
           </div>
         </div>
         <div className="mpy-stats">
           {KINDS.map(k => (
             <div key={k.value} className={`tone-${k.tone}`}>
               <small><k.icon size={12} /> {k.short}</small>
-              <strong dir="ltr">{moneyText(sumOf(c.payments.filter(p => kindOf(p) === k.value)))}</strong>
+              <strong dir="ltr">{moneyText(sumOf(everything.filter(p => kindOf(p) === k.value)))}</strong>
             </div>
           ))}
         </div>
@@ -121,7 +127,12 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
 
       {/* Operation type */}
       <div className="mpy-tabs" role="tablist">
-        {[{ value: '', short: 'الكل' }, ...KINDS].map(k => (
+        {[
+          { value: '', short: 'الكل' },
+          ...KINDS,
+          { value: 'open', short: `غير مدفوعة${byStatus('open').length ? ` (${byStatus('open').length})` : ''}` },
+          { value: 'partial', short: `مدفوعة جزئياً${byStatus('partial').length ? ` (${byStatus('partial').length})` : ''}` },
+        ].map(k => (
           <button key={k.value || 'all'} type="button" role="tab" aria-selected={kind === k.value} className={kind === k.value ? 'active' : ''} onClick={() => setKind(k.value)}>
             {k.short}
           </button>
@@ -202,13 +213,25 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
                             ...(can.add ? [{ key: 'pay', label: 'دفع', icon: HandCoins, color: '#10b981', onClick: () => credit.openRepay(d) }] : []),
                             { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: openDebt },
                             ...(can.edit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => credit.openForm(d) }] : []),
+                            ...(can.delete ? [{
+                              key: 'delete',
+                              label: 'حذف',
+                              icon: Trash2,
+                              danger: true,
+                              onClick: () => {
+                                if (window.confirm(`هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`)) credit.remove(d);
+                              },
+                            }] : []),
                           ]}
                         />
                       </div>
                       <div className="mpy-card-foot">
                         <em className="mpy-chip"><Calendar size={12} /> <span dir="ltr">{dateOf(p) || '—'}</span></em>
                         <em className={`mpy-chip credit ${d.overdue ? 'late' : ''}`}>{d.overdue ? 'غير مدفوع · متأخر' : d.repaid > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}</em>
-                        <b className="mpy-amount" dir="ltr">{moneyText(d.remaining)}</b>
+                        <b className="mpy-amount mpy-credit-paid" dir="ltr">
+                          {moneyText(d.repaid)}
+                          <small> / {moneyText(d.amount)}</small>
+                        </b>
                       </div>
                     </article>
                   );

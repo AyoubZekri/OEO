@@ -8,6 +8,12 @@ import type { Fund } from '../Funds/fund_model';
 import { ContractsData } from '../Contracts/contracts_data';
 import { ContractModel } from '../Contracts/contract_model';
 import type { PaymentMember, PaymentRecord } from './payment_model';
+/**
+ * A purchase on credit paid in full is an expense like the others; one not fully paid is listed apart
+ * (from the purchases on credit, with its pay action), so it is left out of this list.
+ */
+const fullyPaid = (p: PaymentRecord) => !p.isCredit || Number(p.amount) + 0.005 >= Number(p.creditTotal || 0);
+
 export const usePaymentsController = () => {
   const [payments, setPayments] = useState<PaymentRecord[]>([]);
   const [members, setMembers] = useState<PaymentMember[]>([]);
@@ -78,9 +84,9 @@ export const usePaymentsController = () => {
     if (response) {
       console.log("=== RAW BACKEND DATA (PAYMENTS) ===", response);
       if (Array.isArray(response)) {
-        setPayments(response);
+        setPayments(response.filter(fullyPaid));
       } else if (response.data && Array.isArray(response.data)) {
-        setPayments(response.data);
+        setPayments(response.data.filter(fullyPaid));
       }
     }
     setIsLoading(false);
@@ -218,6 +224,7 @@ export const usePaymentsController = () => {
     const matchesSearch = 
       (member && `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchLower)) ||
       (p.amountNature && p.amountNature.toLowerCase().includes(searchLower)) ||
+      (p.creditor && p.creditor.toLowerCase().includes(searchLower)) ||
       (p.paymentDate && p.paymentDate.includes(searchLower));
       
     const matchesFilter = filterNature === 'all' || p.amountNature === filterNature;

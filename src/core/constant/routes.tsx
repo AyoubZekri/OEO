@@ -7,6 +7,12 @@ export class Approutes {
   static readonly Payments = "/payments";
   static readonly Funds = "/funds";
   static readonly Debts = "/debts";
+  /** Personal space */
+  static readonly MyTasks = "/my-tasks";
+  static readonly MyDisciplinary = "/my-disciplinary";
+  static readonly MyTrainingSessions = "/my-training";
+  static readonly MyMatches = "/my-matches";
+  static readonly MyAbsences = "/my-absences";
   static readonly Reports = "/reports";
   static readonly Teams = "/teams";
   static readonly Equipment = "/equipment";

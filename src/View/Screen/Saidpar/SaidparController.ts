@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus, Landmark } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus, Landmark, Trophy, CalendarX2 } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
+import { useSpace, type AppSpace } from '../../../core/context/space';
 
 export interface SubMenuItem {
   name: string;
@@ -89,10 +90,34 @@ export const useSaidparController = (onLogout?: () => void) => {
   };
 
   const { permissions, isFullAccess } = useAuth();
-  
+  const { space, setSpace, canManage } = useSpace();
+
+  /** Go to the other space, on its home page */
+  const switchSpace = (next: AppSpace) => {
+    setSpace(next);
+    setActiveItem('Home');
+    setIsMobileOpen(false);
+    navigate('/');
+  };
+
   const hasAccess = (check: boolean) => isFullAccess || check;
 
-  const menuSections: MenuSection[] = [
+  // The personal space's pages (added step by step)
+  const personalSections: MenuSection[] = [
+    {
+      title: '',
+      items: [
+        { name: 'Home', icon: Home, isDropdown: false, label: 'الرئيسية', route: '/' },
+        { name: 'MyTasks', icon: ListTodo, isDropdown: false, label: 'مهامي', route: Approutes.MyTasks },
+        { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصصي التدريبية', route: Approutes.MyTrainingSessions },
+        { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مبارياتي', route: Approutes.MyMatches },
+        { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غياباتي', route: Approutes.MyAbsences },
+        { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءاتي التأديبية', route: Approutes.MyDisciplinary },
+      ],
+    },
+  ];
+
+  const managementSections: MenuSection[] = [
     {
      title: "",
       items: [
@@ -271,6 +296,8 @@ export const useSaidparController = (onLogout?: () => void) => {
     },
   ];
 
+  const menuSections = space === 'personal' ? personalSections : managementSections;
+
   const handleLogout = () => {
     if (onLogout) onLogout();
   };
@@ -285,6 +312,9 @@ export const useSaidparController = (onLogout?: () => void) => {
     toggleSidebar,
     handleItemClick,
     menuSections,
+    space,
+    canManage,
+    switchSpace,
     openDropdowns,
     toggleDropdown,
     isMobileOpen,

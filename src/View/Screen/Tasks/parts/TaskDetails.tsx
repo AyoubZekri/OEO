@@ -19,7 +19,7 @@ const PROOF_ICONS: Record<TaskAttachment['type'], typeof FileText> = { file: Fil
 
 /** Task details: title and status dropdown with the stages, then description, proofs and history next to timing, people and settings */
 export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boolean }> = ({ c, task, mobile }) => {
-  const me = abilitiesOf(task, c.userId, c.can);
+  const me = abilitiesOf(task, c.userId, c.can, c.readOnly);
   const [prompt, setPrompt] = useState<'block' | 'return' | null>(null);
   const [addingProof, setAddingProof] = useState(false);
   const [busy, setBusy] = useState<TaskAction | null>(null);
@@ -91,7 +91,9 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
               </div>
               <h2>{task.title}</h2>
             </div>
-            <StatusDropdown task={task} allowed={me.actions} busy={busy !== null} mobile={mobile} onPick={act} />
+            {c.readOnly
+              ? <span className={`tk-status-pill tone-${STATUS_META[task.status]?.tone || 'slate'}`}>{STATUS_META[task.status]?.label || task.status}</span>
+              : <StatusDropdown task={task} allowed={me.actions} busy={busy !== null} mobile={mobile} onPick={act} />}
           </div>
           <TaskStepper task={task} />
         </section>
@@ -103,7 +105,7 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
         {task.status === 'returned' && task.return_reason && (
           <div className="tk-alert tone-amber"><Undo2 size={18} /><span><b>مطلوب تصحيح</b>{task.return_reason}</span></div>
         )}
-        {task.status === 'in_review' && !me.actions.includes('approve') && (
+        {!c.readOnly && task.status === 'in_review' && !me.actions.includes('approve') && (
           <div className="tk-alert tone-violet"><AlertTriangle size={18} /><span><b>بانتظار المراجعة</b>أُرسلت المهمة، وسيعتمدها أو يرجعها من له صلاحية المراجعة</span></div>
         )}
         {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
@@ -127,7 +129,7 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
               {!loaded ? (
                 <p className="tk-muted"><Loader2 size={14} className="tk-spin" /> جاري التحميل...</p>
               ) : attachments.length === 0 ? (
-                !addingProof && <p className="tk-muted">{task.requires_proof ? 'لم يُرفع أي إثبات بعد، وهو مطلوب قبل الإرسال' : 'لا توجد إثباتات'}</p>
+                !addingProof && <p className="tk-muted">{task.requires_proof ? (c.readOnly ? 'هذه المهمة تتطلب إثباتاً: ارفع صورة أو ملفاً أو نصاً أو رابطاً' : 'لم يُرفع أي إثبات بعد، وهو مطلوب قبل الإرسال') : 'لا توجد إثباتات'}</p>
               ) : (
                 <ul className="tk-proofs">
                   {attachments.map(a => {
@@ -224,7 +226,7 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
             )}
 
             {/* The periodic / automatic series this task comes from: stop it or delete it here */}
-            {series && (
+            {series && !c.readOnly && (
               <section className={`tk-series ${series.active ? '' : 'off'}`}>
                 <span className="tk-series-icon"><Repeat size={18} /></span>
                 <div className="tk-series-text">

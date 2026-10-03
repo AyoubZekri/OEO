@@ -39,6 +39,17 @@ export interface Match {
   formation?: string;
   created_at?: string;
   match_duration?: string | number;
+  /** Management list: what is still to do (players called up, starters, players rated, reports, attendance sheet saved) */
+  callups_count?: number;
+  starters_count?: number;
+  rated_count?: number;
+  reports_count?: number;
+  attendance_taken_at?: string | null;
+  /** Personal space: my call-up in this match (null: not called up) */
+  my_callup?: { is_starter: boolean; rating: number | string | null; yellow_cards: number; red_cards: number; goals: number } | null;
+  /** Personal space: my absence / late record in this match */
+  my_absence?: string | null;
+  my_absence_note?: string;
 }
 
 export interface MatchGoal {

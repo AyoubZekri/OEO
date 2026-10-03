@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 
 import { useAuth } from '../../../core/context/AuthContext';
 
-import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, User, Calendar, ChevronDown, Check, Eye, PenTool, CheckCircle, Printer, UploadCloud, FileText } from 'lucide-react';
+import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, Gavel, Calendar, ChevronDown, Check, Eye, PenLine, Printer, UploadCloud, FileText, Clock } from 'lucide-react';
 import { useDisciplinaryController } from './DisciplinaryController';
+import type { DisciplinaryModel } from './disciplinary_data';
+import { MobileRowMenu, type MobileRowMenuItem } from '../../Mobile/widgets/MobileRowMenu';
+import { canPrintNow, memberCanReply } from './clarification';
 import { DisciplinaryDialog } from './DisciplinaryDialog';
 import { IncidentDecisionDialog } from './Dialogs/IncidentDecisionDialog';
 import { ClarificationResponseDialog } from './Dialogs/ClarificationResponseDialog';
@@ -78,25 +82,58 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
   );
 };
 
-export const Disciplinary: React.FC = () => {
+/**
+ * Disciplinary actions. personal: the personal space's "my actions": the same page, with only my actions and read only
+ * (details, reply and decision, signed document; no add / edit / delete / status / print / upload).
+ */
+export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
+  const PERSONAL_ACTIONS = ['view', 'viewReply'];
+  const canDo = (action: string) => (personal
+    ? PERSONAL_ACTIONS.includes(action)
+    : hasAccess((permissions.disciplinary as unknown as Record<string, boolean>)[action] === true));
 
-  const controller = useDisciplinaryController();
+  const controller = useDisciplinaryController({ personal });
+  // ?action=<id> (from an alert): open that action's details once the list is loaded
+  const [params, setParams] = useSearchParams();
+  const requestedId = params.get('action');
+  const [openOnPhone, setOpenOnPhone] = useState<string | null>(null);
   const isMobile = useIsMobile();
   const [viewingItem, setViewingItem] = useState<any>(null);
   const [viewingReplyItem, setViewingReplyItem] = useState<any>(null);
+  // "Now" for the overdue deadlines, taken when the page opens
+  const [nowMs] = useState(() => Date.now());
+  // Clarification requests: which part is open ("reply" or "decision"); other types show both together
+  const [replySection, setReplySection] = useState<'reply' | 'decision' | undefined>(undefined);
+  const openReply = (item: any, section?: 'reply' | 'decision') => { setReplySection(section); setViewingReplyItem(item); };
   const [printingIncident, setPrintingIncident] = useState<any>(null);
   const [uploadingSignedDocItem, setUploadingSignedDocItem] = useState<any>(null);
   const [viewingSignedDocItem, setViewingSignedDocItem] = useState<any>(null);
+
+  /* eslint-disable react-hooks/set-state-in-effect -- opening the action an alert pointed to */
+  useEffect(() => {
+    if (!requestedId || controller.isLoading) return;
+    const item = controller.disciplinaryList.find(d => d.id === requestedId);
+    if (item) {
+      if (isMobile) setOpenOnPhone(item.id);
+      else setViewingItem(item);
+    }
+    setParams(prev => {
+      const p = new URLSearchParams(prev);
+      p.delete('action');
+      return p;
+    }, { replace: true });
+  }, [requestedId, controller.isLoading, controller.disciplinaryList, isMobile, setParams]);
+  /* eslint-enable react-hooks/set-state-in-effect */
   
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'طلب توضيح': return <MessageSquare size={16} />;
-      case 'استدعاء جلسة': return <Calendar size={16} />;
-      case 'إحالة على الجهة التأديبية المختصة': return <AlertTriangle size={16} />;
-      case 'واقعة': return <Scale size={16} />;
-      default: return <AlertTriangle size={16} />;
+      case 'طلب توضيح': return <MessageSquare size={14} />;
+      case 'استدعاء جلسة': return <Calendar size={14} />;
+      case 'إحالة على الجهة التأديبية المختصة': return <AlertTriangle size={14} />;
+      case 'واقعة': return <Scale size={14} />;
+      default: return <AlertTriangle size={14} />;
     }
   };
 
@@ -120,8 +157,54 @@ export const Disciplinary: React.FC = () => {
     { value: 'الكل', label: 'جميع الأنواع' },
     { value: 'طلب توضيح', label: 'طلب توضيح' },
     { value: 'استدعاء جلسة', label: 'استدعاء جلسة' },
-    { value: 'واقعة', label: 'واقعة' }
   ];
+
+  /** "2 أكتوبر 2026" */
+  const dayText = (value?: string) => {
+    if (!value) return '—';
+    const d = new Date(value);
+    return isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('ar-DZ', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
+  };
+  const initialsOf = (name?: string) => (name || '؟').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('');
+  /** The deadline / hearing date has passed on an action still open */
+  const deadlineLate = (c: DisciplinaryModel) => {
+    if (!c.deadlineOrHearingDate || !['مفتوح', 'متأخر'].includes(c.status)) return false;
+    const d = new Date(c.deadlineOrHearingDate);
+    d.setHours(23, 59, 59);
+    return d.getTime() < nowMs;
+  };
+  /** Where the action stands: the member's reply and the decision (when the type has them), then the signed document */
+  const stepsOf = (c: DisciplinaryModel) => [
+    ...(!['تنبيه', 'إنذار'].includes(c.actionType) ? [
+      { label: 'رد العضو', done: Boolean(c.player_statements?.trim()) },
+      { label: 'القرار', done: Boolean(c.admin_notes?.trim() || c.decision_outcome?.trim()) },
+    ] : []),
+    { label: 'الوثيقة الممضاة', done: Boolean(c.signed_document) },
+  ];
+
+  /** A card's actions, in its ⋮ menu (same as the phone) */
+  const menuItems = (c: DisciplinaryModel): MobileRowMenuItem[] => {
+    const clarification = c.actionType === 'طلب توضيح';
+    const withReply = !['تنبيه', 'إنذار'].includes(c.actionType);
+    return [
+      ...(canDo('view') ? [{ key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => setViewingItem(c) }] : []),
+      ...(personal && memberCanReply(c)
+        ? [{ key: 'answer', label: c.player_statements ? 'تعديل ردي' : 'الرد على الطلب', icon: PenLine, color: '#10b981', onClick: () => controller.openResponseDialog(c) }]
+        : []),
+      ...(canDo('viewReply') && clarification ? [
+        { key: 'reply', label: 'رد العضو', icon: MessageSquare, color: '#f97316', onClick: () => openReply(c, 'reply') },
+        { key: 'decision', label: 'القرار', icon: Gavel, color: '#f97316', onClick: () => openReply(c, 'decision') },
+      ] : canDo('viewReply') && withReply ? [
+        { key: 'reply', label: 'الرد والقرارات', icon: MessageSquare, color: '#f97316', onClick: () => openReply(c) },
+      ] : []),
+      ...(canDo('print') && canPrintNow(c) ? [{ key: 'print', label: 'طباعة المحضر / القرار', icon: Printer, color: '#f97316', onClick: () => setPrintingIncident(c) }] : []),
+      ...(c.signed_document && (canDo('edit') || personal)
+        ? [{ key: 'doc', label: 'عرض الوثيقة الممضاة', icon: FileText, color: '#f97316', onClick: () => setViewingSignedDocItem(c) }]
+        : canDo('edit') ? [{ key: 'doc', label: 'رفع الوثيقة الممضاة', icon: UploadCloud, color: '#f97316', onClick: () => setUploadingSignedDocItem(c) }] : []),
+      ...(canDo('edit') ? [{ key: 'edit', label: 'تعديل', icon: Edit2, color: '#f97316', onClick: () => controller.openEditDialog(c) }] : []),
+      ...(canDo('delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDelete(c.id) }] : []),
+    ];
+  };
 
   return (
     <div className="members-container">
@@ -130,14 +213,19 @@ export const Disciplinary: React.FC = () => {
         <MobileDisciplinary
           controller={controller}
           can={{
-            add: hasAccess(permissions.disciplinary.add),
-            edit: hasAccess(permissions.disciplinary.edit),
-            delete: hasAccess(permissions.disciplinary.delete),
-            view: hasAccess(permissions.disciplinary.view),
-            viewReply: hasAccess(permissions.disciplinary.viewReply),
-            print: hasAccess(permissions.disciplinary.print),
-            changeStatus: hasAccess(permissions.disciplinary.changeStatus),
+            add: canDo('add'),
+            edit: canDo('edit'),
+            delete: canDo('delete'),
+            view: canDo('view'),
+            viewReply: canDo('viewReply'),
+            print: canDo('print'),
+            changeStatus: canDo('changeStatus'),
+            viewDocument: personal,
+            editReply: !personal,
+            memberReply: personal,
           }}
+          title={personal ? 'إجراءاتي التأديبية' : undefined}
+          openId={openOnPhone}
         />
       ) : (
       <>
@@ -150,7 +238,7 @@ export const Disciplinary: React.FC = () => {
               <Search size={18} />
               <input 
                 type="text" 
-                placeholder="ابحث باسم اللاعب أو السبب..."
+                placeholder="ابحث باسم العضو أو السبب..."
                 className="search-input"
                 value={controller.searchQuery}
                 onChange={(e) => controller.setSearchQuery(e.target.value)}
@@ -171,7 +259,7 @@ export const Disciplinary: React.FC = () => {
             placeholder="جميع الحالات"
           />
 
-          {hasAccess(permissions.disciplinary.add) && (
+          {canDo('add') && (
             <button className="btn-primary" onClick={controller.openAddDialog}>
               <Plus size={18} />
               إضافة إجراء
@@ -195,88 +283,55 @@ export const Disciplinary: React.FC = () => {
         ) : (
           <div className="disciplinary-grid">
             {controller.disciplinaryList.map(c => (
-            <div key={c.id} className="disciplinary-premium-card">
-              <div className="card-header-premium">
-                <div className={`action-type-pill ${c.actionType.replace(/ /g, '-')}`}>
-                  {getTypeIcon(c.actionType)}
-                  <span>{c.actionType}</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span className="card-subtitle-premium">#{c.id.substring(0, 6)}</span>
-                  {hasAccess(permissions.disciplinary.print) && (
-                    <button className="btn-action-premium" style={{ width: '32px', height: '32px', padding: 0 }} onClick={() => setPrintingIncident(c)} title="طباعة المحضر/القرار">
-                      <Printer size={16} />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div className="card-body-premium">
-                <div className="player-info-premium">
-                  <div className="player-avatar-premium">
-                    <User size={24} />
-                  </div>
-                  <div className="player-details-premium">
-                    <span className="player-name-premium">{c.memberName}</span>
-                    <span className="incident-date-premium">
-                      <Calendar size={14} /> {new Date(c.incidentDate).toLocaleDateString('ar-DZ')}
-                    </span>
-                  </div>
-                </div>
-                
-                <div className="incident-reason-premium">
-                  <p>{c.reason}</p>
-                </div>
-
-              </div>
-              
-              <div className="card-footer-premium">
-                <div className="status-control-modern" style={{ opacity: hasAccess(permissions.disciplinary.changeStatus) ? 1 : 0.6, pointerEvents: hasAccess(permissions.disciplinary.changeStatus) ? 'auto' : 'none' }}>
+            <article key={c.id} className="dc-card">
+              <header className="dc-head">
+                <div className="status-control-modern dc-status" style={{ opacity: canDo('changeStatus') ? 1 : 0.85, pointerEvents: canDo('changeStatus') ? 'auto' : 'none' }}>
                   <StatusDropdown 
                     value={c.status} 
                     onChange={(val) => controller.handleUpdateStatus(c.id, val as any)} 
                   />
                 </div>
-                <div className="card-actions-premium">
-                  {!['تنبيه', 'إنذار'].includes(c.actionType) && hasAccess(permissions.disciplinary.viewReply) && (
-                    <button className="btn-action-premium respond-btn" onClick={() => setViewingReplyItem(c)} title="عرض الرد والقرارات">
-                      <MessageSquare size={16} />
-                    </button>
-                  )}
-                  {hasAccess(permissions.disciplinary.edit) && (
-                    <button 
-                      className="btn-action-premium" 
-                      onClick={() => c.signed_document ? setViewingSignedDocItem(c) : setUploadingSignedDocItem(c)} 
-                      title={c.signed_document ? "عرض الوثيقة" : "رفع الوثيقة الممضاة"}
-                      style={{ color: c.signed_document ? 'var(--primary-color)' : 'inherit' }}
-                    >
-                      {c.signed_document ? <FileText size={16} /> : <UploadCloud size={16} />}
-                    </button>
-                  )}
-                  {hasAccess(permissions.disciplinary.view) && (
-                    <button className="btn-action-premium view-btn" onClick={() => setViewingItem(c)} title="عرض التفاصيل">
-                      <Eye size={16} />
-                    </button>
-                  )}
-                  {hasAccess(permissions.disciplinary.edit) && (
-                    <button className="btn-action-premium edit-btn" onClick={() => controller.openEditDialog(c)} title="تعديل">
-                      <Edit2 size={16} />
-                    </button>
-                  )}
-                  {hasAccess(permissions.disciplinary.delete) && (
-                    <button 
-                      className="btn-action-premium delete-btn" 
-                      onClick={() => controller.handleDelete(c.id)} 
-                      title="حذف"
-                      disabled={controller.deletingId === c.id}
-                      style={{ opacity: controller.deletingId === c.id ? 0.5 : 1 }}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
+                <MobileRowMenu items={menuItems(c)} label="إجراءات الإجراء التأديبي" />
+              </header>
+
+              <div className="dc-body">
+                <h3 className="dc-title">{c.reason || 'بدون وصف'}</h3>
+                <p className="dc-sub">
+                  <span className="dc-type">{getTypeIcon(c.actionType)}{c.actionType}</span>
+                  <span className="dc-dot" aria-hidden="true" />
+                  <span>{dayText(c.incidentDate)}</span>
+                </p>
               </div>
-            </div>
+
+              {(() => {
+                const steps = stepsOf(c);
+                const done = steps.filter(st => st.done).length;
+                const current = steps.find(st => !st.done);
+                return (
+                  <div className="dc-progress">
+                    <div className="dc-progress-bar" aria-hidden="true">
+                      {steps.map(st => <i key={st.label} className={st.done ? 'done' : ''} />)}
+                    </div>
+                    <span className="dc-progress-text">
+                      {current ? <span>المرحلة: <b>{current.label}</b></span> : <b className="dc-complete"><Check size={12} strokeWidth={3} />مكتمل</b>}
+                      <em>{done}/{steps.length}</em>
+                    </span>
+                  </div>
+                );
+              })()}
+
+              <footer className="dc-foot">
+                <span className="dc-member">
+                  <span className="dc-avatar">{initialsOf(c.memberName)}</span>
+                  <span className="dc-member-name">{c.memberName}</span>
+                </span>
+                {c.deadlineOrHearingDate && (
+                  <span className={`dc-deadline ${deadlineLate(c) ? 'late' : ''}`} title={c.actionType === 'استدعاء جلسة' ? 'موعد الجلسة' : 'آخر أجل للرد'}>
+                    <Clock size={13} />{dayText(c.deadlineOrHearingDate)}
+                  </span>
+                )}
+              </footer>
+            </article>
           ))}
           {controller.disciplinaryList.length === 0 && (
              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
@@ -315,8 +370,9 @@ export const Disciplinary: React.FC = () => {
         <ClarificationResponseDialog
           isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'طلب توضيح'}
           onClose={controller.closeDialog}
-          onSave={controller.handleSave}
+          onSave={personal ? controller.handleMemberReply : controller.handleSave}
           editingItem={controller.editingItem}
+          mode={personal ? 'member' : 'admin'}
         />
 
         <HearingResponseDialog
@@ -336,7 +392,8 @@ export const Disciplinary: React.FC = () => {
           isOpen={!!viewingReplyItem}
           onClose={() => setViewingReplyItem(null)}
           item={viewingReplyItem}
-          onEdit={(item) => {
+          section={replySection}
+          onEdit={personal ? undefined : (item) => {
             setViewingReplyItem(null);
             controller.openResponseDialog(item);
           }}
@@ -359,7 +416,7 @@ export const Disciplinary: React.FC = () => {
           isOpen={!!viewingSignedDocItem}
           onClose={() => setViewingSignedDocItem(null)}
           imageUrl={viewingSignedDocItem?.signed_document || ''}
-          onEdit={hasAccess(permissions.disciplinary.edit) ? () => {
+          onEdit={canDo('edit') ? () => {
             setUploadingSignedDocItem(viewingSignedDocItem);
             setViewingSignedDocItem(null);
           } : undefined}

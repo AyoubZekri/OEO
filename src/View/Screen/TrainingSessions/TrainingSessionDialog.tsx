@@ -18,6 +18,11 @@ export interface TrainingSessionModel {
     present: number;
     absent: number;
   };
+  /** The attendance sheet was saved (management list) */
+  attendance_taken?: boolean;
+  /** Personal space: my absence / late record in this session (null when none) */
+  my_absence?: string | null;
+  my_absence_note?: string;
 }
 
 interface TrainingSessionDialogProps {

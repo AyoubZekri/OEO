@@ -51,7 +51,7 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
               <MessageSquare size={24} />
             </div>
             <h2>
-              <span className="desktop-title">أقوال اللاعب (جلسة استماع)</span>
+              <span className="desktop-title">أقوال العضو (جلسة استماع)</span>
               <span className="mobile-title">جلسة استماع</span>
             </h2>
           </div>
@@ -70,7 +70,7 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
               <div className="epic-section-header-icon">
                 <MessageSquare size={18} />
               </div>
-              <h3>أقوال اللاعب وتبريراته خلال الجلسة</h3>
+              <h3>أقوال العضو وتبريراته خلال الجلسة</h3>
             </div>
             
             <div className="modern-form-group">
@@ -79,7 +79,7 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
                 onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
                 className="modern-form-input modern-form-textarea"
                 rows={4}
-                placeholder="أدخل أقوال وتبريرات اللاعب..."
+                placeholder="أدخل أقوال وتبريرات العضو..."
               />
             </div>
           </div>

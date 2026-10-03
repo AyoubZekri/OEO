@@ -42,7 +42,7 @@ export const PrintableClarificationRequest = forwardRef<HTMLDivElement, Printabl
           <div className="section-title">الموضوع: طلب توضيح كتابي بشأن واقعة</div>
           
           <div className="declaration-text" style={{ marginTop: '20px', fontSize: '18px', lineHeight: '2' }}>
-            يطلب من اللاعب السيد: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong> تقديم توضيحات مكتوبة بشأن الواقعة المؤرخة في {new Date(incident.incidentDate).toLocaleDateString('en-GB')}.
+            يطلب من العضو السيد: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong> تقديم توضيحات مكتوبة بشأن الواقعة المؤرخة في {new Date(incident.incidentDate).toLocaleDateString('en-GB')}.
           </div>
 
           <div className="section-title">وصف الواقعة أو المخالفة:</div>
@@ -65,7 +65,7 @@ export const PrintableClarificationRequest = forwardRef<HTMLDivElement, Printabl
             <thead>
               <tr>
                 <th style={{ width: '50%' }}>الإدارة</th>
-                <th style={{ width: '50%' }}>استلم اللاعب بتاريخ: .......................</th>
+                <th style={{ width: '50%' }}>استلم العضو بتاريخ: .......................</th>
               </tr>
             </thead>
             <tbody>

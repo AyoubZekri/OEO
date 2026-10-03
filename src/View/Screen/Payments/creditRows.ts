@@ -2,20 +2,20 @@ import type { PaymentRecord } from './payment_model';
 import type { Debt } from '../Debts/debtUtils';
 
 /**
- * A purchase on credit not fully paid yet, shown in the payments & expenses list next to the real payments.
- * Its amount is what is still owed; once it is paid in full, its repayments are the list's expenses.
+ * A purchase on credit not fully paid yet, one row of the payments & expenses list: its amount is the full price,
+ * what has been paid on it is in the "paid" column (paying it never adds a row). Paid in full, it is a normal row.
  */
 export type CreditRow = PaymentRecord & { credit: Debt };
 
 export const isCredit = (p: PaymentRecord): p is CreditRow => Boolean((p as Partial<CreditRow>).credit);
 
-/** The unpaid purchases on credit as list rows, newest first, with the page's search / nature / fund filters */
+/** The purchases on credit not fully paid, newest first, with the page's search / nature / fund filters */
 export const creditRows = (debts: Debt[], { search, nature, fund }: { search: string; nature: string; fund: string }): CreditRow[] => {
-  // A purchase on credit has no fund until it is paid
-  if (fund && fund !== 'all') return [];
   const q = search.trim().toLowerCase();
   return debts
     .filter(d => d.kind === 'purchase' && d.status !== 'paid')
+    // Its fund is the one of its payments
+    .filter(d => !fund || fund === 'all' || String(d.fund_id ?? '') === fund)
     .filter(d => nature === 'all' || !nature || (d.expense_nature || 'اخرى') === nature)
     .filter(d => !q
       || d.creditor.toLowerCase().includes(q)
@@ -26,7 +26,7 @@ export const creditRows = (debts: Debt[], { search, nature, fund }: { search: st
     .map(d => ({
       id: `credit-${d.id}`,
       transactionType: 'مصروف',
-      amount: d.remaining,
+      amount: d.amount,
       paymentMethod: '',
       paymentDate: d.debt_date || '',
       amountNature: d.expense_nature || 'اخرى',

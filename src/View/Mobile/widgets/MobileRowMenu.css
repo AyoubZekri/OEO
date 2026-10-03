@@ -28,15 +28,13 @@ body.dark-mode .mrm-trigger {
 .mrm-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 40;
+  z-index: 1499;
 }
 
-/* Opens under the ⋮ button (left side of the card in RTL) */
+/* Drawn over the whole page, next to its ⋮ button (position set by the component) */
 .mrm-menu {
-  position: absolute;
-  top: calc(100% - 4px);
-  left: 12px;
-  z-index: 50;
+  position: fixed;
+  z-index: 1500;
   width: 210px;
   display: flex;
   flex-direction: column;
@@ -57,16 +55,6 @@ body.dark-mode .mrm-menu {
   background: #1f2025;
 }
 
-/* Invisible room under the menu so the page can scroll past it and clear the bottom nav */
-.mrm-menu::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 1px;
-  height: 100px;
-  pointer-events: none;
-}
 
 @keyframes mrm-pop {
   from { opacity: 0; transform: scale(0.92); }
@@ -100,3 +88,7 @@ body.dark-mode .mrm-item { color: #f4f4f5; }
 
 .mrm-item.danger,
 .mrm-item.danger .mrm-icon { color: #ef4444; }
+
+/* Labels on one line: the menu grows a little for a long label, never past the screen */
+.mrm-menu { min-width: 210px; width: max-content; max-width: calc(100vw - 16px); }
+.mrm-item { white-space: nowrap; }

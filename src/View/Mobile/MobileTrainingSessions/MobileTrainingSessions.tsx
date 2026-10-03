@@ -11,8 +11,9 @@ import type { useTrainingSessionsController } from '../../Screen/TrainingSession
 import type { TrainingSessionModel } from '../../Screen/TrainingSessions/TrainingSessionDialog';
 import {
   STATUS_LABELS, STATUS_TONE, computedStatus, dayOf, startOf, endOf, durationOf, durationText, dayLabel,
-  daysFromToday, countdownText, attendanceRate, useNow,
+  daysFromToday, countdownText, attendanceRate, useNow, myAttendance,
 } from './sessionUtils';
+import { MyAttendanceBadge } from './MyAttendanceBadge';
 import { MobileSessionDetails } from './MobileSessionDetails';
 import { MobileSessionForm } from './MobileSessionForm';
 import './MobileTrainingSessions.css';
@@ -32,7 +33,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
   const now = useNow();
   const [period, setPeriod] = useState<Period>('upcoming');
   const [detailsId, setDetailsId] = useUrlDetails('session');
-  const { sessions, teams } = controller;
+  const { sessions, teams, personal } = controller;
 
   const isPast = (s: TrainingSessionModel) => daysFromToday(dayOf(s)) < 0;
   const upcoming = sessions.filter(s => !isPast(s)).sort((a, b) => startOf(a).getTime() - startOf(b).getTime());
@@ -43,8 +44,12 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
   const next = upcoming.find(s => computedStatus(s, now) === 'جارية')
     || upcoming.find(s => computedStatus(s, now) === 'مجدولة');
 
+  // Personal space: my own attendance rate (attended or late, over the finished sessions); otherwise the category's average
+  const mine = sessions.map(s => myAttendance(s, now)).filter(a => a !== null);
   const rates = sessions.map(attendanceRate).filter((r): r is number => r !== null);
-  const avgRate = rates.length ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length) : null;
+  const avgRate = personal
+    ? (mine.length ? Math.round((mine.filter(a => a.tone === 'present' || a.tone === 'late').length / mine.length) * 100) : null)
+    : rates.length ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length) : null;
   const done = sessions.filter(s => computedStatus(s, now) === 'مكتملة').length;
 
   // Sessions of the same day under one heading
@@ -60,9 +65,11 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
 
   const menuItems = (s: TrainingSessionModel): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(s.id ?? null) },
+    ...(personal ? [] : [
     ...(can('trainingSessions', 'attendance') ? [{ key: 'attendance', label: 'تسجيل الحضور', icon: ClipboardCheck, color: '#f97316', onClick: () => navigate(attendancePath(s)) }] : []),
     ...(can('trainingSessions', 'edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => controller.openEditDialog(s) }] : []),
     ...(can('trainingSessions', 'delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDeleteSession(s.id) }] : []),
+    ]),
   ];
 
   const teamOptions = [{ value: '', label: 'كل الفئات' }, ...teams.map(t => ({ value: String(t.id), label: t.name as string }))];
@@ -70,7 +77,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
 
   return (
     <div className="mts-page">
-      <MobileAppBar title="حصص التدريب" />
+      <MobileAppBar title={personal ? 'حصصي التدريبية' : 'حصص التدريب'} />
 
       {/* Next session */}
       {!controller.isLoading && (
@@ -100,7 +107,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
                   <div style={{ width: `${Math.min(100, Math.max(0, ((now.getTime() - startOf(next).getTime()) / (endOf(next).getTime() - startOf(next).getTime())) * 100))}%` }} />
                 </div>
               )}
-              {can('trainingSessions', 'attendance') && (
+              {!personal && can('trainingSessions', 'attendance') && (
                 <button type="button" className="mts-hero-btn" onClick={() => navigate(attendancePath(next))}>
                   <ClipboardCheck size={17} /> تسجيل الحضور
                 </button>
@@ -116,13 +123,13 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
           <div className="mts-stats">
             <div><strong>{upcoming.length}</strong><small>قادمة</small></div>
             <div><strong>{done}</strong><small>مكتملة</small></div>
-            <div><strong>{avgRate !== null ? `${avgRate}%` : '—'}</strong><small>معدل الحضور</small></div>
+            <div><strong>{avgRate !== null ? `${avgRate}%` : '—'}</strong><small>{personal ? 'نسبة حضوري' : 'معدل الحضور'}</small></div>
           </div>
         </section>
       )}
 
       {/* Category filter: searchable list (reloads from the server, like the desktop dropdown) */}
-      {teams.length > 0 && (
+      {!personal && teams.length > 0 && (
         <MobileSelect
           label="تصفية حسب الفئة"
           icon={Users}
@@ -158,7 +165,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
         <div className="mts-empty">
           <span className="mts-empty-icon"><Calendar size={36} /></span>
           <strong>{period === 'upcoming' ? 'لا توجد حصص قادمة' : 'لا توجد حصص سابقة'}</strong>
-          <p>{period === 'upcoming' ? 'أضف حصة تدريبية جديدة بالزر +' : 'ستظهر هنا الحصص بعد انقضاء تاريخها.'}</p>
+          <p>{period === 'upcoming' ? (personal ? 'ستظهر هنا حصص فئتك عند برمجتها.' : 'أضف حصة تدريبية جديدة بالزر +') : 'ستظهر هنا الحصص بعد انقضاء تاريخها.'}</p>
         </div>
       ) : (
         <div className="mts-list">
@@ -190,7 +197,9 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
                         <span className="mts-status"><i />{STATUS_LABELS[status] || status}</span>
                       </span>
                       <span className="mts-meta"><MapPin size={13} /> {s.location || '—'}</span>
-                      {s.attendance_stats && s.attendance_stats.total > 0 ? (
+                      {personal ? (
+                        <span className="mts-meta"><MyAttendanceBadge session={s} now={now} /></span>
+                      ) : s.attendance_stats && s.attendance_stats.total > 0 ? (
                         <span className="mts-att">
                           <span className="mts-att-bar"><span style={{ width: `${rate}%` }} /></span>
                           <small><Users size={12} /> {s.attendance_stats.present}/{s.attendance_stats.total}</small>
@@ -208,7 +217,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
         </div>
       )}
 
-      {can('trainingSessions', 'add') && (
+      {!personal && can('trainingSessions', 'add') && (
         <button type="button" className="mts-fab" onClick={controller.openAddDialog} aria-label="إضافة حصة" title="إضافة حصة">
           <Plus size={22} strokeWidth={2.5} />
         </button>
@@ -218,6 +227,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
         <MobileSessionDetails
           session={detailsSession}
           now={now}
+          personal={personal}
           onChangeStatus={status => controller.handleChangeStatus(detailsSession.id, status)}
           onAttendance={() => navigate(attendancePath(detailsSession))}
           onEdit={() => controller.openEditDialog(detailsSession)}

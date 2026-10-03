@@ -121,11 +121,12 @@ export const Payments: React.FC = () => {
 
   // Expenses bought on credit (purchase debts): followed and paid from this page
   const credit = useDebtsController({ kind: 'purchase', onChange: controller.reload });
-  // The list: purchases on credit still unpaid first, then the payments and expenses
-  const rows = [
-    ...creditRows(credit.debts, { search: controller.searchQuery, nature: controller.filterNature, fund: controller.selectedFundFilter }),
-    ...controller.payments,
-  ];
+  // The list: purchases on credit not fully paid first, then the payments and expenses (paid purchases included)
+  // Payment status filter: all, not paid at all ("open"), partly paid ("partial") — purchases on credit
+  const [paidFilter, setPaidFilter] = useState('all');
+  const unpaidRows = creditRows(credit.debts, { search: controller.searchQuery, nature: controller.filterNature, fund: controller.selectedFundFilter });
+  const countOf = (status: string) => unpaidRows.filter(r => r.credit.status === status).length;
+  const rows = paidFilter === 'all' ? [...unpaidRows, ...controller.payments] : unpaidRows.filter(r => r.credit.status === paidFilter);
   const paginatedPayments = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Form State (shared with the phone page)
@@ -240,6 +241,15 @@ export const Payments: React.FC = () => {
             value={filterNature}
             onChange={(val) => setFilterNature(val)}
           />
+          <CustomDropdown
+            options={[
+              { value: 'all', label: 'الكل' },
+              { value: 'open', label: `غير مدفوعة (${countOf('open')})` },
+              { value: 'partial', label: `مدفوعة جزئياً (${countOf('partial')})` },
+            ]}
+            value={paidFilter}
+            onChange={val => { setPaidFilter(val); setCurrentPage(1); }}
+          />
           {hasAccess(permissions.payments.add) && (
             <button className="btn-primary" onClick={() => handleOpenDialog()}>
               <Plus size={18} />
@@ -259,6 +269,7 @@ export const Payments: React.FC = () => {
               <th>{t('payments.col_member', 'المستفيد')}</th>
               <th>{t('payments.col_nature', 'طبيعة المبلغ')}</th>
               <th>{t('payments.col_amount', 'المبلغ')}</th>
+              <th>المدفوع</th>
               <th>{t('payments.col_method', 'طريقة الدفع')}</th>
               <th>{t('payments.col_actions', 'إجراءات')}</th>
             </tr>
@@ -266,7 +277,7 @@ export const Payments: React.FC = () => {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={6} className="text-center py-4 text-muted">
+                <td colSpan={7} className="text-center py-4 text-muted">
                   {t('payments.no_data', 'لا توجد بيانات')}
                 </td>
               </tr>
@@ -282,9 +293,10 @@ export const Payments: React.FC = () => {
                         <span className="credit-sub">شراء بالدين</span>
                       </td>
                       <td data-label={t('payments.col_nature', 'طبيعة المبلغ')}>{paymentNatureText(payment)}</td>
-                      <td className="amount-cell credit-amount" data-label={t('payments.col_amount', 'المبلغ')}>
-                        {formatCurrency(d.remaining)}
-                        {d.repaid > 0 && <span className="credit-sub">من أصل {moneyText(d.amount)}</span>}
+                      <td className="amount-cell" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(d.amount)}</td>
+                      <td className="amount-cell" data-label="المدفوع">
+                        <span className={d.repaid > 0 ? 'text-success' : 'credit-amount'}>{formatCurrency(d.repaid)}</span>
+                        {d.remaining > 0 && <span className="credit-sub">الباقي {moneyText(d.remaining)}</span>}
                       </td>
                       <td data-label={t('payments.col_method', 'طريقة الدفع')}>
                         <span className={`credit-badge ${d.overdue ? 'late' : ''}`}>
@@ -294,16 +306,27 @@ export const Payments: React.FC = () => {
                       <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
                         <div style={{ display: 'flex', gap: '8px' }}>
                           {hasAccess(permissions.payments.add) && (
-                            <button className="btn-pay" onClick={() => credit.openRepay(d)} title="دفع">
-                              <HandCoins size={16} />دفع
+                            <button className="btn-icon" onClick={() => credit.openRepay(d)} title="دفع" style={{ color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
+                              <HandCoins size={18} />
                             </button>
                           )}
-                          <button className="btn-icon view" onClick={() => credit.openDebt(d)} title="التفاصيل" style={{ color: '#f97316' }}>
+                          <button className="btn-icon view" onClick={() => credit.openDebt(d)} title="التفاصيل" style={{ color: '#3b82f6' }}>
                             <Eye size={18} />
                           </button>
                           {hasAccess(permissions.payments.edit) && (
                             <button className="btn-icon edit" onClick={() => credit.openForm(d)} title="تعديل">
                               <Edit size={18} />
+                            </button>
+                          )}
+                          {hasAccess(permissions.payments.delete) && (
+                            <button
+                              className="btn-icon delete"
+                              title="حذف"
+                              onClick={() => {
+                                if (window.confirm(`هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`)) credit.remove(d);
+                              }}
+                            >
+                              <Trash2 size={18} />
                             </button>
                           )}
                         </div>
@@ -315,11 +338,12 @@ export const Payments: React.FC = () => {
                 return (
                   <tr key={payment.id}>
                     <td className="text-muted" data-label={t('payments.col_date', 'التاريخ')}>{payment.paymentDate}</td>
-                    <td className="font-weight-bold" data-label={t('payments.col_member', 'المستفيد')}>{member ? `${member.firstName} ${member.lastName}` : '-'}</td>
+                    <td className="font-weight-bold" data-label={t('payments.col_member', 'المستفيد')}>{member ? `${member.firstName} ${member.lastName}` : payment.creditor || '-'}</td>
                     <td data-label={t('payments.col_nature', 'طبيعة المبلغ')}>
                       {paymentNatureText(payment)}
                     </td>
-                    <td className="amount-cell text-success" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(payment.amount)}</td>
+                    <td className="amount-cell" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(payment.amount)}</td>
+                    <td className="amount-cell text-success" data-label="المدفوع">{formatCurrency(payment.amount)}</td>
                     <td data-label={t('payments.col_method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
                     <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
                       <div style={{ display: 'flex', gap: '8px' }}>
@@ -739,7 +763,7 @@ export const Payments: React.FC = () => {
 
                 {!['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة مقابلات', 'مصاريف التنقل'].includes(amountNature) && (
                   <div className="form-group">
-                    <label>{form.creditMode ? 'ماذا اشترينا' : t('payments.form_occasion', 'المناسبة / السبب')}</label>
+                    <label>{form.creditMode ? 'البيان (تفاصيل المصروف)' : t('payments.form_occasion', 'المناسبة / السبب')}</label>
                     <input type="text" className="form-control" value={occasion} onChange={e => setOccasion(e.target.value)} required={amountNature === 'اخرى'} />
                   </div>
                 )}
@@ -760,12 +784,6 @@ export const Payments: React.FC = () => {
                 </div>
 
 
-                {form.creditMode && (
-                  <p className="payment-credit-note">
-                    <Clock size={15} />
-                    لا يُسحب أي مبلغ الآن ولا يُحسب مصروفاً: يظهر في «مشتريات بالدين»، وكل تسديد منه يُسجل مصروفاً.
-                  </p>
-                )}
                 {form.creditMode && form.creditError && <p className="payment-credit-error"><AlertCircle size={15} />{form.creditError}</p>}
 
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">

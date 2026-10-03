@@ -153,26 +153,26 @@
 .db-meta svg { flex-shrink: 0; color: var(--tk-muted); opacity: 0.8; }
 .db-meta.late, .db-meta.late svg { color: #ef4444; opacity: 1; }
 
-.db-repay-btn {
-  flex: 1 0 100%;
-  display: inline-flex;
+/* Card actions: icons like the app's tables */
+.db-actions { display: inline-flex; align-items: center; gap: 6px; margin-inline-start: auto; }
+
+.db-act {
+  width: 34px;
+  height: 34px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  min-height: 38px;
-  padding: 0 14px;
-  border-radius: 11px;
-  border: 1px solid color-mix(in srgb, #10b981 40%, transparent);
-  background: color-mix(in srgb, #10b981 8%, transparent);
-  color: #059669;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
+  border: none;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--act, var(--tk-accent)) 11%, transparent);
+  color: var(--act, var(--tk-accent));
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.db-repay-btn:hover { background: #10b981; color: #fff; }
+.db-act:hover { background: var(--act, var(--tk-accent)); color: #fff; }
+.db-card { position: relative; }
+.db-card-menu { flex-shrink: 0; display: inline-flex; }
 
 /* Compact card (phones) */
 .db-card.compact { flex-direction: row; align-items: center; gap: 12px; padding: 14px; }

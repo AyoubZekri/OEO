@@ -22,7 +22,9 @@ export const IncidentPrintDialog: React.FC<IncidentPrintDialogProps> = ({ isOpen
     if (incident?.actionType === 'استدعاء جلسة') {
       setPrintType('summons');
     } else if (incident?.actionType === 'طلب توضيح') {
-      setPrintType('clarification_request');
+      // After the decision: the document with the reply and the decision, for the player's signature
+      const decided = Boolean(incident?.admin_notes?.trim() || incident?.decision_outcome?.trim());
+      setPrintType(decided ? 'clarification_reply' : 'clarification_request');
     } else {
       setPrintType('incident');
     }
@@ -49,7 +51,7 @@ export const IncidentPrintDialog: React.FC<IncidentPrintDialogProps> = ({ isOpen
         
         <div className="glass-dialog-body">
           <p style={{ marginBottom: '20px', color: 'var(--text-muted)', textAlign: 'center' }}>
-            هل أنت متأكد من طباعة محضر الواقعة الخاص باللاعب <strong>{incident.memberName}</strong>؟
+            هل أنت متأكد من طباعة محضر الواقعة الخاص بالعضو <strong>{incident.memberName}</strong>؟
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '24px' }}>

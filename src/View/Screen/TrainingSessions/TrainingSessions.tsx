@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, Users, ClipboardList, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { TrainingSessionDialog } from './TrainingSessionDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useTrainingSessionsController } from './TrainingSessionsController';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileTrainingSessions } from '../../Mobile/MobileTrainingSessions/MobileTrainingSessions';
+import { MyAttendanceBadge } from '../../Mobile/MobileTrainingSessions/MyAttendanceBadge';
+import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import './TrainingSessions.css';
 
 const STATUS_OPTIONS = [
@@ -16,11 +18,20 @@ const STATUS_OPTIONS = [
   { value: 'ملغاة',  label: 'ملغاة' },
 ];
 
-const TrainingSessions: React.FC = () => {
-  const controller = useTrainingSessionsController();
+/** personal: the personal space's page (the sessions of my category, read only, with my attendance) */
+const TrainingSessions: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
+  const controller = useTrainingSessionsController({ personal });
+  const now = useNow();
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
   const isMobile = useIsMobile();
   const can = useCan();
+  // ?session=ID (from an alert): the session's card is brought into view and marked
+  const [params] = useSearchParams();
+  const focusId = isMobile ? null : params.get('session');
+  useEffect(() => {
+    if (!focusId || controller.isLoading) return;
+    document.getElementById(`session-card-${focusId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [focusId, controller.isLoading, controller.sessions]);
 
   if (isMobile) return <MobileTrainingSessions controller={controller} />;
 
@@ -92,6 +103,7 @@ const TrainingSessions: React.FC = () => {
 
   return (
     <div className="training-sessions-container">
+      {!personal && (
       <div className="training-sessions-header">
         <div className="header-actions">
           <div className="modern-filter-group">
@@ -110,6 +122,7 @@ const TrainingSessions: React.FC = () => {
           )}
         </div>
       </div>
+      )}
 
       {controller.isLoading ? (
         <div className="loading-container" style={{ minHeight: '300px' }}>
@@ -129,7 +142,7 @@ const TrainingSessions: React.FC = () => {
             const duration = calcDuration(session.start, session.end);
             const isMenuOpen = openStatusMenu === (session.id ?? idx);
             return (
-              <div key={session.id ?? idx} className="sc-card">
+              <div key={session.id ?? idx} id={`session-card-${session.id}`} className={`sc-card ${focusId && String(session.id) === focusId ? 'focused' : ''}`}>
 
                 {/* Top bar: session number + status with dropdown */}
                 <div className="sc-topbar">
@@ -140,11 +153,11 @@ const TrainingSessions: React.FC = () => {
                     <button
                       type="button"
                       className={`sc-status-label ${status.cls}`}
-                      disabled={!can('trainingSessions', 'edit')}
+                      disabled={personal || !can('trainingSessions', 'edit')}
                       onClick={() => setOpenStatusMenu(isMenuOpen ? null : (session.id ?? idx))}
                     >
                       {status.label}
-                      <ChevronDown size={11} style={{ marginRight: '3px' }} />
+                      {!personal && <ChevronDown size={11} style={{ marginRight: '3px' }} />}
                     </button>
                     {isMenuOpen && (
                       <div className="sc-status-menu">
@@ -218,7 +231,16 @@ const TrainingSessions: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Attendance progress bar */}
+                {/* My attendance (personal space), or the category's attendance */}
+                {personal ? (
+                  <div className="sc-attendance">
+                    <div className="sc-attendance-header">
+                      <span className="sc-attendance-label">حضوري</span>
+                      <MyAttendanceBadge session={session} now={now} />
+                    </div>
+                    {session.my_absence_note && <span className="my-att-note">{session.my_absence_note}</span>}
+                  </div>
+                ) : (
                 <div className="sc-attendance">
                   <div className="sc-attendance-header">
                     <span className="sc-attendance-label">قائمة الحضور</span>
@@ -232,8 +254,10 @@ const TrainingSessions: React.FC = () => {
                     </span>
                   </div>
                 </div>
+                )}
 
                 {/* Footer actions */}
+                {!personal && (
                 <div className="sc-footer">
                   {can('trainingSessions', 'attendance') && (
                     <Link to={`/training-sessions/${session.id}/attendance`} className="sc-action-btn edit" title="تسجيل الحضور والغياب">
@@ -253,6 +277,7 @@ const TrainingSessions: React.FC = () => {
                     )}
                   </div>
                 </div>
+                )}
               </div>
             );
           })}
@@ -260,7 +285,7 @@ const TrainingSessions: React.FC = () => {
           {controller.sessions.length === 0 && (
             <div className="sc-empty">
               <Calendar size={40} strokeWidth={1} />
-              <p>لا توجد حصص تدريبية مبرمجة لهذه الفئة.</p>
+              <p>{personal ? 'لا توجد حصص تدريبية لفئتك.' : 'لا توجد حصص تدريبية مبرمجة لهذه الفئة.'}</p>
             </div>
           )}
         </div>

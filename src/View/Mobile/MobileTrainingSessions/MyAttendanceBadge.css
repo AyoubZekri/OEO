@@ -1,0 +1,25 @@
+/* Personal space: my attendance in a training session */
+.my-att-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--my-att);
+  background: color-mix(in srgb, var(--my-att) 12%, transparent);
+}
+.my-att-badge.present { --my-att: #059669; }
+.my-att-badge.late    { --my-att: #d97706; }
+.my-att-badge.excused { --my-att: #2563eb; }
+.my-att-badge.absent  { --my-att: #dc2626; }
+.my-att-badge.pending { --my-att: #64748b; }
+
+.my-att-note {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: var(--text-muted, #6b7280);
+}

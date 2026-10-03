@@ -106,7 +106,6 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
               بالدين
             </button>
           </div>
-          {f.creditMode && <p className="mpy-note">لا يُسحب أي مبلغ الآن: يظهر في «مشتريات بالدين»، وكل تسديد منه يُسجل مصروفاً.</p>}
         </section>
       )}
 
@@ -297,7 +296,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         {hasOccasion && (
           <>
             <label className="me-field">
-              <span className="me-label"><StickyNote size={14} /> {f.creditMode ? 'ماذا اشترينا' : 'المناسبة / السبب'}{f.amountNature === 'اخرى' ? ' *' : ''}</span>
+              <span className="me-label"><StickyNote size={14} /> {f.creditMode ? 'البيان (تفاصيل المصروف)' : 'المناسبة / السبب'}{f.amountNature === 'اخرى' ? ' *' : ''}</span>
               <input className="me-input" type="text" value={f.occasion} onChange={e => f.setOccasion(e.target.value)} />
             </label>
             {show(errors.occasion)}

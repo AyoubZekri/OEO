@@ -101,6 +101,22 @@ export const attendanceRate = (s: TrainingSessionModel) => {
   return stats && stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : null;
 };
 
+export type MyAttendanceTone = 'present' | 'late' | 'excused' | 'absent';
+
+/**
+ * Personal space: my attendance in a session. An absence / late record is shown as it is;
+ * a finished session without one counts as attended (the attendance sheet's rule). Nothing before the end.
+ */
+export const myAttendance = (s: TrainingSessionModel, now = new Date()): { label: string; tone: MyAttendanceTone } | null => {
+  const status = computedStatus(s, now);
+  if (status === 'ملغاة') return null;
+  const absence = (s.my_absence || '').trim();
+  if (absence === 'متأخر') return { label: 'متأخر', tone: 'late' };
+  if (absence === 'غائب مبرر') return { label: 'غائب مبرر', tone: 'excused' };
+  if (absence) return { label: absence, tone: 'absent' };
+  return status === 'مكتملة' ? { label: 'حاضر', tone: 'present' } : null;
+};
+
 /** Current time, refreshed every minute so countdowns and "live" states stay right */
 export const useNow = () => {
   const [now, setNow] = useState(() => new Date());

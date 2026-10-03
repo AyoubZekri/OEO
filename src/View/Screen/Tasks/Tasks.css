@@ -1859,3 +1859,17 @@ body.dark-mode .tk-page .tk-scope {
 .tk-mbase-chips span.late { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 .tk-mbase-chips span.prio { background: color-mix(in srgb, var(--tk-t) 11%, transparent); color: var(--tk-t); }
 .tk-list { padding-bottom: 64px; }
+
+/* Read-only status (personal space): a pill instead of the status dropdown */
+.tk-status-pill {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--tk-t) 12%, transparent);
+  color: var(--tk-t);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}

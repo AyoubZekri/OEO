@@ -56,6 +56,17 @@ export const STATUS_LABEL: Record<JustificationState, string> = {
   rejected: 'تبرير مرفوض',
 };
 
+/** A holiday request is accepted or refused, not "justified" */
+export const LEAVE_STATUS_LABEL: Record<JustificationState, string> = {
+  none: 'بانتظار الرد',
+  pending: 'طلب قيد الدراسة',
+  accepted: 'طلب مقبول',
+  rejected: 'طلب مرفوض',
+};
+
+export const statusLabelOf = (a: AbsenceRecord) =>
+  (typeMeta(a.absence_type).value === 'طلب عطلة' ? LEAVE_STATUS_LABEL : STATUS_LABEL)[statusOf(a)];
+
 /** Values the API filter expects for each status */
 export const STATUS_FILTERS = [
   { value: '', label: 'كل الحالات' },

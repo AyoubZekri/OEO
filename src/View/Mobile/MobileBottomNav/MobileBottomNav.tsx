@@ -1,9 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { House, Users, Briefcase, LayoutGrid } from 'lucide-react';
+import { House, Users, Briefcase, LayoutGrid, ListTodo } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useCan } from '../../../core/functions/useCan';
+import { useSpace } from '../../../core/context/space';
 import type { PermissionModule } from '../../Screen/UserManagement/Roles/role_model';
 import './MobileBottomNav.css';
 
@@ -16,9 +17,14 @@ const NAV_ITEMS: { to: string; label: string; icon: LucideIcon; end?: boolean; m
 
 export const MobileBottomNav: React.FC = () => {
   const can = useCan();
+  const { space } = useSpace();
+  // Personal space: its home, my tasks, and "More"
+  const items = space === 'personal'
+    ? [NAV_ITEMS[0], { to: Approutes.MyTasks, label: 'مهامي', icon: ListTodo }, NAV_ITEMS[NAV_ITEMS.length - 1]]
+    : NAV_ITEMS;
   return (
     <nav className="mobile-bottom-nav" dir="ltr">
-      {NAV_ITEMS.filter(item => !item.module || can(item.module)).map(({ to, label, icon: Icon, end }) => (
+      {items.filter(item => !item.module || can(item.module)).map(({ to, label, icon: Icon, end }) => (
         <NavLink
           key={to}
           to={to}

@@ -7,6 +7,7 @@ import type { TrainingSessionModel } from '../../Screen/TrainingSessions/Trainin
 import {
   STATUS_LABELS, STATUS_TONE, computedStatus, dayOf, startOf, durationOf, durationText, longDate, countdownText, attendanceRate,
 } from './sessionUtils';
+import { MyAttendanceBadge } from './MyAttendanceBadge';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileSessionDetails.css';
 
@@ -17,15 +18,18 @@ interface MobileSessionDetailsProps {
   onAttendance: () => void;
   onEdit: () => void;
   onClose: () => void;
+  /** Personal space: read only, with my attendance instead of the category's */
+  personal?: boolean;
 }
 
 const STATUS_OPTIONS: MobileSelectOption[] = Object.entries(STATUS_LABELS).map(([value, label]) => ({ value, label }));
 
 // Full details of one training session (phone)
 export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
-  session, now, onChangeStatus, onAttendance, onEdit, onClose,
+  session, now, onChangeStatus, onAttendance, onEdit, onClose, personal = false,
 }) => {
-  const can = useCan();
+  const allowed = useCan();
+  const can: typeof allowed = (...args) => !personal && allowed(...args);
   const status = computedStatus(session, now);
   const minutes = durationOf(session.start, session.end);
   const stats = session.attendance_stats;
@@ -34,7 +38,7 @@ export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
 
   const statusBadge = (open: () => void) => (
     <button type="button" className={`msd-status tone-${STATUS_TONE[status] || 'scheduled'}`} onClick={open}>
-      <i /> {STATUS_LABELS[status] || status} <ChevronDown size={14} />
+      <i /> {STATUS_LABELS[status] || status} {can('trainingSessions', 'edit') && <ChevronDown size={14} />}
     </button>
   );
 
@@ -111,8 +115,13 @@ export const MobileSessionDetails: React.FC<MobileSessionDetailsProps> = ({
 
       {/* Attendance */}
       <section className="me-card">
-        <h3 className="me-section-title"><span><Users size={16} /></span>الحضور</h3>
-        {stats && stats.total > 0 ? (
+        <h3 className="me-section-title"><span><Users size={16} /></span>{personal ? 'حضوري' : 'الحضور'}</h3>
+        {personal ? (
+          <div>
+            <MyAttendanceBadge session={session} now={now} />
+            {session.my_absence_note && <span className="my-att-note">{session.my_absence_note}</span>}
+          </div>
+        ) : stats && stats.total > 0 ? (
           <div className="msd-att">
             <div className="msd-ring" style={{ '--msd-p': rate ?? 0 } as React.CSSProperties}>
               <span><strong>{rate}%</strong><small>حضور</small></span>

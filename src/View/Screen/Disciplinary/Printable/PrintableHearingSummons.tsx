@@ -42,7 +42,7 @@ export const PrintableHearingSummons = forwardRef<HTMLDivElement, PrintableHeari
           <div className="section-title">الموضوع: استدعاء لجلسة استماع</div>
           
           <div className="declaration-text" style={{ marginTop: '20px', fontSize: '18px', lineHeight: '2' }}>
-            يدعى اللاعب السيد: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong> للحضور أمام: {incident.hearingLocation || '................................................................'}
+            يدعى العضو السيد: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong> للحضور أمام: {incident.hearingLocation || '................................................................'}
             <br />
             بتاريخ: {incident.deadlineOrHearingDate ? new Date(incident.deadlineOrHearingDate).toLocaleDateString('en-GB') : '.......................................'}
             <br />
@@ -67,7 +67,7 @@ export const PrintableHearingSummons = forwardRef<HTMLDivElement, PrintableHeari
             <thead>
               <tr>
                 <th style={{ width: '50%' }}>الإدارة</th>
-                <th style={{ width: '50%' }}>استلم اللاعب بتاريخ: .......................</th>
+                <th style={{ width: '50%' }}>استلم العضو بتاريخ: .......................</th>
               </tr>
             </thead>
             <tbody>

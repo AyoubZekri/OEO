@@ -1,0 +1,38 @@
+/* Personal space: my participation in a match */
+.mmp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.mmp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--mmp);
+  background: color-mix(in srgb, var(--mmp) 12%, transparent);
+}
+
+.mmp-chip.starter { --mmp: #059669; }
+.mmp-chip.bench   { --mmp: #2563eb; }
+.mmp-chip.muted   { --mmp: #64748b; }
+.mmp-chip.late    { --mmp: #d97706; }
+.mmp-chip.absent  { --mmp: #dc2626; }
+.mmp-chip.goal    { --mmp: #0f766e; }
+.mmp-chip.yellow  { --mmp: #ca8a04; }
+.mmp-chip.red     { --mmp: #dc2626; }
+.mmp-chip.rating  { --mmp: #f97316; }
+
+.mmp-chip.yellow svg { fill: #facc15; stroke: #ca8a04; }
+.mmp-chip.red svg    { fill: #ef4444; stroke: #dc2626; }
+
+.mmp-note {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  color: var(--text-muted, #6b7280);
+}

@@ -5,10 +5,13 @@ import axios from 'axios';
 import { MembersData } from '../Members/members_data';
 import { MemberModel } from '../Members/member_model';
 import { Crud } from '../../../core/class/Crud';
+import { useAuth } from '../../../core/context/AuthContext';
 
 const DISCIPLINARY = Applink.disciplinary;
 
-export const useDisciplinaryController = () => {
+/** personal: the signed-in user's own actions (personal space, read only), from /disciplinary/mine */
+export const useDisciplinaryController = ({ personal = false }: { personal?: boolean } = {}) => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [disciplinaryList, setDisciplinaryList] = useState<DisciplinaryModel[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,11 +29,15 @@ export const useDisciplinaryController = () => {
   const fetchDisciplinary = async (showLoading = false) => {
     if (showLoading) setIsLoading(true);
     try {
-      const response = await axios.get(DISCIPLINARY, {
+      const response = await axios.get(personal ? `${DISCIPLINARY}/mine` : DISCIPLINARY, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      
-      const processedData = response.data.map((item: DisciplinaryModel) => {
+      // My actions come without the member's name (they are all mine)
+      const rows: DisciplinaryModel[] = personal
+        ? (response.data.data || []).map((item: DisciplinaryModel) => ({ ...item, memberName: user?.name || '' }))
+        : response.data;
+
+      const processedData = rows.map((item: DisciplinaryModel): DisciplinaryModel => {
         // If there is a decision outcome, it's considered executed
         const hasDecision = !!(item.decision_outcome?.trim() || item.admin_notes?.trim() || item.decision_reasons?.trim());
         
@@ -65,7 +72,12 @@ export const useDisciplinaryController = () => {
     const init = async () => {
       setIsLoading(true);
       await fetchDisciplinary(false);
-      
+      // The members are needed only by the add / edit form (management space)
+      if (personal) {
+        setIsLoading(false);
+        return;
+      }
+
       const fetchMembers = async () => {
         const response = await membersData.getMembers();
         if (response) {
@@ -135,6 +147,28 @@ export const useDisciplinaryController = () => {
     }
   };
 
+  /** Personal space: the member answers a clarification request (until the decision) */
+  const handleMemberReply = async (item: DisciplinaryModel) => {
+    if (isSubmitting) return;
+    if (!item.player_statements?.trim()) {
+      alert('اكتب ردك قبل الإرسال');
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${DISCIPLINARY}/mine/reply`, { id: item.id, player_statements: item.player_statements }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      await fetchDisciplinary();
+      closeDialog();
+    } catch (error) {
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      alert(message || 'تعذر إرسال الرد');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (deletingId) return;
     if (window.confirm('هل أنت متأكد من حذف هذا الإجراء التأديبي؟')) {
@@ -168,7 +202,7 @@ export const useDisciplinaryController = () => {
   };
 
   const handleAcknowledge = async (item: DisciplinaryModel) => {
-    if (window.confirm('تأكيد توقيع اللاعب بالاستلام؟')) {
+    if (window.confirm('تأكيد توقيع العضو بالاستلام؟')) {
       try {
         const now = new Date();
         const currentDate = now.getFullYear() + '-' + 
@@ -241,6 +275,7 @@ export const useDisciplinaryController = () => {
     openResponseDialog,
     closeDialog,
     handleSave,
+    handleMemberReply,
     handleDelete,
     handleUpdateStatus,
     handleAcknowledge,

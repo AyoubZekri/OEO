@@ -40,7 +40,7 @@ export const PrintableHearingReport = forwardRef<HTMLDivElement, PrintableHearin
           </div>
 
           <div className="declaration-text" style={{ marginTop: '20px', fontSize: '16px' }}>
-            بتاريخ {new Date().toLocaleDateString('en-GB')} على الساعة {new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}، تم الاستماع إلى اللاعب: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong>
+            بتاريخ {new Date().toLocaleDateString('en-GB')} على الساعة {new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' })}، تم الاستماع إلى العضو: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong>
           </div>
 
           <div className="declaration-text" style={{ marginTop: '20px', fontSize: '16px' }}>
@@ -57,7 +57,7 @@ export const PrintableHearingReport = forwardRef<HTMLDivElement, PrintableHearin
             {incident.reason || '................................................................................................................................'}
           </div>
 
-          <div className="section-title">أقوال اللاعب:</div>
+          <div className="section-title">أقوال العضو:</div>
           <div className="declaration-text" style={{ minHeight: '100px', border: '1px solid #000', padding: '10px', marginTop: '10px' }}>
             {incident.player_statements || '................................................................................................................................\n................................................................................................................................'}
           </div>
@@ -79,7 +79,7 @@ export const PrintableHearingReport = forwardRef<HTMLDivElement, PrintableHearin
           <table className="signature-table" style={{ marginTop: '30px' }}>
             <thead>
               <tr>
-                <th style={{ width: '33%' }}>اللاعب</th>
+                <th style={{ width: '33%' }}>العضو</th>
                 <th style={{ width: '33%' }}>مسؤول الجلسة</th>
                 <th style={{ width: '33%' }}>الأعضاء</th>
               </tr>

@@ -217,7 +217,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   dashboard: [],
   members: ['add', 'edit', 'delete', 'viewFinancialRecord', 'evaluate', 'clearance'],
   absences: ['add', 'justify', 'delete'],
-  disciplinary: ['add', 'edit', 'delete', 'print', 'sign', 'changeStatus', 'viewReply', 'editReply'],
+  disciplinary: ['add', 'edit', 'delete', 'print', 'changeStatus', 'viewReply', 'editReply'],
   teams: ['add', 'edit', 'delete'],
   clubs: ['add', 'edit', 'delete'],
   trainingSessions: ['add', 'edit', 'delete', 'attendance'],
@@ -282,9 +282,10 @@ const NEW_ACTIONS_V2: Partial<Record<PermissionModule, string[]>> = {
  * Stored permissions → full AppPermissions.
  * Roles saved before version 2 keep what they could do: pages that were open stay open,
  * and new actions of an existing section follow that section's "view".
+ * No stored permissions at all (no role, or a role without permissions) = no permission: only the user's own tasks.
  */
 export const parsePermissions = (parsed: any): AppPermissions => {
-  const legacy = !parsed || parsed._v !== PERMISSIONS_VERSION;
+  const legacy = Boolean(parsed) && parsed._v !== PERMISSIONS_VERSION;
   const result: Record<string, Record<string, boolean>> = {};
 
   ALL_MODULES.forEach(m => {
@@ -318,7 +319,7 @@ export const parsePermissions = (parsed: any): AppPermissions => {
   return result as unknown as AppPermissions;
 };
 
-/** What a user with no role (or a role without stored permissions) could do before version 2 */
+/** A user with no role (or a role without stored permissions): nothing to manage, only their own space */
 export const NO_ROLE_PERMISSIONS: AppPermissions = parsePermissions(null);
 
 export class RoleModel {

@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark,
-} from 'lucide-react';
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2 } from 'lucide-react';
+import { SPACE_LABELS } from '../../../core/context/space';
+import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Approutes } from '../../../core/constant/routes';
 import type { useSaidparController } from '../../Screen/Saidpar/SaidparController';
@@ -26,6 +27,7 @@ type IconType = React.ComponentType<{ size?: number }>;
 const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Correspondences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
+  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyAbsences', 'MyDisciplinary'] },
   { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
   { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
@@ -47,6 +49,11 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   Debts: { icon: Landmark, color: '#ef4444' },
   Reports: { icon: BarChart3, color: '#6366f1' },
   Tasks: { icon: ListTodo, color: '#f97316' },
+  MyTasks: { icon: ListTodo, color: '#f97316' },
+  MyTrainingSessions: { icon: Calendar, color: '#0ea5e9' },
+  MyMatches: { icon: Trophy, color: '#f97316' },
+  MyAbsences: { icon: CalendarX2, color: '#ef4444' },
+  MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
   PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
@@ -108,6 +115,18 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
         </button>
       </section>
 
+      {controller.canManage && (
+        <button
+          type="button"
+          className="mo-space-switch"
+          onClick={() => controller.switchSpace(controller.space === 'personal' ? 'management' : 'personal')}
+        >
+          {controller.space === 'personal' ? <LayoutDashboard size={19} /> : <UserRound size={19} />}
+          <span>التبديل إلى {controller.space === 'personal' ? SPACE_LABELS.management : SPACE_LABELS.personal}</span>
+          <SwitchIcon size={17} />
+        </button>
+      )}
+
       <label className="mo-search">
         <Search size={17} />
         <input type="search" placeholder="ابحث عن صفحة..." value={query} onChange={e => setQuery(e.target.value)} />
@@ -116,7 +135,7 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
       {grouped.length === 0 ? (
         <div className="mo-empty">
           <LayoutGrid size={40} />
-          <p>لا توجد صفحة بهذا الاسم</p>
+          <p>{pages.length === 0 ? 'لا توجد صفحات في فضائك الشخصي بعد' : 'لا توجد صفحة بهذا الاسم'}</p>
         </div>
       ) : grouped.map(group => (
         <section key={group.title} className="mo-group">

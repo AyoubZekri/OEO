@@ -553,3 +553,9 @@ body.dark-mode .sc-status-menu-item.active {
   background: rgba(255, 255, 255, 0.08);
 }
 
+
+/* The session opened from an alert */
+.sc-card.focused {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}

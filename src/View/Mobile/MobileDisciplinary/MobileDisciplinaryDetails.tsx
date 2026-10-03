@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   Calendar, MapPin, BookOpen, Users, Clock, MessageSquare, Gavel, CheckCircle2, Pencil, ChevronDown,
-  FileSignature, Paperclip, Flag, Hash, Quote, Circle, Printer, UploadCloud,
+  Paperclip, Flag, Hash, Quote, Circle, Printer, UploadCloud,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
@@ -22,6 +22,8 @@ interface MobileDisciplinaryDetailsProps {
   onChangeStatus: (status: DisciplinaryModel['status']) => void;
   /** Present only when the user may see the reply / decision of this action */
   onViewReply?: () => void;
+  /** Clarification requests: the member's reply on its own page (onViewReply then opens the decision) */
+  onViewMemberReply?: () => void;
   onEdit?: () => void;
   onViewDocument?: () => void;
   onUploadDocument?: () => void;
@@ -74,7 +76,7 @@ interface Step {
 // Full details of one disciplinary action (phone)
 export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps> = ({
   item, photo, typeTone, typeIcon: TypeIcon, statusOptions, statusTone, canChangeStatus,
-  onChangeStatus, onViewReply, onEdit, onViewDocument, onUploadDocument, onPrint, onClose,
+  onChangeStatus, onViewReply, onViewMemberReply, onEdit, onViewDocument, onUploadDocument, onPrint, onClose,
 }) => {
   const due = countdown(item.deadlineOrHearingDate);
   const hasDecision = !!(item.decision_outcome || item.decision_reasons || item.admin_notes);
@@ -102,9 +104,10 @@ export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps>
     ...(item.player_statements || !['تنبيه', 'إنذار'].includes(item.actionType) ? [{
       key: 'reply',
       icon: MessageSquare,
-      title: 'رد اللاعب',
+      title: 'رد العضو',
       done: !!item.player_statements,
       body: item.player_statements ? <p className="mdd-quote-text">{item.player_statements}</p> : undefined,
+      action: onViewMemberReply ? { label: 'رد العضو', onClick: onViewMemberReply } : undefined,
     }] : []),
     ...(hasDecision || !['تنبيه', 'إنذار'].includes(item.actionType) ? [{
       key: 'decision',
@@ -119,15 +122,8 @@ export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps>
           {item.admin_notes && <p className="muted">{item.admin_notes}</p>}
         </div>
       ) : undefined,
-      action: onViewReply ? { label: 'الرد والقرارات', onClick: onViewReply } : undefined,
+      action: onViewReply ? { label: onViewMemberReply ? 'القرار' : 'الرد والقرارات', onClick: onViewReply } : undefined,
     }] : []),
-    {
-      key: 'ack',
-      icon: FileSignature,
-      title: 'توقيع اللاعب بالاستلام',
-      done: !!item.is_acknowledged,
-      date: item.is_acknowledged ? formatDate(item.acknowledged_at) : undefined,
-    },
     {
       key: 'document',
       icon: Paperclip,
@@ -182,7 +178,10 @@ export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps>
       {(onViewReply || onViewDocument || onUploadDocument || onPrint) && (
         <div className="mdd-quick">
           {onViewReply && (
-            <button type="button" onClick={onViewReply}><span><MessageSquare size={19} /></span>الرد والقرارات</button>
+            <>
+              {onViewMemberReply && <button type="button" onClick={onViewMemberReply}><span><MessageSquare size={19} /></span>رد العضو</button>}
+              <button type="button" onClick={onViewReply}><span>{onViewMemberReply ? <Gavel size={19} /> : <MessageSquare size={19} />}</span>{onViewMemberReply ? 'القرار' : 'الرد والقرارات'}</button>
+            </>
           )}
           {onViewDocument && (
             <button type="button" onClick={onViewDocument}><span><Paperclip size={19} /></span>الوثيقة</button>

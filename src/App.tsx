@@ -39,11 +39,20 @@ import { MobileMore } from './View/Mobile/MobileMore/MobileMore';
 import { Approutes } from './core/constant/routes';
 import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
+import { SpaceProvider } from './core/context/SpaceContext';
+import { useSpace } from './core/context/space';
+import { PersonalHome } from './View/Screen/Personal/PersonalHome';
+import { MyTasks } from './View/Screen/Personal/MyTasks';
+import { MyDisciplinary } from './View/Screen/Personal/MyDisciplinary';
+import { MyTrainingSessions } from './View/Screen/Personal/MyTrainingSessions';
+import { MyMatches } from './View/Screen/Personal/MyMatches';
+import { MyAbsences } from './View/Screen/Personal/MyAbsences';
+import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels, Approutes.MyTasks, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -56,6 +65,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   }, [i18n.language]);
 
   const isMobile = useIsMobile();
+  const { space } = useSpace();
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', backgroundColor: 'var(--bg)', overflow: 'hidden' }}>
@@ -65,6 +75,19 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
       <div style={{ flex: 1, overflowX: 'hidden', overflowY: 'auto', backgroundColor: 'var(--bg)', display: 'flex', flexDirection: 'column', height: '100vh', paddingBottom: isMobile ? '82px' : '0' }}>
         {!(isMobile && MOBILE_APPBAR_PAGES.includes(location.pathname)) && <Topbar title={controller.activeItem} controller={controller} />}
         <div style={{ padding: '20px', flex: 1 }}>
+          {space === 'personal' ? (
+            <Routes>
+              <Route path="/" element={<PersonalHome onSwitch={() => controller.switchSpace('management')} />} />
+              <Route path={Approutes.MyTasks} element={<MyTasks />} />
+              <Route path={Approutes.MyTrainingSessions} element={<MyTrainingSessions />} />
+              <Route path={Approutes.MyMatches} element={<MyMatches />} />
+              <Route path={Approutes.MyAbsences} element={<MyAbsences />} />
+              <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
+              <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
+              {/* The management pages are not part of the personal space */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          ) : (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path={Approutes.Roles} element={<RequirePermission module="usersAndRoles" action="viewRoles"><Roles /></RequirePermission>} />
@@ -98,12 +121,16 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
             {/* Add more routes here as needed */}
           </Routes>
+          )}
         </div>
       </div>
       
       {isMobile && (
         <MobileBottomNav />
       )}
+
+      {/* Alerts about the user's tasks, on every page */}
+      <TaskAlerts />
     </div>
   );
 };
@@ -116,7 +143,9 @@ function App() {
       {!isAuthenticated ? (
         <Login onLoginSuccess={() => {}} />
       ) : (
-        <AppLayout onLogout={logout} />
+        <SpaceProvider>
+          <AppLayout onLogout={logout} />
+        </SpaceProvider>
       )}
     </BrowserRouter>
   );

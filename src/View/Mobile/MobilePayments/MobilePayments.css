@@ -1038,3 +1038,4 @@ body.dark-mode .mpy-page {
 .mpy-chip.credit { background: rgba(245, 158, 11, 0.14); color: #b45309; font-weight: 800; }
 .mpy-chip.credit.late { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
 .mpy-credit .mpy-amount { color: #d97706; }
+.mpy-credit-paid small { font-size: 0.72rem; font-weight: 700; opacity: 0.65; }

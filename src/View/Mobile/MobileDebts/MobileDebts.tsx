@@ -80,7 +80,7 @@ export const MobileDebts: React.FC<{ c: DebtsController }> = ({ c }) => {
         ) : visible.length === 0 ? (
           <div className="tk-state"><Inbox size={32} /><p>{c.debts.length ? 'لا توجد ديون بهذه التصفية' : 'لا توجد ديون بعد'}</p></div>
         ) : (
-          <div className="tk-list">{visible.map(d => <DebtCard key={d.id} debt={d} onOpen={c.openDebt} compact />)}</div>
+          <div className="tk-list">{visible.map(d => <DebtCard key={d.id} debt={d} onOpen={c.openDebt} actions={c.actionsFor(d)} compact />)}</div>
         )}
 
       {c.can('add') && (

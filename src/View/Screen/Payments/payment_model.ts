@@ -38,4 +38,8 @@ export interface PaymentRecord {
   postal_check?: string;
   receipt_file?: string | File | null;
   contract_id?: string;
+  /** A purchase on credit: amount is what has been paid, creditTotal its full price, creditor who it is owed to */
+  isCredit?: boolean;
+  creditTotal?: number | null;
+  creditor?: string | null;
 }

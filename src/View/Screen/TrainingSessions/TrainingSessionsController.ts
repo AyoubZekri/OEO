@@ -3,7 +3,8 @@ import type { TrainingSessionModel } from './TrainingSessionDialog';
 import { TrainingSessionData } from './training_session_data';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
-export const useTrainingSessionsController = () => {
+/** personal: the sessions of my category only (personal space), read only */
+export const useTrainingSessionsController = ({ personal = false }: { personal?: boolean } = {}) => {
   const [sessions, setSessions] = useState<TrainingSessionModel[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sessionToEdit, setSessionToEdit] = useState<TrainingSessionModel | null>(null);
@@ -12,7 +13,7 @@ export const useTrainingSessionsController = () => {
   const [selectedTeamId, setSelectedTeamId] = useState<string>('');
 
   useEffect(() => {
-    fetchTeams();
+    if (!personal) fetchTeams();
   }, []);
 
   useEffect(() => {
@@ -32,6 +33,16 @@ export const useTrainingSessionsController = () => {
 
   const fetchSessions = async () => {
     setIsLoading(true);
+    if (personal) {
+      try {
+        setSessions(await TrainingSessionData.getMySessions());
+      } catch {
+        console.error('Failed to fetch my sessions');
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
     try {
       const data = await TrainingSessionData.getSessions(selectedTeamId);
       
@@ -127,6 +138,7 @@ export const useTrainingSessionsController = () => {
   };
 
   return {
+    personal,
     sessions,
     isDialogOpen,
     sessionToEdit,

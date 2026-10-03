@@ -14,6 +14,11 @@ import type { Fund, FundTransaction } from '../Funds/fund_model';
 import { buildOperations } from '../Operations/operation_model';
 import type { Operation } from '../Operations/operation_model';
 import { contractDues, homeExpenses, seasonStartOf } from '../Reports/reportMath';
+import client from '../../../core/api/client';
+
+/** What is left to pay on a list of debts (loans or purchases on credit) */
+const leftOn = (res: { data?: { data?: { remaining?: number }[] } } | null) =>
+  Math.round((res?.data?.data || []).reduce((s, d) => s + (Number(d.remaining) || 0), 0) * 100) / 100;
 
 export interface FinancialMetrics {
   totalExpenses: number;
@@ -89,13 +94,15 @@ export const useHomeController = () => {
       setIsLoading(true);
       const token = localStorage.getItem('token');
       const authHeaders = { headers: { Authorization: `Bearer ${token}` } };
-      const [membersRes, contractsRes, paymentsRes, fundsRes, fundTransactionsRes, matchesRes] = await Promise.all([
+      const [membersRes, contractsRes, paymentsRes, fundsRes, fundTransactionsRes, matchesRes, loansRes, creditRes] = await Promise.all([
         membersData.getMembers(),
         contractsData.getContracts(),
         paymentsData.getPayments(),
         fundsData.getFunds(),
         fundsData.getTransactions(),
-        axios.get(Applink.matches, authHeaders).catch(() => null)
+        axios.get(Applink.matches, authHeaders).catch(() => null),
+        client.get('/debts').catch(() => null),
+        client.get('/payments/credit').catch(() => null),
       ]);
 
       let members: MemberModel[] = [];
@@ -130,7 +137,8 @@ export const useHomeController = () => {
 
       // Debts (instalments already due and unpaid) and upcoming dues, from the active contracts
       const dues = contractDues(contracts, payments);
-      const totalDebts = dues.debts;
+      // All the club owes: contract instalments due and unpaid, loans put into the funds, purchases on credit
+      const totalDebts = Math.round((dues.debts + leftOn(loansRes) + leftOn(creditRes)) * 100) / 100;
       // "المستحقات القادمة": what is left to pay on the instalments of the active contracts
       const upcomingEntitlements = dues.remaining;
       const overdueContracts = dues.overdueContracts;

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search } from 'lucide-react';
 import { useUsersController } from './UsersController';
 import { UserDialog } from './UserDialog';
 import { useRolesController } from '../Roles/RolesController';
@@ -28,11 +28,18 @@ export const Users: React.FC = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
-  const paginatedUsers = users.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const [query, setQuery] = useState('');
 
   const { roles } = useRolesController();
   const { t } = useTranslation();
+
+  // Search by name, email or role
+  const q = query.trim().toLowerCase();
+  const roleNameOf = (roleId: string) => roles.find(r => r.id === roleId)?.name || '';
+  const visibleUsers = q
+    ? users.filter(u => u.name.toLowerCase().includes(q) || (u.email || '').toLowerCase().includes(q) || roleNameOf(u.roleId).toLowerCase().includes(q))
+    : users;
+  const paginatedUsers = visibleUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const isMobile = useIsMobile();
   if (isMobile) {
@@ -56,7 +63,17 @@ export const Users: React.FC = () => {
 
   return (
     <div className="users-container" style={{ fontFamily: 'var(--sans)' }}>
-      <div className="users-header" style={{ justifyContent: 'flex-end' }}>
+      <div className="users-header" style={{ justifyContent: 'flex-end', gap: '12px' }}>
+        <div className="search-box users-search">
+          <Search size={18} />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="ابحث عن مستخدم..."
+            value={query}
+            onChange={e => { setQuery(e.target.value); setCurrentPage(1); }}
+          />
+        </div>
         {hasAccess(permissions.usersAndRoles.addUsers) && (
           <button className="add-user-btn" onClick={openAddDialog}>
             <Plus size={20} />
@@ -118,10 +135,10 @@ export const Users: React.FC = () => {
                 </td>
               </tr>
             ))}
-            {users.length === 0 && (
+            {visibleUsers.length === 0 && (
               <tr>
                 <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>
-                  {t('users.no_users')}
+                  {users.length && q ? 'لا يوجد مستخدم بهذا البحث' : t('users.no_users')}
                 </td>
               </tr>
             )}
@@ -129,7 +146,7 @@ export const Users: React.FC = () => {
         </table>
         </div>
         <Pagination 
-          totalItems={users.length} 
+          totalItems={visibleUsers.length} 
           itemsPerPage={itemsPerPage} 
           currentPage={currentPage} 
           onPageChange={setCurrentPage} 

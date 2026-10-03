@@ -17,9 +17,11 @@ const fail = (text: string) => showSnackbar('خطأ', text, '#ef4444');
 
 /**
  * Everything the tasks pages (desktop and phone) share: lists, details, forms and workflow actions.
- * view "tasks": the created tasks; view "periodic": the base periodic / automatic tasks (their own page).
+ * view "tasks": the created tasks; view "periodic": the base periodic / automatic tasks (their own page);
+ * view "personal": the tasks assigned to the signed-in user, read only (personal space).
  */
-export const useTasksController = (view: 'tasks' | 'periodic' = 'tasks') => {
+export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'tasks') => {
+  const readOnly = view === 'personal';
   const { user } = useAuth();
   const canDo = useCan();
   const can = useCallback((action: string) => canDo('tasks', action), [canDo]);
@@ -27,7 +29,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' = 'tasks') => {
 
   const [params, setParams] = useSearchParams();
   // No section filter: the list follows the signed-in account (see TaskController::index, scope auto)
-  const tabs: { value: TasksTab; label: string }[] = [
+  const tabs: { value: TasksTab; label: string }[] = readOnly ? [{ value: 'tasks', label: 'مهامي' }] : [
     { value: 'tasks', label: 'المهام' },
     ...(can('manage') ? [{ value: 'dashboard' as const, label: 'لوحة المتابعة' }] : []),
     ...(can('templates') ? [{ value: 'templates' as const, label: 'المهام التلقائية' }] : []),
@@ -62,13 +64,13 @@ export const useTasksController = (view: 'tasks' | 'periodic' = 'tasks') => {
     setLoading(true);
     setError('');
     try {
-      setTasks(await taskApi.list(tab === 'archive' ? 'archive' : 'auto'));
+      setTasks(await taskApi.list(readOnly ? 'my' : tab === 'archive' ? 'archive' : 'auto'));
     } catch (e) {
       setError(apiError(e, 'تعذر تحميل المهام'));
     } finally {
       setLoading(false);
     }
-  }, [tab, isList, view]);
+  }, [tab, isList, view, readOnly]);
 
   const loadStats = useCallback(async () => {
     setLoading(true);
@@ -290,7 +292,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' = 'tasks') => {
   };
 
   return {
-    userId, can, tabs, tab, setTab, isList,
+    userId, can, tabs, tab, setTab, isList, readOnly,
     setSeriesActive, deleteSeries,
     tasks, loading, error, reload,
     users, templates, stats, period, setPeriod,

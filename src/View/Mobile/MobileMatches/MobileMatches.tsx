@@ -13,12 +13,15 @@ import {
 } from './matchUtils';
 import { MobileMatchDetails } from './MobileMatchDetails';
 import { TeamBadge } from './TeamBadge';
+import { MyMatchParticipation } from './MyMatchParticipation';
 import './MobileMatches.css';
 
 interface MobileMatchesProps {
   matches: Match[];
   isLoading: boolean;
   actions: MatchActions;
+  /** Personal space: the matches of my category, read only, with my participation */
+  personal?: boolean;
 }
 
 type Tab = 'upcoming' | 'played';
@@ -34,8 +37,9 @@ const useNow = () => {
 };
 
 // Phone version of the matches page
-export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading, actions }) => {
-  const can = useCan();
+export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading, actions, personal = false }) => {
+  const allowed = useCan();
+  const can: typeof allowed = (...args) => !personal && allowed(...args);
   const now = useNow();
   const [tab, setTab] = useState<Tab>('upcoming');
   const [query, setQuery] = useState('');
@@ -70,7 +74,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
 
   return (
     <div className="mmt-page">
-      <MobileAppBar title="المباريات" />
+      <MobileAppBar title={personal ? 'مبارياتي' : 'المباريات'} />
 
       {isLoading ? (
         <MobileLoader text="جاري تحميل المباريات..." />
@@ -134,7 +138,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
             <div className="mmt-empty">
               <span className="mmt-empty-icon"><Trophy size={36} /></span>
               <strong>{q ? 'لا توجد نتائج للبحث' : tab === 'upcoming' ? 'لا توجد مباريات قادمة' : 'لا توجد مباريات منتهية'}</strong>
-              {!q && tab === 'upcoming' && <p>أضف مباراة جديدة بالزر +</p>}
+              {!q && tab === 'upcoming' && <p>{personal ? 'ستظهر هنا مباريات فئتك عند برمجتها.' : 'أضف مباراة جديدة بالزر +'}</p>}
             </div>
           ) : (
             <div className="mmt-list">
@@ -184,6 +188,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
                       <span><Calendar size={13} /> {dayText(date)}</span>
                       {m.location && <span><MapPin size={13} /> {m.location}</span>}
                     </div>
+                    {personal && <MyMatchParticipation match={m} state={state} />}
                   </article>
                 );
               })}
@@ -204,6 +209,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
           state={details.state}
           now={now}
           actions={actions}
+          personal={personal}
           onClose={() => setDetailsId(null)}
         />
       )}

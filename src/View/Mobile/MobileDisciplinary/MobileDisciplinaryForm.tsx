@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
-  Save, Loader2, MessageSquare, Calendar, Scale, AlertTriangle, UserPlus, UserRound, ChevronLeft, Check, Search,
+  Save, Loader2, MessageSquare, Calendar, AlertTriangle, UserPlus, UserRound, ChevronLeft, Check, Search,
   MapPin, BookOpen, FileText, Paperclip, Plus, X, Info, AlertCircle, Clock, Users,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
@@ -26,9 +26,8 @@ type ActionType = DisciplinaryModel['actionType'];
 
 // The types offered by the desktop dialog (same icons as the list)
 const TYPE_CHOICES: { value: ActionType; icon: IconType; hint: string }[] = [
-  { value: 'طلب توضيح', icon: MessageSquare, hint: 'يُطلب من اللاعب رد مكتوب قبل أجل محدد.' },
-  { value: 'استدعاء جلسة', icon: Calendar, hint: 'يُستدعى اللاعب إلى جلسة استماع في موعد ومكان محددين.' },
-  { value: 'واقعة', icon: Scale, hint: 'تُسجل الواقعة كما حدثت ثم يُتخذ فيها قرار تأديبي.' },
+  { value: 'طلب توضيح', icon: MessageSquare, hint: 'يُطلب من العضو رد مكتوب قبل أجل محدد.' },
+  { value: 'استدعاء جلسة', icon: Calendar, hint: 'يُستدعى العضو إلى جلسة استماع في موعد ومكان محددين.' },
 ];
 
 // Desktop joins the present people with an Arabic comma
@@ -273,7 +272,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
             ? <img src={photoOf(member)} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
             : <span className="mdf-hero-avatar"><UserRound size={22} /></span>}
           <div>
-            <strong>{member ? fullName(member) : form.memberName || 'لم يُختر اللاعب بعد'}</strong>
+            <strong>{member ? fullName(member) : form.memberName || 'لم يُختر العضو بعد'}</strong>
             <span><Calendar size={12} /> {longDate(form.incidentDate) || 'بدون تاريخ'}</span>
           </div>
         </div>
@@ -299,18 +298,18 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
       </Step>
 
       {/* Member */}
-      <Step n={2} title="اللاعب المعني" tag="required" error={showErrors && errors.member} sectionRef={memberRef}>
+      <Step n={2} title="العضو المعني" tag="required" error={showErrors && errors.member} sectionRef={memberRef}>
         <button type="button" className={`mdf-member ${member ? '' : 'empty'}`} onClick={() => setPicker('member')}>
           {member
             ? <img src={photoOf(member)} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
             : <span className="mdf-member-icon"><UserPlus size={22} /></span>}
           <span className="mdf-member-text">
-            <strong>{member ? fullName(member) : form.memberName || 'اختر اللاعب'}</strong>
+            <strong>{member ? fullName(member) : form.memberName || 'اختر العضو'}</strong>
             <small>{member ? memberHint(member) || 'اضغط للتغيير' : 'اضغط للبحث في قائمة الأعضاء'}</small>
           </span>
           <ChevronLeft size={20} />
         </button>
-        {showErrors && errors.member && <FieldError text="اختر اللاعب المعني بالإجراء" />}
+        {showErrors && errors.member && <FieldError text="اختر العضو المعني بالإجراء" />}
       </Step>
 
       {/* Incident */}
@@ -419,7 +418,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
 
       {picker === 'member' && (
         <MemberPicker
-          title="اختر اللاعب"
+          title="اختر العضو"
           members={members}
           isSelected={m => String(m.id) === String(form.memberId)}
           onPick={m => {

@@ -847,3 +847,9 @@ body.dark-mode .mab-page {
   display: flex;
   gap: 10px;
 }
+
+/* The record opened from an alert */
+.mab-card.focused {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}

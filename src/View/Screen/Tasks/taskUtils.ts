@@ -327,7 +327,11 @@ export interface TaskAbilities {
   canDelete: boolean;
 }
 
-export const abilitiesOf = (task: Task, userId: string | number | undefined, can: (a: string) => boolean): TaskAbilities => {
+/**
+ * What the signed-in user may do on a task.
+ * readOnly (the personal space's "my tasks"): nothing but adding a proof, on their own task, when it asks for one.
+ */
+export const abilitiesOf = (task: Task, userId: string | number | undefined, can: (a: string) => boolean, readOnly = false): TaskAbilities => {
   const me = String(userId ?? '');
   const isAssignee = me !== '' && String(task.assignee_id) === me;
   const isReviewer = me !== '' && String(task.reviewer_id ?? '') === me;
@@ -341,6 +345,17 @@ export const abilitiesOf = (task: Task, userId: string | number | undefined, can
     if (task.status === 'blocked') actions.push('resume');
     // No reviewer is chosen in advance: anyone with the review permission, other than the assignee, reviews
     if (!isAssignee && can('review') && task.status === 'in_review') actions.push('approve', 'return');
+  }
+
+  if (readOnly) {
+    return {
+      isAssignee,
+      isReviewer,
+      actions: [],
+      canAttach: isAssignee && task.requires_proof && !task.deleted_at && !['in_review', 'approved'].includes(task.status),
+      canEdit: false,
+      canDelete: false,
+    };
   }
 
   return {

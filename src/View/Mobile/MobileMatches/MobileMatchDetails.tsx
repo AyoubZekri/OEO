@@ -9,6 +9,7 @@ import {
   timeText, longDateText, countdown,
 } from './matchUtils';
 import { TeamBadge } from './TeamBadge';
+import { MyMatchParticipation } from './MyMatchParticipation';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileMatchDetails.css';
 
@@ -18,6 +19,8 @@ interface MobileMatchDetailsProps {
   now: Date;
   actions: MatchActions;
   onClose: () => void;
+  /** Personal space: read only, with my participation instead of the category's attendance */
+  personal?: boolean;
 }
 
 const gatheringTime = (value?: string) => {
@@ -27,8 +30,9 @@ const gatheringTime = (value?: string) => {
 };
 
 // Full details of one match (phone): score board, facts, status changes and every action
-export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, state, now, actions, onClose }) => {
-  const can = useCan();
+export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, state, now, actions, onClose, personal = false }) => {
+  const allowedTo = useCan();
+  const can: typeof allowedTo = (...args) => !personal && allowedTo(...args);
   const [rescheduling, setRescheduling] = useState(false);
   const [newDate, setNewDate] = useState(match.match_date?.replace(' ', 'T').slice(0, 16) || '');
   const date = matchDate(match);
@@ -138,8 +142,10 @@ export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, s
 
       {/* Attendance */}
       <section className="me-card">
-        <h3 className="me-section-title"><span><Users size={16} /></span>الحضور</h3>
-        {stats && stats.total > 0 ? (
+        <h3 className="me-section-title"><span><Users size={16} /></span>{personal ? 'مشاركتي' : 'الحضور'}</h3>
+        {personal ? (
+          <MyMatchParticipation match={match} state={state} />
+        ) : stats && stats.total > 0 ? (
           <div className="mmd-att">
             <div className="mmd-att-bar"><div style={{ width: `${rate}%` }} /></div>
             <div className="mmd-att-nums">

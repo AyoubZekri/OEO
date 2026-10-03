@@ -7,13 +7,13 @@ import { countTasks } from '../../Screen/Tasks/taskUtils';
 import '../../Screen/Tasks/Tasks.css';
 
 // Phone version of the tasks page: my counters in the hero, scrollable tabs, cards and a floating add button
-export const MobileTasks: React.FC<{ c: TasksController }> = ({ c }) => {
+export const MobileTasks: React.FC<{ c: TasksController; title?: string }> = ({ c, title = 'المهام' }) => {
   const n = countTasks(c.tab === 'tasks' ? c.tasks : []);
-  const canAdd = c.tab === 'templates' || (c.isList && c.tab !== 'archive' && (c.can('add') || c.can('templates')));
+  const canAdd = !c.readOnly && (c.tab === 'templates' || (c.isList && c.tab !== 'archive' && (c.can('add') || c.can('templates'))));
 
   return (
     <div className="tk-mpage tk-scope">
-      <MobileAppBar title="المهام" />
+      <MobileAppBar title={title} />
 
       {c.tab === 'tasks' && (
         <section className="tk-hero">

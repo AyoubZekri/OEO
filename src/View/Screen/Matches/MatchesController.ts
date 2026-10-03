@@ -3,7 +3,8 @@ import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import type { Match } from './match_model';
 
-export const useMatchesController = () => {
+/** personal: the matches of my category only (personal space), read only */
+export const useMatchesController = ({ personal = false }: { personal?: boolean } = {}) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -39,6 +40,11 @@ export const useMatchesController = () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem('token');
+      if (personal) {
+        const mine = await axios.get(`${Applink.matches}/mine`, { headers: { Authorization: `Bearer ${token}` } });
+        if (mine.data.status === 'success') setMatches(mine.data.data);
+        return;
+      }
       const response = await axios.get(Applink.matches, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -191,6 +197,7 @@ export const useMatchesController = () => {
   };
 
   return {
+    personal,
     matches,
     isLoading,
     isDialogOpen,

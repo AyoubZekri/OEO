@@ -22,6 +22,9 @@ export interface AbsenceRecord {
   is_justified: boolean;
   justification_status: 'لا_يوجد' | 'قيد_الدراسة' | 'مقبول' | 'مرفوض' | 'none' | 'pending' | 'accepted' | 'rejected';
   record_source: string;
+  /** When it was recorded, and when the justification was decided (alerts) */
+  created_at?: string | null;
+  decision_date?: string | null;
 }
 
 // The API answers either with the list itself or with { data: [...] }
@@ -35,7 +38,10 @@ export const useAbsenceRequestsController = () => {
   const [filterTeamId, setFilterTeamId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
-  const [activeTab, setActiveTab] = useState<'requests' | 'registry' | 'members'>('members');
+  const [activeTab, setActiveTab] = useState<'requests' | 'registry' | 'members'>(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    return tab === 'requests' || tab === 'registry' ? tab : 'members';
+  });
 
   const [isJustificationDialogOpen, setIsJustificationDialogOpen] = useState(false);
   const [selectedAbsenceId, setSelectedAbsenceId] = useState<number | null>(null);

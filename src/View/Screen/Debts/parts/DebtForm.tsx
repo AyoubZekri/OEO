@@ -97,8 +97,8 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
             </label>
           </div>
           <label className="tk-field">
-            <span className="tk-label">{isLoan ? 'سبب الاستلاف' : 'ماذا اشترينا'} <em>اختياري</em></span>
-            <input className="tk-input" value={title} onChange={e => setTitle(e.target.value)} placeholder={isLoan ? 'مثال: تغطية مصاريف التنقل' : 'مثال: ملابس الفريق'} />
+            <span className="tk-label">{isLoan ? 'سبب الاستلاف' : 'البيان (تفاصيل المصروف)'} <em>اختياري</em></span>
+            <input className="tk-input" value={title} onChange={e => setTitle(e.target.value)} placeholder={isLoan ? 'مثال: تغطية مصاريف التنقل' : 'مثال: ملابس الفريق، كراء الملعب، فاتورة...'} />
           </label>
         </Section>
 

@@ -17,7 +17,7 @@ const DECISION_OPTIONS: MobileSelectOption[] = [
 ];
 
 // Wording per action type, as in the three desktop response dialogs
-const playerLabel = (type: string) => (type === 'طلب توضيح' ? 'رد اللاعب وتوضيحاته' : 'أقوال اللاعب وتبريراته');
+const playerLabel = (type: string) => (type === 'طلب توضيح' ? 'رد العضو وتوضيحاته' : 'أقوال العضو وتبريراته');
 const adminLabel = (type: string) =>
   type === 'واقعة' ? 'قرارات وملاحظات الإدارة' : type === 'طلب توضيح' ? 'ملاحظات الإدارة' : 'ملاحظات لجنة الاستماع والقرارات';
 
@@ -42,31 +42,44 @@ const Header: React.FC<{ item: DisciplinaryModel }> = ({ item }) => (
 /** Read-only reply and decision of one action (phone version of ViewReplyDialog) */
 export const MobileDisciplinaryReplyView: React.FC<{
   item: DisciplinaryModel;
-  onEdit: () => void;
+  /** Absent: read only */
+  onEdit?: () => void;
   onClose: () => void;
-}> = ({ item, onEdit, onClose }) => {
+  /** Clarification requests: the member's reply and the decision apart. Absent: both */
+  section?: 'reply' | 'decision';
+}> = ({ item, onEdit, onClose, section }) => {
   const hasAnything = item.player_statements || item.admin_notes;
+  const showReply = section !== 'decision';
+  const showDecision = section !== 'reply';
+  // The reply of a clarification request is written by the member, not edited here
+  const edit = section === 'reply' && item.actionType === 'طلب توضيح' ? undefined : onEdit;
+  const editLabel = section === 'decision'
+    ? (item.admin_notes ? 'تعديل القرار' : 'إضافة القرار')
+    : hasAnything ? 'تعديل الرد والقرارات' : 'إضافة رد وقرار';
   return (
     <MobileScreen
-      title="الرد والقرارات"
+      title={section === 'reply' ? 'رد العضو' : section === 'decision' ? 'القرار' : 'الرد والقرارات'}
       onBack={onClose}
       layer={2}
-      footer={(
-        <button type="button" className="me-btn primary" onClick={onEdit}>
-          <Pencil size={18} /> {hasAnything ? 'تعديل الرد والقرارات' : 'إضافة رد وقرار'}
+      footer={edit ? (
+        <button type="button" className="me-btn primary" onClick={edit}>
+          <Pencil size={18} /> {editLabel}
         </button>
-      )}
+      ) : undefined}
     >
       <Header item={item} />
 
+      {showReply && (
       <section className="me-card">
         <h3 className="me-section-title"><span><MessageSquare size={16} /></span>{playerLabel(item.actionType)}</h3>
         <p className={`me-text ${item.player_statements ? '' : 'empty'}`}>{item.player_statements || 'لم يُسجل أي رد بعد'}</p>
       </section>
+      )}
 
+      {showDecision && (
       <section className="me-card">
-        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{adminLabel(item.actionType)}</h3>
-        <p className={`me-text ${item.admin_notes ? '' : 'empty'}`}>{item.admin_notes || 'لم تُسجل أي ملاحظات بعد'}</p>
+        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{section === 'decision' ? 'قرار الإدارة' : adminLabel(item.actionType)}</h3>
+        <p className={`me-text ${item.admin_notes ? '' : 'empty'}`}>{item.admin_notes || (section === 'decision' ? 'لم يصدر القرار بعد' : 'لم تُسجل أي ملاحظات بعد')}</p>
 
         {item.actionType === 'واقعة' && (
           <div className="mda-decision">
@@ -87,6 +100,7 @@ export const MobileDisciplinaryReplyView: React.FC<{
           </div>
         )}
       </section>
+      )}
     </MobileScreen>
   );
 };
@@ -97,7 +111,11 @@ export const MobileDisciplinaryReplyForm: React.FC<{
   isSubmitting: boolean;
   onSave: (item: DisciplinaryModel) => void;
   onClose: () => void;
-}> = ({ item, isSubmitting, onSave, onClose }) => {
+  /** member: only the member's reply (personal space); admin: for a clarification request the reply is read only */
+  mode?: 'member' | 'admin';
+}> = ({ item, isSubmitting, onSave, onClose, mode = 'admin' }) => {
+  const isMember = mode === 'member';
+  const replyReadOnly = !isMember && item.actionType === 'طلب توضيح';
   const [form, setForm] = useState<DisciplinaryModel>({
     ...item,
     player_statements: item.player_statements || '',
@@ -111,28 +129,35 @@ export const MobileDisciplinaryReplyForm: React.FC<{
 
   return (
     <MobileScreen
-      title={item.player_statements || item.admin_notes ? 'تعديل الرد' : 'إضافة رد'}
+      title={isMember ? 'الرد على طلب التوضيح' : replyReadOnly ? 'قرار الإدارة' : item.player_statements || item.admin_notes ? 'تعديل الرد' : 'إضافة رد'}
       onBack={onClose}
       layer={2}
       footer={(
         <button type="button" className="me-btn primary" onClick={() => onSave(form)} disabled={isSubmitting}>
-          <Save size={18} /> {isSubmitting ? 'جاري الحفظ...' : 'حفظ'}
+          <Save size={18} /> {isSubmitting ? 'جاري الحفظ...' : isMember ? 'إرسال الرد' : 'حفظ'}
         </button>
       )}
     >
       <Header item={item} />
 
+      {!replyReadOnly && (
       <section className="me-card">
-        <h3 className="me-section-title"><span><MessageSquare size={16} /></span>{playerLabel(item.actionType)}</h3>
-        <textarea
-          className="me-textarea"
-          rows={5}
-          value={form.player_statements}
-          onChange={e => set('player_statements', e.target.value)}
-          placeholder="أدخل رد وتبريرات اللاعب هنا..."
-        />
+        <h3 className="me-section-title"><span><MessageSquare size={16} /></span>{isMember ? 'ردي وتوضيحاتي' : playerLabel(item.actionType)}</h3>
+        {replyReadOnly ? (
+          <p className={`me-text ${form.player_statements ? '' : 'empty'}`}>{form.player_statements || 'لم يرد العضو بعد على الطلب'}</p>
+        ) : (
+          <textarea
+            className="me-textarea"
+            rows={5}
+            value={form.player_statements}
+            onChange={e => set('player_statements', e.target.value)}
+            placeholder={isMember ? 'اكتب ردك وتوضيحاتك هنا...' : 'أدخل رد وتبريرات العضو هنا...'}
+          />
+        )}
       </section>
+      )}
 
+      {!isMember && (
       <section className="me-card">
         <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{adminLabel(item.actionType)}</h3>
         <textarea
@@ -164,6 +189,7 @@ export const MobileDisciplinaryReplyForm: React.FC<{
           </>
         )}
       </section>
+      )}
     </MobileScreen>
   );
 };

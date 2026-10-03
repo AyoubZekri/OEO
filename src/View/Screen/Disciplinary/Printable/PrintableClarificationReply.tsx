@@ -36,10 +36,10 @@ export const PrintableClarificationReply = forwardRef<HTMLDivElement, PrintableC
         
         <div className="receipt-content">
           <div className="receipt-main-title">
-            رد اللاعب على طلب توضيح — DIS-03
+            رد العضو على طلب توضيح — DIS-03
           </div>
 
-          <div className="section-title">بيانات اللاعب:</div>
+          <div className="section-title">بيانات العضو:</div>
           <div className="declaration-text" style={{ marginTop: '10px', fontSize: '16px' }}>
             الاسم واللقب: <strong style={{ textDecoration: 'underline' }}>{incident.memberName}</strong>
           </div>
@@ -48,7 +48,7 @@ export const PrintableClarificationReply = forwardRef<HTMLDivElement, PrintableC
             بناءً على طلب التوضيح الموجه إلي بخصوص الواقعة المؤرخة في {new Date(incident.incidentDate).toLocaleDateString('en-GB')}، أتقدم بالتوضيحات والأقوال التالية:
           </div>
 
-          <div className="section-title">أقوال اللاعب وتبريراته:</div>
+          <div className="section-title">أقوال العضو وتبريراته:</div>
           <div className="declaration-text" style={{ minHeight: '150px', border: '1px solid #000', padding: '10px', marginTop: '10px' }}>
             {incident.player_statements || '................................................................................................................................\n................................................................................................................................'}
           </div>
@@ -56,7 +56,7 @@ export const PrintableClarificationReply = forwardRef<HTMLDivElement, PrintableC
           <table className="signature-table" style={{ marginTop: '30px' }}>
             <thead>
               <tr>
-                <th style={{ width: '100%', textAlign: 'left', paddingLeft: '50px' }}>إمضاء اللاعب</th>
+                <th style={{ width: '100%', textAlign: 'left', paddingLeft: '50px' }}>إمضاء العضو</th>
               </tr>
             </thead>
             <tbody>

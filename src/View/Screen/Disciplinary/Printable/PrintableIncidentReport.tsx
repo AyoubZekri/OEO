@@ -52,7 +52,7 @@ export const PrintableIncidentReport = forwardRef<HTMLDivElement, PrintableIncid
             </div>
 
             <div className="declaration-text" style={{ marginTop: '30px', fontSize: '1.1rem', lineHeight: '1.8' }}>
-              بتاريخ <strong>{dateStr}</strong> على الساعة <strong>{timeStr}</strong>، تمت معاينة الواقعة الآتية المتعلقة باللاعب: <strong>{incident.memberName}</strong>
+              بتاريخ <strong>{dateStr}</strong> على الساعة <strong>{timeStr}</strong>، تمت معاينة الواقعة الآتية المتعلقة بالعضو: <strong>{incident.memberName}</strong>
             </div>
 
             <div className="declaration-text" style={{ fontSize: '1.1rem', lineHeight: '1.8' }}>
@@ -124,11 +124,11 @@ export const PrintableIncidentReport = forwardRef<HTMLDivElement, PrintableIncid
             </div>
 
             <div className="declaration-text" style={{ marginTop: '20px' }}>
-              بعد الاطلاع على النظام الداخلي، ومحضر الواقعة، وتوضيحات اللاعب ومحضر الاستماع عند الاقتضاء، تقرر:
+              بعد الاطلاع على النظام الداخلي، ومحضر الواقعة، وتوضيحات العضو ومحضر الاستماع عند الاقتضاء، تقرر:
             </div>
 
             <div className="declaration-text">
-              بشأن اللاعب: <span style={{ fontWeight: 'normal', textDecoration: 'underline' }}>{incident.memberName}</span>
+              بشأن العضو: <span style={{ fontWeight: 'normal', textDecoration: 'underline' }}>{incident.memberName}</span>
             </div>
 
             <div className="declaration-text" style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', fontSize: '16px' }}>
@@ -159,7 +159,7 @@ export const PrintableIncidentReport = forwardRef<HTMLDivElement, PrintableIncid
             </div>
 
             <div className="declaration-text" style={{ marginTop: '15px' }}>
-              ويبلغ اللاعب بالقرار وبإمكانية استعمال طرق الاعتراض أو التظلم المتاحة وفقا للنظام الداخلي والقواعد المعمول بها.
+              ويبلغ العضو بالقرار وبإمكانية استعمال طرق الاعتراض أو التظلم المتاحة وفقا للنظام الداخلي والقواعد المعمول بها.
             </div>
 
             <table className="signature-table" style={{ marginTop: '40px' }}>

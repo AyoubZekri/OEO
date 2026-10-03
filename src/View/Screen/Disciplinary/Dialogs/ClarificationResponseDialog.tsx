@@ -9,6 +9,8 @@ interface ClarificationResponseDialogProps {
   onClose: () => void;
   onSave: (item: DisciplinaryModel) => void;
   editingItem: DisciplinaryModel | null;
+  /** member: the member writes their reply (personal space); admin: the reply is read only, the administration decides */
+  mode?: 'member' | 'admin';
 }
 
 export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogProps> = ({
@@ -16,7 +18,9 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
   onClose,
   onSave,
   editingItem,
+  mode = 'admin',
 }) => {
+  const isMember = mode === 'member';
   const [formData, setFormData] = useState<Partial<DisciplinaryModel>>({
     player_statements: '',
     admin_notes: '',
@@ -51,8 +55,8 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
               <MessageSquare size={24} />
             </div>
             <h2>
-              <span className="desktop-title">رد اللاعب (طلب توضيح)</span>
-              <span className="mobile-title">تعديل الرد</span>
+              <span className="desktop-title">{isMember ? 'الرد على طلب التوضيح' : 'قرار الإدارة'}</span>
+              <span className="mobile-title">{isMember ? 'ردي' : 'القرار'}</span>
             </h2>
           </div>
           <button type="button" className="modern-close-btn desktop-close-btn" onClick={onClose}>
@@ -64,33 +68,41 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
           e.preventDefault();
           onSave(formData as DisciplinaryModel);
         }}>
-          {/* Player Section */}
+          {/* The member writes the reply (personal space); the administration only writes the decision here */}
+          {isMember && (
           <div className="epic-form-section player-section">
             <div className="epic-section-header">
               <div className="epic-section-header-icon">
                 <MessageSquare size={18} />
               </div>
-              <h3>رد اللاعب وتوضيحاته</h3>
+              <h3>{isMember ? 'ردي وتوضيحاتي' : 'رد العضو وتوضيحاته'}</h3>
             </div>
-            
+
             <div className="modern-form-group">
-              <textarea
-                value={formData.player_statements || ''}
-                onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
-                className="modern-form-input modern-form-textarea"
-                rows={4}
-                placeholder="أدخل رد وتوضيحات اللاعب هنا..."
-              />
+              {isMember ? (
+                <textarea
+                  value={formData.player_statements || ''}
+                  onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
+                  className="modern-form-input modern-form-textarea"
+                  rows={6}
+                  placeholder="اكتب ردك وتوضيحاتك هنا..."
+                  autoFocus
+                />
+              ) : (
+                <p className="clarif-reply-text">{formData.player_statements || 'لم يرد العضو بعد على الطلب'}</p>
+              )}
             </div>
           </div>
+          )}
 
           {/* Admin Section */}
+          {!isMember && (
           <div className="premium-admin-card">
             <div className="premium-admin-header">
               <div className="premium-admin-header-icon">
                 <AlertTriangle size={20} />
               </div>
-              <h3>ملاحظات الإدارة والقرارات المتخذة</h3>
+              <h3>القرار المتخذ</h3>
             </div>
             
             <div className="premium-admin-body">
@@ -100,11 +112,12 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
                   onChange={e => setFormData({ ...formData, admin_notes: e.target.value })}
                   className="modern-form-input modern-form-textarea"
                   rows={4}
-                  placeholder="أدخل ملاحظات الإدارة..."
+                  placeholder="القرار المتخذ وملاحظات الإدارة..."
                 />
               </div>
             </div>
           </div>
+          )}
 
         </form>
 
@@ -114,7 +127,7 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
           </button>
           <button type="button" className="modern-btn-primary" onClick={() => onSave(formData as DisciplinaryModel)}>
             <Save size={18} />
-            حفظ الرد
+            {isMember ? 'إرسال الرد' : 'حفظ القرار'}
           </button>
         </div>
       </div>
