@@ -803,3 +803,6 @@ body.dark-mode .mmg-page {
 @keyframes mmg-spin {
   to { transform: rotate(360deg); }
 }
+
+/* Who sent a point (a member) */
+.mmg-point-by { display: block; margin-top: 2px; color: #f97316; font-weight: 700; font-size: 0.74rem; }

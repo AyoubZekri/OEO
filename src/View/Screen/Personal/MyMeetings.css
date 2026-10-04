@@ -1,0 +1,198 @@
+/* Personal space: my meetings */
+.mym-page { display: flex; flex-direction: column; gap: 16px; font-family: var(--sans); }
+.mym-page.mobile { gap: 12px; padding-bottom: 20px; }
+
+.mym-tabs {
+  display: inline-flex;
+  align-self: flex-start;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 14px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+}
+.mym-page.mobile .mym-tabs { align-self: stretch; }
+.mym-tabs button {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mym-tabs button b { font-size: 0.75rem; padding: 1px 8px; border-radius: 999px; background: var(--bg); }
+.mym-tabs button.on { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+
+.mym-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
+.mym-page.mobile .mym-grid { grid-template-columns: 1fr; }
+
+.mym-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+.mym-card:hover { border-color: rgba(249, 115, 22, 0.45); }
+
+.mym-date {
+  flex-shrink: 0;
+  width: 56px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+}
+.mym-date strong { font-size: 1.35rem; font-weight: 900; line-height: 1; }
+.mym-date small { font-size: 0.72rem; font-weight: 800; }
+
+.mym-card-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.mym-topic { font-size: 1rem; font-weight: 900; color: var(--text-h); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mym-line { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; }
+.mym-line svg { flex-shrink: 0; }
+.mym-line svg:not(:first-child) { margin-inline-start: 8px; }
+
+.mym-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.mym-tags em {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+.mym-tags em.propose { color: #f97316; background: rgba(249, 115, 22, 0.1); }
+
+.mym-status { --mym-s: #64748b; color: var(--mym-s) !important; background: color-mix(in srgb, var(--mym-s) 12%, transparent) !important; }
+.mym-status.tone-green { --mym-s: #059669; }
+.mym-status.tone-amber { --mym-s: #d97706; }
+.mym-status.tone-red { --mym-s: #dc2626; }
+.mym-status.tone-violet { --mym-s: #7c3aed; }
+
+.mym-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 50px 20px;
+  border-radius: 20px;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  text-align: center;
+}
+.mym-empty strong { color: var(--text-h); }
+
+/* Details window (computer) */
+.mym-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.45);
+}
+.mym-modal {
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  font-family: var(--sans);
+}
+.mym-modal header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.mym-modal header > span,
+.mym-mobile-head > span {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: rgba(14, 165, 233, 0.1);
+  color: #0284c7;
+}
+.mym-modal header h2 { flex: 1; margin: 0; font-size: 1.2rem; color: var(--text-h); }
+.mym-modal header button { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; }
+.mym-modal-body { padding: 20px 22px; overflow-y: auto; }
+
+.mym-mobile-head { display: flex; align-items: center; gap: 12px; padding: 4px 2px 12px; }
+.mym-mobile-head strong { font-size: 1.1rem; color: var(--text-h); }
+
+.mym-details { display: flex; flex-direction: column; gap: 22px; }
+.mym-info { display: flex; flex-direction: column; gap: 8px; }
+.mym-facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.mym-facts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+.mym-facts > span.mym-status { border: none; }
+.mym-soon { color: #f97316 !important; border-color: rgba(249, 115, 22, 0.35) !important; }
+
+.mag-title .mym-att-icon { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
+.mym-people { display: flex; flex-wrap: wrap; gap: 8px; }
+.mym-person {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.84rem;
+  color: var(--text-h);
+}
+.mym-person i {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(249, 115, 22, 0.12);
+  color: #f97316;
+  font-style: normal;
+  font-weight: 900;
+  font-size: 0.78rem;
+}
+.mym-person em { font-style: normal; font-size: 0.72rem; font-weight: 800; color: var(--text-muted); }
+.mym-person em.tone-green { color: #059669; }
+.mym-person em.tone-red { color: #dc2626; }
+.mym-person em.tone-amber { color: #d97706; }
+.mym-person em.tone-violet { color: #7c3aed; }

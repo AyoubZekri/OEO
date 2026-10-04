@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, Check, CalendarX, FolderOpen, ClipboardCheck, FileWarning } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, FolderOpen, ClipboardCheck, FileWarning } from 'lucide-react';
 import { useMeetingsController } from './MeetingsController';
-import type { Attendee, Meeting } from './meeting_model';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../core/context/AuthContext';
 import '../Matches/Matches.css';
@@ -11,6 +10,11 @@ import '../Equipment/Equipment.css';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileMeetings } from '../../Mobile/MobileMeetings/MobileMeetings';
 import './Meetings.css';
+import { MeetingAgenda } from './MeetingAgenda';
+import { MeetingEditorDialog } from './MeetingEditorDialog';
+import { meetingPointsApi } from './meetingPointsApi';
+import { meetingStart, agendaOf } from '../../Mobile/MobileMeetings/meetingUtils';
+import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 
 export const Meetings: React.FC = () => {
   const { t } = useTranslation();
@@ -19,29 +23,12 @@ export const Meetings: React.FC = () => {
     meetings,
     isLoading,
     isEditorOpen,
-    editingId,
-    topic, setTopic,
-    date, setDate,
-    time, setTime,
-    location, setLocation,
-    attendees, setAttendees,
-    points, setPoints,
     openAdd,
     openEdit,
-    closeEditor,
-    handleSave,
     handleDelete,
-    changeAttendeeStatus,
-    appMembers,
-    newAttendeeName, setNewAttendeeName,
-    newPoint, setNewPoint,
     activeReasonModal, setActiveReasonModal,
     absenceReason, setAbsenceReason,
     expandedMeetingId, setExpandedMeetingId,
-    toggleEmployee,
-    handleRemoveAttendee,
-    handleAddPoint,
-    handleRemovePoint,
     submitAbsence
   } = controller;
 
@@ -50,6 +37,8 @@ export const Meetings: React.FC = () => {
   const hasAccess = (check: boolean) => isFullAccess || check;
   const isMobile = useIsMobile();
   const can = useCan();
+  const nowMs = useNow().getTime();
+  const { user } = useAuth();
 
   if (isMobile) return <MobileMeetings c={controller} canAdd={hasAccess(permissions.meetings.add)} />;
 
@@ -217,136 +206,7 @@ export const Meetings: React.FC = () => {
       </div>
 
       {/* Editor Modal */}
-      {isEditorOpen && (
-        <div className="wow-modal-overlay" onClick={closeEditor}>
-          <div className="wow-modal" onClick={e => e.stopPropagation()}>
-            
-            {/* Modal Header */}
-            <div className="wow-modal-header">
-              <h3 className="wow-modal-title">
-                <div className="wow-modal-icon-bg">
-                  {editingId ? <Edit2 size={24} color="var(--accent)" /> : <Plus size={24} color="var(--accent)" />}
-                </div>
-                {editingId ? t('admin_docs.edit_meeting', 'تعديل الإجتماع') : t('admin_docs.add_meeting', 'إضافة إجتماع')}
-              </h3>
-              <button type="button" onClick={closeEditor} style={{ background: 'var(--bg-hover)', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'var(--border)'} onMouseOut={e => e.currentTarget.style.background = 'var(--bg-hover)'}>
-                <X size={20} />
-              </button>
-            </div>
-            
-            <div style={{ flex: 1, overflowY: 'auto', padding: '28px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
-              <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                
-                {/* Section 1: Basic Info */}
-                <div className="wow-section-card">
-                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
-                    <div style={{ width: '4px', height: '18px', background: 'linear-gradient(to bottom, var(--accent), #fca5a5)', borderRadius: '4px' }}></div>
-                    المعلومات الأساسية
-                  </h4>
-                  
-                  <div style={{ display: 'grid', gap: '20px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_topic', 'سبب الإجتماع')} *</label>
-                      <input type="text" value={topic} onChange={e => setTopic(e.target.value)} required className="premium-input" />
-                    </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_date', 'التاريخ')} *</label>
-                        <input type="date" value={date} onChange={e => setDate(e.target.value)} required style={{ width: '100%', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', fontSize: '0.95rem', outline: 'none' }} />
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_time', 'الوقت')} *</label>
-                        <input type="time" value={time} onChange={e => setTime(e.target.value)} required className="premium-input" />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text)', marginBottom: '8px', fontWeight: '600' }}>{t('admin_docs.meeting_location', 'مكان الإجتماع')} *</label>
-                      <input type="text" value={location} onChange={e => setLocation(e.target.value)} required placeholder="مثال: المقر الرئيسي" className="premium-input" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Section 2: Agenda Points */}
-                <div className="wow-section-card">
-                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
-                    <div style={{ width: '4px', height: '18px', background: 'linear-gradient(to bottom, #3b82f6, #93c5fd)', borderRadius: '4px' }}></div>
-                    {t('admin_docs.agenda_points', 'نقاط الإجتماع')}
-                  </h4>
-                  
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                    <input type="text" value={newPoint} onChange={e => setNewPoint(e.target.value)} placeholder={t('admin_docs.add_point_placeholder', 'اكتب نقطة للمناقشة...')} className="premium-input" style={{ flex: '1 1 250px' }} onKeyPress={(e) => { if(e.key === 'Enter') { e.preventDefault(); handleAddPoint(); }}} />
-                    <button type="button" onClick={handleAddPoint} className="premium-btn" style={{ padding: '0 24px', whiteSpace: 'nowrap' }}>{t('admin_docs.add_point', 'إضافة نقطة')}</button>
-                  </div>
-                  
-                  {points.length > 0 ? (
-                    <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {points.map((pt, i) => (
-                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-bg)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--border)', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'var(--bg-hover)', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>{i + 1}</div>
-                            <span style={{ fontSize: '0.95rem', color: 'var(--text-h)', fontWeight: '500' }}>{pt}</span>
-                          </div>
-                          <button type="button" onClick={() => handleRemovePoint(i)} style={{ background: 'rgba(239, 68, 68, 0.1)', border: 'none', color: 'var(--accent)', cursor: 'pointer', padding: '6px', borderRadius: '8px', display: 'flex', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'transparent'} onMouseOut={e => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}>
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div style={{ textAlign: 'center', padding: '30px', background: 'var(--bg)', borderRadius: '12px', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
-                      <List size={32} style={{ opacity: 0.5, marginBottom: '8px' }} />
-                      <p style={{ margin: 0, fontSize: '0.9rem' }}>لا توجد نقاط مضافة بعد. أضف النقاط التي سيتم مناقشتها.</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Section 3: Attendees */}
-                <div className="wow-section-card">
-                  <h4 style={{ margin: '0 0 20px 0', fontSize: '1.1rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '700' }}>
-                    <div style={{ width: '4px', height: '18px', background: 'linear-gradient(to bottom, #10b981, #6ee7b7)', borderRadius: '4px' }}></div>
-                    {t('admin_docs.attendees', 'قائمة الحضور')}
-                  </h4>
-                  
-                  <div className="wow-assignee-grid" style={{ maxHeight: '250px', overflowY: 'auto', padding: '4px' }}>
-                    {appMembers.map(emp => {
-                      const isSelected = attendees.some(a => a.id === emp.id);
-                      return (
-                        <div 
-                          key={emp.id} 
-                          onClick={() => toggleEmployee(emp.id, emp.name)}
-                          className={`wow-assignee-chip ${isSelected ? 'selected' : ''}`}
-                        >
-                          <div className="wow-assignee-avatar">
-                            {emp.name.charAt(0)}
-                            {isSelected && (
-                              <div className="wow-assignee-check">
-                                <Check size={10} strokeWidth={4} />
-                              </div>
-                            )}
-                          </div>
-                          <div className="wow-assignee-info">
-                            <span className="wow-assignee-name">{emp.name}</span>
-                            <span className="wow-assignee-role">{emp.role}</span>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Submit Buttons */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '10px' }}>
-                  <button type="button" onClick={closeEditor} className="wow-btn-cancel">{t('admin_docs.cancel', 'إلغاء')}</button>
-                  <button type="submit" className="wow-btn-submit">{t('admin_docs.save_meeting', 'حفظ الإجتماع')}</button>
-                </div>
-
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {isEditorOpen && <MeetingEditorDialog c={controller} />}
 
       {/* Meeting Details Modal */}
       {expandedMeetingId && meetings.find(m => m.id === expandedMeetingId) && (
@@ -385,36 +245,15 @@ export const Meetings: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Points Section */}
+                    {/* Agenda: the organisers' points and the proposed ones, with who added each */}
                     <div style={{ marginBottom: '36px' }}>
-                      <h4 style={{ margin: '0 0 16px 0', fontSize: '1.15rem', color: 'var(--text-h)', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '700' }}>
-                        <div style={{ padding: '6px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '8px' }}>
-                          <List size={20} style={{ color: '#8b5cf6' }} />
-                        </div>
-                        {t('admin_docs.agenda_points', 'نقاط الإجتماع')}
-                      </h4>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        {meeting.points.length > 0 ? meeting.points.map((pt, i) => (
-                          <div key={i} style={{ 
-                            display: 'flex', alignItems: 'flex-start', gap: '16px', background: 'var(--bg)', 
-                            padding: '16px', borderRadius: '16px',
-                            borderLeft: '4px solid #8b5cf6',
-                            border: '1px solid var(--border)',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
-                          }}>
-                            <div style={{ 
-                              background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', width: '32px', height: '32px', 
-                              borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                              fontWeight: 'bold', fontSize: '1rem', flexShrink: 0
-                            }}>
-                              {i + 1}
-                            </div>
-                            <div style={{ flex: 1, fontSize: '1.05rem', color: 'var(--text)', lineHeight: '1.6', marginTop: '2px' }}>
-                              {pt}
-                            </div>
-                          </div>
-                        )) : <div style={{ fontSize: '1rem', color: 'var(--text-muted)', background: 'var(--bg)', padding: '20px', borderRadius: '12px', textAlign: 'center', fontStyle: 'italic', border: '1px dashed var(--border)' }}>{t('admin_docs.no_points', 'لا توجد نقاط محددة')}</div>}
-                      </div>
+                      <MeetingAgenda
+                        items={agendaOf(meeting.points, user?.id)}
+                        canAdd={(meetingStart(meeting)?.getTime() ?? 0) > nowMs}
+                        canRemove={() => can('meetings', 'edit')}
+                        onAdd={async text => { await meetingPointsApi.add(meeting.id, text); await controller.reload(); }}
+                        onRemove={async item => { if (await meetingPointsApi.remove(meeting.id, item)) await controller.reload(); }}
+                      />
                     </div>
 
                     {/* Attendees Section */}

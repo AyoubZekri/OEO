@@ -4,7 +4,11 @@ import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CustomMultiSelect } from '../../widget/CustomMultiSelect';
-import { ABSENCE_TYPES, EVENT_CATEGORIES } from './absenceUtils';
+import { ABSENCE_TYPES, EVENT_CATEGORIES, memberName, memberRole } from './absenceUtils';
+
+/** "Name · role": players and staff are listed together */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- members come untyped from the API
+const memberLabel = (m: any) => `${memberName(m)} · ${memberRole(m)}`;
 
 interface AddAbsenceDialogProps {
   isOpen: boolean;
@@ -57,8 +61,9 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
       const res = await axios.get(Applink.individuals, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
-      const allPlayers = res.data.filter((ind: any) => ind.type === 'لاعب' || ind.type === 'player' || !ind.type);
-      setPlayers(allPlayers.length > 0 ? allPlayers : res.data);
+      // Every member: players, staff and administration
+      const list = Array.isArray(res.data) ? res.data : Array.isArray(res.data?.data) ? res.data.data : [];
+      setPlayers(list);
     } catch (err) {
       console.error('Error fetching players', err);
     }
@@ -157,14 +162,14 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
               <CustomMultiSelect
                 values={formData.player_ids}
                 onChange={(vals) => setFormData({ ...formData, player_ids: vals })}
-                options={players.map(p => ({ value: p.id.toString(), label: `${p.first_name} ${p.last_name}` }))}
+                options={players.map(p => ({ value: p.id.toString(), label: memberLabel(p) }))}
                 placeholder="-- اختر الأعضاء --"
               />
             ) : (
               <CustomDropdown<string>
                 value={formData.player_ids[0] || ''}
                 onChange={(val) => setFormData({ ...formData, player_ids: [val] })}
-                options={players.map(p => ({ value: p.id.toString(), label: `${p.first_name} ${p.last_name}` }))}
+                options={players.map(p => ({ value: p.id.toString(), label: memberLabel(p) }))}
                 placeholder="-- اختر العضو --"
               />
             )}

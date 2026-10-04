@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { countsOf, statusOf } from './absenceUtils';
+import { errorText } from '../Personal/useMyAbsences';
 
 export interface AbsenceRecord {
   id: number;
@@ -25,6 +26,14 @@ export interface AbsenceRecord {
   /** When it was recorded, and when the justification was decided (alerts) */
   created_at?: string | null;
   decision_date?: string | null;
+  /** The justification document (PDF or picture) */
+  attachment_url?: string | null;
+  /** Until when the member may justify it (24 hours after it was logged); none for a holiday request */
+  justify_until?: string | null;
+  /** Why the administration refused it */
+  decision_note?: string | null;
+  /** Who sent the justification: the member, or the administration for them */
+  justified_by?: 'member' | 'administration' | null;
 }
 
 // The API answers either with the list itself or with { data: [...] }
@@ -122,19 +131,21 @@ export const useAbsenceRequestsController = () => {
   const handleUpdateJustification = async (
     id: number,
     status: AbsenceRecord['justification_status'],
-    text?: string
+    text?: string,
+    decisionNote?: string,
   ) => {
     try {
       await axios.post(`${Applink.server}/absences/update-justification`, {
         id,
         justification_status: status,
         justification_text: text,
+        decision_note: decisionNote,
       }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       await fetchAbsences();
     } catch (err) {
-      alert('حدث خطأ أثناء التحديث');
+      alert(errorText(err, 'حدث خطأ أثناء التحديث'));
     }
   };
 
@@ -160,11 +171,23 @@ export const useAbsenceRequestsController = () => {
     setIsJustificationDialogOpen(false);
   };
 
-  const submitJustification = async (text: string) => {
-    if (selectedAbsenceId !== null) {
-      await handleUpdateJustification(selectedAbsenceId, 'قيد_الدراسة', text);
+  /** The administration justifies a record for the member: a text, a document (PDF / picture), or both; then decided as usual */
+  const submitJustification = async (text: string, document?: File | null) => {
+    if (selectedAbsenceId === null) return;
+    const form = new FormData();
+    form.append('id', String(selectedAbsenceId));
+    if (text) form.append('text', text);
+    if (document) form.append('document', document);
+    try {
+      await axios.post(`${Applink.server}/absences/justify`, form, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (err) {
+      alert(errorText(err, 'تعذر حفظ التبرير'));
+      return;
     }
     closeJustificationDialog();
+    await fetchAbsences();
   };
 
   const openAddAbsenceDialog = (memberId?: number, multi: boolean = false) => {
@@ -218,6 +241,20 @@ export const useAbsenceRequestsController = () => {
 
   const selectedAbsence = absences.find(a => a.id === selectedAbsenceId) ?? null;
 
+  // Accept at once; a refusal first asks why (the member reads it)
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const decide = (id: number, status: 'مقبول' | 'مرفوض') => {
+    if (status === 'مقبول') handleUpdateJustification(id, status);
+    else setRejectingId(id);
+  };
+  const confirmReject = async (note: string) => {
+    if (rejectingId === null) return;
+    const id = rejectingId;
+    setRejectingId(null);
+    await handleUpdateJustification(id, 'مرفوض', undefined, note);
+  };
+  const rejecting = absences.find(a => a.id === rejectingId) ?? null;
+
   // Same status rule as the cards (see statusOf)
   const stats = {
     ...countsOf(absences),
@@ -238,6 +275,10 @@ export const useAbsenceRequestsController = () => {
     itemsPerPage, setItemsPerPage,
     stats,
     handleUpdateJustification,
+    decide,
+    rejecting,
+    confirmReject,
+    closeReject: () => setRejectingId(null),
     handleDelete,
     isJustificationDialogOpen,
     openJustificationDialog,

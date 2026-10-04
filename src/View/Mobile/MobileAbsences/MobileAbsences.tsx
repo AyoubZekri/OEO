@@ -15,6 +15,7 @@ import { MobileAbsenceCard } from './MobileAbsenceCard';
 import { MobileAbsenceMember } from './MobileAbsenceMember';
 import { MobileAbsenceForm } from './MobileAbsenceForm';
 import { MobileJustifySheet } from './MobileJustifySheet';
+import { MobileRejectSheet } from './MobileRejectSheet';
 import './MobileAbsences.css';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- members come untyped from the API */
@@ -42,7 +43,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
 
   const cardProps = {
     onJustify: c.openJustificationDialog,
-    onDecide: (id: number, status: 'مقبول' | 'مرفوض') => c.handleUpdateJustification(id, status),
+    onDecide: c.decide,
     onDelete: c.handleDelete,
   };
   const member = c.selectedMemberId !== null ? c.members.find((m: any) => String(m.id) === String(c.selectedMemberId)) : undefined;
@@ -50,7 +51,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
 
   const tabs = [
     { value: 'members', label: 'الأعضاء', icon: Users, count: c.members.length },
-    { value: 'requests', label: 'التبريرات', icon: Inbox, count: pending.length },
+    { value: 'requests', label: 'الطلبات', icon: Inbox, count: pending.length },
     { value: 'registry', label: 'السجل', icon: ClipboardList, count: c.absences.length },
   ] as const;
 
@@ -185,7 +186,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
       {/* Pending justifications */}
       {c.activeTab === 'requests' && (
         pending.length === 0 ? (
-          <div className="mab-empty big"><Inbox size={34} /><strong>لا توجد طلبات تبرير معلقة</strong></div>
+          <div className="mab-empty big"><Inbox size={34} /><strong>لا توجد طلبات معلقة</strong></div>
         ) : (
           <div className="mab-list">{pending.map(a => <MobileAbsenceCard key={a.id} absence={a} {...cardProps} />)}</div>
         )
@@ -233,8 +234,9 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
       )}
 
       {c.isJustificationDialogOpen && (
-        <MobileJustifySheet absence={c.selectedAbsence} onSubmit={c.submitJustification} onClose={c.closeJustificationDialog} />
+        <MobileJustifySheet absence={c.selectedAbsence} onSubmit={c.submitJustification} onClose={c.closeJustificationDialog} withDocument />
       )}
+      {c.rejecting && <MobileRejectSheet absence={c.rejecting} onConfirm={c.confirmReject} onClose={c.closeReject} />}
     </div>
   );
 };

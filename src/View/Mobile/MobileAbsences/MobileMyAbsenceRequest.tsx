@@ -1,39 +1,48 @@
 import React, { useState } from 'react';
-import { Send, Loader2, Plane, UserX, Calendar, Briefcase, AlertCircle, MessageSquareText } from 'lucide-react';
+import { Send, Loader2, Calendar, Briefcase, AlertCircle, MessageSquareText, Paperclip, Trash2, Clock, PenLine } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
-import { isoDay } from '../MobileTrainingSessions/sessionUtils';
-import { EVENT_CATEGORIES } from '../../Screen/Absence/absenceUtils';
+import { categoryIcon } from '../../Screen/Absence/absenceUtils';
 import { errorText, type MyAbsenceRequest } from '../../Screen/Personal/useMyAbsences';
+import { REQUEST_KINDS, ANNOUNCE_EVENTS, MAX_DOC, todayIso, requestError } from '../../Screen/Personal/absenceRequestForm';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileAbsences.css';
 
-const KINDS = [
-  { value: 'leave' as const, label: 'طلب عطلة', icon: Plane, tone: 'violet' },
-  { value: 'absence' as const, label: 'إعلام بغياب', icon: UserX, tone: 'red' },
-];
+type Kind = MyAbsenceRequest['kind'];
 
-// Personal space (phone): ask for a holiday, or announce an absence in advance
+// Personal space (phone): a holiday request, or an absence / lateness announced in advance (same fields as the computer)
 export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceRequest) => Promise<void>; onClose: () => void }> = ({ onSubmit, onClose }) => {
-  const [kind, setKind] = useState<'leave' | 'absence'>('leave');
-  const [from, setFrom] = useState(isoDay());
+  const [kind, setKind] = useState<Kind>('leave');
+  const [from, setFrom] = useState(todayIso());
   const [to, setTo] = useState('');
-  const [category, setCategory] = useState('تدريب');
+  const [event, setEvent] = useState('');
+  const [other, setOther] = useState('');
+  const [delay, setDelay] = useState('');
   const [reason, setReason] = useState('');
+  const [doc, setDoc] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const announce = kind !== 'leave';
+  const current = REQUEST_KINDS.find(k => k.value === kind) || REQUEST_KINDS[0];
+
+  const pick = (file: File | null) => {
+    if (file && file.size > MAX_DOC) return setError('حجم الوثيقة أكبر من 5 ميغا');
+    setDoc(file);
+    setError('');
+  };
 
   const send = async () => {
-    if (!from) return setError('حدد التاريخ');
-    if (kind === 'leave' && to && to < from) return setError('تاريخ النهاية قبل تاريخ البداية');
-    if (!reason.trim()) return setError('اكتب السبب');
+    const problem = requestError({ kind, from, to, event, other, reason, doc });
+    if (problem) return setError(problem);
     setSaving(true);
     try {
       await onSubmit({
         kind,
         event_date: from,
         ...(kind === 'leave' && to ? { end_date: to } : {}),
-        ...(kind === 'absence' ? { event_category: category } : {}),
+        ...(announce ? { event_category: event, ...(event === 'أخرى' ? { event_other: other.trim() } : {}) } : {}),
+        ...(kind === 'late' && delay.trim() ? { duration: delay.trim() } : {}),
         reason: reason.trim(),
+        document: doc,
       });
     } catch (err) {
       setError(errorText(err, 'تعذر إرسال الطلب'));
@@ -44,63 +53,86 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
 
   return (
     <MobileScreen
-      title="طلب جديد"
+      title={current.label}
       onBack={onClose}
       footer={(
         <button type="button" className="me-btn primary" onClick={send} disabled={saving}>
-          {saving ? <Loader2 size={18} className="mab-spin" /> : <Send size={18} />} إرسال الطلب
+          {saving ? <Loader2 size={18} className="mab-spin" /> : <Send size={18} />} إرسال
         </button>
       )}
     >
       {error && <p className="mab-banner"><AlertCircle size={16} /> {error}</p>}
 
       <section className="me-card">
-        <div className="mab-modes n2">
-          {KINDS.map(k => (
+        <div className="mab-modes n3">
+          {REQUEST_KINDS.map(k => (
             <button key={k.value} type="button" className={`tone-${k.tone} ${kind === k.value ? 'on' : ''}`} onClick={() => { setKind(k.value); setError(''); }}>
               <span><k.icon size={20} /></span>
-              {k.label}
+              {k.short}
             </button>
           ))}
         </div>
       </section>
 
-      {kind === 'absence' && (
+      {announce && (
         <section className="me-card">
-          <h3 className="me-section-title"><span><Briefcase size={16} /></span>ما ستغيب عنه</h3>
+          <h3 className="me-section-title"><span><Briefcase size={16} /></span>{kind === 'late' ? 'ستتأخر عن' : 'ستغيب عن'}</h3>
           <div className="mab-cats">
-            {EVENT_CATEGORIES.map(cat => (
-              <button key={cat.value} type="button" className={category === cat.value ? 'on' : ''} onClick={() => setCategory(cat.value)}>
-                <cat.icon size={16} /> {cat.value}
+            {ANNOUNCE_EVENTS.map(value => (
+              <button key={value} type="button" className={event === value ? 'on' : ''} onClick={() => { setEvent(value); setError(''); }}>
+                {React.createElement(categoryIcon(value), { size: 16 })} {value}
               </button>
             ))}
           </div>
+          {event === 'أخرى' && (
+            <label className="me-field">
+              <span className="me-label"><PenLine size={14} /> ما هو الحدث</span>
+              <input className="me-input" value={other} onChange={e => { setOther(e.target.value); setError(''); }} placeholder="مثال: حصة تصوير، موعد إداري..." />
+            </label>
+          )}
         </section>
       )}
 
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Calendar size={14} /> {kind === 'leave' ? 'من' : 'التاريخ'}</span>
-          <input className="me-input" type="date" dir="ltr" value={from} min={isoDay()} onChange={e => { setFrom(e.target.value); setError(''); }} />
+          <input className="me-input" type="date" dir="ltr" value={from} min={todayIso()} onChange={e => { setFrom(e.target.value); setError(''); }} />
         </label>
         {kind === 'leave' && (
           <label className="me-field">
             <span className="me-label"><Calendar size={14} /> إلى (اختياري)</span>
-            <input className="me-input" type="date" dir="ltr" value={to} min={from || isoDay()} onChange={e => { setTo(e.target.value); setError(''); }} />
+            <input className="me-input" type="date" dir="ltr" value={to} min={from || todayIso()} onChange={e => { setTo(e.target.value); setError(''); }} />
+          </label>
+        )}
+        {kind === 'late' && (
+          <label className="me-field">
+            <span className="me-label"><Clock size={14} /> مدة التأخر المتوقعة (اختياري)</span>
+            <input className="me-input" value={delay} onChange={e => setDelay(e.target.value)} placeholder="مثال: 30 دقيقة" />
           </label>
         )}
       </section>
 
       <section className="me-card">
-        <h3 className="me-section-title"><span><MessageSquareText size={16} /></span>السبب</h3>
+        <h3 className="me-section-title"><span><MessageSquareText size={16} /></span>السبب: نص أو وثيقة أو الاثنان</h3>
+        {doc ? (
+          <div className="mab-file">
+            <Paperclip size={16} /> <b>{doc.name}</b>
+            <button type="button" onClick={() => pick(null)} aria-label="إزالة الوثيقة"><Trash2 size={15} /></button>
+          </div>
+        ) : (
+          <label className="mab-file pick">
+            <Paperclip size={16} /> أرفق وثيقة (PDF أو صورة)
+            <input type="file" accept="application/pdf,image/*" onChange={e => pick(e.target.files?.[0] ?? null)} hidden />
+          </label>
+        )}
         <textarea
           className="mab-textarea"
           value={reason}
           onChange={e => { setReason(e.target.value); setError(''); }}
-          placeholder={kind === 'leave' ? 'سبب طلب العطلة (سفر، ظرف عائلي...)' : 'سبب الغياب (امتحان، موعد طبي...)'}
-          rows={5}
+          placeholder={kind === 'leave' ? 'سبب طلب العطلة (سفر، ظرف عائلي...)' : kind === 'late' ? 'سبب التأخر (امتحان، موعد طبي...)' : 'سبب الغياب (امتحان، موعد طبي...)'}
+          rows={4}
         />
-        <p className="mab-note">يبقى الطلب قيد الدراسة حتى يتم قبوله أو رفضه.</p>
+        <p className="mab-note">يصل إلى الإدارة، ويبقى قيد الدراسة حتى يتم قبوله أو رفضه.</p>
       </section>
     </MobileScreen>
   );

@@ -7,7 +7,7 @@ import { MobileSheet } from '../widgets/MobileSheet';
 import type { useMeetingsController } from '../../Screen/Meetings/MeetingsController';
 import { TYPE_LABELS } from '../MobileMembers/memberLabels';
 import { isoDay, dayLabel } from '../MobileTrainingSessions/sessionUtils';
-import { invitedText } from './meetingUtils';
+import { invitedText, pointText } from './meetingUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
 
 // Phone add / edit page of a meeting; the fields live in the meetings controller (as on desktop)
@@ -119,7 +119,7 @@ export const MobileMeetingForm: React.FC<{ c: ReturnType<typeof useMeetingsContr
             {c.points.map((p, i) => (
               <li key={i}>
                 <span>{i + 1}</span>
-                <p>{p}</p>
+                <p>{pointText(p)}{typeof p !== 'string' && <small className="mmg-point-by">أرسلها {p.author}</small>}</p>
                 <button type="button" onClick={() => c.handleRemovePoint(i)} aria-label="حذف النقطة"><X size={15} /></button>
               </li>
             ))}

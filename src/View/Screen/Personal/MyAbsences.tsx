@@ -6,6 +6,7 @@ import { AbsenceCard } from '../Absence/AbsenceCard';
 import { JustificationDialog } from '../Absence/JustificationDialog';
 import { ABSENCE_TYPES, kindOf, byDateDesc } from '../Absence/absenceUtils';
 import { MobileMyAbsences } from '../../Mobile/MobileAbsences/MobileMyAbsences';
+import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import { useMyAbsences } from './useMyAbsences';
 import { MyAbsenceRequestDialog } from './MyAbsenceRequestDialog';
 import '../Absence/Absence.css';
@@ -19,6 +20,8 @@ const noop = () => undefined;
 export const MyAbsences: React.FC = () => {
   const c = useMyAbsences();
   const isMobile = useIsMobile();
+  // Refreshed every minute: the 24-hour justification window closes on its own
+  const now = useNow().getTime();
   const [type, setType] = useState('');
   // ?absence=ID (from an alert): the record's card is brought into view and marked
   const [params] = useSearchParams();
@@ -28,7 +31,7 @@ export const MyAbsences: React.FC = () => {
     document.getElementById(`absence-card-${focusId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [focusId, c.isLoading, c.records]);
 
-  if (isMobile) return <MobileMyAbsences c={c} />;
+  if (isMobile) return <MobileMyAbsences c={c} now={now} />;
 
   const s = c.stats;
   const list = c.records.filter(a => !type || kindOf(a) === type).slice().sort(byDateDesc);
@@ -52,7 +55,7 @@ export const MyAbsences: React.FC = () => {
           </div>
           <div className="ab-hero-actions">
             <button type="button" className="ab-add" onClick={c.openRequest}>
-              <Plus size={18} /> طلب عطلة أو غياب
+              <Plus size={18} /> طلب عطلة أو إعلام مسبق
             </button>
           </div>
         </div>
@@ -94,6 +97,7 @@ export const MyAbsences: React.FC = () => {
               hideMember
               personal
               focused={focusId === String(a.id)}
+              now={now}
               onJustify={c.openJustify}
               onDecide={noop}
               onDelete={noop}
@@ -102,7 +106,7 @@ export const MyAbsences: React.FC = () => {
         </div>
       )}
 
-      <JustificationDialog isOpen={c.justifyId !== null} absence={c.justifying} onClose={c.closeJustify} onSubmit={c.justify} />
+      <JustificationDialog isOpen={c.justifyId !== null} absence={c.justifying} onClose={c.closeJustify} onSubmit={c.justify} withDocument />
       {c.requestOpen && <MyAbsenceRequestDialog onSubmit={c.request} onClose={c.closeRequest} />}
     </div>
   );

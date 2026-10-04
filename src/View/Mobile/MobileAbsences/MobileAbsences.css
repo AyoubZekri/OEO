@@ -853,3 +853,43 @@ body.dark-mode .mab-page {
   outline: 2px solid #f97316;
   outline-offset: 2px;
 }
+
+/* The justification document */
+.mab-doc {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+/* Personal space: time left to justify (24 hours after the record) */
+.mab-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #d97706;
+  white-space: nowrap;
+}
+.mab-deadline.over { color: var(--text-muted, #6b7280); margin: 8px 0 0; }
+
+/* Justification document picker */
+.mab-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  font-size: 0.86rem;
+  color: var(--text-h);
+}
+.mab-file.pick { color: var(--text-muted); }
+.mab-file b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mab-file button { border: none; background: none; color: #dc2626; display: inline-flex; }

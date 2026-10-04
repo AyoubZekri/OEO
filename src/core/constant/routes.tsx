@@ -13,6 +13,7 @@ export class Approutes {
   static readonly MyTrainingSessions = "/my-training";
   static readonly MyMatches = "/my-matches";
   static readonly MyAbsences = "/my-absences";
+  static readonly MyMeetings = "/my-meetings";
   static readonly Reports = "/reports";
   static readonly Teams = "/teams";
   static readonly Equipment = "/equipment";

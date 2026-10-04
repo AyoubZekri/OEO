@@ -13,7 +13,7 @@ import './MobileAbsences.css';
 const noop = () => undefined;
 
 // Personal space (phone): my records with my counters, my justifications and my requests
-export const MobileMyAbsences: React.FC<{ c: ReturnType<typeof useMyAbsences> }> = ({ c }) => {
+export const MobileMyAbsences: React.FC<{ c: ReturnType<typeof useMyAbsences>; now: number }> = ({ c, now }) => {
   const [type, setType] = useState('');
   // ?absence=ID (from an alert): that record is marked
   const [focusId] = useUrlDetails('absence');
@@ -75,6 +75,7 @@ export const MobileMyAbsences: React.FC<{ c: ReturnType<typeof useMyAbsences> }>
               hideMember
               personal
               focused={focusId === String(a.id)}
+              now={now}
               onJustify={c.openJustify}
               onDecide={noop}
               onDelete={noop}
@@ -83,11 +84,11 @@ export const MobileMyAbsences: React.FC<{ c: ReturnType<typeof useMyAbsences> }>
         </div>
       )}
 
-      <button type="button" className="mab-fab" onClick={c.openRequest} aria-label="طلب عطلة أو غياب" title="طلب عطلة أو غياب">
+      <button type="button" className="mab-fab" onClick={c.openRequest} aria-label="طلب عطلة أو إعلام مسبق" title="طلب عطلة أو إعلام مسبق">
         <Plus size={22} strokeWidth={2.5} />
       </button>
 
-      {c.justifyId !== null && <MobileJustifySheet absence={c.justifying} onSubmit={c.justify} onClose={c.closeJustify} />}
+      {c.justifyId !== null && <MobileJustifySheet absence={c.justifying} onSubmit={c.justify} onClose={c.closeJustify} withDocument />}
       {c.requestOpen && <MobileMyAbsenceRequest onSubmit={c.request} onClose={c.closeRequest} />}
     </div>
   );

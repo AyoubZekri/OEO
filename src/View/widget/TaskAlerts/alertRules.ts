@@ -3,7 +3,7 @@ import type { TrainingSessionModel } from '../../Screen/TrainingSessions/Trainin
 import { computedStatus, countdownText, dayLabel, endOf, myAttendance, startOf } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import type { Match } from '../../Screen/Matches/match_model';
 import type { AbsenceRecord } from '../../Screen/Absence/AbsenceRequestsController';
-import { dateOf, statusOf, typeMeta } from '../../Screen/Absence/absenceUtils';
+import { canJustifyNow, dateOf, isMemberRequest, justifyLeft, leftText, recordTitle, statusOf, typeMeta } from '../../Screen/Absence/absenceUtils';
 import { countdown, dayText as matchDay, matchDate, matchState, opponentName, resultOf, RESULT_LABEL, timeText } from '../../Mobile/MobileMatches/matchUtils';
 
 /** Why something needs attention: a task (most urgent first), or a disciplinary action */
@@ -23,7 +23,11 @@ export type MatchAlertKind = 'match_callup' | 'match_soon' | 'match_live' | 'mat
   // what the managers still have to do
   | 'match_no_callups' | 'match_no_lineup' | 'match_no_attendance' | 'match_no_ratings' | 'match_no_report';
 /** An absence record: logged on me, my justification / request decided; for the managers: one awaiting a decision */
-export type AbsenceAlertKind = 'abs_new' | 'abs_accepted' | 'abs_rejected' | 'abs_pending';
+export type AbsenceAlertKind =
+  // the member
+  | 'abs_new' | 'abs_accepted' | 'abs_rejected' | 'abs_expired' | 'abs_admin_justified' | 'abs_leave_soon' | 'abs_repeated'
+  // the managers
+  | 'abs_pending' | 'abs_today' | 'abs_repeated_member';
 export type AlertKind = TaskAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind;
 
 export interface AppAlert {
@@ -43,7 +47,8 @@ export interface AppAlert {
     | { type: 'training'; id: number; space: 'personal' | 'management'; attendance?: boolean }
     /** attendance: open the match's attendance sheet */
     | { type: 'match'; id: number; space: 'personal' | 'management'; attendance?: boolean }
-    | { type: 'absence'; id: number; space: 'personal' | 'management' };
+    /** tab: the management page's tab to open (the pending requests by default) */
+    | { type: 'absence'; id: number; space: 'personal' | 'management'; tab?: 'requests' | 'registry' };
   /** Something that happened (created, decided, replied): opening it marks it seen. Otherwise it stays while its reason holds */
   event?: boolean;
 }
@@ -515,53 +520,193 @@ const absenceWhen = (a: AbsenceRecord) => {
   return [a.event_category, d ? new Intl.DateTimeFormat('ar-DZ', { day: 'numeric', month: 'long' }).format(d) : day].filter(Boolean).join(' · ');
 };
 
+/** The last hours to justify are shown in red */
+export const ABSENCE_URGENT_MS = 3 * 3600 * 1000;
+/** Repeated absences: this many unjustified absences within ABSENCE_REPEAT_DAYS */
+export const ABSENCE_REPEAT_COUNT = 3;
+export const ABSENCE_REPEAT_DAYS = 30;
+
+const DAY_MS = 86400000;
+
+/** Midnight of a "Y-m-d" day (local), or null */
+const dayStart = (value?: string | null) => {
+  const d = value ? parseDate(value.slice(0, 10)) : null;
+  if (!d) return null;
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+
+/** Whole days from today to the day (0 = today, 1 = tomorrow, negative = past) */
+const daysTo = (value: string | null | undefined, now: number) => {
+  const start = dayStart(value);
+  if (start === null) return null;
+  const today = new Date(now);
+  today.setHours(0, 0, 0, 0);
+  return Math.round((start - today.getTime()) / DAY_MS);
+};
+
+const inDayWords = (n: number) => (n === 0 ? 'اليوم' : n === 1 ? 'غداً' : n < 0 ? 'منذ أيام' : `بعد ${n} أيام`);
+
+/** The last day a record covers: a holiday "حتى Y-m-d", else its own day */
+const lastDayOf = (a: AbsenceRecord) => a.duration?.match(/\d{4}-\d{2}-\d{2}/)?.[0] || dateOf(a);
+
+/** Does an accepted holiday / announcement cover today? */
+const coversToday = (a: AbsenceRecord, now: number) => {
+  const from = daysTo(dateOf(a), now);
+  const to = daysTo(lastDayOf(a), now);
+  return from !== null && to !== null && from <= 0 && to >= 0;
+};
+
+/** Unjustified absences (no justification, or refused) of the last 30 days, by member */
+const repeatedAbsences = (records: AbsenceRecord[], now: number) => {
+  const byMember = new Map<string, AbsenceRecord[]>();
+  records.forEach(a => {
+    const st = statusOf(a);
+    const d = daysTo(dateOf(a), now);
+    if (typeMeta(a.absence_type).value !== 'غياب' || isMemberRequest(a)) return;
+    if (st !== 'none' && st !== 'rejected') return;
+    if (d === null || d > 0 || d < -ABSENCE_REPEAT_DAYS) return;
+    const key = String(a.player_id);
+    byMember.set(key, [...(byMember.get(key) || []), a]);
+  });
+  return [...byMember.values()].filter(list => list.length >= ABSENCE_REPEAT_COUNT);
+};
+
 /**
- * The member's alerts about their own records (each an event, seen once opened, for 7 days):
- * an absence / lateness / leave logged on them by the administration (justify it), and the decision
- * on their justification or holiday request (accepted, or refused: justify again).
+ * The member's alerts about their own records:
+ * - logged on them: "justify it", while the 24 hours last (red in the last 3); then "time over" (once);
+ * - the administration justified it for them (once);
+ * - the decision on a justification or a request (once, for 7 days), with the reason of a refusal;
+ * - an accepted holiday / announcement for today or tomorrow (once);
+ * - 3 unjustified absences within 30 days (stays while it holds).
  */
-export const absenceAlerts = (records: AbsenceRecord[], now = Date.now()): AppAlert[] => records
-  .map((a): AppAlert | null => {
+export const absenceAlerts = (records: AbsenceRecord[], now = Date.now()): AppAlert[] => {
+  const list: AppAlert[] = [];
+  records.forEach(a => {
     const type = typeMeta(a.absence_type);
     const status = statusOf(a);
-    const leave = type.value === 'طلب عطلة';
+    const request = isMemberRequest(a);
     const when = absenceWhen(a) || 'بدون تاريخ';
-    const make = (kind: AbsenceAlertKind, key: string, title: string, heading: string, detail: string, tone: AppAlert['tone']): AppAlert => ({
-      key, kind, heading, title, detail, tone, target: { type: 'absence', id: a.id, space: 'personal' }, event: true,
-    });
+    const push = (kind: AbsenceAlertKind, key: string, title: string, heading: string, detail: string, tone: AppAlert['tone'], event: boolean) =>
+      list.push({ key, kind, heading, title, detail, tone, target: { type: 'absence', id: a.id, space: 'personal' }, event });
 
     if ((status === 'accepted' || status === 'rejected') && since(a.decision_date, now) <= ABSENCE_RECENT_MS) {
       const ok = status === 'accepted';
-      if (leave) {
-        return make(ok ? 'abs_accepted' : 'abs_rejected', `abs:dec:${a.id}:${status}:${a.decision_date}`,
-          ok ? 'تم قبول طلب العطلة' : 'تم رفض طلب العطلة', `عطلة · ${when}`, a.duration || (ok ? 'تمت الموافقة على طلبك' : 'لم تتم الموافقة على طلبك'), ok ? 'blue' : 'red');
+      const why = (a.decision_note || '').trim();
+      const key = `abs:dec:${a.id}:${status}:${a.decision_date}`;
+      if (request) {
+        push(ok ? 'abs_accepted' : 'abs_rejected', key, ok ? 'تم قبول طلبك' : 'تم رفض طلبك', `${recordTitle(a)} · ${when}`,
+          ok ? (a.duration || 'تمت الموافقة على طلبك') : (why ? `السبب: ${why}` : 'لم تتم الموافقة على طلبك'), ok ? 'blue' : 'red', true);
+      } else {
+        push(ok ? 'abs_accepted' : 'abs_rejected', key, ok ? 'تم قبول تبريرك' : 'تم رفض تبريرك', `${type.label} · ${when}`,
+          ok ? 'أصبح مبرراً' : (why ? `السبب: ${why}` : 'يبقى غير مبرر'), ok ? 'blue' : 'red', true);
       }
-      return make(ok ? 'abs_accepted' : 'abs_rejected', `abs:dec:${a.id}:${status}:${a.decision_date}`,
-        ok ? 'تم قبول تبريرك' : 'تم رفض تبريرك', `${type.label} · ${when}`,
-        ok ? 'أصبح مبرراً' : 'يمكنك إعادة تقديم تبرير', ok ? 'blue' : 'red');
     }
-    if (!leave && a.record_source !== 'طلب العضو' && status !== 'accepted' && since(a.created_at, now) <= ABSENCE_RECENT_MS) {
-      return make('abs_new', `abs:new:${a.id}`, `سُجل عليك ${type.label}`, when,
-        status === 'none' ? 'قدّم تبريرك من صفحة غياباتي' : 'تبريرك قيد الدراسة', 'amber');
-    }
-    return null;
-  })
-  .filter((x): x is AppAlert => x !== null);
 
-/** The managers' alerts (who decide the justifications): every justification or holiday request awaiting a decision */
-export const managerAbsenceAlerts = (records: AbsenceRecord[]): AppAlert[] => records
-  .filter(a => statusOf(a) === 'pending')
-  .sort((x, y) => dateOf(x).localeCompare(dateOf(y)))
-  .map(a => {
-    const leave = typeMeta(a.absence_type).value === 'طلب عطلة';
-    const reason = (a.reason || '').trim();
-    return {
-      key: `abs:pending:${a.id}:${a.reason?.length ?? 0}`,
-      kind: 'abs_pending' as const,
-      heading: a.player_name || 'عضو',
-      title: leave ? 'طلب عطلة بانتظار القرار' : 'تبرير بانتظار القرار',
-      detail: [`${typeMeta(a.absence_type).label} · ${absenceWhen(a)}`, reason.length > 40 ? `${reason.slice(0, 40)}…` : reason].filter(Boolean).join(' · '),
-      tone: 'amber' as const,
-      target: { type: 'absence' as const, id: a.id, space: 'management' as const },
-    };
+    // Logged on me: justify within 24 hours, then the time is over
+    if (status === 'none' && canJustifyNow(a, now)) {
+      const left = justifyLeft(a, now) ?? 0;
+      push('abs_new', `abs:new:${a.id}:${a.absence_type}:${a.justify_until}`, `سُجل عليك ${type.label}`, when,
+        `قدّم تبريرك (وثيقة أو نص) · باقي ${leftText(left)}`, left <= ABSENCE_URGENT_MS ? 'red' : 'amber', false);
+    } else if (status === 'none' && !request) {
+      const left = justifyLeft(a, now);
+      if (left !== null && left <= 0 && -left <= DAY_MS) {
+        push('abs_expired', `abs:expired:${a.id}:${a.justify_until}`, 'انتهت مهلة التبرير', `${type.label} · ${when}`,
+          `يبقى ${type.label} غير مبرر`, 'red', true);
+      }
+    }
+
+    // The administration sent a justification for me
+    if (status === 'pending' && !request && a.justified_by === 'administration') {
+      push('abs_admin_justified', `abs:admin:${a.id}:${a.reason?.length ?? 0}:${a.attachment_url ?? ''}`, 'قدّمت الإدارة تبريراً عنك',
+        `${type.label} · ${when}`, 'بانتظار القرار', 'blue', true);
+    }
+
+    // My accepted holiday / announcement is today or tomorrow
+    if (status === 'accepted' && request) {
+      const d = daysTo(dateOf(a), now);
+      if (d !== null && (d === 0 || d === 1)) {
+        push('abs_leave_soon', `abs:soon:${a.id}:${dateOf(a)}`,
+          type.value === 'طلب عطلة' ? `تبدأ عطلتك ${inDayWords(d)}` : `${recordTitle(a)} ${inDayWords(d)}`,
+          `${recordTitle(a)} · ${when}`, a.duration || 'تمت الموافقة عليه', 'violet', true);
+      }
+    }
   });
+
+  // Repeated unjustified absences
+  repeatedAbsences(records, now).forEach(items => {
+    list.push({
+      key: `abs:repeat:${items.length}:${items.map(x => x.id).join('-')}`,
+      kind: 'abs_repeated',
+      heading: `${items.length} غيابات غير مبررة`,
+      title: `لديك ${items.length} غيابات غير مبررة خلال ${ABSENCE_REPEAT_DAYS} يوماً`,
+      detail: 'قد يؤدي تكرار الغياب إلى إجراء تأديبي',
+      tone: 'amber',
+      target: { type: 'absence', id: items[0].id, space: 'personal' },
+    });
+  });
+  return list;
+};
+
+/**
+ * The managers' alerts:
+ * - who decides (canDecide): every justification / request awaiting a decision, red when the request is for today or tomorrow;
+ * - who sees the absences: the members absent today by an accepted announcement / holiday,
+ *   and the members with 3 unjustified absences within 30 days.
+ */
+export const managerAbsenceAlerts = (records: AbsenceRecord[], now = Date.now(), canDecide = true): AppAlert[] => {
+  const list: AppAlert[] = [];
+
+  if (canDecide) {
+    records
+      .filter(a => statusOf(a) === 'pending')
+      .sort((x, y) => dateOf(x).localeCompare(dateOf(y)))
+      .forEach(a => {
+        const request = isMemberRequest(a);
+        const reason = (a.reason || '').trim();
+        const d = daysTo(dateOf(a), now);
+        const soon = request && d !== null && d <= 1;
+        list.push({
+          key: `abs:pending:${a.id}:${a.reason?.length ?? 0}:${soon ? 'soon' : ''}`,
+          kind: 'abs_pending',
+          heading: a.player_name || 'عضو',
+          title: request ? `${recordTitle(a)} بانتظار القرار` : 'تبرير بانتظار القرار',
+          detail: [soon && d !== null ? `يبدأ ${inDayWords(d)}` : '', `${typeMeta(a.absence_type).label} · ${absenceWhen(a)}`, reason.length > 40 ? `${reason.slice(0, 40)}…` : reason]
+            .filter(Boolean).join(' · '),
+          tone: soon ? 'red' : 'amber',
+          target: { type: 'absence', id: a.id, space: 'management', tab: 'requests' },
+        });
+      });
+  }
+
+  // Absent today, announced and accepted
+  const today = new Date(now).toISOString().slice(0, 10);
+  records
+    .filter(a => statusOf(a) === 'accepted' && isMemberRequest(a) && coversToday(a, now))
+    .forEach(a => {
+      const leave = typeMeta(a.absence_type).value === 'طلب عطلة';
+      list.push({
+        key: `abs:today:${a.id}:${today}`,
+        kind: 'abs_today',
+        heading: a.player_name || 'عضو',
+        title: leave ? 'في عطلة اليوم' : `${typeMeta(a.absence_type).value === 'تأخر' ? 'تأخر' : 'غياب'} معلن اليوم`,
+        detail: [a.event_category, a.duration].filter(Boolean).join(' · ') || 'بإعلام مسبق مقبول',
+        tone: 'blue',
+        target: { type: 'absence', id: a.id, space: 'management', tab: 'registry' },
+      });
+    });
+
+  // Repeated unjustified absences
+  repeatedAbsences(records, now).forEach(items => {
+    list.push({
+      key: `abs:mrepeat:${items[0].player_id}:${items.length}:${items.map(x => x.id).join('-')}`,
+      kind: 'abs_repeated_member',
+      heading: items[0].player_name || 'عضو',
+      title: 'تكرر الغياب بدون تبرير',
+      detail: `${items.length} غيابات غير مبررة خلال ${ABSENCE_REPEAT_DAYS} يوماً`,
+      tone: 'red',
+      target: { type: 'absence', id: items[0].id, space: 'management', tab: 'registry' },
+    });
+  });
+  return list;
+};

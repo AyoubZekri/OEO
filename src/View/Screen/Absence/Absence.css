@@ -396,10 +396,12 @@
 }
 
 /* ── Record cards ── */
-/* Columns (not a grid) so a short card sits right under the one above it, with no empty space */
+/* An even grid: every card has the same size (every row as tall as the tallest card) */
 .ab-grid {
-  columns: 300px;
-  column-gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 16px;
 }
 
 .ab-card {
@@ -830,3 +832,294 @@
   outline: 2px solid #f97316;
   outline-offset: 2px;
 }
+
+/* The justification document */
+.ab-doc {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+}
+.ab-doc:hover { text-decoration: underline; }
+
+/* Personal space: time left to justify (24 hours after the record) */
+.ab-deadline {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #d97706;
+  margin-inline-end: auto;
+}
+.ab-deadline.over { color: var(--text-muted, #6b7280); margin: 10px 0 0; }
+
+/* Justification document picker */
+.ab-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  font-size: 0.86rem;
+  color: var(--text-h);
+}
+.ab-file.pick { cursor: pointer; color: var(--text-muted); }
+.ab-file.pick:hover { border-color: #f97316; color: #f97316; }
+.ab-file b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; }
+.ab-file button { border: none; background: none; color: #dc2626; cursor: pointer; display: inline-flex; }
+
+/* ── Absence card: the same parts in the same place for every state ── */
+.abx {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.2s ease;
+}
+.abx:hover { border-color: color-mix(in srgb, var(--ab-t) 35%, var(--border)); }
+.abx.focused { outline: 2px solid #f97316; outline-offset: 2px; }
+
+.abx-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+.abx-kind {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ab-t) 12%, transparent);
+  color: var(--ab-t);
+}
+
+.abx-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.abx-title strong { font-size: 1rem; font-weight: 900; color: var(--text-h); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abx-title small { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.abx-status {
+  --abx-s: #94a3b8;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--abx-s);
+  background: color-mix(in srgb, var(--abx-s) 12%, transparent);
+}
+.abx-status i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.abx-status.st-pending { --abx-s: var(--ab-blue); }
+.abx-status.st-accepted { --abx-s: var(--ab-green); }
+.abx-status.st-rejected { --abx-s: var(--ab-red); }
+
+.abx-del {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.abx-del:hover { border-color: var(--ab-red); color: var(--ab-red); background: rgba(239, 68, 68, 0.06); }
+
+.abx-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: var(--bg);
+}
+.abx-member .ab-avatar { width: 34px; height: 34px; border-radius: 10px; font-size: 0.8rem; }
+.abx-member div { min-width: 0; display: flex; flex-direction: column; }
+.abx-member strong { font-size: 0.9rem; font-weight: 800; color: var(--text-h); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.abx-member small { font-size: 0.74rem; color: var(--text-muted); }
+
+/* One line of facts, always present */
+.abx-facts {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 28px;
+  overflow: hidden;
+}
+.abx-facts > span,
+.abx-facts > a {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.abx-facts > span.none { border-style: dashed; font-weight: 600; }
+.abx-facts > a.doc { color: var(--ab-blue); border-color: color-mix(in srgb, var(--ab-blue) 35%, var(--border)); }
+.abx-facts > a.doc:hover { background: color-mix(in srgb, var(--ab-blue) 8%, transparent); }
+.abx-facts button { display: flex; padding: 0; border: none; background: none; color: #f97316; cursor: pointer; }
+
+/* The justification: two lines at most, the same height in every card (full text on hover) */
+.abx-note {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 62px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+.abx-note svg { flex-shrink: 0; margin-top: 3px; color: var(--text-muted); }
+.abx-note p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.abx-note.empty p { color: var(--text-muted); font-style: italic; }
+
+/* The bottom line: an action, or where the record stands */
+.abx-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.abx-btn {
+  flex: 1;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-h);
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.abx-btn.primary { flex: 0 0 auto; padding: 0 16px; margin-inline-start: auto; background: #f97316; border-color: #f97316; color: #fff; }
+.abx-btn.primary:only-child { flex: 1; }
+.abx-btn.primary:hover { background: #ea580c; }
+.abx-btn.accept { color: var(--ab-green); border-color: color-mix(in srgb, var(--ab-green) 40%, var(--border)); }
+.abx-btn.accept:hover { background: color-mix(in srgb, var(--ab-green) 10%, transparent); }
+.abx-btn.reject { flex: 0 0 auto; padding: 0 16px; color: var(--ab-red); border-color: color-mix(in srgb, var(--ab-red) 35%, var(--border)); }
+.abx-btn.reject:hover { background: color-mix(in srgb, var(--ab-red) 8%, transparent); }
+
+.abx-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--ab-amber);
+  white-space: nowrap;
+}
+
+.abx-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--abx-i);
+}
+.abx-info.tone-muted { --abx-i: var(--text-muted); }
+.abx-info.tone-blue { --abx-i: var(--ab-blue); }
+.abx-info.tone-green { --abx-i: var(--ab-green); }
+.abx-info.tone-red { --abx-i: var(--ab-red); }
+.abx-info.tone-amber { --abx-i: var(--ab-amber); }
+
+/* The card carries its own colours, so the phone pages (outside .ab-page) show it the same */
+.abx {
+  --ab-red: #ef4444;
+  --ab-amber: #f59e0b;
+  --ab-orange: #f97316;
+  --ab-violet: #8b5cf6;
+  --ab-blue: #3b82f6;
+  --ab-green: #10b981;
+  font-family: var(--sans);
+}
+.abx.tone-red { --ab-t: var(--ab-red); }
+.abx.tone-amber { --ab-t: var(--ab-amber); }
+.abx.tone-orange { --ab-t: var(--ab-orange); }
+.abx.tone-violet { --ab-t: var(--ab-violet); }
+
+/* Phone: one column, the same card; the buttons a bit taller for the finger */
+@media (max-width: 768px) {
+  .abx { padding: 14px; border-radius: 16px; }
+  .abx-btn { height: 42px; }
+}
+
+/* The bottom line holds one line (a long refusal reason is cut; the whole of it on hover) */
+.abx-info { min-width: 0; }
+.abx-info svg { flex-shrink: 0; }
+.abx-info em { font-style: normal; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* "Show the reason" next to a refusal */
+.abx-btn.ghost { flex: 0 0 auto; margin-inline-start: auto; padding: 0 12px; height: 32px; font-size: 0.78rem; color: var(--ab-red); border-color: color-mix(in srgb, var(--ab-red) 30%, var(--border)); }
+.abx-btn.ghost:hover { background: color-mix(in srgb, var(--ab-red) 8%, transparent); }
+
+/* The refusal window */
+.abr { display: flex; flex-direction: column; gap: 14px; font-family: var(--sans); --ab-red: #ef4444; }
+.abr section { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--border); }
+.abr h4 { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 900; color: var(--text-h); }
+.abr p { margin: 0; font-size: 0.9rem; line-height: 1.7; color: var(--text-h); white-space: pre-wrap; overflow-wrap: anywhere; }
+.abr small { display: inline-flex; align-items: center; gap: 5px; font-size: 0.76rem; color: var(--text-muted); }
+.abr a { display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 800; color: #2563eb; text-decoration: none; }
+.abr-reason { border-color: color-mix(in srgb, var(--ab-red) 35%, var(--border)) !important; background: color-mix(in srgb, var(--ab-red) 5%, transparent); }
+.abr-reason h4 { color: var(--ab-red); }
+.abr .tone-red { --ab-t: #ef4444; }
+.abr .tone-amber { --ab-t: #f59e0b; }
+.abr .tone-orange { --ab-t: #f97316; }
+.abr .tone-violet { --ab-t: #8b5cf6; }

@@ -4,7 +4,7 @@ import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileSelect } from '../widgets/MobileSelect';
 import { isoDay } from '../MobileTrainingSessions/sessionUtils';
 import { membersText } from '../MobileTeams/teamRoster';
-import { ABSENCE_TYPES, EVENT_CATEGORIES, memberName, memberTeam, initials } from '../../Screen/Absence/absenceUtils';
+import { ABSENCE_TYPES, EVENT_CATEGORIES, memberName, memberRole, memberTeam, initials } from '../../Screen/Absence/absenceUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- members and meetings come untyped from the API */
@@ -22,9 +22,8 @@ interface MobileAbsenceFormProps {
 
 // Phone version of the add-absence dialog: same fields and the same data sent
 export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, meetings, defaultPlayerId, multi, onSubmit, onClose }) => {
-  // Same people as the desktop dialog: players, or everybody when no player is found
-  const allPlayers = members.filter(m => m.type === 'لاعب' || m.type === 'player' || !m.type);
-  const people = allPlayers.length > 0 ? allPlayers : members;
+  // Every member: players, staff and administration (same as the desktop dialog)
+  const people = members;
 
   const [mode, setMode] = useState<Mode>('record');
   const [ids, setIds] = useState<string[]>(defaultPlayerId ? [String(defaultPlayerId)] : []);
@@ -126,7 +125,7 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
                 return (
                   <button key={p.id} type="button" className={on ? 'on' : ''} onClick={() => toggle(String(p.id))}>
                     <span className="mab-avatar sm">{initials(memberName(p))}</span>
-                    <span className="mab-card-text"><strong>{memberName(p)}</strong>{memberTeam(p) && <small>{memberTeam(p)}</small>}</span>
+                    <span className="mab-card-text"><strong>{memberName(p)}</strong><small>{[memberRole(p), memberTeam(p)].filter(Boolean).join(' · ')}</small></span>
                     <span className="mab-check">{on && <Check size={13} strokeWidth={3} />}</span>
                   </button>
                 );
@@ -138,7 +137,7 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
             label="العضو"
             icon={User}
             value={ids[0] || ''}
-            options={people.map(p => ({ value: String(p.id), label: memberName(p) }))}
+            options={people.map(p => ({ value: String(p.id), label: `${memberName(p)} · ${memberRole(p)}` }))}
             onChange={v => setIds([v])}
             searchable
             renderTrigger={open => (

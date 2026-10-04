@@ -112,6 +112,7 @@ export const useSaidparController = (onLogout?: () => void) => {
         { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصصي التدريبية', route: Approutes.MyTrainingSessions },
         { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مبارياتي', route: Approutes.MyMatches },
         { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غياباتي', route: Approutes.MyAbsences },
+        { name: 'MyMeetings', icon: Briefcase, isDropdown: false, label: 'اجتماعاتي', route: Approutes.MyMeetings },
         { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءاتي التأديبية', route: Approutes.MyDisciplinary },
       ],
     },

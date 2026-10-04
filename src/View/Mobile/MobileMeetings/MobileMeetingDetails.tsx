@@ -1,10 +1,13 @@
 import React from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Briefcase, Calendar, Clock, MapPin, ListChecks, Users, ClipboardCheck, Pencil, Timer } from 'lucide-react';
+import { Briefcase, Calendar, Clock, MapPin, Users, ClipboardCheck, Pencil, Timer } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { Meeting } from '../../Screen/Meetings/meeting_model';
 import { longDate, countdownText } from '../MobileTrainingSessions/sessionUtils';
-import { meetingStart, dayOfMeeting, shortTime, attendanceOf, statusOf, invitedText } from './meetingUtils';
+import { meetingStart, dayOfMeeting, shortTime, attendanceOf, statusOf, invitedText, agendaOf } from './meetingUtils';
+import { MeetingAgenda } from '../../Screen/Meetings/MeetingAgenda';
+import { meetingPointsApi } from '../../Screen/Meetings/meetingPointsApi';
+import { useAuth } from '../../../core/context/AuthContext';
 import '../MobileEvaluations/MobileEvaluations.css';
 
 interface MobileMeetingDetailsProps {
@@ -13,11 +16,14 @@ interface MobileMeetingDetailsProps {
   onAttendance: () => void;
   onEdit: () => void;
   onClose: () => void;
+  /** After a point is sent / removed: the meetings are reloaded */
+  onChanged?: () => Promise<void> | void;
 }
 
 // Full details of one meeting (phone): when and where, agenda, invited members and their attendance
-export const MobileMeetingDetails: React.FC<MobileMeetingDetailsProps> = ({ meeting, now, onAttendance, onEdit, onClose }) => {
+export const MobileMeetingDetails: React.FC<MobileMeetingDetailsProps> = ({ meeting, now, onAttendance, onEdit, onClose, onChanged }) => {
   const can = useCan();
+  const { user } = useAuth();
   const start = meetingStart(meeting);
   const att = attendanceOf(meeting);
   const points = meeting.points || [];
@@ -48,16 +54,15 @@ export const MobileMeetingDetails: React.FC<MobileMeetingDetailsProps> = ({ meet
         {upcoming && <p className="mmg-hero-note"><Timer size={14} /> يبدأ {countdownText(start!, now)}</p>}
       </section>
 
-      {/* Agenda */}
+      {/* Agenda: the organisers' points and the proposed ones, with who added each */}
       <section className="me-card">
-        <h3 className="me-section-title"><span><ListChecks size={16} /></span>نقاط الاجتماع</h3>
-        {points.length ? (
-          <ol className="mmg-points">
-            {points.map((p, i) => (
-              <li key={i}><span>{i + 1}</span><p>{p}</p></li>
-            ))}
-          </ol>
-        ) : <p className="me-text empty">لا توجد نقاط محددة</p>}
+        <MeetingAgenda
+          items={agendaOf(points, user?.id)}
+          canAdd={Boolean(upcoming)}
+          canRemove={() => can('meetings', 'edit')}
+          onAdd={async text => { await meetingPointsApi.add(meeting.id, text); await onChanged?.(); }}
+          onRemove={async item => { if (await meetingPointsApi.remove(meeting.id, item)) await onChanged?.(); }}
+        />
       </section>
 
       {/* Invited members */}

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox } from 'lucide-react';
+import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import client from '../../../core/api/client';
 import { DATA_CHANGED } from '../../../core/api/dataChanged';
@@ -56,6 +56,12 @@ const ICONS: Record<AlertKind, typeof Bell> = {
   abs_accepted: BadgeCheck,
   abs_rejected: XCircle,
   abs_pending: Inbox,
+  abs_expired: TimerOff,
+  abs_admin_justified: ShieldCheck,
+  abs_leave_soon: Plane,
+  abs_repeated: Repeat2,
+  abs_today: UserMinus,
+  abs_repeated_member: Repeat2,
 };
 
 /**
@@ -110,6 +116,8 @@ export const TaskAlerts: React.FC = () => {
   const matchCanKey = JSON.stringify(matchCan);
   // The managers who decide the justifications get every one awaiting a decision
   const decidesAbsences = canDo('absences', 'justify');
+  // Who sees the absences gets the members absent today and the repeated absences
+  const seesAbsences = canDo('absences');
   const isMobile = useIsMobile();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [actions, setActions] = useState<MyDisciplinaryAction[]>([]);
@@ -149,7 +157,7 @@ export const TaskAlerts: React.FC = () => {
         : Promise.resolve([] as Match[]),
       client.get('/matches/mine/notices').then(r => r.data as MatchNotice[]).catch(() => null),
       client.get('/absences/mine').then(r => r.data as AbsenceRecord[]).catch(() => null),
-      decidesAbsences
+      seesAbsences
         ? client.get('/absences').then(r => (Array.isArray(r.data) ? r.data : r.data?.data) as AbsenceRecord[]).catch(() => null)
         : Promise.resolve([] as AbsenceRecord[]),
     ]);
@@ -164,7 +172,7 @@ export const TaskAlerts: React.FC = () => {
     if (Array.isArray(myMatchNotices)) setMatchNotices(myMatchNotices);
     if (Array.isArray(mineAbsences)) setMyAbsences(mineAbsences);
     if (Array.isArray(everyAbsence)) setAllAbsences(everyAbsence);
-  }, [managesDisciplinary, managesTraining, managesMatches, decidesAbsences]);
+  }, [managesDisciplinary, managesTraining, managesMatches, seesAbsences]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- first load of the user's tasks
@@ -213,7 +221,7 @@ export const TaskAlerts: React.FC = () => {
     ...disciplinaryAlerts(actions, now),
     ...managerDisciplinaryAlerts(allActions, now),
     ...absenceAlerts(myAbsences, now),
-    ...managerAbsenceAlerts(allAbsences),
+    ...managerAbsenceAlerts(allAbsences, now, decidesAbsences),
     ...matchNoticeAlerts(matchNotices),
     ...matchAlerts(myMatches, 'personal', now),
     ...matchAlerts(allMatches, 'management', now, JSON.parse(matchCanKey)),
@@ -221,7 +229,7 @@ export const TaskAlerts: React.FC = () => {
     ...trainingAlerts(mySessions, 'personal', now),
     ...trainingAlerts(allSessions, 'management', now, canAttend),
     ...alertsFor(tasks, now),
-  ], [actions, allActions, myAbsences, allAbsences, matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now]);
+  ], [actions, allActions, myAbsences, allAbsences, decidesAbsences, matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now]);
   const alerts = useMemo(() => all.filter(a => !dismissed.includes(a.key)), [all, dismissed]);
 
   /** Close one alert; the list keeps only keys of alerts that still exist, so it does not grow forever */
@@ -255,7 +263,7 @@ export const TaskAlerts: React.FC = () => {
     if (a.target.type === 'absence') {
       if (a.event) dismiss(a);
       if (space !== a.target.space) setSpace(a.target.space);
-      navigate(a.target.space === 'personal' ? `${Approutes.MyAbsences}?absence=${a.target.id}` : `${Approutes.AbsenceRequests}?tab=requests`);
+      navigate(a.target.space === 'personal' ? `${Approutes.MyAbsences}?absence=${a.target.id}` : `${Approutes.AbsenceRequests}?tab=${a.target.tab || 'requests'}`);
       return;
     }
     if (a.target.type === 'match') {

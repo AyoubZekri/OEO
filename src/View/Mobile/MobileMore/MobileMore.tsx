@@ -27,7 +27,7 @@ type IconType = React.ComponentType<{ size?: number }>;
 const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Correspondences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
-  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyAbsences', 'MyDisciplinary'] },
+  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyAbsences', 'MyMeetings', 'MyDisciplinary'] },
   { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
   { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
@@ -53,6 +53,7 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   MyTrainingSessions: { icon: Calendar, color: '#0ea5e9' },
   MyMatches: { icon: Trophy, color: '#f97316' },
   MyAbsences: { icon: CalendarX2, color: '#ef4444' },
+  MyMeetings: { icon: Briefcase, color: '#0ea5e9' },
   MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
   PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },

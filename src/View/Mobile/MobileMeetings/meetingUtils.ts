@@ -1,4 +1,4 @@
-import type { Attendee, Meeting } from '../../Screen/Meetings/meeting_model';
+import type { Attendee, Meeting, MeetingPoint } from '../../Screen/Meetings/meeting_model';
 import { arCount } from '../MobileTeams/teamRoster';
 
 /** Start of the meeting in local time (date "yyyy-mm-dd" + time "hh:mm[:ss]") */
@@ -37,3 +37,27 @@ export const ATTENDEE_STATUS: Record<string, { label: string; tone: string }> = 
 export const statusOf = (a: Attendee) => ATTENDEE_STATUS[a.status] || { label: a.status || '—', tone: 'muted' };
 
 export const invitedText = (n: number) => (n ? arCount(n, 'مدعو واحد', 'مدعوان', 'مدعوين', 'مدعواً') : 'بدون مدعوين');
+
+/** The text of a point (the administration's text, or a sent point) */
+export const pointText = (p: MeetingPoint) => (typeof p === 'string' ? p : p?.text || '');
+
+/** A point as the agenda shows it: author null = the administration */
+export interface AgendaItem {
+  key: string;
+  /** A sent point's id (the administration's texts have none) */
+  id: string | null;
+  text: string;
+  author: string | null;
+  mine: boolean;
+  created_at?: string | null;
+}
+
+/** The meeting's points for the agenda, in their order */
+export const agendaOf = (points: MeetingPoint[] | undefined, userId?: string | number | null): AgendaItem[] =>
+  (points || [])
+    .map((p, i): AgendaItem | null => {
+      if (typeof p === 'string') return p.trim() ? { key: `o-${i}`, id: null, text: p, author: null, mine: false } : null;
+      if (!p || !p.text) return null;
+      return { key: p.id || `s-${i}`, id: p.id || null, text: p.text, author: p.author || 'عضو', mine: userId != null && String(p.user_id) === String(userId), created_at: p.created_at };
+    })
+    .filter((x): x is AgendaItem => x !== null);

@@ -8,6 +8,7 @@ import { JustificationDialog } from './JustificationDialog';
 import { AddAbsenceDialog } from './AddAbsenceDialog';
 import { MemberAbsenceHistoryDialog } from './MemberAbsenceHistoryDialog';
 import { AbsenceCard } from './AbsenceCard';
+import { RejectReasonDialog } from './RejectReasonDialog';
 import {
   ABSENCE_TYPES, EVENT_CATEGORIES, kindOf, STATUS_FILTERS, statusOf, countsOf, recordsOf, byDateDesc, memberName, memberRole, memberTeam, initials,
 } from './absenceUtils';
@@ -45,8 +46,7 @@ export const AbsenceRequests: React.FC = () => {
     .slice()
     .sort(byDateDesc);
 
-  const decide = (id: number, status: 'مقبول' | 'مرفوض') => controller.handleUpdateJustification(id, status);
-  const cardProps = { onJustify: controller.openJustificationDialog, onDecide: decide, onDelete: controller.handleDelete };
+  const cardProps = { onJustify: controller.openJustificationDialog, onDecide: controller.decide, onDelete: controller.handleDelete };
 
   const tiles = [
     { key: 'absent', label: 'غياب', value: s.absent, icon: UserX, tone: 'red' },
@@ -59,7 +59,7 @@ export const AbsenceRequests: React.FC = () => {
 
   const tabs = [
     { value: 'members', label: 'الأعضاء', icon: Users, count: controller.members.length },
-    { value: 'requests', label: 'طلبات التبرير', icon: Inbox, count: pending.length, alert: pending.length > 0 },
+    { value: 'requests', label: 'الطلبات', icon: Inbox, count: pending.length, alert: pending.length > 0 },
     { value: 'registry', label: 'السجل العام', icon: ClipboardList, count: controller.absences.length },
   ] as const;
 
@@ -225,7 +225,7 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Pending justifications */}
       {controller.activeTab === 'requests' && (
-        pending.length === 0 ? empty('لا توجد طلبات تبرير معلقة حالياً') : (
+        pending.length === 0 ? empty('لا توجد طلبات معلقة حالياً'): (
           <div className="ab-grid">
             {pending.map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}
           </div>
@@ -270,7 +270,11 @@ export const AbsenceRequests: React.FC = () => {
         absence={controller.selectedAbsence}
         onClose={controller.closeJustificationDialog}
         onSubmit={controller.submitJustification}
+        withDocument
       />
+      {controller.rejecting && (
+        <RejectReasonDialog absence={controller.rejecting} onClose={controller.closeReject} onConfirm={controller.confirmReject} />
+      )}
     </div>
   );
 };

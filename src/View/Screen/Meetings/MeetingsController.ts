@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import client from '../../../core/api/client';
-import type { Meeting, Attendee, AttendeeStatus } from './meeting_model';
+import type { Meeting, Attendee, AttendeeStatus, MeetingPoint } from './meeting_model';
 import { Crud } from '../../../core/class/Crud';
 import { MembersData } from '../Members/members_data';
 
@@ -16,7 +16,7 @@ export function useMeetingsController() {
   const [time, setTime] = useState('');
   const [location, setLocation] = useState('');
   const [attendees, setAttendees] = useState<Attendee[]>([]);
-  const [points, setPoints] = useState<string[]>([]);
+  const [points, setPoints] = useState<MeetingPoint[]>([]);
   const [newAttendeeName, setNewAttendeeName] = useState('');
   const [newPoint, setNewPoint] = useState('');
   const [activeReasonModal, setActiveReasonModal] = useState<{meetingId: string, attendeeId: string} | null>(null);
@@ -179,6 +179,7 @@ export function useMeetingsController() {
   return {
     meetings,
     isLoading,
+    reload: fetchMeetings,
     isEditorOpen,
     editingId,
     topic, setTopic,

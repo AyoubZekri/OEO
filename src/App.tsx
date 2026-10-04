@@ -47,12 +47,13 @@ import { MyDisciplinary } from './View/Screen/Personal/MyDisciplinary';
 import { MyTrainingSessions } from './View/Screen/Personal/MyTrainingSessions';
 import { MyMatches } from './View/Screen/Personal/MyMatches';
 import { MyAbsences } from './View/Screen/Personal/MyAbsences';
+import { MyMeetings } from './View/Screen/Personal/MyMeetings';
 import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels, Approutes.MyTasks, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels, Approutes.MyTasks, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -82,6 +83,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               <Route path={Approutes.MyTrainingSessions} element={<MyTrainingSessions />} />
               <Route path={Approutes.MyMatches} element={<MyMatches />} />
               <Route path={Approutes.MyAbsences} element={<MyAbsences />} />
+              <Route path={Approutes.MyMeetings} element={<MyMeetings />} />
               <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
               <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
               {/* The management pages are not part of the personal space */}

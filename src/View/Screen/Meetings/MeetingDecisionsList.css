@@ -1,0 +1,42 @@
+/* The decisions of a meeting */
+.mag-title .mdl-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+
+.mdl-list { display: flex; flex-direction: column; gap: 8px; }
+
+.mdl {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+.mdl.mine { border-color: rgba(16, 185, 129, 0.5); }
+
+.mdl-head { display: flex; flex-wrap: wrap; gap: 6px; }
+.mdl-head:empty { display: none; }
+.mdl-chip,
+.mdl-mine {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+.mdl-chip.status { color: #2563eb; background: rgba(59, 130, 246, 0.1); }
+.mdl-mine { color: #059669; background: rgba(16, 185, 129, 0.12); }
+
+.mdl-text { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--text-h); font-weight: 700; overflow-wrap: anywhere; }
+
+.mdl-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.78rem; color: var(--text-muted); }
+.mdl-meta span { display: inline-flex; align-items: center; gap: 5px; }
+
+.mdl-progress { display: flex; align-items: center; gap: 10px; }
+.mdl-progress > div { flex: 1; height: 6px; border-radius: 999px; background: var(--bg); overflow: hidden; }
+.mdl-progress i { display: block; height: 100%; border-radius: inherit; background: #10b981; }
+.mdl-progress b { font-size: 0.78rem; color: var(--text-h); }

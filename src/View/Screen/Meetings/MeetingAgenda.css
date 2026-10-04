@@ -1,0 +1,145 @@
+/* Meeting agenda: the organisers' points and the proposed ones, with who added each */
+.mag {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--sans);
+}
+
+.mag-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-h);
+}
+.mag-title span {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+}
+.mag-title em {
+  font-style: normal;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-muted);
+}
+
+.mag-empty,
+.mag-closed {
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  text-align: center;
+}
+.mag-closed { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px; }
+
+.mag-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mag-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+.mag-list li.mine { border-color: rgba(249, 115, 22, 0.45); background: rgba(249, 115, 22, 0.04); }
+
+.mag-num {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: rgba(139, 92, 246, 0.1);
+  color: #8b5cf6;
+  font-weight: 900;
+  font-size: 0.85rem;
+}
+
+.mag-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.mag-body p { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--text-h); overflow-wrap: anywhere; }
+
+.mag-by {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #f97316;
+}
+.mag-by.org { color: #8b5cf6; }
+
+.mag-del {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.mag-del:hover { color: #ef4444; border-color: #ef4444; }
+
+.mag-add { display: flex; gap: 8px; }
+.mag-add input {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text-h);
+  font-family: inherit;
+  font-size: 0.92rem;
+  outline: none;
+}
+.mag-add input:focus { border-color: #f97316; }
+.mag-add button {
+  flex-shrink: 0;
+  height: 44px;
+  padding: 0 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 12px;
+  background: #f97316;
+  color: #fff;
+  font-family: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.mag-add button:disabled { opacity: 0.6; cursor: default; }
+.mag-error { margin: 0; color: #ef4444; font-size: 0.82rem; font-weight: 700; }
+.mag-spin { animation: mag-spin 1s linear infinite; }
+@keyframes mag-spin { to { transform: rotate(360deg); } }

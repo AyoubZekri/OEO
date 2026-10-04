@@ -1,4 +1,4 @@
-import { UserX, Clock, LogOut, Plane, Dumbbell, Trophy, Briefcase, CircleHelp } from 'lucide-react';
+import { UserX, Clock, LogOut, Plane, Dumbbell, Trophy, Briefcase, CircleHelp, Bus } from 'lucide-react';
 import type { AbsenceRecord } from './AbsenceRequestsController';
 import { absenceKind } from '../Members/useMemberRecord';
 
@@ -31,9 +31,11 @@ export const EVENT_CATEGORIES: { value: string; icon: Icon }[] = [
   { value: 'تدريب', icon: Dumbbell },
   { value: 'مباراة', icon: Trophy },
   { value: 'اجتماع', icon: Briefcase },
+  { value: 'سفر', icon: Bus },
   { value: 'أخرى', icon: CircleHelp },
 ];
-export const categoryIcon = (category?: string) => (EVENT_CATEGORIES.find(c => c.value === category) || EVENT_CATEGORIES[3]).icon;
+export const categoryIcon = (category?: string) =>
+  (EVENT_CATEGORIES.find(c => c.value === category) || EVENT_CATEGORIES.find(c => c.value === 'أخرى') || EVENT_CATEGORIES[0]).icon;
 
 export type JustificationState = 'none' | 'pending' | 'accepted' | 'rejected';
 
@@ -56,6 +58,29 @@ export const STATUS_LABEL: Record<JustificationState, string> = {
   rejected: 'تبرير مرفوض',
 };
 
+/** Milliseconds left to justify a record (24 hours after it was logged), or null when it has no deadline */
+export const justifyLeft = (a: AbsenceRecord, now: number): number | null => {
+  const until = a.justify_until ? new Date(a.justify_until).getTime() : NaN;
+  return isNaN(until) ? null : until - now;
+};
+
+/** "23 سا 10 د" / "40 د" */
+export const leftText = (ms: number) => {
+  const minutes = Math.max(1, Math.ceil(ms / 60000));
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h ? `${h} سا${m ? ` ${m} د` : ''}` : `${m} د`;
+};
+
+/**
+ * Personal space: can I justify this record now? Only a record logged on me (not a holiday request),
+ * not justified yet, during the 24 hours after it was logged. One justification only: a refusal is final.
+ */
+export const canJustifyNow = (a: AbsenceRecord, now: number) => {
+  const left = justifyLeft(a, now);
+  return left !== null && left > 0 && statusOf(a) === 'none';
+};
+
 /** A holiday request is accepted or refused, not "justified" */
 export const LEAVE_STATUS_LABEL: Record<JustificationState, string> = {
   none: 'بانتظار الرد',
@@ -64,8 +89,18 @@ export const LEAVE_STATUS_LABEL: Record<JustificationState, string> = {
   rejected: 'طلب مرفوض',
 };
 
+/** Sent by the member (a holiday request, or an absence / lateness announced in advance): accepted or refused as a request */
+export const isMemberRequest = (a: Pick<AbsenceRecord, 'absence_type' | 'record_source'>) =>
+  typeMeta(a.absence_type).value === 'طلب عطلة' || a.record_source === 'طلب العضو';
+
+/** "إعلام بغياب" / "إعلام بتأخر" for an announcement, else the kind */
+export const recordTitle = (a: Pick<AbsenceRecord, 'absence_type' | 'record_source'>) => {
+  const type = typeMeta(a.absence_type);
+  return a.record_source === 'طلب العضو' && type.value !== 'طلب عطلة' ? `إعلام ب${type.label}` : type.label;
+};
+
 export const statusLabelOf = (a: AbsenceRecord) =>
-  (typeMeta(a.absence_type).value === 'طلب عطلة' ? LEAVE_STATUS_LABEL : STATUS_LABEL)[statusOf(a)];
+  (isMemberRequest(a) ? LEAVE_STATUS_LABEL : STATUS_LABEL)[statusOf(a)];
 
 /** Values the API filter expects for each status */
 export const STATUS_FILTERS = [

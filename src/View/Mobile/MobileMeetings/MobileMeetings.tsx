@@ -152,6 +152,7 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
       {details && (
         <MobileMeetingDetails
           meeting={details}
+          onChanged={c.reload}
           now={now}
           onAttendance={() => navigate(attendancePath(details))}
           onEdit={() => c.openEdit(details)}
