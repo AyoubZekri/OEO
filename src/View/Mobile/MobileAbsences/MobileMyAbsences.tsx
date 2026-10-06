@@ -22,13 +22,13 @@ export const MobileMyAbsences: React.FC<{ c: ReturnType<typeof useMyAbsences>; n
 
   return (
     <div className="mab-page">
-      <MobileAppBar title="غياباتي" />
+      <MobileAppBar title="غيابات" />
 
       <section className="mab-hero">
         <div className="mab-hero-top">
           <span className="mab-hero-icon"><FileWarning size={26} /></span>
           <div>
-            <small>غياباتي وتبريراتي</small>
+            <small>غيابات وتبريرات</small>
             <strong>{s.total}</strong>
           </div>
         </div>

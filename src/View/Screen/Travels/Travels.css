@@ -370,3 +370,6 @@
 .tv-ticket.compact .tv-tile small { font-size: 0.64rem; padding: 2px 0; }
 .tv-ticket.compact .tv-tile em { font-size: 0.62rem; padding-bottom: 3px; }
 .tv-compact-reason { color: var(--tk-text); font-size: 0.82rem; font-weight: 600; opacity: 0.8; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* Personal space: my role on the phone card */
+.tv-my-role { align-self: flex-start; margin-top: 4px; }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Plus, Search, Eye, Clock, MapPin, Radio, Trophy, Calendar } from 'lucide-react';
+import { Plus, Search, Eye, Clock, Radio, Trophy, Calendar } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu } from '../widgets/MobileRowMenu';
@@ -8,8 +8,8 @@ import { useUrlDetails } from '../widgets/useUrlDetails';
 import type { Match } from '../../Screen/Matches/match_model';
 import { type MatchActions, matchActionItems, CLUB_NAME, CLUB_LOGO } from './matchActions';
 import {
-  type MatchState, matchState, matchDate, hasScore, resultOf, RESULT_LABEL, STATE_LABEL, opponentName, opponentLogo,
-  opponentShort, timeText, dayText, countdown,
+  matchState, matchDate, hasScore, resultOf, RESULT_LABEL, STATE_LABEL, opponentName, opponentLogo,
+  opponentShort, dayText, countdown,
 } from './matchUtils';
 import { MobileMatchDetails } from './MobileMatchDetails';
 import { TeamBadge } from './TeamBadge';
@@ -66,15 +66,14 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
 
   const details = detailsId !== null ? withState.find(x => String(x.m.id) === detailsId) : undefined;
 
-  const scoreOrTime = (m: Match, state: MatchState) => {
-    if (hasScore(m)) return <strong className="mmt-score" dir="ltr">{m.opponent_score} - {m.team_score}</strong>;
-    if (state === 'cancelled' || state === 'postponed') return <strong className="mmt-vs">VS</strong>;
-    return <strong className="mmt-time" dir="ltr">{timeText(matchDate(m))}</strong>;
-  };
+  // The list shows the score, or "VS": the kick-off time and the stadium are in the details
+  const scoreOrVs = (m: Match) => (hasScore(m)
+    ? <strong className="mmt-score" dir="ltr">{m.opponent_score} - {m.team_score}</strong>
+    : <strong className="mmt-vs">VS</strong>);
 
   return (
     <div className="mmt-page">
-      <MobileAppBar title={personal ? 'مبارياتي' : 'المباريات'} />
+      <MobileAppBar title={personal ? 'مباريات' : 'المباريات'} />
 
       {isLoading ? (
         <MobileLoader text="جاري تحميل المباريات..." />
@@ -95,7 +94,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
                     <small>{CLUB_NAME}</small>
                   </span>
                   <span className="mmt-hero-center">
-                    <strong dir="ltr">{timeText(matchDate(featured.m))}</strong>
+                    <strong>VS</strong>
                     <small>{dayText(matchDate(featured.m))}</small>
                   </span>
                   <span className="mmt-hero-team">
@@ -105,7 +104,6 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
                 </span>
                 <span className="mmt-hero-meta">
                   <span><Trophy size={13} /> {featured.m.competition || 'الدوري المحلي'}</span>
-                  {featured.m.location && <span><MapPin size={13} /> {featured.m.location}</span>}
                 </span>
               </button>
             ) : (
@@ -172,7 +170,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
                         <small>{CLUB_NAME}</small>
                       </span>
                       <span className="mmt-center">
-                        {scoreOrTime(m, state)}
+                        {scoreOrVs(m)}
                         <span className={`mmt-state ${result ? `result-${result}` : ''}`}>
                           {state === 'live' && <i />}
                           {result ? RESULT_LABEL[result] : STATE_LABEL[state]}
@@ -186,7 +184,6 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
 
                     <div className="mmt-meta">
                       <span><Calendar size={13} /> {dayText(date)}</span>
-                      {m.location && <span><MapPin size={13} /> {m.location}</span>}
                     </div>
                     {personal && <MyMatchParticipation match={m} state={state} />}
                   </article>

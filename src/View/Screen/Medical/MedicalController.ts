@@ -3,11 +3,14 @@ import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import type { PlayerMedicalRecord } from './medical_model';
 
-export const useMedicalController = () => {
+/** The diagnosis stays with the medical staff: what the member sees instead */
+export const CONFIDENTIAL_DIAGNOSIS = 'سري: متاح لدى الطاقم الطبي فقط';
+
+/** personal: my medical files only (personal space), read only */
+export const useMedicalController = ({ personal = false }: { personal?: boolean } = {}) => {
   const [records, setRecords] = useState<PlayerMedicalRecord[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState<boolean>(false);
   const [isViewInitialExamDialogOpen, setIsViewInitialExamDialogOpen] = useState<boolean>(false);
@@ -15,10 +18,16 @@ export const useMedicalController = () => {
   const [isViewTreatmentPhaseDialogOpen, setIsViewTreatmentPhaseDialogOpen] = useState<boolean>(false);
   const [selectedRecord, setSelectedRecord] = useState<PlayerMedicalRecord | null>(null);
 
-  const fetchRecords = async () => {
+  /** retry: a failed load (the server busy for a moment) is tried again quietly once, no error shown */
+  const fetchRecords = async (retry = true) => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
+      if (personal) {
+        const mine = await axios.get(`${Applink.server}/medical-records/mine`, { headers: { Authorization: `Bearer ${token}` } });
+        setRecords((mine.data?.data || []).map((r: PlayerMedicalRecord) => ({ ...r, diagnosis: CONFIDENTIAL_DIAGNOSIS })));
+        return;
+      }
       
       const [recordsRes, indsRes] = await Promise.all([
         axios.get(Applink.medicalRecords, { headers: { Authorization: `Bearer ${token}` } }),
@@ -60,10 +69,9 @@ export const useMedicalController = () => {
       console.log('Final Mapped Records (JSON):', JSON.parse(JSON.stringify(fetchedRecords)));
 
       setRecords(fetchedRecords);
-      setError(null);
     } catch (err: any) {
       console.error('Error fetching medical records:', err);
-      setError('حدث خطأ أثناء جلب الملفات الطبية');
+      if (retry) window.setTimeout(() => fetchRecords(false), 3000);
     } finally {
       setLoading(false);
     }
@@ -198,10 +206,10 @@ export const useMedicalController = () => {
 
 
   return {
+    personal,
     records,
     members,
     loading,
-    error,
     fetchRecords,
     isAddDialogOpen,
     isViewInitialExamDialogOpen,

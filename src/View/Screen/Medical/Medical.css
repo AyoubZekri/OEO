@@ -356,3 +356,6 @@ body.dark-mode .no-data {
 }
 
 .med-step.done small { color: #10b981; }
+
+/* the file an alert opened */
+.med-card.is-focused { outline: 2px solid var(--primary-color, #3b82f6); outline-offset: 2px; }

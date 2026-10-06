@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus, Landmark, Trophy, CalendarX2 } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -107,13 +107,14 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
       title: '',
       items: [
-        { name: 'Home', icon: Home, isDropdown: false, label: 'الرئيسية', route: '/' },
         { name: 'MyTasks', icon: ListTodo, isDropdown: false, label: 'مهامي', route: Approutes.MyTasks },
-        { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصصي التدريبية', route: Approutes.MyTrainingSessions },
-        { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مبارياتي', route: Approutes.MyMatches },
-        { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غياباتي', route: Approutes.MyAbsences },
-        { name: 'MyMeetings', icon: Briefcase, isDropdown: false, label: 'اجتماعاتي', route: Approutes.MyMeetings },
-        { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءاتي التأديبية', route: Approutes.MyDisciplinary },
+        { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.MyTrainingSessions },
+        { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مباريات', route: Approutes.MyMatches },
+        { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غيابات', route: Approutes.MyAbsences },
+        { name: 'MyMeetings', icon: Briefcase, isDropdown: false, label: 'اجتماعات', route: Approutes.MyMeetings },
+        { name: 'MyTravels', icon: Bus, isDropdown: false, label: 'تنقلات', route: Approutes.MyTravels },
+        { name: 'MyMedical', icon: Stethoscope, isDropdown: false, label: 'تقارير طبية', route: Approutes.MyMedical },
+        { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءات تأديبية', route: Approutes.MyDisciplinary },
       ],
     },
   ];
@@ -299,13 +300,21 @@ export const useSaidparController = (onLogout?: () => void) => {
 
   const menuSections = space === 'personal' ? personalSections : managementSections;
 
+  // The page shown decides the active item (title and highlight), also after a redirect or a refresh
+  const { pathname } = useLocation();
+  const routed = menuSections
+    .flatMap(section => section.items)
+    .flatMap(item => [item, ...(item.subItems || [])])
+    .find(item => item.route === pathname);
+  const currentItem = routed?.name ?? activeItem;
+
   const handleLogout = () => {
     if (onLogout) onLogout();
   };
 
   return {
     isOpen,
-    activeItem,
+    activeItem: currentItem,
     searchQuery,
     setSearchQuery,
     isDarkMode,

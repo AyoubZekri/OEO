@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useCan } from '../../../core/functions/useCan';
 import { Plus, HeartPulse, Activity, User, Calendar, Stethoscope, AlertCircle, Edit2, Trash2, CheckCircle, FileText, Clock, Check } from 'lucide-react';
 import { useMedicalController } from './MedicalController';
@@ -13,13 +14,13 @@ import { MobileMedical } from '../../Mobile/MobileMedical/MobileMedical';
 import { initialDone, finalDone, recovered, stageOf, toneOf, personName, personPhoto, daysSince, daysText } from '../../Mobile/MobileMedical/medicalUtils';
 import './Medical.css';
 
-export const Medical: React.FC = () => {
-  const controller = useMedicalController();
+/** personal: the personal space's page (my medical files, read only: wrapped in ReadOnlyContext by MyMedical) */
+export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
+  const controller = useMedicalController({ personal });
   const {
     records,
     members,
     loading,
-    error,
     fetchRecords,
     isAddDialogOpen,
     isViewInitialExamDialogOpen,
@@ -42,6 +43,18 @@ export const Medical: React.FC = () => {
   const [memberFilter, setMemberFilter] = useState<string>('');
   const isMobile = useIsMobile();
   const can = useCan();
+  const [params, setParams] = useSearchParams();
+  const focusId = isMobile ? null : params.get('record');
+
+  // An alert opens a file (?record=id): show its card, highlighted for a moment
+  useEffect(() => {
+    if (!focusId || loading) return;
+    const card = document.querySelector(`[data-record-id="${focusId}"]`);
+    card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card?.classList.add('is-focused');
+    window.setTimeout(() => card?.classList.remove('is-focused'), 2500);
+    setParams(p => { p.delete('record'); return p; }, { replace: true });
+  }, [focusId, loading, setParams]);
 
   if (isMobile) return <MobileMedical c={controller} />;
 
@@ -53,7 +66,7 @@ export const Medical: React.FC = () => {
     <div className="members-container" style={{ margin: '0', animation: 'fadeIn 0.4s ease-out' }}>
       <div className="members-header" style={{ marginBottom: '24px', justifyContent: 'flex-end' }}>
         <div className="header-actions" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          <div style={{ minWidth: '200px' }}>
+          {!personal && <div style={{ minWidth: '200px' }}>
             <CustomDropdown
               options={[
                 { value: '', label: 'الكل (جميع الأعضاء)' },
@@ -63,7 +76,7 @@ export const Medical: React.FC = () => {
               onChange={setMemberFilter}
               placeholder="تصفية حسب العضو"
             />
-          </div>
+          </div>}
           {can('medical', 'add') && (
             <button className="add-btn" onClick={openAddDialog} style={{
               display: 'flex', alignItems: 'center', gap: '10px',
@@ -81,7 +94,6 @@ export const Medical: React.FC = () => {
         </div>
       </div>
 
-      {error && <div className="error-message" style={{ background: '#fef2f2', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>{error}</div>}
 
       {loading ? (
         <div className="loading-container" style={{ gridColumn: '1 / -1', marginTop: '40px' }}>
@@ -96,7 +108,7 @@ export const Medical: React.FC = () => {
       ) : records.length === 0 ? (
         <div className="no-data" style={{ padding: '80px', textAlign: 'center', background: 'var(--card-bg)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
           <HeartPulse size={48} color="var(--border)" style={{ marginBottom: '16px' }} />
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>لا توجد سجلات طبية حالياً</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>{personal ? 'لا توجد ملفات طبية خاصة بك' : 'لا توجد سجلات طبية حالياً'}</p>
         </div>
       ) : (
         <div className="mc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px', padding: '0 0 24px 0' }}>
@@ -124,7 +136,7 @@ export const Medical: React.FC = () => {
               },
             ];
             return (
-              <div className={`med-card tone-${tone}`} key={record.id}>
+              <div className={`med-card tone-${tone}`} key={record.id} data-record-id={record.id}>
                 <div className="med-card-glow" aria-hidden="true" />
 
                 {/* Status + actions */}

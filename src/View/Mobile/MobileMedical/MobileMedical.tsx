@@ -39,7 +39,7 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
 
   return (
     <div className="mmd2-page">
-      <MobileAppBar title="التقرير الطبي" />
+      <MobileAppBar title={c.personal ? 'تقارير طبية' : 'التقرير الطبي'} />
 
       {c.loading ? (
         <MobileLoader text="جاري تحميل السجلات الطبية..." />
@@ -60,7 +60,6 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
             </div>
           </section>
 
-          {c.error && <p className="mmd2-error">{c.error}</p>}
 
           {c.members.length > 0 && (
             <MobileSelect
@@ -83,8 +82,8 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
           {list.length === 0 ? (
             <div className="mmd2-empty">
               <span className="mmd2-empty-icon"><HeartPulse size={36} /></span>
-              <strong>{c.records.length ? 'لا توجد ملفات لهذا العضو' : 'لا توجد سجلات طبية حالياً'}</strong>
-              {!c.records.length && <p>أضف ملف إصابة جديد بالزر +</p>}
+              <strong>{c.records.length ? 'لا توجد ملفات لهذا العضو' : c.personal ? 'لا توجد ملفات طبية خاصة بك' : 'لا توجد سجلات طبية حالياً'}</strong>
+              {!c.records.length && !c.personal && <p>أضف ملف إصابة جديد بالزر +</p>}
             </div>
           ) : (
             <div className="mmd2-list">

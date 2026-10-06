@@ -27,8 +27,8 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
   const [password, setPassword] = useState(user?.password || '');
-  // New users start on the first role, like the desktop dialog
-  const [roleId, setRoleId] = useState(user?.roleId || roles[0]?.id || '');
+  // The role is optional: a new account starts without one (personal space only), like the desktop dialog
+  const [roleId, setRoleId] = useState(user?.roleId || '');
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
 
@@ -94,15 +94,15 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
       </section>
 
       <section className="me-card">
-        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')}</h3>
+        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')} (اختياري)</h3>
         {roles.length === 0 ? (
-          <p className="mus-none">لا توجد أدوار. أضف دوراً من صفحة الأدوار أولاً.</p>
+          <p className="mus-none">لا توجد أدوار بعد: يُحفظ الحساب بدون دور (الفضاء الشخصي فقط).</p>
         ) : (
           <div className="mus-role-pick">
             {/* Member accounts have no role */}
             <button type="button" className={`partial ${roleId === '' ? 'on' : ''}`} onClick={() => setRoleId('')}>
               <span className="mus-role-icon"><ShieldAlert size={18} /></span>
-              <span className="mus-card-text"><strong>بدون دور</strong><small>لا صلاحيات إضافية</small></span>
+              <span className="mus-card-text"><strong>بدون دور</strong><small>الفضاء الشخصي فقط</small></span>
               <span className="mus-radio">{roleId === '' && <Check size={14} strokeWidth={3} />}</span>
             </button>
             {roles.map(r => {

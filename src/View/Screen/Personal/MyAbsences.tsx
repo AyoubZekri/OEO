@@ -50,7 +50,7 @@ export const MyAbsences: React.FC = () => {
         <div className="ab-hero-main">
           <span className="ab-hero-icon"><FileWarning size={30} /></span>
           <div>
-            <small>غياباتي وتبريراتي</small>
+            <small>غيابات وتبريرات</small>
             <strong>{s.total} <span>سجل</span></strong>
           </div>
           <div className="ab-hero-actions">

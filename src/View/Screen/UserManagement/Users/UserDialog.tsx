@@ -39,7 +39,8 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
         setName('');
         setEmail('');
         setPassword('');
-        setRoleId(roles.length > 0 ? roles[0].id : '');
+        // The role is optional: a new account starts without one (personal space only)
+        setRoleId('');
       }
       setErrors({});
     }
@@ -124,7 +125,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
 
           <div className="form-row">
             <CustomDropdown<string>
-              label={t('users.role')}
+              label={`${t('users.role')} (اختياري)`}
               value={roleId}
               options={roleOptions}
               onChange={(val) => {setRoleId(val); setErrors(p => ({...p, roleId: undefined}));}}

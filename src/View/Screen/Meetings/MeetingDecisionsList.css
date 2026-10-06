@@ -1,42 +1,143 @@
-/* The decisions of a meeting */
-.mag-title .mdl-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+/* Decisions of a meeting */
+.mag-title .mdl-icon { background: rgba(16, 185, 129, 0.1); color: #059669; }
 
-.mdl-list { display: flex; flex-direction: column; gap: 8px; }
+.dcd-list { display: flex; flex-direction: column; gap: 12px; }
+.dcd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 14px; }
 
-.mdl {
+.dcd {
+  --dcd-s: #94a3b8;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
   background: var(--card-bg);
+  border: 1px solid var(--border);
+  font-family: var(--sans);
+  transition: border-color 0.2s ease;
 }
-.mdl.mine { border-color: rgba(16, 185, 129, 0.5); }
+.dcd.st-done { --dcd-s: #10b981; }
+.dcd.st-late { --dcd-s: #ef4444; }
+.dcd.st-active { --dcd-s: #3b82f6; }
+.dcd.st-new { --dcd-s: #94a3b8; }
+.dcd:hover { border-color: color-mix(in srgb, var(--dcd-s) 40%, var(--border)); }
+.dcd.mine { border-color: rgba(249, 115, 22, 0.45); }
 
-.mdl-head { display: flex; flex-wrap: wrap; gap: 6px; }
-.mdl-head:empty { display: none; }
-.mdl-chip,
-.mdl-mine {
+/* Head: state, category, mine */
+.dcd-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.dcd-state,
+.dcd-chip,
+.dcd-mine {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 9px;
+  gap: 6px;
+  padding: 4px 10px;
   border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.dcd-state { color: var(--dcd-s); background: color-mix(in srgb, var(--dcd-s) 12%, transparent); }
+.dcd-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.dcd-chip { color: var(--text-muted); background: var(--bg); }
+.dcd-mine { margin-inline-start: auto; color: #ea580c; background: rgba(249, 115, 22, 0.1); }
+
+/* Main: what was decided, and the progress ring */
+.dcd-main { display: flex; align-items: flex-start; gap: 16px; }
+.dcd-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.dcd-text h5 { margin: 0; font-size: 1rem; line-height: 1.65; font-weight: 800; color: var(--text-h); overflow-wrap: anywhere; }
+
+.dcd-tasks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.dcd-tasks li { display: flex; align-items: flex-start; gap: 8px; font-size: 0.86rem; color: var(--text-h); line-height: 1.5; }
+.dcd-tasks li svg { flex-shrink: 0; margin-top: 2px; color: var(--text-muted); }
+.dcd-tasks li.done { color: var(--text-muted); text-decoration: line-through; }
+.dcd-tasks li.done svg { color: #10b981; }
+
+.dcd-ring { position: relative; flex-shrink: 0; width: 56px; height: 56px; color: var(--dcd-s); }
+.dcd-ring svg { transform: rotate(-90deg); }
+.dcd-ring circle { fill: none; stroke-width: 5; }
+.dcd-ring .track { stroke: var(--bg); }
+.dcd-ring .bar { stroke: currentColor; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
+.dcd-ring b {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.86rem;
+  font-weight: 900;
+  color: var(--text-h);
+}
+.dcd-ring b small { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); }
+.dcd-ring.st-done { color: #10b981; }
+.dcd-ring.st-late { color: #ef4444; }
+.dcd-ring.st-active { color: #3b82f6; }
+.dcd-ring.st-new { color: #94a3b8; }
+
+/* Foot: deadline, people in charge */
+.dcd-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.dcd-deadline { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); }
+.dcd-deadline > span { display: flex; flex-direction: column; line-height: 1.25; }
+.dcd-deadline small { font-size: 0.68rem; font-weight: 700; color: var(--text-muted); }
+.dcd-deadline b { font-size: 0.84rem; font-weight: 800; color: var(--text-h); }
+.dcd-deadline em {
+  font-style: normal;
   font-size: 0.72rem;
   font-weight: 800;
+  padding: 3px 9px;
+  border-radius: 999px;
+  color: #2563eb;
+  background: rgba(59, 130, 246, 0.1);
+}
+.dcd-deadline.st-late { color: #ef4444; }
+.dcd-deadline.st-late em { color: #dc2626; background: rgba(239, 68, 68, 0.1); }
+.dcd-deadline.st-done em { color: #059669; background: rgba(16, 185, 129, 0.1); }
+
+.dcd-people { display: inline-flex; align-items: center; margin-inline-start: auto; }
+.dcd-people i {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--card-bg);
+  background: rgba(249, 115, 22, 0.14);
+  color: #ea580c;
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 900;
+}
+.dcd-people i:first-child { margin-inline-start: 0; }
+.dcd-people i.more { background: var(--bg); color: var(--text-muted); }
+.dcd-people small { margin-inline-start: 8px; font-size: 0.78rem; font-weight: 700; color: var(--text-muted); max-width: 140px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.dcd-count { font-size: 0.76rem; font-weight: 800; color: var(--text-muted); }
+
+/* The meeting it comes from (my decisions list) */
+.dcd-meeting {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 0;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
   background: var(--bg);
   color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
 }
-.mdl-chip.status { color: #2563eb; background: rgba(59, 130, 246, 0.1); }
-.mdl-mine { color: #059669; background: rgba(16, 185, 129, 0.12); }
-
-.mdl-text { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--text-h); font-weight: 700; overflow-wrap: anywhere; }
-
-.mdl-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.78rem; color: var(--text-muted); }
-.mdl-meta span { display: inline-flex; align-items: center; gap: 5px; }
-
-.mdl-progress { display: flex; align-items: center; gap: 10px; }
-.mdl-progress > div { flex: 1; height: 6px; border-radius: 999px; background: var(--bg); overflow: hidden; }
-.mdl-progress i { display: block; height: 100%; border-radius: inherit; background: #10b981; }
-.mdl-progress b { font-size: 0.78rem; color: var(--text-h); }
+.dcd-meeting:hover { color: #f97316; }
+.dcd-meeting svg:last-child { margin-inline-start: auto; }

@@ -112,7 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               
               if (prevUserStr !== newUserStr || prevPermStr !== newPermStr || prev.isFullAccess !== isFullAccess) {
                 if (user) localStorage.setItem('user', JSON.stringify(user));
+                // No role any more: its old permissions must not come back on the next start
                 if (role) localStorage.setItem('role', JSON.stringify(role));
+                else if (!user?.role) localStorage.removeItem('role');
                 
                 return {
                   ...prev,

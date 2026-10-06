@@ -77,7 +77,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
 
   return (
     <div className="mts-page">
-      <MobileAppBar title={personal ? 'حصصي التدريبية' : 'حصص التدريب'} />
+      <MobileAppBar title={personal ? 'حصص التدريب' : 'حصص التدريب'} />
 
       {/* Next session */}
       {!controller.isLoading && (

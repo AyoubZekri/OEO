@@ -7,7 +7,7 @@ import { TaskPanel } from '../../Tasks/parts/TaskPanel';
 import { dateText, initials } from '../../Tasks/taskUtils';
 import { TYPE_LABELS } from '../../../Mobile/MobileMembers/memberLabels';
 import type { TravelsController } from '../useTravelsController';
-import { countdownText, durationText, SCHEDULE, STATUS_META, statusOf, type Travel, type TravelPerson } from '../travelUtils';
+import { countdownText, durationText, SCHEDULE, STATUS_META, statusOf, type Travel, type TravelPerson, MY_ROLE_LABEL } from '../travelUtils';
 import { DateTile, RouteLine } from './TravelCard';
 
 const SCHEDULE_ICONS: Record<string, typeof Clock> = {
@@ -68,6 +68,7 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
             <div className="tv-hero-title">
               <div className="tv-ticket-badges">
                 <span className={`tk-badge tone-${meta.tone}`}>{status === 'upcoming' ? `${meta.label} · ${countdownText(t)}` : meta.label}</span>
+                {t.my_role && <span className="tk-badge soft tone-orange">دوري: {MY_ROLE_LABEL[t.my_role]}</span>}
               </div>
               <h2>{t.destination}</h2>
               {(t.match || t.travel_reason) && (

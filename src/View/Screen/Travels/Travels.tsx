@@ -11,9 +11,10 @@ import { filterTravels, sortTravels, statusOf, STATUS_FILTERS } from './travelUt
 import '../Tasks/Tasks.css';
 import './Travels.css';
 
-// Team trips: search, status filter (upcoming / ongoing / done), the trip cards
-export const Travels: React.FC = () => {
-  const c = useTravelsController();
+// Team trips: search, status filter (upcoming / ongoing / done), the trip cards.
+// personal: the personal space's page (the trips I am on, read only, with my role)
+export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
+  const c = useTravelsController({ personal });
   const isMobile = useIsMobile();
   const [status, setStatus] = useState('');
   const [query, setQuery] = useState('');
@@ -46,7 +47,7 @@ export const Travels: React.FC = () => {
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : 'لا توجد تنقلات بعد'}</p></div>
+          <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : personal ? 'لست ضمن أي تنقل حالياً' : 'لا توجد تنقلات بعد'}</p></div>
         ) : (
           <div className="tk-grid">
             {visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} />)}

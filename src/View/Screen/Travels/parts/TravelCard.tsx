@@ -1,7 +1,7 @@
 import React from 'react';
 import { Bus, Users, Briefcase, Trophy, Layers, MapPin, ChevronLeft } from 'lucide-react';
 import { initials } from '../../Tasks/taskUtils';
-import { countdownText, dateTile, durationText, shortDate, STATUS_META, statusOf, timeOf, type Travel } from '../travelUtils';
+import { countdownText, dateTile, durationText, MY_ROLE_LABEL, shortDate, STATUS_META, statusOf, timeOf, type Travel } from '../travelUtils';
 
 /** Calendar tile of the departure day */
 export const DateTile: React.FC<{ at: string | null; big?: boolean }> = ({ at, big }) => {
@@ -57,6 +57,7 @@ export const TravelCard: React.FC<{ travel: Travel; onOpen: (t: Travel) => void;
           <h3>{t.destination}</h3>
           {(t.travel_reason || t.match) && <span className="tv-compact-reason">{t.travel_reason || t.match?.title}</span>}
           <span className="tv-compact-team"><Layers size={13} />{t.team_name || 'بدون فئة'}</span>
+          {t.my_role && <span className="tk-badge soft tone-orange tv-my-role">{MY_ROLE_LABEL[t.my_role]}</span>}
         </div>
         <ChevronLeft size={18} className="tv-compact-go" aria-hidden="true" />
       </article>
@@ -71,6 +72,7 @@ export const TravelCard: React.FC<{ travel: Travel; onOpen: (t: Travel) => void;
           <div className="tv-ticket-badges">
             <span className={`tk-badge tone-${meta.tone}`}>{status === 'upcoming' ? countdownText(t) : meta.label}</span>
             {t.team_name && <span className="tk-badge soft tone-blue"><Layers size={11} />{t.team_name}</span>}
+            {t.my_role && <span className="tk-badge soft tone-orange">{MY_ROLE_LABEL[t.my_role]}</span>}
           </div>
           <h3>{t.destination}</h3>
           {(t.match || t.travel_reason) && (

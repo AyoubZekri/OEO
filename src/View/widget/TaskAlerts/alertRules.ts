@@ -3,6 +3,12 @@ import type { TrainingSessionModel } from '../../Screen/TrainingSessions/Trainin
 import { computedStatus, countdownText, dayLabel, endOf, myAttendance, startOf } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import type { Match } from '../../Screen/Matches/match_model';
 import type { AbsenceRecord } from '../../Screen/Absence/AbsenceRequestsController';
+import type { MyMeeting } from '../../Screen/Personal/useMyMeetings';
+import type { Meeting } from '../../Screen/Meetings/meeting_model';
+import type { Travel } from '../../Screen/Travels/travelUtils';
+import type { PlayerMedicalRecord } from '../../Screen/Medical/medical_model';
+import type { Debt } from '../../Screen/Debts/debtUtils';
+import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
 import { canJustifyNow, dateOf, isMemberRequest, justifyLeft, leftText, recordTitle, statusOf, typeMeta } from '../../Screen/Absence/absenceUtils';
 import { countdown, dayText as matchDay, matchDate, matchState, opponentName, resultOf, RESULT_LABEL, timeText } from '../../Mobile/MobileMatches/matchUtils';
 
@@ -28,7 +34,21 @@ export type AbsenceAlertKind =
   | 'abs_new' | 'abs_accepted' | 'abs_rejected' | 'abs_expired' | 'abs_admin_justified' | 'abs_leave_soon' | 'abs_repeated'
   // the managers
   | 'abs_pending' | 'abs_today' | 'abs_repeated_member';
-export type AlertKind = TaskAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind;
+/** Meetings: invited, near, live, a point sent, a decision in my charge (near / late); the managers: points, attendance, decisions */
+export type MeetingAlertKind =
+  | 'meet_invited' | 'meet_soon' | 'meet_live' | 'meet_point' | 'dec_assigned' | 'dec_due' | 'dec_late'
+  | 'meet_changed' | 'meet_cancelled' | 'meet_uninvited'
+  | 'mgr_meet_point' | 'mgr_meet_soon' | 'mgr_meet_attendance' | 'mgr_meet_no_decisions' | 'mgr_dec_late';
+/** Trips: added, departure near, on the way, changed / cancelled / taken off; the managers: near, no head, no one chosen */
+export type TravelAlertKind = 'trv_added' | 'trv_soon' | 'trv_live' | 'trv_changed' | 'trv_cancelled' | 'trv_removed'
+  | 'mgr_trv_soon' | 'mgr_trv_no_head' | 'mgr_trv_empty';
+/** Medical files: opened, a stage reached, an exam near / missed, the end of the absence near; the managers: exams, first diagnosis, return */
+export type MedicalAlertKind = 'med_new' | 'med_stage' | 'med_recovered' | 'med_exam' | 'med_exam_missed' | 'med_return_soon'
+  | 'med_changed' | 'med_exam_moved' | 'med_deleted'
+  | 'mgr_med_exam' | 'mgr_med_exam_late' | 'mgr_med_initial' | 'mgr_med_return';
+/** Debts (loans and purchases on credit) not fully paid: the repayment date near, today, passed */
+export type DebtAlertKind = 'debt_soon' | 'debt_due' | 'debt_late';
+export type AlertKind = DebtAlertKind | TaskAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind | MeetingAlertKind | TravelAlertKind | MedicalAlertKind;
 
 export interface AppAlert {
   /** Changes when the reason or the deadline changes, so a new alert reopens a minimized stack */
@@ -48,7 +68,13 @@ export interface AppAlert {
     /** attendance: open the match's attendance sheet */
     | { type: 'match'; id: number; space: 'personal' | 'management'; attendance?: boolean }
     /** tab: the management page's tab to open (the pending requests by default) */
-    | { type: 'absence'; id: number; space: 'personal' | 'management'; tab?: 'requests' | 'registry' };
+    | { type: 'absence'; id: number; space: 'personal' | 'management'; tab?: 'requests' | 'registry' }
+    /** attendance: open the meeting's attendance sheet; decisions: open the decisions page */
+    | { type: 'meeting'; id: string; space: 'personal' | 'management'; attendance?: boolean; decisions?: boolean }
+    /** id 0: the trips page (a deleted trip) */
+    | { type: 'travel'; id: number; space: 'personal' | 'management' }
+    | { type: 'medical'; id: number; space: 'personal' | 'management' }
+    | { type: 'debt'; id: number; kind: 'loan' | 'purchase' };
   /** Something that happened (created, decided, replied): opening it marks it seen. Otherwise it stays while its reason holds */
   event?: boolean;
 }
@@ -545,7 +571,7 @@ const daysTo = (value: string | null | undefined, now: number) => {
   return Math.round((start - today.getTime()) / DAY_MS);
 };
 
-const inDayWords = (n: number) => (n === 0 ? 'اليوم' : n === 1 ? 'غداً' : n < 0 ? 'منذ أيام' : `بعد ${n} أيام`);
+const inDayWords = (n: number) => (n === 0 ? 'اليوم' : n === 1 ? 'غداً' : n === 2 ? 'بعد يومين' : n < 0 ? 'منذ أيام' : `بعد ${n} أيام`);
 
 /** The last day a record covers: a holiday "حتى Y-m-d", else its own day */
 const lastDayOf = (a: AbsenceRecord) => a.duration?.match(/\d{4}-\d{2}-\d{2}/)?.[0] || dateOf(a);
@@ -710,3 +736,499 @@ export const managerAbsenceAlerts = (records: AbsenceRecord[], now = Date.now(),
   });
   return list;
 };
+
+/** A meeting is "near" this long before it starts, "live" this long after; a sent point / a new charge is told for this long */
+export const MEET_SOON_MS = 24 * 3600 * 1000;
+export const MEET_LIVE_MS = 2 * 3600 * 1000;
+export const MEET_NEWS_MS = 48 * 3600 * 1000;
+/** The last hours to send a point */
+export const MEET_LAST_CALL_MS = 3 * 3600 * 1000;
+/** A decision in my charge is "near" its deadline this many days before */
+export const DEC_SOON_DAYS = 2;
+
+const meetStart = (m: { date?: string; time?: string }) => {
+  const [y, mo, d] = (m.date || '').slice(0, 10).split('-').map(Number);
+  const [h, mi] = (m.time || '00:00').split(':').map(Number);
+  const date = new Date(y, (mo || 1) - 1, d || 1, h || 0, mi || 0);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+const decisionDone = (progress?: number | null) => (progress || 0) >= 100;
+const clip = (text: string, n = 60) => (text.length > n ? `${text.slice(0, n)}…` : text);
+
+/**
+ * The member's meeting alerts (the meetings they are invited to):
+ * - invited (once per date and time), near (24 hours before; "last chance to send a point" in the last 3), live;
+ * - a point sent by someone else for an upcoming meeting (once, for 48 hours);
+ * - a decision in their charge: new (once), deadline near (2 days), late — until it is done.
+ */
+export const meetingAlerts = (meetings: MyMeeting[], now = Date.now()): AppAlert[] => {
+  const list: AppAlert[] = [];
+  const at = new Date(now);
+  meetings.forEach(m => {
+    const start = meetStart(m)?.getTime() ?? null;
+    const target = { type: 'meeting' as const, id: m.id, space: 'personal' as const };
+    const push = (kind: MeetingAlertKind, key: string, title: string, heading: string, detail: string, tone: AppAlert['tone'], event = false) =>
+      list.push({ key, kind, heading, title, detail, tone, target, event });
+    const when = start ? `${matchDay(new Date(start))} ${timeText(new Date(start))}` : '';
+
+    if (start !== null && start > now) {
+      push('meet_invited', `meet:inv:${m.id}`, 'تمت دعوتك لاجتماع',m.topic, [when, m.location].filter(Boolean).join(' · '), 'violet', true);
+      if (start - now <= MEET_SOON_MS) {
+        const lastCall = m.can_propose && start - now <= MEET_LAST_CALL_MS;
+        push('meet_soon', `meet:soon:${m.id}:${m.date}:${m.time}`, 'اقترب موعد الاجتماع', m.topic,
+          [`يبدأ ${countdown(new Date(start), at)}`, lastCall ? 'آخر فرصة لإرسال نقاطك' : m.location].filter(Boolean).join(' · '), lastCall ? 'red' : 'amber');
+      }
+      m.points.forEach(p => {
+        if (p.author && !p.mine && p.id && since(p.created_at, now) <= MEET_NEWS_MS) {
+          push('meet_point', `meet:pt:${p.id}`, `أرسل ${p.author} نقطة للنقاش`, m.topic, clip(p.text), 'blue', true);
+        }
+      });
+    } else if (start !== null && now - start <= MEET_LIVE_MS) {
+      push('meet_live', `meet:live:${m.id}:${m.date}:${m.time}`, 'الاجتماع جارٍ الآن', m.topic, m.location || '', 'blue');
+    }
+
+    m.decisions.filter(d => d.mine && !decisionDone(d.progress)).forEach(d => {
+      const title = d.text?.trim() || d.category || 'قرار';
+      const days = d.deadline ? daysTo(d.deadline, now) : null;
+      push('dec_assigned', `dec:as:${d.id}`, 'كُلفت بقرار', clip(title), `من اجتماع: ${m.topic}`, 'violet', true);
+      if (days !== null && days < 0) {
+        push('dec_late', `dec:late:${d.id}:${d.deadline}`, 'قرار مكلف به متأخر', clip(title), `انتهى الأجل منذ ${-days === 1 ? 'يوم' : `${-days} أيام`} · ${d.progress || 0}%`, 'red');
+      } else if (days !== null && days <= DEC_SOON_DAYS) {
+        push('dec_due', `dec:due:${d.id}:${d.deadline}`, 'اقترب أجل قرار مكلف به', clip(title), `آخر أجل ${inDayWords(days)} · ${d.progress || 0}%`, 'amber');
+      }
+    });
+  });
+  return list;
+};
+
+/** A decision as /decisions returns it (the fields the alerts need) */
+export interface ManagedDecision {
+  id: number | string;
+  meeting_id?: number | string | null;
+  text?: string;
+  decision_text?: string;
+  category?: string | null;
+  deadline?: string | null;
+  progress?: number | null;
+}
+
+const RECORDED_STATUSES = ['حاضر', 'متأخر', 'غائب مبرر', 'غائب غير مبرر'];
+
+/**
+ * The managers' meeting alerts, each for who may act:
+ * - a point sent by a member for an upcoming meeting (once, for 48 hours) — meetings;
+ * - a meeting within 24 hours — meetings;
+ * - a meeting held (for 7 days) without its attendance — meetings.attendance (opens the sheet);
+ * - a meeting held (for 3 days) without any decision — decisions.add;
+ * - a decision past its deadline and not done — decisions.
+ */
+export const managerMeetingAlerts = (
+  meetings: Meeting[],
+  decisions: ManagedDecision[],
+  now = Date.now(),
+  can: { meetings?: boolean; attendance?: boolean; addDecisions?: boolean; decisions?: boolean } = {},
+  myUserId?: string | number | null,
+  /** The meetings I am invited to: their points and nearness come as my own alerts already */
+  invitedIds: string[] = [],
+): AppAlert[] => {
+  const list: AppAlert[] = [];
+  const at = new Date(now);
+  const invited = new Set(invitedIds.map(String));
+  const byMeeting= new Map<string, ManagedDecision[]>();
+  decisions.forEach(d => {
+    const key = String(d.meeting_id ?? '');
+    byMeeting.set(key, [...(byMeeting.get(key) || []), d]);
+  });
+
+  meetings.forEach(m => {
+    const start = meetStart(m)?.getTime() ?? null;
+    if (start === null) return;
+    const push = (kind: MeetingAlertKind, key: string, title: string, detail: string, tone: AppAlert['tone'], extra: { event?: boolean; attendance?: boolean; decisions?: boolean } = {}) =>
+      list.push({
+        key, kind, heading: m.topic, title, detail, tone, event: extra.event,
+        target: { type: 'meeting', id: String(m.id), space: 'management', ...(extra.attendance ? { attendance: true } : {}), ...(extra.decisions ? { decisions: true } : {}) },
+      });
+
+    if (start > now) {
+      if (can.meetings && !invited.has(String(m.id))) {
+        (m.points || []).forEach(p => {
+          if (typeof p === 'string' || !p?.id || String(p.user_id) === String(myUserId)) return;
+          if (since(p.created_at, now) <= MEET_NEWS_MS) push('mgr_meet_point', `mmeet:pt:${p.id}`, `نقطة جديدة من ${p.author}`, clip(p.text), 'blue', { event: true });
+        });
+        if (start - now <= MEET_SOON_MS) {
+          push('mgr_meet_soon', `mmeet:soon:${m.id}:${m.date}:${m.time}`, 'اجتماع قريب',
+            [`يبدأ ${countdown(new Date(start), at)}`, `${(m.attendees || []).length} مدعو`, `${(m.points || []).length} نقاط`].join(' · '), 'amber');
+        }
+      }
+      return;
+    }
+
+    const held = now - start;
+    if (held > 7 * DAY_MS) return;
+    const attendees = m.attendees || [];
+    if (can.attendance && attendees.length > 0 && !attendees.some(a => RECORDED_STATUSES.includes(a.status))) {
+      push('mgr_meet_attendance', `mmeet:att:${m.id}:${m.date}`, 'لم يُسجل حضور الاجتماع', `عُقد ${matchDay(new Date(start))} · ${attendees.length} مدعو`, 'red', { attendance: true });
+    }
+    if (can.addDecisions && held > MEET_LIVE_MS && held <= 3 * DAY_MS && !(byMeeting.get(String(m.id)) || []).length) {
+      push('mgr_meet_no_decisions', `mmeet:nodec:${m.id}:${m.date}`, 'لم تُسجل قرارات الاجتماع بعد', `عُقد ${matchDay(new Date(start))}`, 'amber', { decisions: true });
+    }
+  });
+
+  if (can.decisions) {
+    const topics = new Map(meetings.map(m => [String(m.id), m.topic]));
+    decisions.forEach(d => {
+      if (!d.deadline || decisionDone(d.progress)) return;
+      const days = daysTo(d.deadline, now);
+      if (days === null || days >= 0) return;
+      const title = (d.text || d.decision_text || '').trim() || d.category || 'قرار';
+      list.push({
+        key: `mdec:late:${d.id}:${d.deadline}`,
+        kind: 'mgr_dec_late',
+        heading: clip(title),
+        title: 'قرار متأخر عن أجله',
+        detail: [`متأخر ${-days === 1 ? 'يوماً' : `${-days} أيام`}`, `${d.progress || 0}%`, topics.get(String(d.meeting_id)) ? `اجتماع: ${topics.get(String(d.meeting_id))}` : ''].filter(Boolean).join(' · '),
+        tone: 'red',
+        target: { type: 'meeting', id: String(d.meeting_id ?? ''), space: 'management', decisions: true },
+      });
+    });
+  }
+  return list;
+};
+
+/** What happened to one of my meetings, as /meetings/mine/notices returns it (the latest per meeting) */
+export interface MeetingNotice {
+  id: number;
+  meeting_id: string;
+  kind: 'updated' | 'deleted' | 'uninvited';
+  topic: string;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+  previous?: { topic?: string; date?: string | null; time?: string | null; location?: string } | null;
+}
+
+/**
+ * The member's alerts about what the managers did to their meetings (each seen once opened):
+ * the date / time / place / topic changed (what changed, and what it was), the meeting deleted, taken off the list.
+ */
+export const meetingNoticeAlerts = (notices: MeetingNotice[]): AppAlert[] => notices.map(n => {
+  const start = meetStart({ date: n.date || '', time: n.time || '' });
+  const when = start ? `${matchDay(start)} ${timeText(start)}` : '';
+  const make = (kind: MeetingAlertKind, title: string, detail: string, tone: AppAlert['tone']): AppAlert => ({
+    key: `mnot:${n.id}`,
+    kind,
+    heading: n.topic || 'اجتماع',
+    title,
+    detail,
+    tone,
+    target: { type: 'meeting', id: n.kind === 'updated' ? n.meeting_id : '', space: 'personal' },
+    event: true,
+  });
+
+  if (n.kind === 'deleted') return make('meet_cancelled', 'تم إلغاء الاجتماع', when ? `كان مبرمجاً ${when}` : '', 'red');
+  if (n.kind === 'uninvited') return make('meet_uninvited', 'لم تعد مدعواً لهذا الاجتماع', when, 'amber');
+
+  const p = n.previous || {};
+  const changes: string[] = [];
+  const before = meetStart({ date: p.date || '', time: p.time || '' });
+  if ((p.date && p.date !== n.date) || (p.time && p.time !== n.time)) {
+    changes.push(`الموعد الجديد ${when}${before ? ` بدل ${matchDay(before)} ${timeText(before)}` : ''}`);
+  }
+  if (p.location && p.location !== n.location) changes.push(`المكان: ${n.location}`);
+  if (p.topic && p.topic !== n.topic) changes.push(`الموضوع الجديد بدل «${p.topic}»`);
+  const timeChanged = Boolean((p.date && p.date !== n.date) || (p.time && p.time !== n.time));
+  return make('meet_changed', timeChanged ? 'تم تغيير موعد الاجتماع' : 'تم تعديل الاجتماع', changes.join(' · ') || when, 'amber');
+});
+
+/** A trip's departure is "near" this long before; the last hours are red; the managers check a trip this many days before */
+export const TRV_SOON_MS = 24 * 3600 * 1000;
+export const TRV_URGENT_MS = 3 * 3600 * 1000;
+export const TRV_CHECK_DAYS = 3;
+
+/** "Y-m-d H:i" (local) → Date */
+const tripTime = (value?: string | null) => {
+  if (!value) return null;
+  const [d, t] = value.split(' ');
+  return meetStart({ date: d, time: t || '00:00' });
+};
+
+const TRIP_ROLE: Record<string, string> = { head: 'رئيس الوفد', staff: 'ضمن الطاقم', player: 'لاعب في الوفد' };
+const tripWhen = (d: Date | null) => (d ? `${matchDay(d)} ${timeText(d)}` : '');
+
+/**
+ * The member's trip alerts (the trips they are on):
+ * added (once per trip, with their role), departure near (24 hours before, red in the last 3), on the way (until the return).
+ */
+export const travelAlerts = (travels: Travel[], now = Date.now()): AppAlert[] => {
+  const list: AppAlert[] = [];
+  const at = new Date(now);
+  travels.forEach(t => {
+    const dep = tripTime(t.departure_time);
+    const ret = tripTime(t.return_time);
+    if (!dep) return;
+    const target = { type: 'travel' as const, id: t.id, space: 'personal' as const };
+    const depMs = dep.getTime();
+    const endMs = ret?.getTime() ?? depMs + DAY_MS;
+    const role = t.my_role ? TRIP_ROLE[t.my_role] : '';
+
+    if (depMs > now) {
+      list.push({ key: `trv:add:${t.id}`, kind: 'trv_added', heading: t.destination, title: 'تمت إضافتك لتنقل',
+        detail: [role, tripWhen(dep), t.match?.title || t.travel_reason].filter(Boolean).join(' · '), tone: 'violet', target, event: true });
+      if (depMs - now <= TRV_SOON_MS) {
+        list.push({ key: `trv:soon:${t.id}:${t.departure_time}`, kind: 'trv_soon', heading: t.destination, title: 'اقترب موعد الانطلاق',
+          detail: [`الانطلاق ${countdown(dep, at)}`, t.departure_location ? `من ${t.departure_location}` : '', t.transport_method].filter(Boolean).join(' · '),
+          tone: depMs - now <= TRV_URGENT_MS ? 'red' : 'amber', target });
+      }
+    } else if (now <= endMs) {
+      list.push({ key: `trv:live:${t.id}:${t.departure_time}`, kind: 'trv_live', heading: t.destination, title: 'التنقل جارٍ',
+        detail: ret ? `العودة ${tripWhen(ret)}` : 'العودة غير محددة', tone: 'blue', target });
+    }
+  });
+  return list;
+};
+
+/** What happened to one of my trips, as /travels/mine/notices returns it (the latest per trip) */
+export interface TravelNotice {
+  id: number;
+  travel_id: number;
+  kind: 'updated' | 'deleted' | 'removed';
+  destination: string;
+  departure_time?: string | null;
+  return_time?: string | null;
+  departure_location?: string | null;
+  transport_method?: string | null;
+  previous?: Partial<Record<'destination' | 'departure_time' | 'return_time' | 'departure_location' | 'transport_method', string | null>> | null;
+}
+
+/** The member's alerts about what the managers did to their trips (each seen once opened) */
+export const travelNoticeAlerts = (notices: TravelNotice[]): AppAlert[] => notices.map(n => {
+  const make = (kind: TravelAlertKind, title: string, detail: string, tone: AppAlert['tone']): AppAlert => ({
+    key: `tnot:${n.id}`, kind, heading: n.destination || 'تنقل', title, detail, tone, event: true,
+    target: { type: 'travel', id: n.kind === 'updated' ? n.travel_id : 0, space: 'personal' },
+  });
+  const dep = tripTime(n.departure_time);
+  if (n.kind === 'deleted') return make('trv_cancelled', 'تم إلغاء التنقل', dep ? `كان الانطلاق ${tripWhen(dep)}` : '', 'red');
+  if (n.kind === 'removed') return make('trv_removed', 'لم تعد ضمن هذا التنقل', tripWhen(dep), 'amber');
+
+  const p = n.previous || {};
+  const changes: string[] = [];
+  if ('departure_time' in p) changes.push(`الانطلاق الجديد ${tripWhen(dep)}${p.departure_time ? ` بدل ${tripWhen(tripTime(p.departure_time))}` : ''}`);
+  if ('return_time' in p) changes.push(`العودة ${n.return_time ? tripWhen(tripTime(n.return_time)) : 'غير محددة'}`);
+  if ('destination' in p) changes.push(`الوجهة الجديدة بدل ${p.destination || '—'}`);
+  if ('departure_location' in p) changes.push(`مكان الانطلاق: ${n.departure_location || '—'}`);
+  if ('transport_method' in p) changes.push(`وسيلة النقل: ${n.transport_method || '—'}`);
+  const timeChanged = 'departure_time' in p || 'return_time' in p;
+  return make('trv_changed', timeChanged ? 'تم تغيير موعد التنقل' : 'تم تعديل التنقل', changes.join(' · '), 'amber');
+});
+
+/**
+ * The managers' trip alerts (who manages the trips): a departure within 24 hours, and in the 3 days before it,
+ * a trip without a head of the delegation or with no one chosen. myTravelIds: the trips I am on myself (no double alert).
+ */
+export const managerTravelAlerts = (travels: Travel[], now = Date.now(), myTravelIds: number[] = []): AppAlert[] => {
+  const list: AppAlert[] = [];
+  const at = new Date(now);
+  const mine = new Set(myTravelIds);
+  travels.forEach(t => {
+    const dep = tripTime(t.departure_time);
+    if (!dep || dep.getTime() <= now) return;
+    const left = dep.getTime() - now;
+    const target = { type: 'travel' as const, id: t.id, space: 'management' as const };
+    const players = t.players?.length || t.players_count || 0;
+    const staff = t.staff?.length || 0;
+    if (left <= TRV_SOON_MS && !mine.has(t.id)) {
+      list.push({ key: `mtrv:soon:${t.id}:${t.departure_time}`, kind: 'mgr_trv_soon', heading: t.destination, title: 'تنقل قريب',
+        detail: [`الانطلاق ${countdown(dep, at)}`, `${players} لاعب`, `${staff} طاقم`].join(' · '), tone: 'amber', target });
+    }
+    if (left <= TRV_CHECK_DAYS * DAY_MS) {
+      if (!t.head_of_delegation_id) {
+        list.push({ key: `mtrv:nohead:${t.id}`, kind: 'mgr_trv_no_head', heading: t.destination, title: 'تنقل بدون رئيس وفد',
+          detail: `الانطلاق ${tripWhen(dep)}`, tone: 'amber', target });
+      }
+      if (players + staff === 0) {
+        list.push({ key: `mtrv:empty:${t.id}`, kind: 'mgr_trv_empty', heading: t.destination, title: 'لم يُحدد أعضاء الوفد بعد',
+          detail: `الانطلاق ${tripWhen(dep)}`, tone: 'red', target });
+      }
+    }
+  });
+  return list;
+};
+
+/** A medical file's opening is told for this long */
+export const MED_NEWS_MS = 7 * DAY_MS;
+/** The first diagnosis is awaited at most this many days after the injury */
+export const MED_INITIAL_DAYS = 2;
+
+const RECOVERED = 'مغلق/متعافي';
+
+/** What each status means for the member when it is reached */
+const STAGE_NEWS: Record<string, { title: string; field: keyof PlayerMedicalRecord }> = {
+  'بانتظار الفحص النهائي': { title: 'تم التشخيص الأولي لإصابتك', field: 'initial_recommendation' },
+  'قيد التأهيل': { title: 'بدأت مرحلة التأهيل', field: 'restrictions' },
+  'بانتظار قرار العودة': { title: 'صدر القرار الطبي في إصابتك', field: 'medical_decision' },
+};
+
+/** The player's name in a management record (the API puts the player object in player_id) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- records come untyped from the API
+const playerOf = (r: any) => {
+  const p = r.player || (typeof r.player_id === 'object' ? r.player_id : null) || r.playerId;
+  return p ? (p.name || `${p.first_name || ''} ${p.last_name || ''}`.trim()) : 'لاعب';
+};
+
+/**
+ * The member's medical alerts (their own files):
+ * - a file opened for their injury — once, told for 7 days (the stages and changes come with medicalNoticeAlerts);
+ * - their next exam today / tomorrow, or missed; the end of their absence period in the next 2 days.
+ */
+export const medicalAlerts = (records: PlayerMedicalRecord[], now = Date.now()): AppAlert[] => {
+  const list: AppAlert[] = [];
+  records.forEach(r => {
+    const target = { type: 'medical' as const, id: r.id, space: 'personal' as const };
+    const heading = r.injury_nature || 'إصابة';
+    const recovered = r.record_status === RECOVERED;
+    const push = (kind: MedicalAlertKind, key: string, title: string, detail: string, tone: AppAlert['tone'], event = false) =>
+      list.push({ key, kind, heading, title, detail, tone, target, event });
+
+    if (since(r.created_at, now) <= MED_NEWS_MS) {
+      push('med_new', `med:new:${r.id}`, 'تم فتح ملف طبي لإصابتك',
+        [r.injury_date ? `بتاريخ ${matchDay(parseDate(r.injury_date.slice(0, 10)) || new Date())}` : '', r.doctor?.name ? `الطبيب: ${r.doctor.name}` : ''].filter(Boolean).join(' · '), 'violet', true);
+    }
+    if (recovered) return;
+
+    const exam = r.next_exam_date ? daysTo(r.next_exam_date, now) : null;
+    const examDone = r.last_exam_date && r.next_exam_date && r.last_exam_date.slice(0, 10) >= r.next_exam_date.slice(0, 10);
+    if (exam !== null && !examDone && (exam === 0 || exam === 1)) {
+      push('med_exam', `med:exam:${r.id}:${r.next_exam_date}`, `موعد فحصك الطبي ${inDayWords(exam)}`, r.doctor?.name ? `مع ${r.doctor.name}` : 'راجع الطبيب', 'amber');
+    } else if (exam !== null && !examDone && exam < 0) {
+      push('med_exam_missed', `med:missed:${r.id}:${r.next_exam_date}`, 'فات موعد فحصك الطبي', 'تواصل مع الطاقم الطبي لتحديد موعد جديد', 'red');
+    }
+    const back = r.absence_to ? daysTo(r.absence_to, now) : null;
+    if (back !== null && back >= 0 && back <= 2) {
+      push('med_return_soon', `med:back:${r.id}:${r.absence_to}`, `تنتهي فترة غيابك ${inDayWords(back)}`, 'بانتظار قرار العودة من الطبيب', 'blue');
+    }
+  });
+  return list;
+};
+
+/**
+ * The managers' medical alerts (who manages the medical files), until it is done:
+ * an exam today / tomorrow, an exam missed, an injury waiting for its first diagnosis (2 days after),
+ * an absence period over without a return decision.
+ */
+export const managerMedicalAlerts = (records: PlayerMedicalRecord[], now = Date.now()): AppAlert[] => {
+  const list: AppAlert[] = [];
+  records.forEach(r => {
+    if (r.record_status === RECOVERED) return;
+    const target = { type: 'medical' as const, id: r.id, space: 'management' as const };
+    const name = playerOf(r);
+    const nature = r.injury_nature || 'إصابة';
+    const push = (kind: MedicalAlertKind, key: string, title: string, detail: string, tone: AppAlert['tone']) =>
+      list.push({ key, kind, heading: name, title, detail, tone, target });
+
+    const exam = r.next_exam_date ? daysTo(r.next_exam_date, now) : null;
+    const examDone = r.last_exam_date && r.next_exam_date && r.last_exam_date.slice(0, 10) >= r.next_exam_date.slice(0, 10);
+    if (exam !== null && !examDone && (exam === 0 || exam === 1)) push('mgr_med_exam', `mmed:exam:${r.id}:${r.next_exam_date}`, `فحص طبي ${inDayWords(exam)}`, nature, 'amber');
+    else if (exam !== null && !examDone && exam < 0) push('mgr_med_exam_late', `mmed:late:${r.id}:${r.next_exam_date}`, 'فات موعد فحص طبي', `${nature} · منذ ${-exam === 1 ? 'يوم' : `${-exam} أيام`}`, 'red');
+
+    const injured = r.injury_date ? daysTo(r.injury_date, now) : null;
+    if (r.record_status === 'مفتوح/مصاب' && injured !== null && -injured >= MED_INITIAL_DAYS) {
+      push('mgr_med_initial', `mmed:init:${r.id}`, 'إصابة بانتظار التشخيص الأولي', `${nature} · منذ ${-injured} أيام`, 'amber');
+    }
+    const back = r.absence_to ? daysTo(r.absence_to, now) : null;
+    if (back !== null && back < 0) push('mgr_med_return', `mmed:back:${r.id}:${r.absence_to}`, 'انتهت مدة الغياب دون قرار العودة', nature, 'amber');
+  });
+  return list;
+};
+
+/** What happened to one of my medical files (a new stage, a date / the doctor / a detail changed, deleted) */
+export interface MedicalNotice {
+  id: number;
+  record_id: number;
+  kind: 'stage' | 'updated' | 'deleted';
+  injury_nature: string | null;
+  changes: { field: string; label: string; from: string | null; to: string | null }[];
+  created_at?: string;
+}
+
+const MED_DATES = ['injury_date', 'next_exam_date', 'last_exam_date', 'absence_from', 'absence_to'];
+
+/** A changed value as the member reads it (dates as days) */
+const medValue = (field: string, value: string | null) => {
+  if (!value) return 'بدون';
+  if (!MED_DATES.includes(field)) return value;
+  const d = parseDate(value.slice(0, 10));
+  return d ? matchDay(d) : value;
+};
+
+/** The title of a change: what changed, when it is one thing */
+const MED_CHANGE_TITLE: Record<string, string> = {
+  next_exam_date: 'تم تغيير موعد فحصك الطبي',
+  absence_to: 'تم تغيير نهاية فترة غيابك',
+  absence_from: 'تم تغيير بداية فترة غيابك',
+  doctor_id: 'تم تغيير طبيبك المشرف',
+  restrictions: 'تم تعديل القيود الطبية',
+  medical_decision: 'تم تعديل القرار الطبي',
+  injury_date: 'تم تعديل تاريخ إصابتك',
+};
+
+/**
+ * The member's medical notices (each once, opened = dismissed):
+ * a stage reached (first diagnosis, rehabilitation, decision, the return approved),
+ * a date / the doctor / a detail changed (before → after), the file deleted.
+ * records: my files now (for the stage's details).
+ */
+export const medicalNoticeAlerts = (notices: MedicalNotice[], records: PlayerMedicalRecord[] = []): AppAlert[] => notices.map(n => {
+  const make = (kind: MedicalAlertKind, title: string, detail: string, tone: AppAlert['tone']): AppAlert => ({
+    key: `mnot:${n.id}`, kind, heading: n.injury_nature || 'ملفي الطبي', title, detail, tone, event: true,
+    target: { type: 'medical', id: n.kind === 'deleted' ? 0 : n.record_id, space: 'personal' },
+  });
+  if (n.kind === 'deleted') return make('med_deleted', 'تم حذف ملفك الطبي', 'من طرف الطاقم الطبي', 'red');
+
+  if (n.kind === 'stage') {
+    const status = n.changes[0]?.to || '';
+    const record = records.find(r => r.id === n.record_id);
+    if (status === RECOVERED) return make('med_recovered', 'تمت الموافقة على عودتك للتدريبات', record?.medical_decision || 'تعافيت من الإصابة', 'blue');
+    const news = STAGE_NEWS[status];
+    return make('med_stage', news?.title || 'تم تحديث حالتك الطبية', String((news && record?.[news.field]) || status), 'violet');
+  }
+
+  const changes = n.changes || [];
+  const one = changes.length === 1 ? changes[0] : null;
+  const detail = changes.map(c => MED_DATES.includes(c.field) || c.field === 'doctor_id'
+    ? `${c.label}: ${medValue(c.field, c.from)} ← ${medValue(c.field, c.to)}`
+    : `${c.label}: ${c.to || 'أُزيل'}`).join(' · ');
+  const examMoved = changes.some(c => c.field === 'next_exam_date');
+  return make(examMoved ? 'med_exam_moved' : 'med_changed', (one && MED_CHANGE_TITLE[one.field]) || 'تم تعديل ملفك الطبي', detail, examMoved ? 'amber' : 'violet');
+});
+
+/** The repayment date is told this many days before */
+export const DEBT_SOON_DAYS = 3;
+
+/**
+ * The repayment alerts of the debts not fully paid (loans: who manages the debts; purchases on credit:
+ * who manages the payments & expenses), until they are paid:
+ * the date in the next 3 days (amber), today (red), passed (red, how long ago).
+ * A new date (the debt edited) is a new alert.
+ */
+export const debtAlerts = (debts: Debt[], now = Date.now()): AppAlert[] => debts
+  .filter(d => d.status !== 'paid' && d.remaining > 0 && d.due_date)
+  .map((d): { alert: AppAlert; days: number } | null => {
+    const days = daysTo(d.due_date, now);
+    if (days === null || days > DEBT_SOON_DAYS) return null;
+    const what = d.kind === 'purchase' ? 'مصروف بالدين' : 'دين';
+    const left = `الباقي ${moneyText(d.remaining)}`;
+    const make = (kind: DebtAlertKind, title: string, detail: string, tone: AppAlert['tone']) => ({
+      alert: {
+        key: `debt:${d.kind}:${d.id}:${kind}:${d.due_date}`, kind, heading: d.title ? `${d.creditor} · ${d.title}` : d.creditor,
+        title, detail, tone, target: { type: 'debt' as const, id: d.id, kind: d.kind },
+      },
+      days,
+    });
+    if (days > 0) return make('debt_soon', `اقترب موعد تسديد ${what}`, `${days === 1 ? 'غداً' : days === 2 ? 'بعد يومين' : `بعد ${days} أيام`} · ${left}`, 'amber');
+    if (days === 0) return make('debt_due', `حان موعد تسديد ${what}`, `اليوم · ${left}`, 'red');
+    return make('debt_late', `فات موعد تسديد ${what}`, `منذ ${-days === 1 ? 'يوم' : -days === 2 ? 'يومين' : `${-days} أيام`} · ${left}`, 'red');
+  })
+  .filter((x): x is { alert: AppAlert; days: number } => x !== null)
+  .sort((a, b) => a.days - b.days)
+  .map(x => x.alert);

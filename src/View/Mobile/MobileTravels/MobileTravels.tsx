@@ -23,7 +23,7 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
 
   return (
     <div className="tk-mpage tk-scope">
-      <MobileAppBar title="التنقلات" />
+      <MobileAppBar title={c.personal ? 'تنقلات' : 'التنقلات'} />
 
       <section className="tk-hero">
         <div className="tk-hero-top">
@@ -77,7 +77,7 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : 'لا توجد تنقلات بعد'}</p></div>
+          <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : c.personal ? 'لست ضمن أي تنقل حالياً' : 'لا توجد تنقلات بعد'}</p></div>
         ) : (
           <div className="tk-list">{visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} compact />)}</div>
         )}

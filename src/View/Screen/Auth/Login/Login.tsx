@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { LogIn } from 'lucide-react';
 import { CustomInput } from '../../../widget/CustomInput';
 import { useLoginController } from './LoginController';
+import { useIsMobile } from '../../../../core/functions/useIsMobile';
+import { MobileLogin } from '../../../Mobile/MobileLogin/MobileLogin';
 import './Login.css';
 
 interface LoginProps {
@@ -12,6 +14,9 @@ interface LoginProps {
 export const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const { t } = useTranslation();
   const controller = useLoginController(onLoginSuccess);
+  const isMobile = useIsMobile();
+
+  if (isMobile) return <MobileLogin c={controller} />;
 
   return (
     <div className="login-wrapper">

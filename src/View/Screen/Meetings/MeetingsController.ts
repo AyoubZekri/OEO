@@ -21,7 +21,8 @@ export function useMeetingsController() {
   const [newPoint, setNewPoint] = useState('');
   const [activeReasonModal, setActiveReasonModal] = useState<{meetingId: string, attendeeId: string} | null>(null);
   const [absenceReason, setAbsenceReason] = useState('');
-  const [expandedMeetingId, setExpandedMeetingId] = useState<string | null>(null);
+  // ?meeting=ID (from an alert): its details open at once
+  const [expandedMeetingId, setExpandedMeetingId] = useState<string | null>(() => new URLSearchParams(window.location.search).get('meeting'));
   const [appMembers, setAppMembers] = useState<{id: string, name: string, role: string}[]>([]);
 
   const fetchMembers = async () => {

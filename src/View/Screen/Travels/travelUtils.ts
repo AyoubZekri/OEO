@@ -45,6 +45,8 @@ export interface Travel {
   schedule_return: string | null;
   special_notes: string | null;
   created_at: string | null;
+  /** Personal space: my role in the trip */
+  my_role?: 'head' | 'staff' | 'player';
 }
 
 export interface TravelOptions {
@@ -171,9 +173,18 @@ export const apiError = (e: unknown, fallback = 'تعذر تنفيذ العمل�
 
 export const travelApi = {
   list: async (): Promise<Travel[]> => (await client.get('/travels')).data.data,
+  /** Personal space: the trips I am on, with my role */
+  mine: async (): Promise<Travel[]> => (await client.get('/travels/mine')).data.data,
   options: async (): Promise<TravelOptions> => (await client.get('/travels/options')).data.data,
   save: async (data: Record<string, any>): Promise<Travel> =>
     (await client.post(data.id ? '/travels/update' : '/travels/create', data)).data.data,
   remove: async (id: number) => client.post('/travels/delete', { id }),
 };
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+/** My role in a trip (personal space) */
+export const MY_ROLE_LABEL: Record<NonNullable<Travel['my_role']>, string> = {
+  head: 'رئيس الوفد',
+  staff: 'ضمن الطاقم',
+  player: 'لاعب في الوفد',
+};

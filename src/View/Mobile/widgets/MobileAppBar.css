@@ -81,3 +81,31 @@ body.dark-mode .m-appbar {
   background: #f97316;
   box-shadow: 0 0 0 2px var(--bg), 0 0 8px #f97316;
 }
+
+.m-appbar-bell {
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.m-appbar-bell:active { transform: scale(0.94); }
+
+/* The number of alerts */
+.m-appbar-count {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  border: 2px solid var(--bg);
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 16px;
+  text-align: center;
+}

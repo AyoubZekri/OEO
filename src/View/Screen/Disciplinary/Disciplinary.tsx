@@ -224,7 +224,7 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
             editReply: !personal,
             memberReply: personal,
           }}
-          title={personal ? 'إجراءاتي التأديبية' : undefined}
+          title={personal ? 'إجراءات تأديبية' : undefined}
           openId={openOnPhone}
         />
       ) : (

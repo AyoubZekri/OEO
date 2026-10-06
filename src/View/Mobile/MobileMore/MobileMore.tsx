@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2 } from 'lucide-react';
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2, LogOut } from 'lucide-react';
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
+import { useCan } from '../../../core/functions/useCan';
 import { Approutes } from '../../../core/constant/routes';
 import type { useSaidparController } from '../../Screen/Saidpar/SaidparController';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -24,13 +25,14 @@ interface PageLink {
 type IconType = React.ComponentType<{ size?: number }>;
 
 // Pages already in the bottom nav are not repeated here
-const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Correspondences]);
+const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Matches]);
+const IN_PERSONAL_NAV = new Set<string>([Approutes.MyTasks, Approutes.MyMatches, Approutes.MyAbsences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
-  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyAbsences', 'MyMeetings', 'MyDisciplinary'] },
+  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary'] },
   { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
-  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Correspondences', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
@@ -54,9 +56,12 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   MyMatches: { icon: Trophy, color: '#f97316' },
   MyAbsences: { icon: CalendarX2, color: '#ef4444' },
   MyMeetings: { icon: Briefcase, color: '#0ea5e9' },
+  MyTravels: { icon: Bus, color: '#0ea5e9' },
+  MyMedical: { icon: Stethoscope, color: '#ef4444' },
   MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
   PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
+  Correspondences: { icon: FileText, color: '#64748b' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
   Equipment: { icon: Package, color: '#f59e0b' },
   EquipmentOperations: { icon: ArrowLeftRight, color: '#14b8a6' },
@@ -76,15 +81,22 @@ const readRoleName = (fallback: string) => {
 export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const can = useCan();
   const [query, setQuery] = useState('');
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
+  const personal = controller.space === 'personal';
   // Same pages (and permissions) as the sidebar, dropdown children flattened
-  const pages: PageLink[] = controller.menuSections
-    .flatMap(section => section.items)
-    .flatMap(item => (item.subItems?.length
-      ? item.subItems.map(sub => ({ name: sub.name, label: t(sub.label, sub.label), route: sub.route }))
-      : item.route ? [{ name: item.name, label: t(item.label, item.label), route: item.route }] : []))
-    .filter(page => !IN_BOTTOM_NAV.has(page.route));
+  const pages: PageLink[] = [
+    ...controller.menuSections
+      .flatMap(section => section.items)
+      .flatMap(item => (item.subItems?.length
+        ? item.subItems.map(sub => ({ name: sub.name, label: t(sub.label, sub.label), route: sub.route }))
+        : item.route ? [{ name: item.name, label: t(item.label, item.label), route: item.route }] : [])),
+    // The correspondences (left the bottom bar for the matches; not in the sidebar)
+    ...(!personal && can('correspondences') ? [{ name: 'Correspondences', label: 'الأعمال', route: Approutes.Correspondences }] : []),
+  ]
+    .filter(page => !(personal ? IN_PERSONAL_NAV : IN_BOTTOM_NAV).has(page.route));
 
   const q = query.trim();
   const visible = q ? pages.filter(p => p.label.includes(q)) : pages;
@@ -114,6 +126,9 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
         <button type="button" className="mo-theme" onClick={controller.toggleTheme} aria-label="تبديل الوضع">
           {controller.isDarkMode ? <Sun size={19} /> : <Moon size={19} />}
         </button>
+        <button type="button" className="mo-theme mo-signout" onClick={() => setConfirmLogout(true)} aria-label="تسجيل الخروج" title="تسجيل الخروج">
+          <LogOut size={19} />
+        </button>
       </section>
 
       {controller.canManage && (
@@ -141,7 +156,8 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
       ) : grouped.map(group => (
         <section key={group.title} className="mo-group">
           <h2>{group.title}</h2>
-          <div className="mo-grid">
+          {/* Personal space: one page per row */}
+          <div className={`mo-grid ${personal ? 'rows' : ''}`}>
             {group.pages.map(page => {
               const style = PAGE_STYLE[page.name] || { icon: ChevronLeft, color: '#64748b' };
               const Icon = style.icon;
@@ -155,12 +171,28 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
                 >
                   <span className="mo-tile-icon"><Icon size={22} /></span>
                   <span className="mo-tile-label">{page.label}</span>
+                  {personal && <ChevronLeft size={18} className="mo-tile-go" />}
                 </button>
               );
             })}
           </div>
         </section>
       ))}
+
+      {/* Log out: asked first */}
+      {confirmLogout && (
+        <div className="mo-dialog-backdrop" onClick={() => setConfirmLogout(false)}>
+          <div className="mo-dialog" role="alertdialog" aria-modal="true" aria-labelledby="mo-logout-title" onClick={e => e.stopPropagation()}>
+            <span className="mo-dialog-icon"><LogOut size={26} /></span>
+            <h3 id="mo-logout-title">تسجيل الخروج</h3>
+            <p>هل أنت متأكد من تسجيل الخروج من حسابك؟</p>
+            <div className="mo-dialog-actions">
+              <button type="button" className="mo-dialog-confirm" onClick={controller.handleLogout}>تسجيل الخروج</button>
+              <button type="button" className="mo-dialog-cancel" onClick={() => setConfirmLogout(false)} autoFocus>إلغاء</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

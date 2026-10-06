@@ -14,11 +14,15 @@ const readSaved = (): AppSpace | null => {
   }
 };
 
-/** The space the user works in; it opens on the last one used. Without management rights it is always "personal". */
+/**
+ * The space the user works in; it opens on the last one used. Without management rights it is always "personal".
+ * A player has the personal space only, whatever their role (even a full-access one).
+ */
 export const SpaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { permissions, isFullAccess } = useAuth();
+  const { permissions, isFullAccess, user } = useAuth();
+  const isPlayer = user?.memberType === 'player';
   // The tasks page is open to everyone (their own tasks): it does not make someone a manager
-  const canManage = isFullAccess || ALL_MODULES.some(m => m !== 'tasks' && (permissions[m] as unknown as Record<string, boolean> | undefined)?.view === true);
+  const canManage = !isPlayer && (isFullAccess || ALL_MODULES.some(m => m !== 'tasks' && (permissions[m] as unknown as Record<string, boolean> | undefined)?.view === true));
   const [chosen, setChosen] = useState<AppSpace>(() => readSaved() || 'management');
 
   const value = useMemo<SpaceState>(() => ({

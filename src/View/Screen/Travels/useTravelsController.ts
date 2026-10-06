@@ -8,10 +8,10 @@ import { apiError, travelApi, type Travel, type TravelOptions } from './travelUt
 
 const fail = (text: string) => showSnackbar('خطأ', text, '#ef4444');
 
-/** The travels pages (desktop and phone): list, details, form */
-export const useTravelsController = () => {
+/** The travels pages (desktop and phone): list, details, form. personal: my trips only, read only */
+export const useTravelsController = ({ personal = false }: { personal?: boolean } = {}) => {
   const canDo = useCan();
-  const can = useCallback((action: string) => canDo('travels', action), [canDo]);
+  const can = useCallback((action: string) => !personal && canDo('travels', action), [canDo, personal]);
 
   const [travels, setTravels] = useState<Travel[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,13 +26,13 @@ export const useTravelsController = () => {
     setLoading(true);
     setError('');
     try {
-      setTravels(await travelApi.list());
+      setTravels(await (personal ? travelApi.mine() : travelApi.list()));
     } catch (e) {
       setError(apiError(e, 'تعذر تحميل التنقلات'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [personal]);
 
   /* eslint-disable-next-line react-hooks/set-state-in-effect -- loading the list from the server */
   useEffect(() => { load(); }, [load]);
@@ -76,7 +76,7 @@ export const useTravelsController = () => {
   };
 
   return {
-    can, travels, loading, error, reload: load, options,
+    personal, can, travels,loading, error, reload: load, options,
     details, openTravel: (t: Travel) => setDetailsId(t.id), closeTravel: () => setDetailsId(null),
     form, openForm, closeForm, save, remove,
   };

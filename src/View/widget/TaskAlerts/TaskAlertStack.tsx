@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus } from 'lucide-react';
+import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import client from '../../../core/api/client';
 import { DATA_CHANGED } from '../../../core/api/dataChanged';
@@ -8,12 +8,24 @@ import { useSpace } from '../../../core/context/space';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { Approutes } from '../../../core/constant/routes';
 import { taskApi } from '../../Screen/Tasks/taskApi';
+import { MobileSheet } from '../../Mobile/widgets/MobileSheet';
+import { alertsBell, useAlertsBell } from './alertsBell';
+import { SwipeAway } from './SwipeAway';
 import type { Task } from '../../Screen/Tasks/taskUtils';
 import type { TrainingSessionModel } from '../../Screen/TrainingSessions/TrainingSessionDialog';
 import type { Match } from '../../Screen/Matches/match_model';
 import type { AbsenceRecord } from '../../Screen/Absence/AbsenceRequestsController';
+import type { MyMeeting } from '../../Screen/Personal/useMyMeetings';
+import type { Meeting } from '../../Screen/Meetings/meeting_model';
+import type { Travel } from '../../Screen/Travels/travelUtils';
+import type { PlayerMedicalRecord } from '../../Screen/Medical/medical_model';
+import type { Debt } from '../../Screen/Debts/debtUtils';
+import { useAuth } from '../../../core/context/AuthContext';
 import {
-  absenceAlerts, alertsFor, disciplinaryAlerts, managerAbsenceAlerts, managerDisciplinaryAlerts, matchAlerts, matchNoticeAlerts, trainingAlerts, trainingNoticeAlerts,
+  absenceAlerts, alertsFor, disciplinaryAlerts, managerAbsenceAlerts, managerDisciplinaryAlerts, managerMeetingAlerts, matchAlerts, matchNoticeAlerts,
+  meetingAlerts, meetingNoticeAlerts, trainingAlerts, trainingNoticeAlerts, type ManagedDecision, type MeetingNotice,
+  travelAlerts, travelNoticeAlerts, managerTravelAlerts, type TravelNotice, medicalAlerts, managerMedicalAlerts,
+  medicalNoticeAlerts, type MedicalNotice, debtAlerts,
   type AlertKind, type AppAlert, type MatchNotice, type MyDisciplinaryAction, type TrainingNotice,
 } from './alertRules';
 import './TaskAlerts.css';
@@ -62,6 +74,46 @@ const ICONS: Record<AlertKind, typeof Bell> = {
   abs_repeated: Repeat2,
   abs_today: UserMinus,
   abs_repeated_member: Repeat2,
+  meet_invited: Briefcase,
+  meet_soon: Timer,
+  meet_live: Radio,
+  meet_point: MessageSquarePlus,
+  dec_assigned: Gavel,
+  dec_due: Hourglass,
+  dec_late: AlarmClock,
+  mgr_meet_point: MessageSquarePlus,
+  mgr_meet_soon: Timer,
+  mgr_meet_attendance: ClipboardX,
+  mgr_meet_no_decisions: Gavel,
+  mgr_dec_late: AlarmClock,
+  meet_changed: CalendarSync,
+  meet_cancelled: CalendarX,
+  meet_uninvited: UserX,
+  trv_added: Bus,
+  trv_soon: Timer,
+  trv_live: Navigation,
+  trv_changed: CalendarSync,
+  trv_cancelled: CalendarX,
+  trv_removed: UserX,
+  mgr_trv_soon: Bus,
+  mgr_trv_no_head: Crown,
+  mgr_trv_empty: UsersIcon,
+  med_new: HeartPulse,
+  med_stage: Activity,
+  med_recovered: HeartHandshake,
+  med_exam: Stethoscope,
+  med_exam_missed: AlarmClock,
+  med_return_soon: CalendarClock,
+  mgr_med_exam: Stethoscope,
+  mgr_med_exam_late: AlarmClock,
+  mgr_med_initial: HeartPulse,
+  mgr_med_return: CalendarClock,
+  med_changed: CalendarSync,
+  med_exam_moved: CalendarSync,
+  med_deleted: CalendarX,
+  debt_soon: CalendarClock,
+  debt_due: AlarmClock,
+  debt_late: AlarmClock,
 };
 
 /**
@@ -78,6 +130,10 @@ const AFTER_SAVE_MS = 700;
 const MINIMIZED_KEY = 'taskAlertsMinimized';
 /** Alerts closed by the user (their keys): an alert comes back only for a new reason or a new deadline */
 const DISMISSED_KEY = 'taskAlertsDismissed';
+/** Phones: the alerts already dropped in from the top (each is shown once) */
+const ANNOUNCED_KEY = 'taskAlertsAnnounced';
+/** Phones: how long a new alert stays at the top before it goes */
+const TOAST_MS = 4500;
 
 const readDismissed = (): string[] => {
   try {
@@ -97,14 +153,18 @@ const readDismissed = (): string[] => {
  */
 export const TaskAlerts: React.FC = () => {
   const navigate = useNavigate();
-  const { space, setSpace } = useSpace();
+  // The managers' alerts (to handle, in the management space): only who has the management space (never a player)
+  const { space, setSpace, canManage } = useSpace();
   // Managers of the disciplinary actions also get the alerts of every action (replies, late replies, hearings, documents)
   const canDo = useCan();
+  // The disciplinary alerts (mine and the ones to handle): only who has the disciplinary permission
   const managesDisciplinary = canDo('disciplinary');
   // Only the managers who take the attendance get the alerts of every session (near, started, ended);
   // the others get only the sessions of their own category, in the personal space
   const canAttend = canDo('trainingSessions', 'attendance');
   const managesTraining = canAttend;
+  // The training alerts (my sessions and their notices): only who has the training sessions permission
+  const seesTraining = canDo('trainingSessions');
   // The match managers get, each for what they are allowed to do: call-up, lineup, attendance, result / ratings / report
   const matchCan = {
     callups: canDo('matches', 'callups'),
@@ -114,10 +174,35 @@ export const TaskAlerts: React.FC = () => {
   };
   const managesMatches = matchCan.callups || matchCan.lineup || matchCan.attendance || matchCan.report;
   const matchCanKey = JSON.stringify(matchCan);
+  // The match alerts (my matches: called up, lineup, result, ratings, and their notices): only who has the matches permission
+  const seesMatches = canDo('matches');
   // The managers who decide the justifications get every one awaiting a decision
   const decidesAbsences = canDo('absences', 'justify');
-  // Who sees the absences gets the members absent today and the repeated absences
+  // Who sees the absences gets them all: mine (absent, late, justify within 24 hours, decided, requests answered),
+  // and as a manager the members absent today and the repeated absences; without it, none
   const seesAbsences = canDo('absences');
+  // Meetings and decisions: who manages them gets their alerts (points sent, near, attendance, decisions)
+  const meetCan = {
+    meetings: canDo('meetings'),
+    attendance: canDo('meetings', 'attendance'),
+    addDecisions: canDo('decisions', 'add'),
+    decisions: canDo('decisions'),
+  };
+  const meetCanKey = JSON.stringify(meetCan);
+  // My meetings' alerts (invited, near, points, changes): only who has the meetings permission;
+  // the decisions in my charge (new, deadline near, late): only who has the decisions permission
+  const seesMeetings = meetCan.meetings;
+  const seesDecisions = meetCan.decisions;
+  // The trips' managers get their checks (near, no head, no one chosen)
+  // Trips and medical files: only who has their permission gets their alerts (mine, and the ones to handle)
+  const managesTravels = canDo('travels');
+  const managesMedical = canDo('medical');
+  // Repayment dates: the loans for who manages the debts, the purchases on credit for who manages the payments
+  const managesDebts = canDo('debts');
+  const managesPayments = canDo('payments');
+  // The task alerts: only who has the tasks permission
+  const seesTasks = canDo('tasks');
+  const { user } = useAuth();
   const isMobile = useIsMobile();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [actions, setActions] = useState<MyDisciplinaryAction[]>([]);
@@ -130,6 +215,18 @@ export const TaskAlerts: React.FC = () => {
   const [matchNotices, setMatchNotices] = useState<MatchNotice[]>([]);
   const [myAbsences, setMyAbsences] = useState<AbsenceRecord[]>([]);
   const [allAbsences, setAllAbsences] = useState<AbsenceRecord[]>([]);
+  const [myMeetings, setMyMeetings] = useState<MyMeeting[]>([]);
+  const [allMeetings, setAllMeetings] = useState<Meeting[]>([]);
+  const [allDecisions, setAllDecisions] = useState<ManagedDecision[]>([]);
+  const [meetingNotices, setMeetingNotices] = useState<MeetingNotice[]>([]);
+  const [myTravels, setMyTravels] = useState<Travel[]>([]);
+  const [allTravels, setAllTravels] = useState<Travel[]>([]);
+  const [travelNotices, setTravelNotices] = useState<TravelNotice[]>([]);
+  const [myMedical, setMyMedical] = useState<PlayerMedicalRecord[]>([]);
+  const [allMedical, setAllMedical] = useState<PlayerMedicalRecord[]>([]);
+  const [medicalNotices, setMedicalNotices] = useState<MedicalNotice[]>([]);
+  const [debts, setDebts] = useState<Debt[]>([]);
+  const [creditPurchases, setCreditPurchases] = useState<Debt[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [expanded, setExpanded] = useState(false);
   // Keys seen when the stack was folded: it stays folded until an alert not in this list appears
@@ -140,26 +237,74 @@ export const TaskAlerts: React.FC = () => {
   const load = useCallback(async () => {
     if (document.visibilityState === 'hidden') return;
     // Alerts are a help: a failed refresh keeps the last ones
-    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence] = await Promise.all([
-      taskApi.list('my').catch(() => null),
-      client.get('/disciplinary/mine').then(r => r.data.data as MyDisciplinaryAction[]).catch(() => null),
+    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit] = await Promise.all([
+      seesTasks ? taskApi.list('my').catch(() => null) : Promise.resolve([] as Task[]),
       managesDisciplinary
+        ? client.get('/disciplinary/mine').then(r => r.data.data as MyDisciplinaryAction[]).catch(() => null)
+        : Promise.resolve([] as MyDisciplinaryAction[]),
+      canManage && managesDisciplinary
         ? client.get('/disciplinary').then(r => (Array.isArray(r.data) ? r.data : r.data?.data || []) as MyDisciplinaryAction[]).catch(() => null)
         : Promise.resolve([] as MyDisciplinaryAction[]),
-      client.get('/training-sessions/mine').then(r => r.data as TrainingSessionModel[]).catch(() => null),
-      managesTraining
+      seesTraining
+        ? client.get('/training-sessions/mine').then(r => r.data as TrainingSessionModel[]).catch(() => null)
+        : Promise.resolve([] as TrainingSessionModel[]),
+      canManage && managesTraining
         ? client.get('/training-sessions').then(r => r.data as TrainingSessionModel[]).catch(() => null)
         : Promise.resolve([] as TrainingSessionModel[]),
-      client.get('/training-sessions/mine/notices').then(r => r.data as TrainingNotice[]).catch(() => null),
-      client.get('/matches/mine').then(r => r.data?.data as Match[]).catch(() => null),
-      managesMatches
+      seesTraining
+        ? client.get('/training-sessions/mine/notices').then(r => r.data as TrainingNotice[]).catch(() => null)
+        : Promise.resolve([] as TrainingNotice[]),
+      seesMatches
+        ? client.get('/matches/mine').then(r => r.data?.data as Match[]).catch(() => null)
+        : Promise.resolve([] as Match[]),
+      canManage && managesMatches
         ? client.get('/matches').then(r => r.data?.data as Match[]).catch(() => null)
         : Promise.resolve([] as Match[]),
-      client.get('/matches/mine/notices').then(r => r.data as MatchNotice[]).catch(() => null),
-      client.get('/absences/mine').then(r => r.data as AbsenceRecord[]).catch(() => null),
+      seesMatches
+        ? client.get('/matches/mine/notices').then(r => r.data as MatchNotice[]).catch(() => null)
+        : Promise.resolve([] as MatchNotice[]),
       seesAbsences
+        ? client.get('/absences/mine').then(r => r.data as AbsenceRecord[]).catch(() => null)
+        : Promise.resolve([] as AbsenceRecord[]),
+      canManage && seesAbsences
         ? client.get('/absences').then(r => (Array.isArray(r.data) ? r.data : r.data?.data) as AbsenceRecord[]).catch(() => null)
         : Promise.resolve([] as AbsenceRecord[]),
+      seesMeetings || seesDecisions
+        ? client.get('/meetings/mine').then(r => r.data as MyMeeting[]).catch(() => null)
+        : Promise.resolve([] as MyMeeting[]),
+      canManage && (meetCan.meetings || meetCan.attendance || meetCan.addDecisions)
+        ? client.get('/meetings').then(r => r.data as Meeting[]).catch(() => null)
+        : Promise.resolve([] as Meeting[]),
+      canManage && (meetCan.decisions || meetCan.addDecisions)
+        ? client.get('/decisions').then(r => r.data as ManagedDecision[]).catch(() => null)
+        : Promise.resolve([] as ManagedDecision[]),
+      seesMeetings
+        ? client.get('/meetings/mine/notices').then(r => r.data as MeetingNotice[]).catch(() => null)
+        : Promise.resolve([] as MeetingNotice[]),
+      managesTravels
+        ? client.get('/travels/mine').then(r => r.data?.data as Travel[]).catch(() => null)
+        : Promise.resolve([] as Travel[]),
+      canManage && managesTravels
+        ? client.get('/travels').then(r => r.data?.data as Travel[]).catch(() => null)
+        : Promise.resolve([] as Travel[]),
+      managesTravels
+        ? client.get('/travels/mine/notices').then(r => r.data as TravelNotice[]).catch(() => null)
+        : Promise.resolve([] as TravelNotice[]),
+      managesMedical
+        ? client.get('/medical-records/mine').then(r => r.data?.data as PlayerMedicalRecord[]).catch(() => null)
+        : Promise.resolve([] as PlayerMedicalRecord[]),
+      canManage && managesMedical
+        ? client.get('/medical-records').then(r => r.data?.data as PlayerMedicalRecord[]).catch(() => null)
+        : Promise.resolve([] as PlayerMedicalRecord[]),
+      managesMedical
+        ? client.get('/medical-records/mine/notices').then(r => r.data as MedicalNotice[]).catch(() => null)
+        : Promise.resolve([] as MedicalNotice[]),
+      canManage && managesDebts
+        ? client.get('/debts').then(r => r.data?.data as Debt[]).catch(() => null)
+        : Promise.resolve([] as Debt[]),
+      canManage && managesPayments
+        ? client.get('/payments/credit').then(r => r.data?.data as Debt[]).catch(() => null)
+        : Promise.resolve([] as Debt[]),
     ]);
     if (myTasks) setTasks(myTasks);
     if (myActions) setActions(myActions);
@@ -172,7 +317,20 @@ export const TaskAlerts: React.FC = () => {
     if (Array.isArray(myMatchNotices)) setMatchNotices(myMatchNotices);
     if (Array.isArray(mineAbsences)) setMyAbsences(mineAbsences);
     if (Array.isArray(everyAbsence)) setAllAbsences(everyAbsence);
-  }, [managesDisciplinary, managesTraining, managesMatches, seesAbsences]);
+    if (Array.isArray(mineMeetings)) setMyMeetings(mineMeetings);
+    if (Array.isArray(everyMeeting)) setAllMeetings(everyMeeting);
+    if (Array.isArray(everyDecision)) setAllDecisions(everyDecision);
+    if (Array.isArray(myMeetingNotices)) setMeetingNotices(myMeetingNotices);
+    if (Array.isArray(mineTravels)) setMyTravels(mineTravels);
+    if (Array.isArray(everyTravel)) setAllTravels(everyTravel);
+    if (Array.isArray(myTravelNotices)) setTravelNotices(myTravelNotices);
+    if (Array.isArray(mineMedical)) setMyMedical(mineMedical);
+    if (Array.isArray(everyMedical)) setAllMedical(everyMedical);
+    if (Array.isArray(myMedicalNotices)) setMedicalNotices(myMedicalNotices);
+    if (Array.isArray(everyDebt)) setDebts(everyDebt);
+    if (Array.isArray(everyCredit)) setCreditPurchases(everyCredit);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- meetCan changes with meetCanKey
+  }, [managesDisciplinary, managesTraining, managesMatches, seesAbsences, meetCanKey, managesTravels, managesMedical, seesTasks, seesTraining, seesMatches, managesDebts, managesPayments, canManage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- first load of the user's tasks
@@ -218,19 +376,60 @@ export const TaskAlerts: React.FC = () => {
   const [dismissed, setDismissed] = useState<string[]>(readDismissed);
   // Disciplinary actions first (mine, then the ones to handle as a manager), then the tasks
   const all = useMemo(() => [
-    ...disciplinaryAlerts(actions, now),
+    ...(managesDisciplinary ? disciplinaryAlerts(actions, now) : []),
     ...managerDisciplinaryAlerts(allActions, now),
-    ...absenceAlerts(myAbsences, now),
+    ...(managesDebts ? debtAlerts(debts, now) : []),
+    ...(managesPayments ? debtAlerts(creditPurchases, now) : []),
+    ...(managesMedical ? medicalAlerts(myMedical, now) : []),
+    ...managerMedicalAlerts(allMedical, now),
+    ...(managesMedical ? medicalNoticeAlerts(medicalNotices, myMedical) : []),
+    ...(managesTravels ? travelNoticeAlerts(travelNotices) : []),
+    ...(managesTravels ? travelAlerts(myTravels, now) : []),
+    ...managerTravelAlerts(allTravels, now, myTravels.map(t => t.id)),
+    ...(seesMeetings ? meetingNoticeAlerts(meetingNotices) : []),
+    ...meetingAlerts(myMeetings, now).filter(a => (a.kind.startsWith('dec_') ? seesDecisions : seesMeetings)),
+    ...managerMeetingAlerts(allMeetings, allDecisions, now, JSON.parse(meetCanKey), user?.id, myMeetings.map(m => m.id)),
+    ...(seesAbsences ? absenceAlerts(myAbsences, now) : []),
     ...managerAbsenceAlerts(allAbsences, now, decidesAbsences),
-    ...matchNoticeAlerts(matchNotices),
-    ...matchAlerts(myMatches, 'personal', now),
+    ...(seesMatches ? matchNoticeAlerts(matchNotices) : []),
+    ...(seesMatches ? matchAlerts(myMatches, 'personal', now) : []),
     ...matchAlerts(allMatches, 'management', now, JSON.parse(matchCanKey)),
-    ...trainingNoticeAlerts(notices),
-    ...trainingAlerts(mySessions, 'personal', now),
+    ...(seesTraining ? trainingNoticeAlerts(notices) : []),
+    ...(seesTraining ? trainingAlerts(mySessions, 'personal', now) : []),
     ...trainingAlerts(allSessions, 'management', now, canAttend),
-    ...alertsFor(tasks, now),
-  ], [actions, allActions, myAbsences, allAbsences, decidesAbsences, matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now]);
+    ...(seesTasks ? alertsFor(tasks, now) : []),
+  ], [seesTasks, managesDisciplinary, seesTraining, seesAbsences, seesMatches, seesMeetings, seesDecisions, managesTravels, managesMedical, managesDebts, managesPayments, debts, creditPurchases, actions, allActions, myMedical, allMedical, medicalNotices, travelNotices,myTravels, allTravels, meetingNotices,myMeetings, allMeetings,allDecisions, meetCanKey, user, myAbsences, allAbsences, decidesAbsences,matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now]);
   const alerts = useMemo(() => all.filter(a => !dismissed.includes(a.key)), [all, dismissed]);
+
+  // Phones: the alerts are behind the bell of the app bar (its number, the full list in a sheet);
+  // each new alert drops in from the top for a few seconds, then goes (the most urgent, "+N" for the others)
+  const bell = useAlertsBell();
+  const [announced, setAnnounced] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(ANNOUNCED_KEY) || '[]'); } catch { return []; }
+  });
+  const [toast, setToast] = useState<{ alert: AppAlert; more: number } | null>(null);
+
+  useEffect(() => { alertsBell.setCount(isMobile ? alerts.length : 0); }, [isMobile, alerts.length]);
+
+  useEffect(() => {
+    if (!isMobile || toast || bell.open) return;
+    const fresh = alerts.filter(a => !announced.includes(a.key));
+    if (fresh.length === 0) return;
+    // Only the keys of alerts that still exist are kept, so the list does not grow forever
+    const live = new Set(all.map(a => a.key));
+    const next = [...announced.filter(k => live.has(k)), ...fresh.map(a => a.key)];
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- a new alert arrived: announce it once
+    setAnnounced(next);
+    try { localStorage.setItem(ANNOUNCED_KEY, JSON.stringify(next)); } catch { /* only not remembered */ }
+    setToast({ alert: fresh[0], more: fresh.length - 1 });
+  }, [isMobile, alerts, all, announced, toast, bell.open]);
+
+  // It goes when its animation ends (in, stays, out); the timer is only a fallback (no animation, reduced motion)
+  useEffect(() => {
+    if (!toast) return;
+    const timer = window.setTimeout(() => setToast(null), TOAST_MS + 1500);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
 
   /** Close one alert; the list keeps only keys of alerts that still exist, so it does not grow forever */
   const dismiss = (a: AppAlert) => {
@@ -249,7 +448,7 @@ export const TaskAlerts: React.FC = () => {
     } catch { /* only not remembered */ }
   };
 
-  if (alerts.length === 0) return null;
+  if (alerts.length === 0 && !isMobile) return null;
 
   const open = (a: AppAlert) => {
     if (a.target.type === 'disciplinary') {
@@ -258,6 +457,34 @@ export const TaskAlerts: React.FC = () => {
       if (space !== a.target.space) setSpace(a.target.space);
       const page = a.target.space === 'personal' ? Approutes.MyDisciplinary : Approutes.Disciplinary;
       navigate(`${page}?action=${a.target.id}`);
+      return;
+    }
+    if (a.target.type === 'debt') {
+      if (space !== 'management') setSpace('management');
+      navigate(`${a.target.kind === 'purchase' ? Approutes.Payments : Approutes.Debts}?debt=${a.target.id}`);
+      return;
+    }
+    if (a.target.type === 'medical') {
+      if (a.event) dismiss(a);
+      if (space !== a.target.space) setSpace(a.target.space);
+      const page = a.target.space === 'personal' ? Approutes.MyMedical : Approutes.MedicalRecords;
+      navigate(a.target.id ? `${page}?record=${a.target.id}` : page);
+      return;
+    }
+    if (a.target.type === 'travel') {
+      if (a.event) dismiss(a);
+      if (space !== a.target.space) setSpace(a.target.space);
+      const page = a.target.space === 'personal' ? Approutes.MyTravels : Approutes.Travels;
+      navigate(a.target.id ? `${page}?travel=${a.target.id}` : page);
+      return;
+    }
+    if (a.target.type === 'meeting') {
+      if (a.event) dismiss(a);
+      if (space !== a.target.space) setSpace(a.target.space);
+      if (a.target.attendance) navigate(`/meetings/${a.target.id}/attendance`);
+      else if (a.target.decisions) navigate(Approutes.Decisions);
+      else if (!a.target.id) navigate(a.target.space === 'personal' ? Approutes.MyMeetings : Approutes.Meetings);
+      else navigate(`${a.target.space === 'personal' ? Approutes.MyMeetings : Approutes.Meetings}?meeting=${a.target.id}`);
       return;
     }
     if (a.target.type === 'absence') {
@@ -291,6 +518,93 @@ export const TaskAlerts: React.FC = () => {
     navigate(`${page}?task=${a.target.id}`);
   };
 
+  /** One alert as a card (the desktop stack and the phone list) */
+  const card = (a: AppAlert, onOpen: () => void) => {
+    const Icon = ICONS[a.kind];
+    return (
+      <div
+        key={a.key}
+        role="button"
+        tabIndex={0}
+        className={`ta-card tone-${a.tone}`}
+        onClick={onOpen}
+        onKeyDown={e => { if (e.key === 'Enter') onOpen(); }}
+      >
+        <span className="ta-icon"><Icon size={18} /></span>
+        <span className="ta-text">
+          <small>{a.title}</small>
+          <strong>{a.heading}</strong>
+          <em>{a.detail}</em>
+        </span>
+        <ChevronLeft size={16} className="ta-go" />
+        <button
+          type="button"
+          className="ta-close"
+          onClick={e => { e.stopPropagation(); dismiss(a); }}
+          aria-label="إغلاق التنبيه"
+          title="إغلاق التنبيه"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  };
+
+  if (isMobile) {
+    const ToastIcon = toast ? ICONS[toast.alert.kind] : null;
+    return (
+      <>
+        {toast && ToastIcon && !bell.open && (
+          <div className="ta-toast-wrap" aria-live="polite">
+            {/* Pulled sideways: it goes at once */}
+            <SwipeAway key={toast.alert.key} onAway={() => setToast(null)}>
+            <div
+              role="button"
+              tabIndex={0}
+              className={`ta-toast tone-${toast.alert.tone}`}
+              style={{ animationDuration: `${TOAST_MS}ms` }}
+              onAnimationEnd={e => { if (e.target === e.currentTarget) setToast(null); }}
+              onClick={() => { setToast(null); open(toast.alert); }}
+              onKeyDown={e => { if (e.key === 'Enter') { setToast(null); open(toast.alert); } }}
+            >
+              <span className="ta-icon"><ToastIcon size={18} /></span>
+              <span className="ta-text">
+                <small>{toast.alert.title}</small>
+                <strong>{toast.alert.heading}</strong>
+                <em>{toast.alert.detail}</em>
+              </span>
+              {toast.more > 0 && (
+                <button type="button" className="ta-toast-more" onClick={e => { e.stopPropagation(); setToast(null); alertsBell.open(); }}>
+                  +{toast.more}
+                </button>
+              )}
+            </div>
+            </SwipeAway>
+          </div>
+        )}
+        {bell.open && (
+          <MobileSheet title={alerts.length ? `التنبيهات (${alerts.length})` : 'التنبيهات'} onClose={alertsBell.close}>
+            {alerts.length === 0 ? (
+              <div className="ta-empty">
+                <Bell size={28} />
+                <span>لا توجد تنبيهات</span>
+              </div>
+            ) : (
+              <div className="ta-list ta-sheet-list">
+                {/* Pulled sideways: closed, like its ✕ */}
+                {alerts.map(a => (
+                  <SwipeAway key={a.key} onAway={() => dismiss(a)}>
+                    {card(a, () => { alertsBell.close(); open(a); })}
+                  </SwipeAway>
+                ))}
+              </div>
+            )}
+          </MobileSheet>
+        )}
+      </>
+    );
+  }
+
   if (folded) {
     return (
       <button type="button" className={`ta-bell ${isMobile ? 'mobile' : ''}`} onClick={() => fold(null)} aria-label={`${alerts.length} تنبيه`}>
@@ -315,36 +629,7 @@ export const TaskAlerts: React.FC = () => {
       </div>
 
       <div className="ta-list">
-        {shown.map(a => {
-          const Icon = ICONS[a.kind];
-          return (
-            <div
-              key={a.key}
-              role="button"
-              tabIndex={0}
-              className={`ta-card tone-${a.tone}`}
-              onClick={() => open(a)}
-              onKeyDown={e => { if (e.key === 'Enter') open(a); }}
-            >
-              <span className="ta-icon"><Icon size={18} /></span>
-              <span className="ta-text">
-                <small>{a.title}</small>
-                <strong>{a.heading}</strong>
-                <em>{a.detail}</em>
-              </span>
-              <ChevronLeft size={16} className="ta-go" />
-              <button
-                type="button"
-                className="ta-close"
-                onClick={e => { e.stopPropagation(); dismiss(a); }}
-                aria-label="إغلاق التنبيه"
-                title="إغلاق التنبيه"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          );
-        })}
+        {shown.map(a => card(a, () => open(a)))}
       </div>
 
       {hidden > 0 && (
