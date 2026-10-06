@@ -1,18 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { Search, X, ListTodo, RefreshCw, Inbox, Filter, ChevronDown, Layers, Trash2 } from 'lucide-react';
+import { Search, X, ListTodo, RefreshCw, Inbox, Filter, ChevronDown, Layers } from 'lucide-react';
 import { MobileSelect } from '../../../Mobile/widgets/MobileSelect';
 import { TaskCard } from './TaskCard';
 import { MobileTaskCard } from './MobileTaskCard';
-import { TaskPanel } from './TaskPanel';
 import { TaskLoader } from './TaskLoader';
 import type { TasksController } from '../useTasksController';
 import { filterTasks, KIND_FILTERS, TASK_FILTERS, type Task } from '../taskUtils';
+import { DeleteTaskDialog } from './DeleteTaskDialog';
 
 const PAGE = 30;
 
 const EMPTY: Record<string, string> = {
   tasks: 'لا توجد مهام حالياً',
-  archive: 'الأرشيف فارغ',
 };
 
 /** Phone list: search, the status filter in a bottom sheet (today, in progress, overdue, returned, blocked…) and the task cards */
@@ -26,7 +25,7 @@ export const TaskList: React.FC<{ c: TasksController; mobile: boolean }> = ({ c,
 
   const counts = useMemo(() => Object.fromEntries(TASK_FILTERS.map(f => [f.value, c.tasks.filter(f.test).length])), [c.tasks]);
   const visible = filterTasks(c.tasks, filter, query, kind);
-  const filters = c.tab === 'archive' ? [TASK_FILTERS[0]] : TASK_FILTERS.filter(f => f.value === '' || f.value === filter || counts[f.value] > 0);
+  const filters = TASK_FILTERS.filter(f => f.value === '' || f.value === filter || counts[f.value] > 0);
 
   if (c.loading && !c.tasks.length) {
     return <TaskLoader mobile={mobile} />;
@@ -98,22 +97,7 @@ export const TaskList: React.FC<{ c: TasksController; mobile: boolean }> = ({ c,
         <button type="button" className="tk-more" onClick={() => setLimit(l => l + PAGE)}>عرض المزيد ({visible.length - limit})</button>
       )}
       {toDelete && (
-        <TaskPanel
-          mobile={mobile}
-          sheet
-          size="sm"
-          layer={2}
-          title="حذف المهمة"
-          onClose={() => setToDelete(null)}
-          footer={(
-            <>
-              <button type="button" className="tk-btn ghost" onClick={() => setToDelete(null)}>إلغاء</button>
-              <button type="button" className="tk-btn danger" onClick={() => { c.deleteTask(toDelete); setToDelete(null); }}><Trash2 size={17} />حذف</button>
-            </>
-          )}
-        >
-          <p className="tk-text">تُنقل المهمة «{toDelete.title}» إلى الأرشيف مع سجلها وإثباتاتها.</p>
-        </TaskPanel>
+        <DeleteTaskDialog title={toDelete.title} onConfirm={() => { c.deleteTask(toDelete); setToDelete(null); }} onClose={() => setToDelete(null)} />
       )}
     </div>
   );

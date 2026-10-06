@@ -16,7 +16,7 @@ export const Tasks: React.FC = () => {
 
   const addButton = c.tab === 'templates'
     ? <button type="button" className="btn-primary" onClick={() => c.openTemplateForm()}><Plus size={18} />مهمة تلقائية</button>
-    : c.isList && c.tab !== 'archive' && (c.can('add') || c.can('templates'))
+    : c.isList && (c.can('add') || c.can('templates'))
       ? <button type="button" className="btn-primary" onClick={() => c.openForm()}><Plus size={18} />مهمة جديدة</button>
       : null;
 

@@ -1873,3 +1873,113 @@ body.dark-mode .tk-page .tk-scope {
   font-weight: 800;
   white-space: nowrap;
 }
+
+/* ── Desktop: the tasks in a table (like the members) ── */
+.tk-table tbody tr.tk-row { cursor: pointer; }
+.tk-table tbody tr.tk-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.tk-table tbody tr.tk-row.done td { color: var(--text-muted); }
+.tk-table th, .tk-table td { white-space: nowrap; padding: 12px; }
+
+.tk-table .tk-ref-cell { color: var(--text-muted); font-size: 0.82rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+.tk-table .tk-title-cell { white-space: normal; min-width: 170px; max-width: 340px; }
+.tk-table .tk-title-cell strong { display: block; color: var(--text-h); font-size: 0.92rem; font-weight: 800; line-height: 1.45; }
+.tk-table .tk-title-cell small { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+.tk-table .tk-title-cell small.tone-red { color: #ef4444; }
+.tk-table .tk-title-cell small.tone-amber { color: #d97706; }
+.tk-table tr.done .tk-title-cell strong { text-decoration: line-through; text-decoration-color: var(--text-muted); }
+
+.tk-table .tk-person { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 700; }
+.tk-table .tk-due { font-size: 0.86rem; font-weight: 700; }
+
+
+/* ── Desktop: the periodic tasks in a table ── */
+.tk-table .tk-next-cell { font-size: 0.86rem; font-weight: 700; white-space: normal; min-width: 110px; }
+.tk-table .tk-muted { color: var(--text-muted); font-weight: 700; }
+.tk-table .tk-count { display: inline-flex; align-items: center; gap: 5px; font-weight: 800; color: var(--text-muted); }
+/* A stopped one: faded */
+.tk-table tbody tr.tk-brow.off td { color: var(--text-muted); }
+.tk-table tbody tr.tk-brow.off .tk-title-cell strong { color: var(--text-muted); }
+
+/* ── Delete a task: a centered confirmation, over everything ── */
+.tk-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  animation: tk-confirm-fade 0.18s ease-out;
+}
+
+.tk-confirm {
+  width: 100%;
+  max-width: 380px;
+  padding: 28px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  border-radius: 24px;
+  background: var(--card-bg, #fff);
+  color: var(--text-h, #111827);
+  font-family: var(--sans);
+  box-shadow: 0 24px 60px -20px rgba(15, 23, 42, 0.55);
+  animation: tk-confirm-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tk-confirm-icon {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.06);
+}
+
+.tk-confirm h3 { margin: 16px 0 6px; font-size: 1.15rem; font-weight: 800; }
+.tk-confirm p { margin: 0; color: var(--text, #374151); font-size: 0.95rem; font-weight: 600; line-height: 1.7; }
+.tk-confirm p strong { color: var(--text-h, #111827); font-weight: 800; }
+.tk-confirm small { margin-top: 6px; color: var(--text-muted, #64748b); font-size: 0.8rem; font-weight: 600; }
+
+.tk-confirm-actions { width: 100%; margin-top: 22px; display: flex; gap: 10px; }
+
+.tk-confirm-actions button {
+  flex: 1;
+  height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 13px;
+  font-family: var(--sans);
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.tk-confirm-actions button:active { transform: scale(0.98); }
+.tk-confirm-delete { border: none; background: #ef4444; color: #fff; }
+.tk-confirm-delete:hover { background: #dc2626; }
+.tk-confirm-cancel { border: 1px solid var(--border, #e2e8f0); background: transparent; color: var(--text-h, #111827); }
+.tk-confirm-cancel:hover { background: var(--bg-hover, #f1f5f9); }
+
+/* Phones: the buttons one under the other */
+@media (max-width: 768px) {
+  .tk-confirm { max-width: 340px; }
+  .tk-confirm-actions { flex-direction: column; gap: 8px; }
+  .tk-confirm-actions button { height: 50px; }
+}
+
+@keyframes tk-confirm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tk-confirm-pop { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+
+/* No growing row on hover: the table fills its frame exactly, a bigger row would shift it (and close the ⋮ menu) */
+.tk-table tbody tr:hover { transform: none; }

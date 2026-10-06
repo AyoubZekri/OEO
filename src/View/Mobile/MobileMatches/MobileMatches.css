@@ -503,3 +503,59 @@ body.dark-mode .mmt-page {
 
 /* Personal space: my participation under the card */
 .mmt-card .mmp { margin-top: 10px; }
+
+
+/* ── Desktop: the phone's match cards in the page's grid (the page itself stays the desktop one) ── */
+.mmt-vars {
+  --mmt-card: #ffffff;
+  --mmt-field: #f8fafc;
+  --mmt-border: #e2e8f0;
+  --mmt-text: #0f172a;
+  --mmt-muted: #64748b;
+  --mmt-accent: #f97316;
+  color: var(--mmt-text);
+  font-family: var(--sans);
+}
+
+body.dark-mode .mmt-vars {
+  --mmt-card: linear-gradient(165deg, #1c1d21 0%, #141518 100%);
+  --mmt-field: rgba(255, 255, 255, 0.04);
+  --mmt-border: rgba(255, 255, 255, 0.08);
+  --mmt-text: #f4f4f5;
+  --mmt-muted: #a1a1aa;
+}
+
+/* A card that opens nothing by itself (its ⋮ menu: "عرض التفاصيل"); no coloured shadow on the desktop */
+.mmt-card.no-tap { cursor: default; box-shadow: 0 6px 18px -14px rgba(15, 23, 42, 0.35); }
+.mmt-card.no-tap:active { transform: none; }
+.mmt-card.focused { border-color: var(--mmt-accent); }
+
+/* A match's details: the phone's details page in a window in the middle (under the dialogs it opens) */
+.mmt-desk-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  animation: mmt-modal-fade 0.18s ease-out;
+}
+
+.mmt-desk-modal .m-screen {
+  position: relative;
+  inset: auto;
+  z-index: auto;
+  width: min(620px, 100%);
+  height: min(88vh, 900px);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -25px rgba(15, 23, 42, 0.6);
+  animation: mmt-modal-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mmt-desk-modal .m-screen-bar { padding-top: 10px; }
+
+@keyframes mmt-modal-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mmt-modal-pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: none; } }

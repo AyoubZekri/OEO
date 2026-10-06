@@ -8,7 +8,9 @@ import { useTasksController } from './useTasksController';
 import { TaskOverlays } from './parts/TaskViews';
 import { TaskLoader } from './parts/TaskLoader';
 import { TaskPanel } from './parts/TaskPanel';
-import { BaseCard } from './parts/BaseCard';
+import { BaseTable } from './parts/BaseTable';
+import { Pagination } from '../../widget/Pagination';
+import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import { MobileBaseCard } from './parts/MobileBaseCard';
 import type { TaskTemplate } from './taskUtils';
 import './Tasks.css';
@@ -35,6 +37,8 @@ export const PeriodicTasks: React.FC = () => {
   const [filter, setFilter] = useState('');
   const [query, setQuery] = useState('');
   const [toDelete, setToDelete] = useState<TaskTemplate | null>(null);
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(10);
 
   const q = query.trim().toLowerCase();
   const visible = c.templates.filter(t => matches(t, filter, q));
@@ -57,11 +61,18 @@ export const PeriodicTasks: React.FC = () => {
     ) : visible.length === 0 ? (
       <div className="tk-state"><Inbox size={32} /><p>لا توجد مهام دورية بهذه التصفية</p></div>
     ) : (
-      <div className={mobile ? 'tk-base-list' : 'tk-base-grid'}>
-        {visible.map(t => (mobile
-          ? <MobileBaseCard key={t.id} c={c} t={t} onDelete={setToDelete} />
-          : <BaseCard key={t.id} c={c} t={t} onDelete={setToDelete} />))}
-      </div>
+      mobile ? (
+        <div className="tk-base-list">
+          {visible.map(t => <MobileBaseCard key={t.id} c={c} t={t} onDelete={setToDelete} />)}
+        </div>
+      ) : (
+        // Desktop: a table, like the tasks and the members
+        <div className="table-pagination-wrapper">
+          <ItemsPerPageSelector itemsPerPage={perPage} onItemsPerPageChange={setPerPage} onPageChange={setPage} />
+          <BaseTable c={c} templates={visible.slice((page - 1) * perPage, page * perPage)} onDelete={setToDelete} />
+          <Pagination totalItems={visible.length} itemsPerPage={perPage} currentPage={page} onPageChange={setPage} onItemsPerPageChange={setPerPage} />
+        </div>
+      )
     );
 
   const deleteDialog = toDelete && (
@@ -152,12 +163,12 @@ export const PeriodicTasks: React.FC = () => {
       <div className="tk-actions-row">
         <div className="search-box">
           <Search size={18} />
-          <input type="text" className="search-input" placeholder="ابحث بالعنوان أو المكلف..." value={query} onChange={e => setQuery(e.target.value)} />
+          <input type="text" className="search-input" placeholder="ابحث بالعنوان أو المكلف..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} />
         </div>
         <CustomDropdown
           options={FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${count(f.value)})` }))}
           value={filter || 'all'}
-          onChange={v => setFilter(v === 'all' ? '' : v)}
+          onChange={v => { setFilter(v === 'all' ? '' : v); setPage(1); }}
         />
         {canCreate && <button type="button" className="btn-primary" onClick={() => c.openTemplateForm()}><Plus size={18} />مهمة دورية جديدة</button>}
       </div>

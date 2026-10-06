@@ -11,7 +11,7 @@ import type { TaskKind } from './taskUtils';
 /* eslint-disable @typescript-eslint/no-explicit-any -- form bodies are plain JSON */
 
 /** tasks: the list for the signed-in account; the others are extra views for managers */
-export type TasksTab = 'tasks' | 'dashboard' | 'templates' | 'archive';
+export type TasksTab = 'tasks' | 'dashboard' | 'templates';
 
 const fail = (text: string) => showSnackbar('خطأ', text, '#ef4444');
 
@@ -33,7 +33,6 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     { value: 'tasks', label: 'المهام' },
     ...(can('manage') ? [{ value: 'dashboard' as const, label: 'لوحة المتابعة' }] : []),
     ...(can('templates') ? [{ value: 'templates' as const, label: 'المهام التلقائية' }] : []),
-    ...(can('manage') ? [{ value: 'archive' as const, label: 'الأرشيف' }] : []),
   ];
   const wanted = params.get('tab') as TasksTab | null;
   const tab: TasksTab = tabs.some(t => t.value === wanted) ? (wanted as TasksTab) : 'tasks';
@@ -64,13 +63,13 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     setLoading(true);
     setError('');
     try {
-      setTasks(await taskApi.list(readOnly ? 'my' : tab === 'archive' ? 'archive' : 'auto'));
+      setTasks(await taskApi.list(readOnly ? 'my' : 'auto'));
     } catch (e) {
       setError(apiError(e, 'تعذر تحميل المهام'));
     } finally {
       setLoading(false);
     }
-  }, [tab, isList, view, readOnly]);
+  }, [isList, view, readOnly]);
 
   const loadStats = useCallback(async () => {
     setLoading(true);
@@ -221,16 +220,6 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     }
   };
 
-  const restoreTask = async (task: Task) => {
-    try {
-      await taskApi.restore(task.id);
-      closeTask();
-      await refreshAfter();
-    } catch (e) {
-      fail(apiError(e));
-    }
-  };
-
   /* ── Templates ── */
 
   /** Automatic tasks: periodic, or created with every new match / training session / meeting */
@@ -298,7 +287,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     users, templates, stats, period, setPeriod,
     details, detailsId, openTask, closeTask,
     runAction, addProof, removeProof,
-    form, openForm, closeForm, saveTask, deleteTask, restoreTask,
+    form, openForm, closeForm, saveTask, deleteTask,
     openTemplateForm, saveTemplate, toggleTemplate, deleteTemplate,
   };
 };

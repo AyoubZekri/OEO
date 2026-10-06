@@ -43,10 +43,17 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = ({ items, label = 'الإ
     setPos({ top, left });
   }, [open]);
 
-  // Close on outside click, Escape, scroll or resize (the menu does not follow the page)
+  // Close on outside click, Escape, resize, or a scroll that really moved the button (the menu does not follow
+  // the page). A layout shift that fires a scroll without moving anything (a row's hover effect…) keeps it open.
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
+    const start = buttonRef.current?.getBoundingClientRect();
+    const onScroll = (e: Event) => {
+      if (menuRef.current?.contains(e.target as Node)) return;
+      const now = buttonRef.current?.getBoundingClientRect();
+      if (!start || !now || Math.abs(now.top - start.top) > 4 || Math.abs(now.left - start.left) > 4) close();
+    };
     const onPointer = (e: MouseEvent) => {
       const target = e.target as Node;
       if (!menuRef.current?.contains(target) && !buttonRef.current?.contains(target)) close();
@@ -54,12 +61,12 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = ({ items, label = 'الإ
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
     document.addEventListener('mousedown', onPointer);
     document.addEventListener('keydown', onKey);
-    window.addEventListener('scroll', close, true);
+    window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', close);
     return () => {
       document.removeEventListener('mousedown', onPointer);
       document.removeEventListener('keydown', onKey);
-      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', close);
     };
   }, [open]);

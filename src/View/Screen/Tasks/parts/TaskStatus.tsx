@@ -20,7 +20,7 @@ const actionTo = (task: Task, status: TaskStatus, allowed: TaskAction[]): TaskAc
 
 /** Why a status cannot be chosen: said once under the list */
 const lockedHint = (task: Task, allowed: TaskAction[]) => {
-  if (task.deleted_at) return 'المهمة في الأرشيف';
+  if (task.deleted_at) return 'المهمة محذوفة';
   if (allowed.length === 0) {
     if (task.status === 'approved') return 'المهمة منجزة';
     if (task.status === 'in_review') return 'الاعتماد أو الإرجاع لمن له صلاحية المراجعة، ولا يراجع أحد مهمة مكلف بها';

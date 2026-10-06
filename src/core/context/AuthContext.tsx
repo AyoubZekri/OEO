@@ -74,6 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let isMounted = true;
     const fetchFreshAuth = async () => {
+      // A hidden page does not ask (it asks again when shown)
+      if (document.visibilityState === 'hidden') return;
       try {
         const crud = new Crud();
         const response = await crud.getData(Applink.getUser);
@@ -133,7 +135,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     fetchFreshAuth();
-    const interval = setInterval(fetchFreshAuth, 15000); // Poll every 15 seconds
+    // Every minute (role, permissions or member type changed): light on the server
+    const interval = setInterval(fetchFreshAuth, 60000);
 
     return () => {
       isMounted = false;

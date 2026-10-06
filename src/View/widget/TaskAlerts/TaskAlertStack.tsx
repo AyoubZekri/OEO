@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
@@ -7,7 +7,7 @@ import { DATA_CHANGED } from '../../../core/api/dataChanged';
 import { useSpace } from '../../../core/context/space';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { Approutes } from '../../../core/constant/routes';
-import { taskApi } from '../../Screen/Tasks/taskApi';
+import { createAlertsBatch } from './alertsBatch';
 import { MobileSheet } from '../../Mobile/widgets/MobileSheet';
 import { alertsBell, useAlertsBell } from './alertsBell';
 import { SwipeAway } from './SwipeAway';
@@ -117,13 +117,19 @@ const ICONS: Record<AlertKind, typeof Bell> = {
 };
 
 /**
- * Live without a page refresh:
- * - every few seconds the server is asked a tiny "has anything changed?" (VERSION_MS); the alerts reload when it has;
- * - a save made in this window reloads them at once;
- * - a full reload anyway every 2 minutes (FETCH_MS), and the times are recomputed every half minute (deadlines pass).
+ * Live without a page refresh, light on the server:
+ * - the server is asked a tiny "has anything changed?" (a number read from a file): every 15 seconds while the user
+ *   works, every minute after 3 minutes without a touch, never while the page is hidden;
+ *   when it fails, it waits longer each time (30 s, 1 min, 2 min) instead of insisting;
+ * - the alerts reload (all their lists in one request) only when the answer changes; a save made in this window,
+ *   or coming back to the page, asks at once;
+ * - a full reload anyway every 15 minutes (FETCH_MS), and the times are recomputed every half minute (deadlines pass).
  */
-const VERSION_MS = 10 * 1000;
-const FETCH_MS = 2 * 60 * 1000;
+const VERSION_MS = 15 * 1000;
+const IDLE_VERSION_MS = 60 * 1000;
+const IDLE_AFTER_MS = 3 * 60 * 1000;
+const MAX_BACKOFF_MS = 2 * 60 * 1000;
+const FETCH_MS = 15 * 60 * 1000;
 const TICK_MS = 30 * 1000;
 /** A save is followed by a short wait, so several saves in a row reload once */
 const AFTER_SAVE_MS = 700;
@@ -234,78 +240,87 @@ export const TaskAlerts: React.FC = () => {
     try { return JSON.parse(sessionStorage.getItem(MINIMIZED_KEY) || 'null'); } catch { return null; }
   });
 
+  // One load at a time (one that hangs on a slow server stops blocking after 30 seconds)
+  const loadingRef = useRef(0);
   const load = useCallback(async () => {
-    if (document.visibilityState === 'hidden') return;
+    if (document.visibilityState === 'hidden' || Date.now() - loadingRef.current < 30000) return;
+    const started = Date.now();
+    loadingRef.current = started;
+    // Every list in one request (/alerts/all)
+    const batch = createAlertsBatch();
     // Alerts are a help: a failed refresh keeps the last ones
-    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit] = await Promise.all([
-      seesTasks ? taskApi.list('my').catch(() => null) : Promise.resolve([] as Task[]),
+    const lists = Promise.all([
+      seesTasks ? batch.get('/tasks', { params: { scope: 'my' } }).then(r => r.data.data as Task[]).catch(() => null) : Promise.resolve([] as Task[]),
       managesDisciplinary
-        ? client.get('/disciplinary/mine').then(r => r.data.data as MyDisciplinaryAction[]).catch(() => null)
+        ? batch.get('/disciplinary/mine').then(r => r.data.data as MyDisciplinaryAction[]).catch(() => null)
         : Promise.resolve([] as MyDisciplinaryAction[]),
       canManage && managesDisciplinary
-        ? client.get('/disciplinary').then(r => (Array.isArray(r.data) ? r.data : r.data?.data || []) as MyDisciplinaryAction[]).catch(() => null)
+        ? batch.get('/disciplinary').then(r => (Array.isArray(r.data) ? r.data : r.data?.data || []) as MyDisciplinaryAction[]).catch(() => null)
         : Promise.resolve([] as MyDisciplinaryAction[]),
       seesTraining
-        ? client.get('/training-sessions/mine').then(r => r.data as TrainingSessionModel[]).catch(() => null)
+        ? batch.get('/training-sessions/mine').then(r => r.data as TrainingSessionModel[]).catch(() => null)
         : Promise.resolve([] as TrainingSessionModel[]),
       canManage && managesTraining
-        ? client.get('/training-sessions').then(r => r.data as TrainingSessionModel[]).catch(() => null)
+        ? batch.get('/training-sessions').then(r => r.data as TrainingSessionModel[]).catch(() => null)
         : Promise.resolve([] as TrainingSessionModel[]),
       seesTraining
-        ? client.get('/training-sessions/mine/notices').then(r => r.data as TrainingNotice[]).catch(() => null)
+        ? batch.get('/training-sessions/mine/notices').then(r => r.data as TrainingNotice[]).catch(() => null)
         : Promise.resolve([] as TrainingNotice[]),
       seesMatches
-        ? client.get('/matches/mine').then(r => r.data?.data as Match[]).catch(() => null)
+        ? batch.get('/matches/mine').then(r => r.data?.data as Match[]).catch(() => null)
         : Promise.resolve([] as Match[]),
       canManage && managesMatches
-        ? client.get('/matches').then(r => r.data?.data as Match[]).catch(() => null)
+        ? batch.get('/matches').then(r => r.data?.data as Match[]).catch(() => null)
         : Promise.resolve([] as Match[]),
       seesMatches
-        ? client.get('/matches/mine/notices').then(r => r.data as MatchNotice[]).catch(() => null)
+        ? batch.get('/matches/mine/notices').then(r => r.data as MatchNotice[]).catch(() => null)
         : Promise.resolve([] as MatchNotice[]),
       seesAbsences
-        ? client.get('/absences/mine').then(r => r.data as AbsenceRecord[]).catch(() => null)
+        ? batch.get('/absences/mine').then(r => r.data as AbsenceRecord[]).catch(() => null)
         : Promise.resolve([] as AbsenceRecord[]),
       canManage && seesAbsences
-        ? client.get('/absences').then(r => (Array.isArray(r.data) ? r.data : r.data?.data) as AbsenceRecord[]).catch(() => null)
+        ? batch.get('/absences').then(r => (Array.isArray(r.data) ? r.data : r.data?.data) as AbsenceRecord[]).catch(() => null)
         : Promise.resolve([] as AbsenceRecord[]),
       seesMeetings || seesDecisions
-        ? client.get('/meetings/mine').then(r => r.data as MyMeeting[]).catch(() => null)
+        ? batch.get('/meetings/mine').then(r => r.data as MyMeeting[]).catch(() => null)
         : Promise.resolve([] as MyMeeting[]),
       canManage && (meetCan.meetings || meetCan.attendance || meetCan.addDecisions)
-        ? client.get('/meetings').then(r => r.data as Meeting[]).catch(() => null)
+        ? batch.get('/meetings').then(r => r.data as Meeting[]).catch(() => null)
         : Promise.resolve([] as Meeting[]),
       canManage && (meetCan.decisions || meetCan.addDecisions)
-        ? client.get('/decisions').then(r => r.data as ManagedDecision[]).catch(() => null)
+        ? batch.get('/decisions').then(r => r.data as ManagedDecision[]).catch(() => null)
         : Promise.resolve([] as ManagedDecision[]),
       seesMeetings
-        ? client.get('/meetings/mine/notices').then(r => r.data as MeetingNotice[]).catch(() => null)
+        ? batch.get('/meetings/mine/notices').then(r => r.data as MeetingNotice[]).catch(() => null)
         : Promise.resolve([] as MeetingNotice[]),
       managesTravels
-        ? client.get('/travels/mine').then(r => r.data?.data as Travel[]).catch(() => null)
+        ? batch.get('/travels/mine').then(r => r.data?.data as Travel[]).catch(() => null)
         : Promise.resolve([] as Travel[]),
       canManage && managesTravels
-        ? client.get('/travels').then(r => r.data?.data as Travel[]).catch(() => null)
+        ? batch.get('/travels').then(r => r.data?.data as Travel[]).catch(() => null)
         : Promise.resolve([] as Travel[]),
       managesTravels
-        ? client.get('/travels/mine/notices').then(r => r.data as TravelNotice[]).catch(() => null)
+        ? batch.get('/travels/mine/notices').then(r => r.data as TravelNotice[]).catch(() => null)
         : Promise.resolve([] as TravelNotice[]),
       managesMedical
-        ? client.get('/medical-records/mine').then(r => r.data?.data as PlayerMedicalRecord[]).catch(() => null)
+        ? batch.get('/medical-records/mine').then(r => r.data?.data as PlayerMedicalRecord[]).catch(() => null)
         : Promise.resolve([] as PlayerMedicalRecord[]),
       canManage && managesMedical
-        ? client.get('/medical-records').then(r => r.data?.data as PlayerMedicalRecord[]).catch(() => null)
+        ? batch.get('/medical-records').then(r => r.data?.data as PlayerMedicalRecord[]).catch(() => null)
         : Promise.resolve([] as PlayerMedicalRecord[]),
       managesMedical
-        ? client.get('/medical-records/mine/notices').then(r => r.data as MedicalNotice[]).catch(() => null)
+        ? batch.get('/medical-records/mine/notices').then(r => r.data as MedicalNotice[]).catch(() => null)
         : Promise.resolve([] as MedicalNotice[]),
       canManage && managesDebts
-        ? client.get('/debts').then(r => r.data?.data as Debt[]).catch(() => null)
+        ? batch.get('/debts').then(r => r.data?.data as Debt[]).catch(() => null)
         : Promise.resolve([] as Debt[]),
       canManage && managesPayments
-        ? client.get('/payments/credit').then(r => r.data?.data as Debt[]).catch(() => null)
+        ? batch.get('/payments/credit').then(r => r.data?.data as Debt[]).catch(() => null)
         : Promise.resolve([] as Debt[]),
     ]);
+    batch.flush();
+    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit] = await lists;
+    if (loadingRef.current === started) loadingRef.current = 0;
     if (myTasks) setTasks(myTasks);
     if (myActions) setActions(myActions);
     if (everyAction) setAllActions(everyAction);
@@ -340,36 +355,61 @@ export const TaskAlerts: React.FC = () => {
 
     // Something changed on the server (by anyone): reload
     let version: string | null = null;
-    const check = async () => {
+    let failures = 0;
+    let lastTouch = Date.now();
+    let timer: number | undefined;
+    const delay = () => (failures > 0
+      ? Math.min(MAX_BACKOFF_MS, VERSION_MS * 2 ** failures)
+      : Date.now() - lastTouch > IDLE_AFTER_MS ? IDLE_VERSION_MS : VERSION_MS);
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(check, delay());
+    };
+    async function check() {
+      window.clearTimeout(timer);
+      // Hidden: no question until the page is shown again
       if (document.visibilityState === 'hidden') return;
       try {
         const next = (await client.get('/alerts/version')).data?.version ?? null;
+        failures = 0;
         if (version !== null && next !== version) load();
         version = next;
-      } catch { /* the next check will tell */ }
-    };
+      } catch {
+        failures += 1;
+      }
+      schedule();
+    }
     check();
-    const versionTimer = window.setInterval(check, VERSION_MS);
 
-    // Saved in this window: reload at once (after the save's own follow-up requests)
+    // Saved in this window: ask at once (after the save's own follow-up requests)
     let saveTimer: number | undefined;
     const onSaved = () => {
       window.clearTimeout(saveTimer);
-      saveTimer = window.setTimeout(() => { load(); setNow(Date.now()); }, AFTER_SAVE_MS);
+      saveTimer = window.setTimeout(() => { check(); setNow(Date.now()); }, AFTER_SAVE_MS);
     };
     window.addEventListener(DATA_CHANGED, onSaved);
-    // Back on the page (window focused, or tab shown again): refresh at once
-    const onFocus = () => { load(); setNow(Date.now()); };
+    // Back on the page (window focused, or tab shown again): ask at once
+    const onFocus = () => { check(); setNow(Date.now()); };
     window.addEventListener('focus', onFocus);
     document.addEventListener('visibilitychange', onFocus);
+    // Working again after a pause: back to the short wait at once
+    const onTouch = () => {
+      const wasIdle = Date.now() - lastTouch > IDLE_AFTER_MS;
+      lastTouch = Date.now();
+      if (wasIdle && failures === 0) check();
+    };
+    window.addEventListener('pointerdown', onTouch, { passive: true });
+    window.addEventListener('keydown', onTouch);
     return () => {
       window.clearInterval(fetchTimer);
       window.clearInterval(tick);
-      window.clearInterval(versionTimer);
+      window.clearTimeout(timer);
       window.clearTimeout(saveTimer);
       window.removeEventListener(DATA_CHANGED, onSaved);
       window.removeEventListener('focus', onFocus);
       document.removeEventListener('visibilitychange', onFocus);
+      window.removeEventListener('pointerdown', onTouch);
+      window.removeEventListener('keydown', onTouch);
     };
   }, [load]);
 

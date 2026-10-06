@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Search, RefreshCw, Inbox, ListTodo } from 'lucide-react';
 import { CustomDropdown } from '../../../widget/CustomDropdown';
 import { Pagination } from '../../../widget/Pagination';
-import { TaskCard } from './TaskCard';
+import { TaskTable } from './TaskTable';
+import { ItemsPerPageSelector } from '../../../widget/ItemsPerPageSelector';
 import { TaskDashboard } from './TaskDashboard';
 import { TemplateList } from './TemplateList';
 import { TaskLoader } from './TaskLoader';
@@ -11,23 +12,22 @@ import { filterTasks, KIND_FILTERS, TASK_FILTERS } from '../taskUtils';
 
 const EMPTY: Record<string, string> = {
   tasks: 'لا توجد مهام حالياً',
-  archive: 'الأرشيف فارغ',
 };
 
 
-/** Desktop page body: search, the status and type filters and the add button, then the cards of the signed-in account's tasks */
+/** Desktop page body: search, the status and type filters and the add button, then the tasks in a table (like the members) */
 export const TaskBoard: React.FC<{ c: TasksController; addButton: React.ReactNode }> = ({ c, addButton }) => {
   // Status filter: everything by default
   const [filter, setFilter] = useState('');
   const [kind, setKind] = useState('');
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(12);
+  const [perPage, setPerPage] = useState(10);
 
   const counts = useMemo(() => Object.fromEntries(TASK_FILTERS.map(f => [f.value, c.tasks.filter(f.test).length])), [c.tasks]);
   const kindCounts = useMemo(() => Object.fromEntries(KIND_FILTERS.map(k => [k.value, c.tasks.filter(t => !k.value || t.source_type === k.value).length])), [c.tasks]);
   const visible = filterTasks(c.tasks, filter, query, kind);
-  const cards = visible.slice((page - 1) * perPage, page * perPage);
+  const rows = visible.slice((page - 1) * perPage, page * perPage);
 
   return (
     <>
@@ -44,13 +44,11 @@ export const TaskBoard: React.FC<{ c: TasksController; addButton: React.ReactNod
                 onChange={e => { setQuery(e.target.value); setPage(1); }}
               />
             </div>
-            {c.tab !== 'archive' && (
-              <CustomDropdown
-                options={TASK_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${counts[f.value]})` }))}
-                value={filter || 'all'}
-                onChange={v => { setFilter(v === 'all' ? '' : v); setPage(1); }}
-              />
-            )}
+            <CustomDropdown
+              options={TASK_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${counts[f.value]})` }))}
+              value={filter || 'all'}
+              onChange={v => { setFilter(v === 'all' ? '' : v); setPage(1); }}
+            />
             <CustomDropdown
               options={KIND_FILTERS.map(k => ({ value: k.value || 'all', label: `${k.label} (${kindCounts[k.value]})` }))}
               value={kind || 'all'}
@@ -75,16 +73,11 @@ export const TaskBoard: React.FC<{ c: TasksController; addButton: React.ReactNod
               ) : visible.length === 0 ? (
                 <div className="tk-state"><Inbox size={32} /><p>{c.tasks.length === 0 ? EMPTY[c.tab] || 'لا توجد مهام' : 'لا توجد مهام بهذه التصفية'}</p></div>
               ) : (
-                <>
-                  <div className="tk-grid">
-                    {cards.map(t => <TaskCard key={t.id} task={t} onOpen={c.openTask} userId={c.userId} />)}
-                  </div>
-                  {visible.length > perPage && (
-                    <div className="tk-pagination">
-                      <Pagination totalItems={visible.length} itemsPerPage={perPage} currentPage={page} onPageChange={setPage} onItemsPerPageChange={setPerPage} />
-                    </div>
-                  )}
-                </>
+                <div className="table-pagination-wrapper">
+                  <ItemsPerPageSelector itemsPerPage={perPage} onItemsPerPageChange={setPerPage} onPageChange={setPage} />
+                  <TaskTable tasks={rows} c={c} />
+                  <Pagination totalItems={visible.length} itemsPerPage={perPage} currentPage={page} onPageChange={setPage} onItemsPerPageChange={setPerPage} />
+                </div>
               )}
         </div>
       </div>

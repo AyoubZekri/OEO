@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   CalendarClock, CalendarPlus, UserRound, UserCheck, PenLine, Paperclip, History, PauseCircle,
-  CheckCircle2, Undo2, Pencil, Trash2, ArchiveRestore, Loader2, AlertTriangle, FileText, Image as ImageIcon, Link2, Type,
+  CheckCircle2, Undo2, Pencil, Trash2, Loader2, AlertTriangle, FileText, Image as ImageIcon, Link2, Type,
   Plus, X, ShieldCheck, AlertCircle, ListTodo, Repeat, Power, Hourglass, Users,
 } from 'lucide-react';
 import { TaskPanel } from './TaskPanel';
@@ -14,6 +14,7 @@ import {
   abilitiesOf, eventMeta, PERIODIC_LEAD_DAYS, recurrenceText, TRIGGERS, blockReasonText, dateText, dueText, HISTORY_LABELS, initials, STATUS_META,
   type Task, type TaskAction, type TaskAttachment, type TaskStatus,
 } from '../taskUtils';
+import { DeleteTaskDialog } from './DeleteTaskDialog';
 
 const PROOF_ICONS: Record<TaskAttachment['type'], typeof FileText> = { file: FileText, image: ImageIcon, link: Link2, text: Type };
 
@@ -56,9 +57,6 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
 
   const footer = (
     <div className="tk-actions">
-      {task.deleted_at && c.can('delete') && (
-        <button type="button" className="tk-btn primary" onClick={() => c.restoreTask(task)}><ArchiveRestore size={17} />استرجاع</button>
-      )}
       {me.canEdit && <button type="button" className="tk-btn ghost" onClick={() => c.openForm(task)}><Pencil size={16} />تعديل</button>}
       {me.canDelete && <button type="button" className="tk-btn ghost danger-text" onClick={() => setConfirmDelete(true)}><Trash2 size={16} />حذف</button>}
       {!mobile && <button type="button" className="btn-cancel tk-dlg-btn tk-actions-side" onClick={c.closeTask}>إغلاق</button>}
@@ -87,7 +85,6 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
                 <KindBadge task={task} />
                 <PriorityBadge priority={task.priority} />
                 <OverdueBadge task={task} />
-                {task.deleted_at && <span className="tk-badge tone-red soft"><Trash2 size={12} />في الأرشيف</span>}
               </div>
               <h2>{task.title}</h2>
             </div>
@@ -299,22 +296,7 @@ export const TaskDetails: React.FC<{ c: TasksController; task: Task; mobile: boo
       )}
 
       {confirmDelete && (
-        <TaskPanel
-          mobile={mobile}
-          sheet
-          size="sm"
-          layer={2}
-          title="حذف المهمة"
-          onClose={() => setConfirmDelete(false)}
-          footer={(
-            <>
-              <button type="button" className="tk-btn ghost" onClick={() => setConfirmDelete(false)}>إلغاء</button>
-              <button type="button" className="tk-btn danger" onClick={() => { setConfirmDelete(false); c.deleteTask(task); }}><Trash2 size={17} />حذف</button>
-            </>
-          )}
-        >
-          <p className="tk-text">تُنقل المهمة «{task.title}» إلى الأرشيف مع سجلها وإثباتاتها، ويمكن للمسؤول استرجاعها.</p>
-        </TaskPanel>
+        <DeleteTaskDialog title={task.title} onConfirm={() => { setConfirmDelete(false); c.deleteTask(task); }} onClose={() => setConfirmDelete(false)} />
       )}
     </TaskPanel>
   );

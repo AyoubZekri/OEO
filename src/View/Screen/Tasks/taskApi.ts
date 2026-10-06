@@ -17,7 +17,7 @@ export const apiError = (e: unknown, fallback = 'تعذر تنفيذ العمل�
 };
 
 /** auto: what the signed-in account deals with (managers: every task) */
-export type TaskScope = 'auto' | 'my' | 'review' | 'created' | 'all' | 'archive';
+export type TaskScope = 'auto' | 'my' | 'review' | 'created' | 'all';
 
 export const taskApi = {
   list: async (scope: TaskScope): Promise<Task[]> => (await client.get('/tasks', { params: { scope } })).data.data,
@@ -29,7 +29,6 @@ export const taskApi = {
   create: async (data: Record<string, any>): Promise<Task> => (await client.post('/tasks/create', data)).data.data,
   update: async (data: Record<string, any>): Promise<Task> => (await client.post('/tasks/update', data)).data.data,
   remove: async (id: number) => client.post('/tasks/delete', { id }),
-  restore: async (id: number) => client.post('/tasks/restore', { id }),
   action: async (id: number, action: TaskAction, extra: { reason?: string; note?: string } = {}): Promise<Task> =>
     (await client.post('/tasks/action', { id, action, ...extra })).data.data,
 

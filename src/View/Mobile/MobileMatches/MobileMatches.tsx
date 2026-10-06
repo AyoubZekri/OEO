@@ -1,19 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Plus, Search, Eye, Clock, Radio, Trophy, Calendar } from 'lucide-react';
+import { Plus, Search, Clock, Radio, Trophy, Calendar } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
-import { MobileRowMenu } from '../widgets/MobileRowMenu';
 import { useUrlDetails } from '../widgets/useUrlDetails';
 import type { Match } from '../../Screen/Matches/match_model';
-import { type MatchActions, matchActionItems, CLUB_NAME, CLUB_LOGO } from './matchActions';
+import { type MatchActions, CLUB_NAME, CLUB_LOGO } from './matchActions';
 import {
-  matchState, matchDate, hasScore, resultOf, RESULT_LABEL, STATE_LABEL, opponentName, opponentLogo,
+  matchState, matchDate, resultOf, opponentName, opponentLogo,
   opponentShort, dayText, countdown,
 } from './matchUtils';
 import { MobileMatchDetails } from './MobileMatchDetails';
+import { MatchCard } from './MatchCard';
+import { useMatchNow } from './useMatchNow';
 import { TeamBadge } from './TeamBadge';
-import { MyMatchParticipation } from './MyMatchParticipation';
 import './MobileMatches.css';
 
 interface MobileMatchesProps {
@@ -26,21 +26,11 @@ interface MobileMatchesProps {
 
 type Tab = 'upcoming' | 'played';
 
-// Refreshes "now" every minute so live and countdown states stay right
-const useNow = () => {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 60000);
-    return () => window.clearInterval(id);
-  }, []);
-  return now;
-};
-
 // Phone version of the matches page
 export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading, actions, personal = false }) => {
   const allowed = useCan();
   const can: typeof allowed = (...args) => !personal && allowed(...args);
-  const now = useNow();
+  const now = useMatchNow();
   const [tab, setTab] = useState<Tab>('upcoming');
   const [query, setQuery] = useState('');
   const [detailsId, setDetailsId] = useUrlDetails('match');
@@ -66,10 +56,6 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
 
   const details = detailsId !== null ? withState.find(x => String(x.m.id) === detailsId) : undefined;
 
-  // The list shows the score, or "VS": the kick-off time and the stadium are in the details
-  const scoreOrVs = (m: Match) => (hasScore(m)
-    ? <strong className="mmt-score" dir="ltr">{m.opponent_score} - {m.team_score}</strong>
-    : <strong className="mmt-vs">VS</strong>);
 
   return (
     <div className="mmt-page">
@@ -140,55 +126,17 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
             </div>
           ) : (
             <div className="mmt-list">
-              {list.map(({ m, state }) => {
-                const date = matchDate(m);
-                const result = resultOf(m);
-                const open = () => setDetailsId(m.id);
-                return (
-                  <article
-                    key={m.id}
-                    className={`mmt-card state-${state}`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={open}
-                    onKeyDown={e => { if (e.key === 'Enter') open(); }}
-                  >
-                    <div className="mmt-card-top">
-                      <span className="mmt-comp">
-                        <Trophy size={13} /> {m.competition || 'الدوري المحلي'}
-                        {m.team?.name && <em>{m.team.name}</em>}
-                      </span>
-                      <MobileRowMenu items={[
-                        { key: 'details', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: open },
-                        ...matchActionItems(m, state, actions, action => can('matches', action)),
-                      ]} label="إجراءات المباراة" />
-                    </div>
-
-                    <div className="mmt-board">
-                      <span className="mmt-team">
-                        <TeamBadge logo={CLUB_LOGO} short="OL" />
-                        <small>{CLUB_NAME}</small>
-                      </span>
-                      <span className="mmt-center">
-                        {scoreOrVs(m)}
-                        <span className={`mmt-state ${result ? `result-${result}` : ''}`}>
-                          {state === 'live' && <i />}
-                          {result ? RESULT_LABEL[result] : STATE_LABEL[state]}
-                        </span>
-                      </span>
-                      <span className="mmt-team">
-                        <TeamBadge logo={opponentLogo(m)} short={opponentShort(m)} />
-                        <small>{opponentName(m)}</small>
-                      </span>
-                    </div>
-
-                    <div className="mmt-meta">
-                      <span><Calendar size={13} /> {dayText(date)}</span>
-                    </div>
-                    {personal && <MyMatchParticipation match={m} state={state} />}
-                  </article>
-                );
-              })}
+              {list.map(({ m, state }) => (
+                <MatchCard
+                  key={m.id}
+                  match={m}
+                  state={state}
+                  actions={actions}
+                  allowed={action => can('matches', action)}
+                  onOpen={() => setDetailsId(m.id)}
+                  personal={personal}
+                />
+              ))}
             </div>
           )}
         </>
