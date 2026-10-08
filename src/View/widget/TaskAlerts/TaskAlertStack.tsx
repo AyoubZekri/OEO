@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake } from 'lucide-react';
+import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake, UserCheck } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import client from '../../../core/api/client';
 import { DATA_CHANGED } from '../../../core/api/dataChanged';
@@ -25,7 +25,7 @@ import {
   absenceAlerts, alertsFor, disciplinaryAlerts, managerAbsenceAlerts, managerDisciplinaryAlerts, managerMeetingAlerts, matchAlerts, matchNoticeAlerts,
   meetingAlerts, meetingNoticeAlerts, trainingAlerts, trainingNoticeAlerts, type ManagedDecision, type MeetingNotice,
   travelAlerts, travelNoticeAlerts, managerTravelAlerts, type TravelNotice, medicalAlerts, managerMedicalAlerts,
-  medicalNoticeAlerts, type MedicalNotice, debtAlerts,
+  medicalNoticeAlerts, type MedicalNotice, debtAlerts, officerHearingAlerts, type OfficiatedHearing,
   type AlertKind, type AppAlert, type MatchNotice, type MyDisciplinaryAction, type TrainingNotice,
 } from './alertRules';
 import './TaskAlerts.css';
@@ -44,6 +44,8 @@ const ICONS: Record<AlertKind, typeof Bell> = {
   mgr_reply_late: AlarmClock,
   mgr_hearing: CalendarClock,
   mgr_document: FileSignature,
+  disc_officer: UserCheck,
+  disc_officer_soon: CalendarClock,
   train_soon: Dumbbell,
   train_live: Radio,
   train_ended: CalendarCheck,
@@ -213,6 +215,7 @@ export const TaskAlerts: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [actions, setActions] = useState<MyDisciplinaryAction[]>([]);
   const [allActions, setAllActions] = useState<MyDisciplinaryAction[]>([]);
+  const [officiated, setOfficiated] = useState<OfficiatedHearing[]>([]);
   const [mySessions, setMySessions] = useState<TrainingSessionModel[]>([]);
   const [allSessions, setAllSessions] = useState<TrainingSessionModel[]>([]);
   const [notices, setNotices] = useState<TrainingNotice[]>([]);
@@ -317,9 +320,13 @@ export const TaskAlerts: React.FC = () => {
       canManage && managesPayments
         ? batch.get('/payments/credit').then(r => r.data?.data as Debt[]).catch(() => null)
         : Promise.resolve([] as Debt[]),
+      // The hearings I run (named their officer): whoever has the management space
+      canManage
+        ? batch.get('/disciplinary/officiating').then(r => r.data?.data as OfficiatedHearing[]).catch(() => null)
+        : Promise.resolve([] as OfficiatedHearing[]),
     ]);
     batch.flush();
-    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit] = await lists;
+    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit, myHearings] = await lists;
     if (loadingRef.current === started) loadingRef.current = 0;
     if (myTasks) setTasks(myTasks);
     if (myActions) setActions(myActions);
@@ -344,6 +351,7 @@ export const TaskAlerts: React.FC = () => {
     if (Array.isArray(myMedicalNotices)) setMedicalNotices(myMedicalNotices);
     if (Array.isArray(everyDebt)) setDebts(everyDebt);
     if (Array.isArray(everyCredit)) setCreditPurchases(everyCredit);
+    if (Array.isArray(myHearings)) setOfficiated(myHearings);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- meetCan changes with meetCanKey
   }, [managesDisciplinary, managesTraining, managesMatches, seesAbsences, meetCanKey, managesTravels, managesMedical, seesTasks, seesTraining, seesMatches, managesDebts, managesPayments, canManage]);
 
@@ -418,6 +426,7 @@ export const TaskAlerts: React.FC = () => {
   const all = useMemo(() => [
     ...(managesDisciplinary ? disciplinaryAlerts(actions, now) : []),
     ...managerDisciplinaryAlerts(allActions, now),
+    ...(canManage ? officerHearingAlerts(officiated, now) : []),
     ...(managesDebts ? debtAlerts(debts, now) : []),
     ...(managesPayments ? debtAlerts(creditPurchases, now) : []),
     ...(managesMedical ? medicalAlerts(myMedical, now) : []),
@@ -438,7 +447,7 @@ export const TaskAlerts: React.FC = () => {
     ...(seesTraining ? trainingAlerts(mySessions, 'personal', now) : []),
     ...trainingAlerts(allSessions, 'management', now, canAttend),
     ...(seesTasks ? alertsFor(tasks, now) : []),
-  ], [seesTasks, managesDisciplinary, seesTraining, seesAbsences, seesMatches, seesMeetings, seesDecisions, managesTravels, managesMedical, managesDebts, managesPayments, debts, creditPurchases, actions, allActions, myMedical, allMedical, medicalNotices, travelNotices,myTravels, allTravels, meetingNotices,myMeetings, allMeetings,allDecisions, meetCanKey, user, myAbsences, allAbsences, decidesAbsences,matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now]);
+  ], [seesTasks, managesDisciplinary, seesTraining, seesAbsences, seesMatches, seesMeetings, seesDecisions, managesTravels, managesMedical, managesDebts, managesPayments, debts, creditPurchases, actions, allActions, myMedical, allMedical, medicalNotices, travelNotices,myTravels, allTravels, meetingNotices,myMeetings, allMeetings,allDecisions, meetCanKey, user, myAbsences, allAbsences, decidesAbsences,matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now, officiated, canManage]);
   const alerts = useMemo(() => all.filter(a => !dismissed.includes(a.key)), [all, dismissed]);
 
   // Phones: the alerts are behind the bell of the app bar (its number, the full list in a sheet);

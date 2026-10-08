@@ -1,0 +1,39 @@
+/* The administration's decision: a simple administrative document on the club's letterhead */
+.dd { padding-top: 34mm !important; }
+
+.dd-meta {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.dd-title {
+  margin: 9mm 0 7mm;
+  color: #F97316;
+  font-size: 26px;
+  font-weight: 900;
+  text-align: center;
+}
+.dd-title::after {
+  content: '';
+  display: block;
+  width: 22mm;
+  height: 2px;
+  margin: 2.5mm auto 0;
+  background: #F97316;
+}
+
+.dd-text { margin: 0 0 5mm; font-size: 15px; font-weight: 600; line-height: 1.9; text-align: center; }
+.dd-name { text-decoration: underline; font-weight: 800; }
+
+.dd-label { margin: 3mm 0 1.5mm; font-size: 15px; font-weight: 800; text-align: center; }
+.dd-reasons { margin: 0 auto 6mm; max-width: 150mm; min-height: 16mm; font-size: 15px; font-weight: 600; line-height: 1.9; white-space: pre-wrap; text-align: center; }
+
+.dd-notice { margin-top: 3mm; font-size: 14px; color: #222; }
+
+.dd-sign { margin-top: 12mm; table-layout: fixed; }
+.dd-sign th { width: 50%; padding: 2.5mm; font-size: 15px; }
+.dd-sign td { height: 30mm; }

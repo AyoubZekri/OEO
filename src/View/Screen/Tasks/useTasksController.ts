@@ -4,7 +4,7 @@ import { useAuth } from '../../../core/context/AuthContext';
 import { useCan } from '../../../core/functions/useCan';
 import { showSnackbar } from '../../../core/functions/Snacpar';
 import { useUrlDetails } from '../../Mobile/widgets/useUrlDetails';
-import { apiError, taskApi } from './taskApi';
+import { apiError, logTaskError, taskApi } from './taskApi';
 import type { Task, TaskAction, TaskAttachment, TaskStats, TaskTemplate, TaskUser } from './taskUtils';
 import type { TaskKind } from './taskUtils';
 
@@ -65,6 +65,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     try {
       setTasks(await taskApi.list(readOnly ? 'my' : 'auto'));
     } catch (e) {
+      logTaskError('تحميل قائمة المهام', e, { scope: readOnly ? 'my' : 'auto' });
       setError(apiError(e, 'تعذر تحميل المهام'));
     } finally {
       setLoading(false);
@@ -130,6 +131,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     try {
       setDetails(await taskApi.show(Number(id)));
     } catch (e) {
+      logTaskError('فتح / تحديث تفاصيل المهمة', e, { task: id });
       fail(apiError(e, 'تعذر فتح المهمة'));
       setDetailsId(null);
     }
@@ -159,10 +161,11 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
   /* ── Workflow ── */
 
   /** Throws the server's message so the sheet that asked for a reason can show it */
-  const runAction = async (task: Task, action: TaskAction, extra: { reason?: string; note?: string } = {}) => {
+  const runAction = async (task: Task, action: TaskAction, extra: { reason?: string; note?: string; status?: string } = {}) => {
     try {
       await taskApi.action(task.id, action, extra);
     } catch (e) {
+      logTaskError('تغيير حالة المهمة', e, { task: task.id, reference: task.reference, from: task.status, action, ...extra });
       throw new Error(apiError(e), { cause: e });
     }
     await refreshAfter(task.id);
@@ -172,6 +175,11 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     try {
       await taskApi.attach(task.id, proof);
     } catch (e) {
+      logTaskError('إرسال إثبات', e, {
+        task: task.id, reference: task.reference, status: task.status, type: proof.type,
+        file: proof.file ? `${proof.file.name} (${Math.round(proof.file.size / 1024)} ك.ب، ${proof.file.type})` : undefined,
+        url: proof.url, text: proof.body,
+      });
       throw new Error(apiError(e, 'تعذر رفع الإثبات'), { cause: e });
     }
     await refreshAfter(task.id);
@@ -182,6 +190,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
       await taskApi.removeAttachment(attachment.id);
       await refreshAfter(task.id);
     } catch (e) {
+      logTaskError('حذف إثبات', e, { task: task.id, reference: task.reference, attachment: attachment.id });
       fail(apiError(e));
     }
   };
@@ -204,6 +213,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
     try {
       saved = data.id ? await taskApi.update(data) : await taskApi.create(data);
     } catch (e) {
+      logTaskError(data.id ? 'تعديل المهمة' : 'إضافة مهمة', e, { task: data.id, data });
       throw new Error(apiError(e), { cause: e });
     }
     setForm(null);
@@ -216,6 +226,7 @@ export const useTasksController = (view: 'tasks' | 'periodic' | 'personal' = 'ta
       closeTask();
       await refreshAfter();
     } catch (e) {
+      logTaskError('حذف المهمة', e, { task: task.id, reference: task.reference });
       fail(apiError(e));
     }
   };

@@ -141,3 +141,42 @@
   vertical-align: top;
   padding: 5px;
 }
+
+/* ── Handover / return receipt (PrintableEquipmentReceipt) ── */
+.er { padding-top: 32mm !important; }
+.er-meta {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 2mm;
+  border-bottom: 1px solid #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+.er-title {
+  margin: 8mm 0 6mm;
+  color: #F97316;
+  font-size: 24px;
+  font-weight: 900;
+  text-align: center;
+}
+.er-title::after {
+  content: '';
+  display: block;
+  width: 22mm;
+  height: 2px;
+  margin: 2.5mm auto 0;
+  background: #F97316;
+}
+.er-player th { width: 18%; background: #f9fafb; text-align: right; white-space: nowrap; }
+.er-player td { width: 32%; font-weight: 600; }
+.er-label { margin: 5mm 0 2mm; font-size: 16px; font-weight: 800; text-align: center; color: #F97316; }
+.er-items th, .er-items td { text-align: center; }
+.er-items td { font-weight: 600; }
+.er-items .er-no { width: 8mm; }
+.er-items .er-name { text-align: right; }
+.er-items tfoot td { font-weight: 800; background: #f9fafb; }
+.er-items .er-empty { padding: 6mm; font-weight: 600; color: #555; }
+.er-declaration { margin: 6mm 0 0; font-size: 14px; font-weight: 600; line-height: 1.9; text-align: center; }
+.er-signs { margin-top: 8mm; table-layout: fixed; }
+.er-signs th { width: 50%; padding: 2.5mm; }
+.er-signs td { height: 28mm; }

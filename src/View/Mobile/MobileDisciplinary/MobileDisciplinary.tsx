@@ -12,11 +12,12 @@ import type { MobileSelectOption } from '../widgets/MobileSelect';
 import { MobileDisciplinaryDetails } from './MobileDisciplinaryDetails';
 import { MobileDisciplinaryReplyView, MobileDisciplinaryReplyForm } from './MobileDisciplinaryReply';
 import { MobileDisciplinaryUpload, MobileDisciplinaryDocumentView } from './MobileDisciplinaryDocument';
-import { MobileDisciplinaryPrint } from './MobileDisciplinaryPrint';
+import { DisciplinaryPrintSheet } from '../../Screen/Disciplinary/Printable/DisciplinaryPrint';
+import { printDocsFor, type PrintType } from '../../Screen/Disciplinary/Printable/printDocs';
 import { MobileDisciplinaryForm } from './MobileDisciplinaryForm';
 import type { useDisciplinaryController } from '../../Screen/Disciplinary/DisciplinaryController';
 import type { DisciplinaryModel } from '../../Screen/Disciplinary/disciplinary_data';
-import { canPrintNow, memberCanReply } from '../../Screen/Disciplinary/clarification';
+import { canPrintNow, hasDecision, memberCanReply } from '../../Screen/Disciplinary/clarification';
 import './MobileDisciplinary.css';
 
 interface MobileDisciplinaryProps {
@@ -42,7 +43,7 @@ interface MobileDisciplinaryProps {
 }
 
 // Pages opened from an action; each has its own full screen
-type ActionPage = 'reply' | 'answer' | 'decision' | 'upload' | 'document' | 'print';
+type ActionPage = 'reply' | 'answer' | 'decision' | 'upload' | 'document';
 
 // Same filters as the desktop page ('الكل' = no filter)
 // "واقعة" is no longer created (a clarification request, then the incident file): old ones still show
@@ -100,6 +101,7 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
   const pageItem = page ? list.find(d => d.id === page.id) : undefined;
   const replyItem = controller.isResponseDialogOpen ? controller.editingItem : null;
   const open = (kind: ActionPage, item: DisciplinaryModel) => () => setPage({ kind, id: item.id });
+  const [printing, setPrinting] = useState<{ item: DisciplinaryModel; type: PrintType } | null>(null);
   const activeFilters = (controller.filterType !== 'الكل' ? 1 : 0) + (controller.filterStatus !== 'الكل' ? 1 : 0);
 
   const photoOf = (item: DisciplinaryModel) => {
@@ -109,7 +111,11 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
 
   const menuItems = (item: DisciplinaryModel): MobileRowMenuItem[] => [
     ...(can.view ? [{ key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(item.id) }] : []),
-    ...(hasReply(item) && can.viewReply
+    // The member: their reply (a clarification request), and the decision once written
+    ...(can.memberReply ? [
+      ...(item.actionType === 'طلب توضيح' && item.player_statements?.trim() ? [{ key: 'reply', label: 'ردي', icon: MessageSquare, color: '#f97316', onClick: open('answer', item) }] : []),
+      ...(hasDecision(item) ? [{ key: 'decision', label: 'عرض القرار', icon: Gavel, color: '#f97316', onClick: open('decision', item) }] : []),
+    ] : hasReply(item) && can.viewReply
       ? item.actionType === 'طلب توضيح'
         ? [
           { key: 'reply', label: 'رد العضو', icon: MessageSquare, color: '#f97316', onClick: open('answer', item) },
@@ -126,7 +132,9 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
     ...(can.memberReply && memberCanReply(item)
       ? [{ key: 'answer', label: item.player_statements ? 'تعديل ردي' : 'الرد على الطلب', icon: PenLine, color: '#10b981', onClick: () => controller.openResponseDialog(item) }]
       : []),
-    ...(can.print && canPrintNow(item) ? [{ key: 'print', label: 'طباعة المحضر', icon: Printer, color: '#f97316', onClick: open('print', item) }] : []),
+    ...(can.print && canPrintNow(item)
+      ? printDocsFor(item).map(doc => ({ key: `print-${doc.type}`, label: doc.label, icon: Printer, color: '#f97316', onClick: () => setPrinting({ item, type: doc.type }) }))
+      : []),
     ...(can.edit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => controller.openEditDialog(item) }] : []),
     ...(can.delete ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDelete(item.id) }] : []),
   ];
@@ -266,12 +274,15 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
           statusTone={STATUS_TONE}
           canChangeStatus={can.changeStatus}
           onChangeStatus={status => controller.handleUpdateStatus(detailsItem.id, status)}
-          onViewReply={hasReply(detailsItem) && can.viewReply ? open(detailsItem.actionType === 'طلب توضيح' ? 'decision' : 'reply', detailsItem) : undefined}
+          onViewReply={can.memberReply
+            ? (hasDecision(detailsItem) ? open('decision', detailsItem) : undefined)
+            : hasReply(detailsItem) && can.viewReply ? open(detailsItem.actionType === 'طلب توضيح' ? 'decision' : 'reply', detailsItem) : undefined}
+          decisionOnly={can.memberReply}
           onViewMemberReply={detailsItem.actionType === 'طلب توضيح' && can.viewReply ? open('answer', detailsItem) : undefined}
           onEdit={can.edit ? () => controller.openEditDialog(detailsItem) : undefined}
           onViewDocument={(can.edit || can.viewDocument) && detailsItem.signed_document ? open('document', detailsItem) : undefined}
           onUploadDocument={can.edit && !detailsItem.signed_document ? open('upload', detailsItem) : undefined}
-          onPrint={can.print && canPrintNow(detailsItem) ? open('print', detailsItem) : undefined}
+          onPrint={can.print && canPrintNow(detailsItem) && printDocsFor(detailsItem).length ? () => setPrinting({ item: detailsItem, type: printDocsFor(detailsItem)[0].type }) : undefined}
           onClose={() => setDetailsId(null)}
         />
       )}
@@ -299,8 +310,14 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
           onClose={() => setPage(null)}
         />
       )}
-      {pageItem && page?.kind === 'print' && (
-        <MobileDisciplinaryPrint item={pageItem} onClose={() => setPage(null)} />
+      {/* The browser's print sheet opens at once with the document */}
+      {printing && (
+        <DisciplinaryPrintSheet
+          key={`${printing.item.id}-${printing.type}`}
+          item={printing.item}
+          type={printing.type}
+          onDone={() => setPrinting(null)}
+        />
       )}
 
       {/* Add / edit form: opened by the controller (same flow as the desktop dialog) */}

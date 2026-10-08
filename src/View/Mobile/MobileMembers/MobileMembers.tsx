@@ -107,6 +107,7 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
                 <h2 className="mm-name">{member.first_name} {member.last_name}</h2>
                 <div className="mm-tags">
                   <span className="mm-tag type">{TYPE_LABELS[member.type] || member.type}</span>
+                  {controller.leavingOf(member.id) && member.status === 'active' && <span className="mm-tag leaving">في طور المغادرة</span>}
                   {member.position && (
                     <span className="mm-tag">{POSITION_LABELS[member.position] || member.position}</span>
                   )}

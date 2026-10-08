@@ -1609,3 +1609,20 @@ body.dark-mode .card-item:hover {
     display: none;
   }
 }
+
+/* A member whose clearance card is still open ("في طور المغادرة") */
+.badge-amber {
+  background-color: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fde68a;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+body.dark-mode .badge-amber {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #fcd34d;
+  border-color: rgba(245, 158, 11, 0.25);
+}

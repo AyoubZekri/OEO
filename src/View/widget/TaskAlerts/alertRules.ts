@@ -18,7 +18,9 @@ export type DisciplinaryAlertKind =
   // for the member concerned
   | 'disciplinary' | 'disc_reply_due' | 'disc_reply_late' | 'disc_hearing' | 'disc_decision'
   // for the managers
-  | 'mgr_replied' | 'mgr_reply_late' | 'mgr_hearing' | 'mgr_document';
+  | 'mgr_replied' | 'mgr_reply_late' | 'mgr_hearing' | 'mgr_document'
+  // for the hearing's officer
+  | 'disc_officer' | 'disc_officer_soon';
 /** A training session: about to start, started, ended (for the category's members, and for the managers) */
 export type TrainingAlertKind = 'train_soon' | 'train_live' | 'train_ended'
   // what the managers did to a session of my category
@@ -242,6 +244,37 @@ export const managerDisciplinaryAlerts = (items: MyDisciplinaryAction[], now = D
     return null;
   })
   .filter((x): x is AppAlert => x !== null);
+
+/** A hearing the signed-in user runs (/disciplinary/officiating: named officer, not closed yet) */
+export interface OfficiatedHearing {
+  id: string;
+  memberName?: string;
+  reason?: string;
+  status: string;
+  deadlineOrHearingDate?: string;
+  hearingTime?: string;
+  hearingLocation?: string;
+  hearingOfficer?: string;
+}
+
+/**
+ * The officer's alerts, one per hearing: they were named its officer (an event: seen once opened),
+ * then the hearing is near (stays until it closes).
+ */
+export const officerHearingAlerts = (items: OfficiatedHearing[], now = Date.now()): AppAlert[] => items
+  .filter(h => h.status !== 'ملغى')
+  .map((h): AppAlert => {
+    const left = daysUntil(h.deadlineOrHearingDate, now);
+    const when = [dayText(h.deadlineOrHearingDate), h.hearingTime && `على الساعة ${h.hearingTime}`].filter(Boolean).join(' ');
+    const who = `اللاعب: ${h.memberName || 'العضو'}`;
+    const base = { heading: h.reason || 'جلسة استماع', target: { type: 'disciplinary' as const, id: h.id, space: 'management' as const } };
+    if (left !== null && left >= 0 && left <= DISC_SOON_DAYS) {
+      return { ...base, key: `disc:officer-soon:${h.id}:${h.deadlineOrHearingDate}`, kind: 'disc_officer_soon', title: 'اقترب موعد الجلسة التي تديرها',
+        detail: [who, `${inDays(left)}${h.hearingTime ? ` على الساعة ${h.hearingTime}` : ''}`, h.hearingLocation].filter(Boolean).join(' · '), tone: 'blue', event: false };
+    }
+    return { ...base, key: `disc:officer:${h.id}:${h.hearingOfficer || ''}`, kind: 'disc_officer', title: 'تم تعيينك مسؤولاً عن جلسة استماع',
+      detail: [who, when].filter(Boolean).join(' · '), tone: 'violet', event: true };
+  });
 
 /** A training session is "near" this long before it starts, and its end is announced this long after */
 export const TRAIN_SOON_MS = 3 * 3600 * 1000;

@@ -5,17 +5,20 @@ import { ACTION_META, STATUS_META, type Task, type TaskAction, type TaskStatus }
 
 const ORDER: TaskStatus[] = ['assigned', 'in_progress', 'blocked', 'in_review', 'approved', 'returned'];
 
-/** Which workflow action moves the task to a status, if the signed-in user may take it now */
+/**
+ * Which workflow action moves the task to a status, if the signed-in user may take it now:
+ * the stage's own action (forward or back a step), else "set" for who manages the tasks (any status at once)
+ */
 const actionTo = (task: Task, status: TaskStatus, allowed: TaskAction[]): TaskAction | null => {
   const candidates: Record<TaskStatus, TaskAction[]> = {
-    assigned: [],
-    in_progress: ['start', 'resume'],
+    assigned: ['reset'],
+    in_progress: ['start', 'resume', 'withdraw', 'reopen'],
     blocked: ['block'],
     in_review: task.requires_approval ? ['submit'] : [],
     approved: task.requires_approval ? ['approve'] : ['submit'],
     returned: ['return'],
   };
-  return candidates[status].find(a => allowed.includes(a)) || null;
+  return candidates[status].find(a => allowed.includes(a)) || (allowed.includes('set') ? 'set' : null);
 };
 
 /** Why a status cannot be chosen: said once under the list */
@@ -23,7 +26,7 @@ const lockedHint = (task: Task, allowed: TaskAction[]) => {
   if (task.deleted_at) return 'المهمة محذوفة';
   if (allowed.length === 0) {
     if (task.status === 'approved') return 'المهمة منجزة';
-    if (task.status === 'in_review') return 'الاعتماد أو الإرجاع لمن له صلاحية المراجعة، ولا يراجع أحد مهمة مكلف بها';
+    if (task.status === 'in_review') return 'الاعتماد أو الإرجاع لمن له صلاحية المراجعة';
     return 'لا يمكن تغيير الحالة الآن';
   }
   return 'الحالات الأخرى غير متاحة في هذه المرحلة';
@@ -34,7 +37,8 @@ interface StatusDropdownProps {
   allowed: TaskAction[];
   busy: boolean;
   mobile: boolean;
-  onPick: (action: TaskAction) => void;
+  /** The action, and the status chosen (used by "set") */
+  onPick: (action: TaskAction, status: TaskStatus) => void;
 }
 
 /** The current status as a dropdown: the statuses the user may move the task to are enabled, the others greyed out */
@@ -53,9 +57,9 @@ export const StatusDropdown: React.FC<StatusDropdownProps> = ({ task, allowed, b
     return () => { document.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey); };
   }, [open, mobile]);
 
-  const pick = (action: TaskAction) => {
+  const pick = (action: TaskAction, status: TaskStatus) => {
     setOpen(false);
-    onPick(action);
+    onPick(action, status);
   };
 
   const options = (
@@ -74,7 +78,7 @@ export const StatusDropdown: React.FC<StatusDropdownProps> = ({ task, allowed, b
                 aria-selected={current}
                 className={`tone-${m.tone} ${current ? 'current' : ''}`}
                 disabled={!action}
-                onClick={() => action && pick(action)}
+                onClick={() => action && pick(action, s)}
               >
                 <span className="tk-status-dot" aria-hidden="true"><m.icon size={15} /></span>
                 <span className="tk-status-text">

@@ -6,6 +6,7 @@ import {
 import defaultAvatar from '../../../assets/AVETER.png';
 import type { MemberModel } from '../../Screen/Members/member_model';
 import './MobileEvaluationForm.css';
+import { useBackCloses } from '../widgets/useBackCloses';
 
 interface EvaluationScores {
   discipline: number;
@@ -74,6 +75,8 @@ const RING_RADIUS = 46;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 
 export const MobileEvaluationForm: React.FC<MobileEvaluationFormProps> = ({ player, initialData, onClose, onSave }) => {
+  // The phone's back button closes the form (and stays on the members page)
+  useBackCloses(onClose);
   const [season, setSeason] = useState(initialData?.season || '2024-2025');
   const [period, setPeriod] = useState(initialData?.period || 'مرحلة الذهاب');
   const [fromDate, setFromDate] = useState(initialData?.fromDate || '');

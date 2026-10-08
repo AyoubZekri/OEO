@@ -1983,3 +1983,117 @@ body.dark-mode .tk-page .tk-scope {
 
 /* No growing row on hover: the table fills its frame exactly, a bigger row would shift it (and close the ⋮ menu) */
 .tk-table tbody tr:hover { transform: none; }
+
+/* ── Desktop dialogs drawn at the page's top level: the same colours as the pages ── */
+.tk-overlay.tk-desk,
+.tk-overlay.tk-desk .tk-scope,
+body.dark-mode .tk-overlay.tk-desk,
+body.dark-mode .tk-overlay.tk-desk .tk-scope {
+  --tk-card: var(--card-bg);
+  --tk-field: var(--bg);
+  --tk-border: var(--border);
+  --tk-text: var(--text-h);
+  --tk-muted: var(--text-muted, #64748b);
+  --tk-hover: var(--bg-hover);
+}
+
+/* ── Task details on the computer: every block on the same lines and widths ── */
+.tkd { gap: 14px; }
+
+/* Card headers: one height, whether or not they hold a button */
+.tkd .tk-section-head { min-height: 32px; }
+.tkd .tk-card-box { padding: 16px 18px; gap: 12px; }
+
+/* The information strip: four equal cells */
+.tkd-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-radius: 16px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  overflow: hidden;
+}
+
+.tkd-fact {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 18px;
+  border-inline-start: 1px solid var(--tk-border);
+}
+.tkd-fact:first-child { border-inline-start: none; }
+
+.tkd-fact > small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--tk-muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.tkd-fact > small svg { color: var(--tk-accent); }
+
+.tkd-fact > strong {
+  max-width: 100%;
+  color: var(--tk-text);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.5;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tkd-fact.late > strong { color: #ef4444; }
+
+.tkd-person { display: inline-flex; align-items: center; gap: 8px; }
+.tkd-person em {
+  padding: 1px 7px;
+  border-radius: 99px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--tk-accent);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.tkd-chip {
+  --tk-t: #f97316;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--tk-t) 12%, transparent);
+  color: var(--tk-t);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+/* The settings: a row of small chips under the strip */
+.tkd-rules .tk-rule-list { flex-direction: row; flex-wrap: wrap; gap: 8px; }
+
+/* The proofs and the history side by side, as tall as each other */
+.tkd-cols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+.tkd-cols > .tk-card-box { min-width: 0; }
+
+@media (max-width: 900px) {
+  .tkd-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tkd-fact:nth-child(3) { border-inline-start: none; }
+  .tkd-fact:nth-child(n + 3) { border-top: 1px solid var(--tk-border); }
+  .tkd-cols { grid-template-columns: minmax(0, 1fr); }
+}
+.tkd-rules .tk-rule-list li {
+  padding: 5px 12px;
+  border-radius: 99px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  font-size: 0.8rem;
+}
+.tkd-rules .tk-rule-list li.on { border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.08); }

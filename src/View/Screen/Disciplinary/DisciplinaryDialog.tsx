@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from './disciplinary_data';
-import { X, Save, AlertTriangle, User, Calendar, FileText, ArrowRight } from 'lucide-react';
+import { X, Save, AlertTriangle, User, Calendar, FileText, ArrowRight, Clock } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
-import { CustomMultiSelect } from '../../widget/CustomMultiSelect';
+import { MemberSelect } from '../../widget/MemberSelect';
 import { MemberModel } from '../Members/member_model';
 import './Disciplinary.css'; // Use the new modern styles
 
@@ -64,12 +64,8 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
     onSave(formData as DisciplinaryModel);
   };
 
-  const handleMemberSelect = (memberId: string) => {
-    const member = members.find(m => String(m.id) === String(memberId));
-    if (member) {
-      setFormData(prev => ({ ...prev, memberId: String(member.id), memberName: `${member.first_name} ${member.last_name}` }));
-    }
-  };
+  const memberOf = (id?: string | number) => members.find(m => String(m.id) === String(id));
+  const chosenMember = memberOf(formData.memberId);
 
   return createPortal(
     <div className="modern-dialog-overlay printable-overlay" onClick={onClose}>
@@ -95,12 +91,12 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
 
         <form onSubmit={handleSubmit} className="modern-dialog-body">
           <div className="modern-form-group">
-            <CustomDropdown
-              label="العضو المعني"
-              value={formData.memberId || ''}
-              onChange={(val) => handleMemberSelect(val)}
-              options={members.map(m => ({ value: String(m.id), label: `${m.first_name} ${m.last_name}`, icon: <User size={16} /> }))}
-              placeholder="اختر العضو..."
+            <label><User size={16} /> العضو المعني</label>
+            <MemberSelect
+              members={members}
+              value={chosenMember ? `${chosenMember.first_name} ${chosenMember.last_name}`.trim() : formData.memberId ? formData.memberName || '' : ''}
+              onChange={(name, member) => setFormData(prev => ({ ...prev, memberId: member ? String(member.id) : '', memberName: member ? name : '' }))}
+              placeholder="اختر العضو المعني..."
             />
           </div>
 
@@ -117,17 +113,29 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
             />
           </div>
 
-          <div className="modern-form-group">
-            <label>
-              <Calendar size={16} /> تاريخ الحدث
-            </label>
-            <input
-              type="date"
-              value={formData.incidentDate}
-              onChange={(e) => setFormData({ ...formData, incidentDate: e.target.value })}
-              className="modern-form-input"
-              required
-            />
+          <div className="dd-date-time">
+            <div className="modern-form-group">
+              <label>
+                <Calendar size={16} /> تاريخ الحدث
+              </label>
+              <input
+                type="date"
+                value={(formData.incidentDate || '').split(/[ T]/)[0]}
+                onChange={(e) => setFormData({ ...formData, incidentDate: e.target.value })}
+                className="modern-form-input"
+                required
+              />
+            </div>
+            <div className="modern-form-group">
+              <label><Clock size={16} /> الساعة</label>
+              <input
+                type="time"
+                dir="ltr"
+                value={formData.incidentTime || ''}
+                onChange={(e) => setFormData({ ...formData, incidentTime: e.target.value })}
+                className="modern-form-input"
+              />
+            </div>
           </div>
 
           <div className="modern-form-group">
@@ -168,14 +176,12 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
 
           <div className="modern-form-group">
             <label>الأشخاص الحاضرون وقت الواقعة</label>
-            <CustomMultiSelect
-              options={members.map(m => ({ 
-                value: `${m.first_name} ${m.last_name}`, 
-                label: `${m.first_name} ${m.last_name}`, 
-                icon: m.photo ? <img src={m.photo} width={20} height={20} style={{ borderRadius: '50%' }} alt="" /> : <User size={16} /> 
-              }))}
-              values={formData.presentPeople ? formData.presentPeople.split('، ').filter(Boolean) : []}
-              onChange={vals => setFormData({ ...formData, presentPeople: vals.join('، ') })}
+            <MemberSelect
+              multiple
+              allowFreeText
+              members={members}
+              values={formData.presentPeople ? formData.presentPeople.split(/[,،\n]/).map(p => p.trim()).filter(Boolean) : []}
+              onChange={vals => setFormData(prev => ({ ...prev, presentPeople: vals.join('، ') }))}
               placeholder="اختر الأعضاء الحاضرين..."
             />
           </div>
@@ -193,14 +199,28 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
 
           {(formData.actionType === 'استدعاء جلسة' || formData.actionType === 'طلب توضيح') && (
             <>
-              <div className="modern-form-group">
-                <label>{formData.actionType === 'طلب توضيح' ? 'أجل الرد' : 'موعد الجلسة'}</label>
-                <input
-                  type="date"
-                  value={formData.deadlineOrHearingDate || ''}
-                  onChange={e => setFormData({ ...formData, deadlineOrHearingDate: e.target.value })}
-                  className="modern-form-input"
-                />
+              <div className={formData.actionType === 'استدعاء جلسة' ? 'dd-date-time' : ''}>
+                <div className="modern-form-group">
+                  <label>{formData.actionType === 'طلب توضيح' ? 'أجل الرد' : 'موعد الجلسة'}</label>
+                  <input
+                    type="date"
+                    value={(formData.deadlineOrHearingDate || '').split(/[ T]/)[0]}
+                    onChange={e => setFormData({ ...formData, deadlineOrHearingDate: e.target.value })}
+                    className="modern-form-input"
+                  />
+                </div>
+                {formData.actionType === 'استدعاء جلسة' && (
+                  <div className="modern-form-group">
+                    <label><Clock size={16} /> ساعة الجلسة</label>
+                    <input
+                      type="time"
+                      dir="ltr"
+                      value={formData.hearingTime || ''}
+                      onChange={e => setFormData({ ...formData, hearingTime: e.target.value })}
+                      className="modern-form-input"
+                    />
+                  </div>
+                )}
               </div>
 
               {formData.actionType !== 'طلب توضيح' && (
@@ -212,6 +232,19 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
                     onChange={e => setFormData({ ...formData, hearingLocation: e.target.value })}
                     placeholder="أين ستعقد الجلسة؟"
                     className="modern-form-input"
+                  />
+                </div>
+              )}
+
+              {formData.actionType === 'استدعاء جلسة' && (
+                <div className="modern-form-group">
+                  <label>مسؤول الجلسة</label>
+                  <MemberSelect
+                    allowFreeText
+                    members={members}
+                    value={formData.hearingOfficer || ''}
+                    onChange={name => setFormData(prev => ({ ...prev, hearingOfficer: name }))}
+                    placeholder="من يدير جلسة الاستماع؟"
                   />
                 </div>
               )}

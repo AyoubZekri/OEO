@@ -4,7 +4,8 @@ import {
 
 export type TaskStatus = 'assigned' | 'in_progress' | 'blocked' | 'in_review' | 'approved' | 'returned';
 export type TaskPriority = 'low' | 'normal' | 'high' | 'urgent';
-export type TaskAction = 'start' | 'block' | 'resume' | 'submit' | 'approve' | 'return';
+/** set: any status at once (who manages the tasks); reset / withdraw / reopen: back a step */
+export type TaskAction = 'start' | 'block' | 'resume' | 'submit' | 'approve' | 'return' | 'reset' | 'withdraw' | 'reopen' | 'set';
 
 export interface TaskAttachment {
   id: number;
@@ -194,6 +195,10 @@ export const HISTORY_LABELS: Record<string, string> = {
   attached: 'إضافة إثبات',
   deleted: 'حذف المهمة',
   restored: 'استرجاع المهمة',
+  reset: 'إرجاع إلى جديدة',
+  withdraw: 'سحب من المراجعة',
+  reopen: 'إعادة فتح المهمة',
+  set: 'تغيير الحالة',
 };
 
 export const SOURCE_LABELS: Record<string, string> = {
@@ -343,8 +348,14 @@ export const abilitiesOf = (task: Task, userId: string | number | undefined, can
     if (task.status === 'assigned' || task.status === 'returned') actions.push('start');
     if (task.status === 'in_progress') actions.push('submit', 'block');
     if (task.status === 'blocked') actions.push('resume');
-    // No reviewer is chosen in advance: anyone with the review permission, other than the assignee, reviews
-    if (!isAssignee && can('review') && task.status === 'in_review') actions.push('approve', 'return');
+    // No reviewer is chosen in advance: anyone with the review permission reviews (the assignee too)
+    if (can('review') && task.status === 'in_review') actions.push('approve', 'return');
+    // Back a step
+    if (task.status === 'in_progress') actions.push('reset');
+    if (task.status === 'in_review') actions.push('withdraw');
+    if (task.status === 'approved' && (!task.requires_approval || can('review'))) actions.push('reopen');
+    // Who manages the tasks: any status at once
+    if (can('manage')) actions.push('set');
   }
 
   if (readOnly) {
@@ -375,6 +386,10 @@ export const ACTION_META: Record<TaskAction, { label: string; tone: string }> = 
   resume: { label: 'استئناف', tone: 'orange' },
   approve: { label: 'اعتماد', tone: 'green' },
   return: { label: 'إرجاع للتصحيح', tone: 'amber' },
+  reset: { label: 'إرجاع إلى جديدة', tone: 'blue' },
+  withdraw: { label: 'سحب من المراجعة', tone: 'orange' },
+  reopen: { label: 'إعادة فتح المهمة', tone: 'orange' },
+  set: { label: 'تغيير مباشر', tone: 'slate' },
 };
 
 /* ── Recurrence (RRULE) ── */

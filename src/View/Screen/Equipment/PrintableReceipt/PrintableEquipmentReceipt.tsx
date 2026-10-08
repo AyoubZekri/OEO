@@ -22,70 +22,65 @@ interface PrintableEquipmentReceiptProps {
   printType?: 'handover' | 'return';
 }
 
+const DOTS = '..................';
+
+/**
+ * The equipment receipt of one operation (A4, the club's letterhead):
+ * handover — what the player received; return — what the player gave back.
+ */
 export const PrintableEquipmentReceipt = forwardRef<HTMLDivElement, PrintableEquipmentReceiptProps>(
   ({ recordNumber, season, playerName, shirtNumber, category, handoverDate, items, printType = 'handover' }, ref) => {
-    
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth();
-    const displaySeason = season || (currentMonth >= 6 ? `${currentYear}/${currentYear + 1}` : `${currentYear - 1}/${currentYear}`);
+    const now = new Date();
+    const displaySeason = season || (now.getMonth() >= 6 ? `${now.getFullYear()}/${now.getFullYear() + 1}` : `${now.getFullYear() - 1}/${now.getFullYear()}`);
+    const handover = printType === 'handover';
+    const total = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+    // The return date of the receipt: the latest of its items
+    const returnDate = items.map(i => i.returnDate).filter(Boolean).pop() || '';
 
     return (
       <div className="receipt-wrapper" ref={ref} dir="rtl">
-        <img src={receiptBg} alt="Receipt Background" className="receipt-bg-image" />
-        
-        <div 
-          className="season-overlay"
-          style={{
-            position: 'absolute',
-            top: '18mm',
-            right: '5mm', /* Adjust to fit exactly where the old text was */
-            color: 'white',
-            fontWeight: 'bold',
-            fontSize: '16px',
-            zIndex: 10,
-            whiteSpace: 'nowrap'
-          }}
-        >
+        <img src={receiptBg} alt="" className="receipt-bg-image" />
+        <div className="season-overlay" style={{ position: 'absolute', top: '18mm', right: '5mm', color: 'white', fontWeight: 'bold', fontSize: '16px', zIndex: 10, whiteSpace: 'nowrap' }}>
           الموسم الرياضي {displaySeason}
         </div>
-        
-        <div className="receipt-content">
-          <div className="receipt-main-title">
-            محضر تسليم واسترجاع معدات للاعب
+
+        <div className="receipt-content er">
+          <div className="er-meta">
+            <span>رقم المحضر: <strong dir="ltr">{recordNumber ? String(recordNumber).padStart(4, '0') : DOTS}</strong></span>
+            <span>أرزيو في: <strong dir="ltr">{now.toLocaleDateString('en-GB')}</strong></span>
           </div>
 
-          <div className="top-details">
-            <div>أرزيو في : {new Date().toLocaleDateString('en-GB')}</div>
-            <div>رقم المحضر: {recordNumber ? String(recordNumber).padStart(4, '0') : ''}</div>
-          </div>
+          <h1 className="er-title">{handover ? 'محضر تسليم معدات' : 'محضر استرجاع معدات'}</h1>
 
-          <div className="section-title">بيانات اللاعب</div>
-          <table className="receipt-table">
+          <table className="receipt-table er-player">
             <tbody>
               <tr>
-                <td className="col-50">الاسم واللقب: <span style={{fontWeight: 'normal'}}>{playerName}</span></td>
-                <td className="col-50">الفئة: <span style={{fontWeight: 'normal'}}>{category}</span></td>
+                <th>الاسم واللقب</th>
+                <td>{playerName || DOTS}</td>
+                <th>الفئة</th>
+                <td>{category || DOTS}</td>
               </tr>
               <tr>
-                <td>رقم القميص: <span style={{fontWeight: 'normal'}}>{shirtNumber}</span></td>
-                <td>تاريخ التسليم: <span style={{fontWeight: 'normal'}}>{handoverDate}</span></td>
+                <th>رقم القميص</th>
+                <td>{shirtNumber || DOTS}</td>
+                <th>{handover ? 'تاريخ التسليم' : 'تاريخ الإرجاع'}</th>
+                <td dir="ltr">{(handover ? handoverDate : returnDate) || DOTS}</td>
               </tr>
             </tbody>
           </table>
 
-          <div className="section-title">المعدات {printType === 'handover' ? 'المسلمة' : 'المسترجعة'}</div>
-          <table className="receipt-table" style={{textAlign: 'center'}}>
+          <div className="er-label">{handover ? 'المعدات المسلَّمة' : 'المعدات المسترجَعة'}</div>
+          <table className="receipt-table er-items">
             <thead>
               <tr>
-                <th style={{textAlign: 'right'}}>المعدات</th>
+                <th className="er-no">#</th>
+                <th className="er-name">المعدات</th>
                 <th>الكمية</th>
-                {printType === 'handover' ? (
-                  <>
-                    <th>تاريخ التسليم</th>
-                    <th>الحالة عند التسليم</th>
-                  </>
+                {handover ? (
+                  <th>الحالة عند التسليم</th>
                 ) : (
                   <>
+                    <th>الحالة عند التسليم</th>
                     <th>تاريخ الإرجاع</th>
                     <th>الحالة عند الإرجاع</th>
                   </>
@@ -93,50 +88,53 @@ export const PrintableEquipmentReceipt = forwardRef<HTMLDivElement, PrintableEqu
               </tr>
             </thead>
             <tbody>
-              {items && items.length > 0 ? (
-                items.map((item, index) => (
-                  <tr key={index}>
-                    <td style={{textAlign: 'right', fontWeight: 'normal'}}>{item.name}</td>
-                    <td style={{fontWeight: 'normal'}}>{item.quantity}</td>
-                    {printType === 'handover' ? (
-                      <>
-                        <td style={{fontWeight: 'normal'}}>{handoverDate}</td>
-                        <td style={{fontWeight: 'normal'}}>{item.conditionHandover}</td>
-                      </>
-                    ) : (
-                      <>
-                        <td style={{fontWeight: 'normal'}}>{item.returnDate}</td>
-                        <td style={{fontWeight: 'normal'}}>{item.conditionReturn}</td>
-                      </>
-                    )}
-                  </tr>
-                ))
-              ) : (
+              {items.length > 0 ? items.map((item, index) => (
+                <tr key={index}>
+                  <td className="er-no">{index + 1}</td>
+                  <td className="er-name">{item.name}</td>
+                  <td>{item.quantity}</td>
+                  <td>{item.conditionHandover || '—'}</td>
+                  {!handover && (
+                    <>
+                      <td dir="ltr">{item.returnDate || '—'}</td>
+                      <td>{item.conditionReturn || '—'}</td>
+                    </>
+                  )}
+                </tr>
+              )) : (
                 <tr>
-                  <td colSpan={4} style={{textAlign: 'center', fontWeight: 'normal', padding: '20px'}}>لا توجد معدات</td>
+                  <td colSpan={handover ? 4 : 6} className="er-empty">لا توجد معدات</td>
                 </tr>
               )}
             </tbody>
+            {items.length > 0 && (
+              <tfoot>
+                <tr>
+                  <td colSpan={2}>المجموع</td>
+                  <td>{total}</td>
+                  <td colSpan={handover ? 1 : 3} />
+                </tr>
+              </tfoot>
+            )}
           </table>
 
-          <div className="section-title">إقرار اللاعب</div>
-          <div className="declaration-text">
-            أقر باستلام المعدات المذكورة أعلاه، وأتعهد باستعمالها فيما خصصت له والمحافظة عليها 
-            وإعادتها عند طلب النادي أو عند انتهاء علاقتي به، وفق النظام الداخلي.
-          </div>
+          <p className="er-declaration">
+            {handover
+              ? 'أقر أنا الموقع أدناه باستلام المعدات المذكورة أعلاه بالحالة المبينة، وأتعهد باستعمالها فيما خُصصت له والمحافظة عليها وإعادتها عند طلب النادي أو عند انتهاء علاقتي به، وفقاً للنظام الداخلي.'
+              : 'يشهد مسؤول العتاد باسترجاع المعدات المذكورة أعلاه من اللاعب بالحالة المبينة، وتُبرأ ذمة اللاعب من المعدات المسترجعة دون غيرها.'}
+          </p>
 
-          <div className="section-title">التوقيعــــــات</div>
-          <table className="signature-table">
+          <table className="signature-table er-signs">
             <thead>
               <tr>
-                <th>إمضاء مسؤول العتاد</th>
-                <th>إمضاء اللاعب</th>
+                <th>{handover ? 'مسؤول العتاد (المسلِّم)' : 'مسؤول العتاد (المستلِم)'}</th>
+                <th>{handover ? 'اللاعب (المستلِم)' : 'اللاعب (المسلِّم)'}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td></td>
-                <td></td>
+                <td />
+                <td />
               </tr>
             </tbody>
           </table>

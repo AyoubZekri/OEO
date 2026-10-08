@@ -9,6 +9,8 @@ import { ContractsData } from '../Contracts/contracts_data';
 import { EvaluationsData } from './Evaluation/evaluation_data';
 import type { EvaluationRecord } from './Evaluation/evaluation_data';
 import { Applink } from '../../../LinkApi';
+import axios from 'axios';
+import type { ClearanceSummary } from './clearance';
 
 export const useMembersController = () => {
   const [members, setMembers] = useState<MemberModel[]>([]);
@@ -55,8 +57,22 @@ export const useMembersController = () => {
   const contractsData = new ContractsData(crud);
   const evalsData = new EvaluationsData();
 
+  // The clearance cards still open: those members are "leaving"
+  const [leaving, setLeaving] = useState<Record<string, ClearanceSummary>>({});
+  const fetchLeaving = async () => {
+    try {
+      const res = await axios.get(Applink.playerClearances, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+      const list: ClearanceSummary[] = res.data?.data || [];
+      setLeaving(Object.fromEntries(list.filter(c => !c.closed).map(c => [String(c.player_id), c])));
+    } catch {
+      // Only the "leaving" badge is missing
+    }
+  };
+  const leavingOf = (memberId: string | number) => leaving[String(memberId)];
+
   const fetchMembers = async () => {
     setIsLoading(true);
+    fetchLeaving();
     const response = await membersData.getMembers();
     if (response) {
       if (Array.isArray(response)) {
@@ -426,6 +442,7 @@ export const useMembersController = () => {
     selectedClearanceMember,
     openClearanceDialog,
     closeClearanceDialog,
+    leavingOf,
     formatCurrency,
     getContractsForMember,
     getContractValue,

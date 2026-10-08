@@ -243,7 +243,7 @@ export const PERMISSION_DOMAINS: { key: string; label: string; modules: Permissi
   { key: 'general', label: 'عام', modules: ['dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical', 'travels'] },
-  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'correspondences', 'tasks'] },
+  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'tasks'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },

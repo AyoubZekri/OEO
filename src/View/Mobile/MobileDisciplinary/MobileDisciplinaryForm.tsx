@@ -100,12 +100,15 @@ const MemberPicker: React.FC<{
   multiple?: boolean;
   isSelected: (m: MemberModel) => boolean;
   onPick: (m: MemberModel) => void;
+  /** A typed name that is not a member can be used as is */
+  onPickName?: (name: string) => void;
   onClose: () => void;
-}> = ({ title, members, multiple, isSelected, onPick, onClose }) => {
+}> = ({ title, members, multiple, isSelected, onPick, onPickName, onClose }) => {
   const [query, setQuery] = useState('');
   const q = query.trim().toLowerCase();
   const list = q ? members.filter(m => fullName(m).toLowerCase().includes(q)) : members;
   const count = members.filter(isSelected).length;
+  const freeName = onPickName && q && !members.some(m => fullName(m).toLowerCase() === q) ? query.trim() : '';
 
   return (
     <MobileSheet
@@ -125,7 +128,16 @@ const MemberPicker: React.FC<{
       </div>
 
       <div className="mdf-list">
-        {list.length === 0 && <p className="mdf-empty">لا توجد نتائج</p>}
+        {freeName && (
+          <button type="button" className="mdf-row" onClick={() => onPickName!(freeName)}>
+            <span className="mdf-member-icon"><UserPlus size={18} /></span>
+            <span className="mdf-row-text">
+              <strong>استخدام «{freeName}»</strong>
+              <small>اسم من خارج قائمة الأعضاء</small>
+            </span>
+          </button>
+        )}
+        {list.length === 0 && !freeName && <p className="mdf-empty">لا توجد نتائج</p>}
         {list.map(m => {
           const selected = isSelected(m);
           return (
@@ -170,7 +182,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
       deadlineOrHearingDate: '',
       hearingLocation: '',
     });
-  const [picker, setPicker] = useState<'member' | 'people' | null>(null);
+  const [picker, setPicker] = useState<'member' | 'people' | 'officer' | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const memberRef = useRef<HTMLElement>(null);
   const incidentRef = useRef<HTMLElement>(null);
@@ -189,6 +201,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
 
   const member = members.find(m => String(m.id) === String(form.memberId));
   const people = splitPeople(form.presentPeople);
+  const officer = members.find(m => fullName(m) === form.hearingOfficer);
   const incidentDay = describeDay(form.incidentDate);
   const deadlineDay = describeDay(form.deadlineOrHearingDate);
 
@@ -218,7 +231,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
       reason: form.reason?.trim(),
       presentPeople: people.join(PEOPLE_SEPARATOR),
       ...(typeChanged && !hasDeadline ? { deadlineOrHearingDate: '' } : {}),
-      ...(typeChanged && type !== 'استدعاء جلسة' ? { hearingLocation: '' } : {}),
+      ...(typeChanged && type !== 'استدعاء جلسة' ? { hearingLocation: '', hearingOfficer: '' } : {}),
     } as DisciplinaryModel);
   };
 
@@ -332,6 +345,11 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
         {showErrors && errors.date && <FieldError text="حدد تاريخ الحدث" />}
 
         <label className="me-field">
+          <span className="me-label"><Clock size={14} /> ساعة الحدث</span>
+          <input className="me-input" type="time" dir="ltr" value={form.incidentTime || ''} onChange={e => set('incidentTime', e.target.value)} />
+        </label>
+
+        <label className="me-field">
           <span className="me-label"><FileText size={14} /> وصف دقيق للواقعة</span>
           <textarea
             className={`me-textarea ${showErrors && errors.reason ? 'invalid' : ''}`}
@@ -374,9 +392,32 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
 
           {type === 'استدعاء جلسة' && (
             <label className="me-field">
+              <span className="me-label"><Clock size={14} /> ساعة الجلسة</span>
+              <input className="me-input" type="time" dir="ltr" value={form.hearingTime || ''} onChange={e => set('hearingTime', e.target.value)} />
+            </label>
+          )}
+
+          {type === 'استدعاء جلسة' && (
+            <label className="me-field">
               <span className="me-label"><MapPin size={14} /> مكان الجلسة</span>
               <input className="me-input" type="text" value={form.hearingLocation || ''} onChange={e => set('hearingLocation', e.target.value)} placeholder="أين ستعقد الجلسة؟" />
             </label>
+          )}
+
+          {type === 'استدعاء جلسة' && (
+            <div className="me-field">
+              <span className="me-label"><UserRound size={14} /> مسؤول الجلسة</span>
+              <button type="button" className={`mdf-member ${form.hearingOfficer ? '' : 'empty'}`} onClick={() => setPicker('officer')}>
+                {officer
+                  ? <img src={photoOf(officer)} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
+                  : <span className="mdf-member-icon">{form.hearingOfficer ? <UserRound size={22} /> : <UserPlus size={22} />}</span>}
+                <span className="mdf-member-text">
+                  <strong>{form.hearingOfficer || 'اختر مسؤول الجلسة'}</strong>
+                  <small>{officer ? memberHint(officer) || 'اضغط للتغيير' : form.hearingOfficer ? 'اضغط للتغيير' : 'من يدير جلسة الاستماع؟'}</small>
+                </span>
+                <ChevronLeft size={20} />
+              </button>
+            </div>
           )}
         </Step>
       )}
@@ -425,6 +466,16 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
             setForm(prev => ({ ...prev, memberId: String(m.id), memberName: fullName(m) }));
             setPicker(null);
           }}
+          onClose={() => setPicker(null)}
+        />
+      )}
+      {picker === 'officer' && (
+        <MemberPicker
+          title="مسؤول الجلسة"
+          members={members}
+          isSelected={m => fullName(m) === form.hearingOfficer}
+          onPick={m => { set('hearingOfficer', fullName(m)); setPicker(null); }}
+          onPickName={name => { set('hearingOfficer', name); setPicker(null); }}
           onClose={() => setPicker(null)}
         />
       )}

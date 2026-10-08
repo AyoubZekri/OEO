@@ -1,7 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
-import { X, AlertTriangle, User, Calendar, FileText, Scale, ArrowRight } from 'lucide-react';
+import { X, AlertTriangle, User, Calendar, FileText, ArrowRight } from 'lucide-react';
+import { DecisionView } from './DecisionView';
 import '../Disciplinary.css';
 
 interface DisciplinaryDetailsDialogProps {
@@ -47,7 +48,7 @@ export const DisciplinaryDetailsDialog: React.FC<DisciplinaryDetailsDialogProps>
             <div className="player-details-premium">
               <span className="player-name-premium">{item.memberName}</span>
               <span className="incident-date-premium">
-                <Calendar size={14} /> تاريخ الحدث: {new Date(item.incidentDate).toLocaleDateString('ar-DZ')}
+                <Calendar size={14} /> تاريخ الحدث: {new Date(item.incidentDate).toLocaleDateString('ar-DZ')}{item.incidentTime && <> على الساعة <span dir="ltr">{item.incidentTime}</span></>}
               </span>
             </div>
             <div style={{ marginRight: 'auto' }}>
@@ -98,7 +99,7 @@ export const DisciplinaryDetailsDialog: React.FC<DisciplinaryDetailsDialogProps>
                   {item.deadlineOrHearingDate && (
                     <div className="card-data-item">
                       <span className="card-data-label"><Calendar size={14} /> {item.actionType === 'طلب توضيح' ? 'أجل الرد' : 'موعد الجلسة'}</span>
-                      <span className="card-data-value">{new Date(item.deadlineOrHearingDate).toLocaleDateString('ar-DZ')}</span>
+                      <span className="card-data-value">{new Date(item.deadlineOrHearingDate).toLocaleDateString('ar-DZ')}{item.actionType === 'استدعاء جلسة' && item.hearingTime && <> على الساعة <span dir="ltr">{item.hearingTime}</span></>}</span>
                     </div>
                   )}
                   {item.hearingLocation && (
@@ -107,53 +108,27 @@ export const DisciplinaryDetailsDialog: React.FC<DisciplinaryDetailsDialogProps>
                       <span className="card-data-value">{item.hearingLocation}</span>
                     </div>
                   )}
+                  {item.hearingOfficer && (
+                    <div className="card-data-item">
+                      <span className="card-data-label"><User size={14} /> مسؤول الجلسة</span>
+                      <span className="card-data-value">{item.hearingOfficer}</span>
+                    </div>
+                  )}
                 </>
               )}
             </div>
           )}
-          {/* Admin Notes & Decisions */}
-          {(item.admin_notes || item.decision_outcome || item.effective_date) && (
+          {/* The administration's decision */}
+          {(item.admin_notes || item.decision_outcome) && (
             <div className="premium-admin-card" style={{ marginTop: '24px' }}>
               <div className="premium-admin-header">
                 <div className="premium-admin-header-icon">
                   <AlertTriangle size={20} />
                 </div>
-                <h3>قرارات وملاحظات الإدارة</h3>
+                <h3>قرار الإدارة</h3>
               </div>
-              
               <div className="premium-admin-body">
-                {item.admin_notes && (
-                  <div className="premium-admin-data-block">
-                    <span className="premium-admin-data-label"><FileText size={16} /> ملاحظات الإدارة</span>
-                    <span className="premium-admin-data-value">{item.admin_notes}</span>
-                  </div>
-                )}
-                
-                {(item.decision_outcome || item.effective_date) && (
-                  <div className="premium-admin-data-grid">
-                    {item.decision_outcome && (
-                      <div className="premium-admin-data-item">
-                        <span className="premium-admin-data-label"><Scale size={16} /> نوع القرار</span>
-                        <span className="premium-admin-data-value">
-                          <span className={`badge badge-${item.decision_outcome === 'فصل' ? 'red' : 'purple'}`} style={{ padding: '6px 14px' }}>{item.decision_outcome}</span>
-                        </span>
-                      </div>
-                    )}
-                    {item.effective_date && (
-                      <div className="premium-admin-data-item">
-                        <span className="premium-admin-data-label"><Calendar size={16} /> تاريخ سريان العقوبة</span>
-                        <span className="premium-admin-data-value" style={{ fontSize: '1rem', fontWeight: '700' }}>{new Date(item.effective_date).toLocaleDateString('ar-DZ')}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {item.decision_reasons && (
-                  <div className="premium-admin-data-block">
-                    <span className="premium-admin-data-label"><FileText size={16} /> أسباب القرار</span>
-                    <span className="premium-admin-data-value">{item.decision_reasons}</span>
-                  </div>
-                )}
+                <DecisionView value={item} />
               </div>
             </div>
           )}

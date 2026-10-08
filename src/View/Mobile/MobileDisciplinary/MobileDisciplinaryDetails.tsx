@@ -1,9 +1,10 @@
 import React from 'react';
 import {
   Calendar, MapPin, BookOpen, Users, Clock, MessageSquare, Gavel, CheckCircle2, Pencil, ChevronDown,
-  Paperclip, Flag, Hash, Quote, Circle, Printer, UploadCloud,
+  Paperclip, Flag, Hash, Quote, Circle, Printer, UploadCloud, UserRound,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
+import { DecisionHero } from '../../Screen/Disciplinary/Dialogs/DecisionView';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileSelect, type MobileSelectOption } from '../widgets/MobileSelect';
 import type { DisciplinaryModel } from '../../Screen/Disciplinary/disciplinary_data';
@@ -28,6 +29,8 @@ interface MobileDisciplinaryDetailsProps {
   onViewDocument?: () => void;
   onUploadDocument?: () => void;
   onPrint?: () => void;
+  /** The member's own page: the decision step opens the decision alone */
+  decisionOnly?: boolean;
   onClose: () => void;
 }
 
@@ -76,7 +79,7 @@ interface Step {
 // Full details of one disciplinary action (phone)
 export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps> = ({
   item, photo, typeTone, typeIcon: TypeIcon, statusOptions, statusTone, canChangeStatus,
-  onChangeStatus, onViewReply, onViewMemberReply, onEdit, onViewDocument, onUploadDocument, onPrint, onClose,
+  onChangeStatus, onViewReply, onViewMemberReply, onEdit, onViewDocument, onUploadDocument, onPrint, decisionOnly, onClose,
 }) => {
   const due = countdown(item.deadlineOrHearingDate);
   const hasDecision = !!(item.decision_outcome || item.decision_reasons || item.admin_notes);
@@ -91,10 +94,16 @@ export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps>
   );
 
   const facts: { icon: IconType; label: string; value: string; note?: { text: string; late: boolean } | null }[] = [
-    { icon: Calendar, label: 'تاريخ الحدث', value: formatDate(item.incidentDate) },
-    ...(item.deadlineOrHearingDate ? [{ icon: Clock, label: 'الأجل / الجلسة', value: formatDate(item.deadlineOrHearingDate), note: hasDecision ? null : due }] : []),
+    { icon: Calendar, label: 'تاريخ الحدث', value: [formatDate(item.incidentDate), item.incidentTime && `على الساعة ${item.incidentTime}`].filter(Boolean).join(' ') },
+    ...(item.deadlineOrHearingDate ? [{
+      icon: Clock,
+      label: 'الأجل / الجلسة',
+      value: [formatDate(item.deadlineOrHearingDate), item.actionType === 'استدعاء جلسة' && item.hearingTime && `على الساعة ${item.hearingTime}`].filter(Boolean).join(' '),
+      note: hasDecision ? null : due,
+    }] : []),
     ...(item.incidentLocation ? [{ icon: MapPin, label: 'المكان', value: item.incidentLocation }] : []),
     ...(item.hearingLocation ? [{ icon: MapPin, label: 'مكان الجلسة', value: item.hearingLocation }] : []),
+    ...(item.hearingOfficer ? [{ icon: UserRound, label: 'مسؤول الجلسة', value: item.hearingOfficer }] : []),
     ...(item.violatedRule ? [{ icon: BookOpen, label: 'المادة المخالفة', value: item.violatedRule }] : []),
   ];
 
@@ -115,14 +124,8 @@ export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps>
       title: 'القرار',
       done: hasDecision,
       date: formatDate(item.effective_date),
-      body: hasDecision ? (
-        <div className="mdd-decision">
-          {item.decision_outcome && <strong>{item.decision_outcome}</strong>}
-          {item.decision_reasons && <p>{item.decision_reasons}</p>}
-          {item.admin_notes && <p className="muted">{item.admin_notes}</p>}
-        </div>
-      ) : undefined,
-      action: onViewReply ? { label: onViewMemberReply ? 'القرار' : 'الرد والقرارات', onClick: onViewReply } : undefined,
+      body: hasDecision ? <DecisionHero value={item} compact /> : undefined,
+      action: onViewReply ? { label: onViewMemberReply || decisionOnly ? 'عرض القرار' : 'الرد والقرارات', onClick: onViewReply } : undefined,
     }] : []),
     {
       key: 'document',
@@ -180,7 +183,7 @@ export const MobileDisciplinaryDetails: React.FC<MobileDisciplinaryDetailsProps>
           {onViewReply && (
             <>
               {onViewMemberReply && <button type="button" onClick={onViewMemberReply}><span><MessageSquare size={19} /></span>رد العضو</button>}
-              <button type="button" onClick={onViewReply}><span>{onViewMemberReply ? <Gavel size={19} /> : <MessageSquare size={19} />}</span>{onViewMemberReply ? 'القرار' : 'الرد والقرارات'}</button>
+              <button type="button" onClick={onViewReply}><span>{onViewMemberReply || decisionOnly ? <Gavel size={19} /> : <MessageSquare size={19} />}</span>{decisionOnly ? 'عرض القرار' : onViewMemberReply ? 'القرار' : 'الرد والقرارات'}</button>
             </>
           )}
           {onViewDocument && (

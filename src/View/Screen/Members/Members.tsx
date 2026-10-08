@@ -24,6 +24,7 @@ import { MemberModel } from './member_model';
 import './Members.css';
 import '../Disciplinary/Disciplinary.css';
 import { processImage } from '../../../core/functions/processImage';
+import { useBackCloses } from '../../Mobile/widgets/useBackCloses';
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
@@ -78,6 +79,15 @@ export const Members: React.FC = () => {
     setEditingEvaluation(null);
   };
 
+  // Desktop: every member window (add / edit, tracking record, evaluation, evaluations, clearance) closes with the
+  // browser's back and the page stays; windows open one over another close one by one
+  // (the phone's full-screen pages do the same by themselves)
+  useBackCloses(closeAddMemberDialog, isMobile || !isAddMemberOpen);
+  useBackCloses(closeDialog, isMobile || !isDialogOpen);
+  useBackCloses(controller.closeEvalHistory, isMobile || !controller.evalHistoryMember);
+  useBackCloses(closeClearanceDialog, isMobile || !isClearanceDialogOpen);
+  useBackCloses(closeEvaluationForm, isMobile || !(evalMember || editingEvaluation));
+
   // Shared by the desktop dialog and the phone form
   const saveEvaluationForm = (data: any) => {
     const date = new Date().toISOString().split('T')[0];
@@ -113,7 +123,12 @@ export const Members: React.FC = () => {
 
   const paginatedMembers = filteredMembers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, memberId?: string | number) => {
+    // A clearance card still open: the member is leaving
+    const card = memberId != null ? controller.leavingOf(memberId) : undefined;
+    if (card && status === 'active') {
+      return <span className="badge badge-amber" title={`${card.signed} من ${card.total} أقسام وقّعت`}>في طور المغادرة</span>;
+    }
     if (status === 'active') return <span className="badge badge-green">{t('members.active', 'نشط')}</span>;
     if (status === 'suspended') return <span className="badge badge-red">{t('members.suspended', 'موقوف')}</span>;
     return <span className="badge badge-red">{t('members.inactive', 'غير نشط')}</span>;
@@ -245,7 +260,7 @@ export const Members: React.FC = () => {
                     {member.Shirt_number ? <span className="jersey-number">{member.Shirt_number}</span> : '-'}
                   </td>
                   <td data-label={t('members.team', 'الفريق')}>{member.team_name || '-'}</td>
-                  <td data-label={t('members.status', 'الحالة')}>{getStatusBadge(member.status)}</td>
+                  <td data-label={t('members.status', 'الحالة')}>{getStatusBadge(member.status, member.id)}</td>
                   <td data-label={t('members.internal_system', 'النظام الداخلي')}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       {member.is_internal_system_printed ? (

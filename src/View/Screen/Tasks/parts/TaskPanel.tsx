@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, type LucideIcon } from 'lucide-react';
 import { MobileScreen } from '../../../Mobile/widgets/MobileScreen';
 import { MobileSheet } from '../../../Mobile/widgets/MobileSheet';
@@ -33,8 +34,9 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({ mobile, title, subtitle, i
       : <MobileScreen title={title} onBack={onClose} footer={footer} layer={layer}><div className="tk-scope tk-mobile-body">{children}</div></MobileScreen>;
   }
 
-  return (
-    <div className={`dialog-overlay tk-overlay layer-${layer}`} onMouseDown={onClose}>
+  // Drawn at the page's top level: above the sidebar and centred on the screen, whatever the page around it
+  return createPortal(
+    <div className={`dialog-overlay tk-overlay tk-desk layer-${layer}`} onMouseDown={onClose}>
       <div className={`dialog-content tk-dialog tk-scope size-${size}`} role="dialog" aria-modal="true" aria-label={title} onMouseDown={e => e.stopPropagation()}>
         <div className="dialog-header">
           <div className="dialog-title">
@@ -49,6 +51,7 @@ export const TaskPanel: React.FC<TaskPanelProps> = ({ mobile, title, subtitle, i
         <div className="dialog-body">{children}</div>
         {footer && <div className="dialog-footer">{footer}</div>}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

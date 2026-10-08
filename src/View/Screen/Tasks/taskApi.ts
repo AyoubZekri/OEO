@@ -16,6 +16,36 @@ export const apiError = (e: unknown, fallback = 'تعذر تنفيذ العمل�
   return fallback;
 };
 
+/**
+ * A failed task request, written in full to the console (F12 → Console) to find what went wrong:
+ * the operation, the task, the request sent, the server's status and answer (message, exception, file and line).
+ */
+export const logTaskError = (operation: string, e: unknown, context: Record<string, unknown> = {}) => {
+  const time = new Date().toLocaleTimeString('fr-DZ');
+  console.groupCollapsed(`%c[المهام] فشل: ${operation} — ${time}`, 'color:#ef4444;font-weight:bold');
+  console.log('التفاصيل:', context);
+  if (axios.isAxiosError(e)) {
+    const data: any = e.response?.data;
+    let sent: unknown = e.config?.data;
+    if (sent instanceof FormData) sent = Object.fromEntries([...sent.entries()].map(([k, v]) => [k, v instanceof File ? `ملف: ${v.name} (${Math.round(v.size / 1024)} ك.ب، ${v.type})` : v]));
+    else if (typeof sent === 'string') { try { sent = JSON.parse(sent); } catch { /* as it was */ } }
+    console.log('الطلب:', `${(e.config?.method || '').toUpperCase()} ${e.config?.baseURL || ''}${e.config?.url || ''}`);
+    console.log('المرسَل:', sent);
+    if (e.response) {
+      console.log('رمز الرد:', e.response.status, e.response.statusText);
+      console.log('رسالة الخادم:', data?.message ?? data);
+      if (data?.errors) console.log('أخطاء التحقق:', data.errors);
+      if (data?.exception) console.log('الاستثناء:', data.exception, '—', data.file, ':', data.line);
+    } else {
+      // No answer: no connection, timeout, or the server dropped the request
+      console.log('لا رد من الخادم:', e.code, e.message);
+    }
+  } else {
+    console.log('الخطأ:', e);
+  }
+  console.groupEnd();
+};
+
 /** auto: what the signed-in account deals with (managers: every task) */
 export type TaskScope = 'auto' | 'my' | 'review' | 'created' | 'all';
 
@@ -29,7 +59,7 @@ export const taskApi = {
   create: async (data: Record<string, any>): Promise<Task> => (await client.post('/tasks/create', data)).data.data,
   update: async (data: Record<string, any>): Promise<Task> => (await client.post('/tasks/update', data)).data.data,
   remove: async (id: number) => client.post('/tasks/delete', { id }),
-  action: async (id: number, action: TaskAction, extra: { reason?: string; note?: string } = {}): Promise<Task> =>
+  action: async (id: number, action: TaskAction, extra: { reason?: string; note?: string; status?: string } = {}): Promise<Task> =>
     (await client.post('/tasks/action', { id, action, ...extra })).data.data,
 
   attach: async (id: number, proof: { type: TaskAttachment['type']; file?: File | null; url?: string; body?: string }): Promise<TaskAttachment> => {

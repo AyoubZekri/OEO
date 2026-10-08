@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
-import { X, Save, MessageSquare, AlertTriangle, Scale, Calendar, FileText, ArrowRight } from 'lucide-react';
-import { CustomDropdown } from '../../../widget/CustomDropdown';
+import { X, Save, MessageSquare, AlertTriangle, Scale, ArrowRight } from 'lucide-react';
+import { DecisionFields } from './DecisionFields';
 import '../Disciplinary.css';
 
 interface IncidentDecisionDialogProps {
@@ -100,58 +100,15 @@ export const IncidentDecisionDialog: React.FC<IncidentDecisionDialogProps> = ({
               <div className="premium-admin-header-icon">
                 <AlertTriangle size={20} />
               </div>
-              <h3>قرارات وملاحظات الإدارة</h3>
+              <h3>قرار الإدارة</h3>
             </div>
             
             <div className="premium-admin-body">
-              <div className="modern-form-group">
-                <label>الملاحظات الإدارية</label>
-                <textarea
-                  value={formData.admin_notes || ''}
-                  onChange={e => setFormData({ ...formData, admin_notes: e.target.value })}
-                  className="modern-form-input modern-form-textarea"
-                  rows={2}
-                  placeholder="أدخل ملاحظات وقرارات الإدارة..."
-                />
-              </div>
-
-              <div className="modern-form-group" style={{ zIndex: 10 }}>
-                <CustomDropdown
-                  label={<><Scale size={16} style={{marginRight: '8px', verticalAlign: 'middle'}}/> نوع القرار التأديبي</>}
-                  value={formData.decision_outcome || ''}
-                  onChange={(val) => setFormData({ ...formData, decision_outcome: val })}
-                  options={[
-                    { value: 'حفظ', label: 'حفظ' },
-                    { value: 'تنبيه', label: 'تنبيه' },
-                    { value: 'تنبيه كتابي', label: 'تنبيه كتابي' },
-                    { value: 'إنذار', label: 'إنذار' },
-                    { value: 'عقوبة', label: 'عقوبة' },
-                    { value: 'فصل', label: 'فصل' },
-                  ]}
-                  placeholder="اختر نوع القرار..."
-                />
-              </div>
-
-              <div className="modern-form-group">
-                <label><Calendar size={16} /> تاريخ السريان</label>
-                <input
-                  type="date"
-                  value={formData.effective_date ? formData.effective_date.split('T')[0] : ''}
-                  onChange={e => setFormData({ ...formData, effective_date: e.target.value })}
-                  className="modern-form-input"
-                />
-              </div>
-
-              <div className="modern-form-group">
-                <label><FileText size={16} /> أسباب القرار</label>
-                <textarea
-                  value={formData.decision_reasons || ''}
-                  onChange={e => setFormData({ ...formData, decision_reasons: e.target.value })}
-                  className="modern-form-input modern-form-textarea"
-                  rows={2}
-                  placeholder="ما هي أسباب هذا القرار؟"
-                />
-              </div>
+              <DecisionFields
+                key={editingItem.id}
+                value={formData}
+                onChange={patch => setFormData(prev => ({ ...prev, ...patch }))}
+              />
             </div>
           </div>
 

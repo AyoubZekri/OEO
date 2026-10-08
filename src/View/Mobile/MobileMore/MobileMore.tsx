@@ -6,7 +6,6 @@ import {
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
-import { useCan } from '../../../core/functions/useCan';
 import { Approutes } from '../../../core/constant/routes';
 import type { useSaidparController } from '../../Screen/Saidpar/SaidparController';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -32,7 +31,7 @@ const GROUPS: { title: string; names: string[] }[] = [
   { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary'] },
   { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
-  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Correspondences', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
@@ -61,7 +60,6 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
   PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
-  Correspondences: { icon: FileText, color: '#64748b' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
   Equipment: { icon: Package, color: '#f59e0b' },
   EquipmentOperations: { icon: ArrowLeftRight, color: '#14b8a6' },
@@ -81,21 +79,16 @@ const readRoleName = (fallback: string) => {
 export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const can = useCan();
   const [query, setQuery] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   const personal = controller.space === 'personal';
   // Same pages (and permissions) as the sidebar, dropdown children flattened
-  const pages: PageLink[] = [
-    ...controller.menuSections
-      .flatMap(section => section.items)
-      .flatMap(item => (item.subItems?.length
-        ? item.subItems.map(sub => ({ name: sub.name, label: t(sub.label, sub.label), route: sub.route }))
-        : item.route ? [{ name: item.name, label: t(item.label, item.label), route: item.route }] : [])),
-    // The correspondences (left the bottom bar for the matches; not in the sidebar)
-    ...(!personal && can('correspondences') ? [{ name: 'Correspondences', label: 'الأعمال', route: Approutes.Correspondences }] : []),
-  ]
+  const pages: PageLink[] = controller.menuSections
+    .flatMap(section => section.items)
+    .flatMap(item => (item.subItems?.length
+      ? item.subItems.map(sub => ({ name: sub.name, label: t(sub.label, sub.label), route: sub.route }))
+      : item.route ? [{ name: item.name, label: t(item.label, item.label), route: item.route }] : []))
     .filter(page => !(personal ? IN_PERSONAL_NAV : IN_BOTTOM_NAV).has(page.route));
 
   const q = query.trim();

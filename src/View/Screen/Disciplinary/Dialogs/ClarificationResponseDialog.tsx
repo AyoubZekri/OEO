@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
 import { X, Save, MessageSquare, AlertTriangle, ArrowRight } from 'lucide-react';
+import { DecisionFields } from './DecisionFields';
 import '../Disciplinary.css';
 
 interface ClarificationResponseDialogProps {
@@ -102,19 +103,15 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
               <div className="premium-admin-header-icon">
                 <AlertTriangle size={20} />
               </div>
-              <h3>القرار المتخذ</h3>
+              <h3>قرار الإدارة</h3>
             </div>
             
             <div className="premium-admin-body">
-              <div className="modern-form-group">
-                <textarea
-                  value={formData.admin_notes || ''}
-                  onChange={e => setFormData({ ...formData, admin_notes: e.target.value })}
-                  className="modern-form-input modern-form-textarea"
-                  rows={4}
-                  placeholder="القرار المتخذ وملاحظات الإدارة..."
-                />
-              </div>
+              <DecisionFields
+                key={editingItem.id}
+                value={formData}
+                onChange={patch => setFormData(prev => ({ ...prev, ...patch }))}
+              />
             </div>
           </div>
           )}

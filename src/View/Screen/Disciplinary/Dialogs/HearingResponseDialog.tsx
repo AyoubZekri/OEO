@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
-import { X, Save, MessageSquare, AlertTriangle, ArrowRight } from 'lucide-react';
+import { X, Save, MessageSquare, AlertTriangle, ArrowRight, UserCheck, Clock, Printer } from 'lucide-react';
+import { DecisionFields } from './DecisionFields';
 import '../Disciplinary.css';
 
 interface HearingResponseDialogProps {
@@ -28,6 +29,7 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
         ...editingItem,
         player_statements: editingItem.player_statements || '',
         admin_notes: editingItem.admin_notes || '',
+        hearingEndTime: editingItem.hearingEndTime || '',
       });
     } else {
       setFormData({
@@ -64,6 +66,40 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
           e.preventDefault();
           onSave(formData as DisciplinaryModel);
         }}>
+          {/* The session: who runs it (set when it was created), and when it closes (its minutes are printed once it is closed) */}
+          {editingItem.actionType === 'استدعاء جلسة' && (
+            <div className="epic-form-section">
+              <div className="epic-section-header">
+                <div className="epic-section-header-icon">
+                  <UserCheck size={18} />
+                </div>
+                <h3>سير الجلسة</h3>
+              </div>
+              <div className="hr-session-grid">
+                <div className="modern-form-group">
+                  <label className="modern-form-label"><UserCheck size={14} /> مسؤول الجلسة</label>
+                  <div className="modern-form-input hr-session-officer">{editingItem.hearingOfficer || 'لم يُعيَّن عند إنشاء الجلسة'}</div>
+                </div>
+                <div className="modern-form-group">
+                  <label className="modern-form-label"><Clock size={14} /> توقيت اختتام الجلسة</label>
+                  <input
+                    className="modern-form-input"
+                    type="time"
+                    dir="ltr"
+                    value={formData.hearingEndTime || ''}
+                    onChange={e => setFormData({ ...formData, hearingEndTime: e.target.value })}
+                  />
+                </div>
+              </div>
+              <p className="hr-session-hint">
+                <Printer size={14} />
+                {editingItem.hearingEndTime
+                  ? 'اختُتمت الجلسة: محضرها متاح للطباعة من زر الطباعة'
+                  : 'بعد تحديد توقيت الاختتام والحفظ، يصبح محضر الجلسة متاحاً للطباعة'}
+              </p>
+            </div>
+          )}
+
           {/* Player Section */}
           <div className="epic-form-section player-section">
             <div className="epic-section-header">
@@ -90,19 +126,15 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
               <div className="premium-admin-header-icon">
                 <AlertTriangle size={20} />
               </div>
-              <h3>ملاحظات لجنة الاستماع والقرارات</h3>
+              <h3>قرار الإدارة</h3>
             </div>
             
             <div className="premium-admin-body">
-              <div className="modern-form-group">
-                <textarea
-                  value={formData.admin_notes || ''}
-                  onChange={e => setFormData({ ...formData, admin_notes: e.target.value })}
-                  className="modern-form-input modern-form-textarea"
-                  rows={4}
-                  placeholder="أدخل ملاحظات اللجنة..."
-                />
-              </div>
+              <DecisionFields
+                key={editingItem.id}
+                value={formData}
+                onChange={patch => setFormData(prev => ({ ...prev, ...patch }))}
+              />
             </div>
           </div>
 

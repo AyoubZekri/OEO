@@ -1173,3 +1173,21 @@ body.dark-mode .epic-form-section {
 }
 
 .dc-deadline.late { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+/* Hearing: its officer and closing time, side by side */
+.hr-session-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.hr-session-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+@media (max-width: 600px) { .hr-session-grid { grid-template-columns: 1fr; } }
+.hr-session-officer { display: flex; align-items: center; min-height: 44px; color: var(--text-h); font-weight: 600; opacity: .85; cursor: default; }
+
+/* A date and its time of day, side by side */
+.dd-date-time { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
+@media (max-width: 600px) { .dd-date-time { grid-template-columns: 1fr; } }

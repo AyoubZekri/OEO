@@ -4,6 +4,8 @@ export interface DisciplinaryModel {
   memberName: string;
   actionType: 'تنبيه' | 'إنذار' | 'طلب توضيح' | 'إحالة على الجهة التأديبية المختصة' | 'استدعاء جلسة' | 'واقعة';
   incidentDate: string;
+  /** The incident's time of day ("HH:MM"), when it has one */
+  incidentTime?: string;
   reason: string;
   status: 'مفتوح' | 'منفذ' | 'غير منفذ' | 'متأخر' | 'ملغى';
   incidentLocation?: string;
@@ -12,6 +14,11 @@ export interface DisciplinaryModel {
   attachments?: string;
   deadlineOrHearingDate?: string;
   hearingLocation?: string;
+  /** A hearing: who runs it, and when it closed ("HH:MM"; its minutes are printed once it is) */
+  hearingOfficer?: string;
+  hearingEndTime?: string;
+  /** The hearing's time of day ("HH:MM"), when its date has one */
+  hearingTime?: string;
   player_statements?: string;
   admin_notes?: string;
   decision_outcome?: string;

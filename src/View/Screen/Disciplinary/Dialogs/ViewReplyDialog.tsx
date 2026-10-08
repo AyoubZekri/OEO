@@ -1,8 +1,9 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
-import { X, MessageSquare, Edit2, AlertTriangle, Scale, FileText, Calendar, ArrowRight } from 'lucide-react';
+import { X, MessageSquare, Edit2, AlertTriangle, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../../../core/context/AuthContext';
+import { DecisionView } from './DecisionView';
 import '../Disciplinary.css';
 
 interface ViewReplyDialogProps {
@@ -81,53 +82,10 @@ export const ViewReplyDialog: React.FC<ViewReplyDialogProps> = ({
               <div className="premium-admin-header-icon">
                 <AlertTriangle size={20} />
               </div>
-              <h3>{section === 'decision' ? 'قرار الإدارة' : 'ملاحظات وقرارات الإدارة'}</h3>
+              <h3>قرار الإدارة</h3>
             </div>
             <div className="premium-admin-body">
-              {item.admin_notes && (
-                <div className="premium-admin-data-block">
-                  <div className="premium-admin-data-label"><FileText size={16} /> ملاحظات الإدارة</div>
-                  <div className="premium-admin-data-value">{item.admin_notes}</div>
-                </div>
-              )}
-              {!item.admin_notes && (
-                <div className="premium-admin-data-value" style={{ textAlign: 'center', fontStyle: 'italic', color: 'var(--text-muted)' }}>
-                  {section === 'decision' ? 'لم يصدر القرار بعد.' : 'لا توجد ملاحظات حالياً.'}
-                </div>
-              )}
-              
-              {item.actionType === 'واقعة' && (
-                <>
-                  <div className="premium-admin-data-grid">
-                    <div className="premium-admin-data-item">
-                      <span className="premium-admin-data-label"><Scale size={16} /> نوع القرار</span>
-                      <div className="premium-admin-data-value">
-                        {item.decision_outcome ? (
-                          <span className={`badge badge-${item.decision_outcome === 'فصل' ? 'red' : 'purple'}`} style={{ padding: '8px 16px', fontSize: '0.95rem' }}>
-                            {item.decision_outcome}
-                          </span>
-                        ) : (
-                          <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.95rem' }}>لم يحدد</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="premium-admin-data-item">
-                      <span className="premium-admin-data-label"><Calendar size={16} /> تاريخ سريان العقوبة</span>
-                      <div className="premium-admin-data-value" style={{ fontSize: '1rem', fontWeight: '700' }}>
-                        {item.effective_date ? new Date(item.effective_date).toLocaleDateString('ar-DZ') : <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontSize: '0.95rem', fontWeight: 'normal' }}>لم يحدد</span>}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {item.decision_reasons && (
-                    <div className="premium-admin-data-block">
-                      <div className="premium-admin-data-label"><FileText size={16} /> أسباب القرار</div>
-                      <div className="premium-admin-data-value">{item.decision_reasons}</div>
-                    </div>
-                  )}
-                </>
-              )}
+              <DecisionView value={item} emptyText={section === 'decision' ? 'لم يصدر القرار بعد' : 'لا توجد ملاحظات ولا قرار بعد'} />
             </div>
           </div>
           )}

@@ -347,3 +347,25 @@
 @media (max-width: 640px) {
   .med-row { grid-template-columns: 1fr; }
 }
+
+/* ── Dark mode: beats the global `body.dark-mode input` rule in index.css ── */
+/* The field's frame gives the colour: the input inside stays see-through, with no frame of its own */
+body.dark-mode .med-input input {
+  background-color: transparent !important;
+  border: none !important;
+  color: var(--text-h) !important;
+  padding: 0;
+  color-scheme: dark;
+}
+/* The point being written: the same look as the other fields */
+body.dark-mode .med-add input {
+  background-color: var(--bg) !important;
+  border-color: var(--border) !important;
+  color-scheme: dark;
+}
+body.dark-mode .med-add input:focus { border-color: #f97316 !important; }
+/* The date and time pickers' icons, light on the dark field */
+body.dark-mode .med-input input::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+  cursor: pointer;
+}

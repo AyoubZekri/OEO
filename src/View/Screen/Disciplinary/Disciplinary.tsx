@@ -8,7 +8,7 @@ import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, Gavel
 import { useDisciplinaryController } from './DisciplinaryController';
 import type { DisciplinaryModel } from './disciplinary_data';
 import { MobileRowMenu, type MobileRowMenuItem } from '../../Mobile/widgets/MobileRowMenu';
-import { canPrintNow, memberCanReply } from './clarification';
+import { canPrintNow, hasDecision, memberCanReply } from './clarification';
 import { DisciplinaryDialog } from './DisciplinaryDialog';
 import { IncidentDecisionDialog } from './Dialogs/IncidentDecisionDialog';
 import { ClarificationResponseDialog } from './Dialogs/ClarificationResponseDialog';
@@ -16,7 +16,8 @@ import { HearingResponseDialog } from './Dialogs/HearingResponseDialog';
 import { DisciplinaryDetailsDialog } from './Dialogs/DisciplinaryDetailsDialog';
 import { ViewReplyDialog } from './Dialogs/ViewReplyDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
-import { IncidentPrintDialog } from './Dialogs/IncidentPrintDialog';
+import { DisciplinaryPrintSheet } from './Printable/DisciplinaryPrint';
+import { printDocsFor, type PrintType } from './Printable/printDocs';
 import { UploadSignedDocumentDialog } from './Dialogs/UploadSignedDocumentDialog';
 import { ViewSignedDocumentDialog } from './Dialogs/ViewSignedDocumentDialog';
 import { MobileDisciplinary } from '../../Mobile/MobileDisciplinary/MobileDisciplinary';
@@ -107,7 +108,8 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
   // Clarification requests: which part is open ("reply" or "decision"); other types show both together
   const [replySection, setReplySection] = useState<'reply' | 'decision' | undefined>(undefined);
   const openReply = (item: any, section?: 'reply' | 'decision') => { setReplySection(section); setViewingReplyItem(item); };
-  const [printingIncident, setPrintingIncident] = useState<any>(null);
+  // The document being printed: the browser's print sheet opens at once (no choice dialog)
+  const [printing, setPrinting] = useState<{ item: DisciplinaryModel; type: PrintType } | null>(null);
   const [uploadingSignedDocItem, setUploadingSignedDocItem] = useState<any>(null);
   const [viewingSignedDocItem, setViewingSignedDocItem] = useState<any>(null);
 
@@ -191,13 +193,19 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
       ...(personal && memberCanReply(c)
         ? [{ key: 'answer', label: c.player_statements ? 'تعديل ردي' : 'الرد على الطلب', icon: PenLine, color: '#10b981', onClick: () => controller.openResponseDialog(c) }]
         : []),
-      ...(canDo('viewReply') && clarification ? [
+      // The member: their reply (a clarification request), and the decision once written
+      ...(personal ? [
+        ...(clarification && c.player_statements?.trim() ? [{ key: 'reply', label: 'ردي', icon: MessageSquare, color: '#f97316', onClick: () => openReply(c, 'reply') }] : []),
+        ...(hasDecision(c) ? [{ key: 'decision', label: 'عرض القرار', icon: Gavel, color: '#f97316', onClick: () => openReply(c, 'decision') }] : []),
+      ] : canDo('viewReply') && clarification ? [
         { key: 'reply', label: 'رد العضو', icon: MessageSquare, color: '#f97316', onClick: () => openReply(c, 'reply') },
         { key: 'decision', label: 'القرار', icon: Gavel, color: '#f97316', onClick: () => openReply(c, 'decision') },
       ] : canDo('viewReply') && withReply ? [
         { key: 'reply', label: 'الرد والقرارات', icon: MessageSquare, color: '#f97316', onClick: () => openReply(c) },
       ] : []),
-      ...(canDo('print') && canPrintNow(c) ? [{ key: 'print', label: 'طباعة المحضر / القرار', icon: Printer, color: '#f97316', onClick: () => setPrintingIncident(c) }] : []),
+      ...(canDo('print') && canPrintNow(c)
+        ? printDocsFor(c).map(doc => ({ key: `print-${doc.type}`, label: doc.label, icon: Printer, color: '#f97316', onClick: () => setPrinting({ item: c, type: doc.type }) }))
+        : []),
       ...(c.signed_document && (canDo('edit') || personal)
         ? [{ key: 'doc', label: 'عرض الوثيقة الممضاة', icon: FileText, color: '#f97316', onClick: () => setViewingSignedDocItem(c) }]
         : canDo('edit') ? [{ key: 'doc', label: 'رفع الوثيقة الممضاة', icon: UploadCloud, color: '#f97316', onClick: () => setUploadingSignedDocItem(c) }] : []),
@@ -399,11 +407,14 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
           }}
         />
 
-        <IncidentPrintDialog 
-          isOpen={!!printingIncident}
-          onClose={() => setPrintingIncident(null)}
-          incident={printingIncident}
-        />
+        {printing && (
+          <DisciplinaryPrintSheet
+            key={`${printing.item.id}-${printing.type}`}
+            item={printing.item}
+            type={printing.type}
+            onDone={() => setPrinting(null)}
+          />
+        )}
 
         <UploadSignedDocumentDialog
           isOpen={!!uploadingSignedDocItem}

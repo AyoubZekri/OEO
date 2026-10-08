@@ -7,6 +7,7 @@ import defaultAvatar from '../../../assets/AVETER.png';
 import { Applink } from '../../../LinkApi';
 import { processImage } from '../../../core/functions/processImage';
 import { MobileSelect } from '../widgets/MobileSelect';
+import { useBackCloses } from '../widgets/useBackCloses';
 import type { MobileSelectOption } from '../widgets/MobileSelect';
 import type { useMembersController } from '../../Screen/Members/MembersController';
 import './MobileMemberForm.css';
@@ -84,6 +85,8 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
     photoFile, setPhotoFile, nationalIdFile, setNationalIdFile, medicalFile, setMedicalFile,
     insuranceFile, setInsuranceFile, teams, isLoading,
   } = controller;
+  // The phone's back button closes the form (and stays on the members page)
+  useBackCloses(closeAddMemberDialog);
 
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [hideCurrentPhoto, setHideCurrentPhoto] = useState(false);

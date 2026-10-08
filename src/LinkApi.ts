@@ -145,6 +145,11 @@ export class Applink {
   static readonly getPlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}`;
   static readonly savePlayerClearance = `${Applink.server}/player-clearance`;
   static readonly deletePlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}`;
+  // Every member's card (who is leaving), a department's signature and its withdrawal, closing the file
+  static readonly playerClearances = `${Applink.server}/player-clearances`;
+  static readonly signPlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}/sign`;
+  static readonly unsignPlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}/unsign`;
+  static readonly closePlayerClearance = (playerId: number) => `${Applink.server}/player-clearance/${playerId}/close`;
 
   //  =============================Clubs============================== //
   static readonly clubs = `${Applink.server}/clubs`;

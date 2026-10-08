@@ -120,9 +120,16 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
     setEditingItem(null);
   };
 
-  const handleSave = async (item: DisciplinaryModel) => {
+  const handleSave = async (input: DisciplinaryModel) => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    // The list gives the dates alone: their time of day is put back with them
+    const withTime = (date?: string, time?: string) => (time && date && !/[ T]\d{2}:\d{2}/.test(date) ? `${date} ${time}` : date || '');
+    const item = {
+      ...input,
+      incidentDate: withTime(input.incidentDate, input.incidentTime),
+      deadlineOrHearingDate: withTime(input.deadlineOrHearingDate, input.actionType === 'استدعاء جلسة' ? input.hearingTime : ''),
+    };
     try {
       console.log("Data being sent to backend:", item);
 

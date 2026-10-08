@@ -19,7 +19,6 @@ import { Debts } from './View/Screen/Debts/Debts';
 import { Reports } from './View/Screen/Reports/Reports';
 import { Equipment } from './View/Screen/Equipment/Equipment';
 import { EquipmentOperations } from './View/Screen/Equipment/EquipmentOperations';
-import { Correspondences } from './View/Screen/Correspondences/Correspondences';
 import { Disciplinary } from './View/Screen/Disciplinary/Disciplinary';
 import TrainingSessions from './View/Screen/TrainingSessions/TrainingSessions';
 import { TakeAttendance } from './View/Screen/TrainingSessions/Attendance/TakeAttendance';
@@ -63,7 +62,6 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
-    console.log("Registered Route for Correspondences:", Approutes.Correspondences);
   }, [i18n.language]);
 
   const isMobile = useIsMobile();
@@ -107,7 +105,6 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Teams} element={<RequirePermission module="teams"><Teams /></RequirePermission>} />
             <Route path={Approutes.Equipment} element={<RequirePermission module="equipment"><Equipment /></RequirePermission>} />
             <Route path={Approutes.EquipmentOperations} element={<RequirePermission module="equipmentOperations"><EquipmentOperations /></RequirePermission>} />
-            <Route path={Approutes.Correspondences} element={<RequirePermission module="correspondences"><Correspondences /></RequirePermission>} />
             <Route path={Approutes.Disciplinary} element={<RequirePermission module="disciplinary"><Disciplinary /></RequirePermission>} />
             <Route path={Approutes.TrainingSessions} element={<RequirePermission module="trainingSessions"><TrainingSessions /></RequirePermission>} />
             <Route path={Approutes.TakeAttendance} element={<RequirePermission module="trainingSessions" action="attendance"><TakeAttendance /></RequirePermission>} />

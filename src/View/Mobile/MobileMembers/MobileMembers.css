@@ -322,3 +322,6 @@ body.dark-mode .mm-menu {
 
 /* Keep the last row clear of the floating button */
 .mm-list { padding-bottom: 64px; }
+
+/* A member whose clearance card is still open */
+.mm-tag.leaving { background: rgba(245, 158, 11, .14); color: #d97706; }

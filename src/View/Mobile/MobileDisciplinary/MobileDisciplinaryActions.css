@@ -343,3 +343,7 @@ a.me-btn { text-decoration: none; }
   border-color: var(--ms-accent);
   background: var(--ms-accent);
 }
+
+/* A short help line under a section's fields */
+.me-hint { margin: 2px 0 0; color: var(--me-muted, #64748b); font-size: 0.8rem; font-weight: 600; line-height: 1.6; }
+.me-input.hr-session-officer { display: flex; align-items: center; font-weight: 600; opacity: .85; }
