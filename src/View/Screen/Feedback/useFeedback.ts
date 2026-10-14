@@ -1,6 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import client from '../../../core/api/client';
 import { errorText, type Feedback, type FeedbackType } from './feedbackUtils';
+
+/** ?feedback=ID (from an alert): the card is brought into view once the list is there */
+export const useFocusedFeedback = (ready: boolean) => {
+  const [params] = useSearchParams();
+  const id = Number(params.get('feedback')) || null;
+  useEffect(() => {
+    if (!id || !ready) return;
+    document.getElementById(`feedback-card-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [id, ready]);
+  return id;
+};
 
 const listOf = (data: unknown): Feedback[] => {
   const d = (data as { data?: unknown })?.data ?? data;

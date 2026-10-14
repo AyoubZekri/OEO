@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Star, X, Send, Trash2, MessageSquareReply, CalendarClock, UserRound, Reply } from 'lucide-react';
+import { Star, X, Send, Trash2, MessageSquareReply, CalendarClock, UserRound, Reply, Hourglass } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileScreen } from '../../Mobile/widgets/MobileScreen';
 import { FEEDBACK_TYPES, STATUS_META, dateText, statusOf, typeMeta, type Feedback, type FeedbackType } from './feedbackUtils';
@@ -159,57 +159,111 @@ export const ReplyForm: React.FC<{ feedback: Feedback; onSave: (text: string, ra
   );
 };
 
-/** One opinion: its type, subject, text, and the reply (with the stars of a suggestion) */
+const initialsOf = (name?: string | null) => (name || '؟').trim().split(/\s+/).slice(0, 2).map(w => w.charAt(0)).join('');
+
+/** "How long ago": minutes, hours, then days, then the date */
+const agoText = (value: string | null) => {
+  if (!value) return '';
+  const t = new Date(value.replace(' ', 'T')).getTime();
+  if (Number.isNaN(t)) return dateText(value);
+  const min = Math.round((Date.now() - t) / 60000);
+  if (min < 1) return 'الآن';
+  if (min < 60) return `منذ ${min} د`;
+  const h = Math.round(min / 60);
+  if (h < 24) return `منذ ${h} سا`;
+  const d = Math.round(h / 24);
+  if (d === 1) return 'أمس';
+  if (d < 7) return `منذ ${d} أيام`;
+  return dateText(value).split(' · ')[0];
+};
+
+const RATING_WORDS = ['', 'ضعيف', 'مقبول', 'جيد', 'جيد جداً', 'ممتاز'];
+
+/**
+ * One opinion, like a message thread: the sender (management) or the type and date (personal space), its status,
+ * the subject and text, then the management's reply under it — with the stars of a suggestion.
+ */
 export const FeedbackCard: React.FC<{
   feedback: Feedback;
   /** Management: who sent it, its status, reply / delete */
   admin?: boolean;
   onReply?: () => void;
   onDelete?: () => void;
-}> = ({ feedback: f, admin, onReply, onDelete }) => {
+  /** Opened from an alert: marked */
+  focused?: boolean;
+}> = ({ feedback: f, admin, onReply, onDelete, focused }) => {
   const meta = typeMeta(f.type);
   const status = statusOf(f);
   const newReply = !admin && f.replied_at && !f.reply_seen;
+  const chip = admin
+    ? { label: STATUS_META[status].label, tone: STATUS_META[status].tone }
+    : newReply ? { label: 'رد جديد', tone: 'orange' } : f.replied_at ? { label: 'تم الرد', tone: 'green' } : { label: 'بانتظار الرد', tone: 'blue' };
+
   return (
-    <article className={`fb-card tone-${meta.tone} ${admin && status === 'new' ? 'is-new' : ''}`}>
-      <header className="fb-card-head">
-        <span className="fb-card-icon"><meta.icon size={20} /></span>
-        <div className="fb-card-title">
-          <span className="fb-chip">{meta.label}</span>
-          <strong>{f.subject}</strong>
-        </div>
-        {admin
-          ? <span className={`fb-status tone-${STATUS_META[status].tone}`}>{STATUS_META[status].label}</span>
-          : <span className={`fb-status tone-${f.replied_at ? 'green' : 'blue'}`}>{newReply ? 'رد جديد' : f.replied_at ? 'تم الرد' : 'بانتظار الرد'}</span>}
+    <article className={`fb-card tone-${meta.tone} ${admin && status === 'new' ? 'is-new' : ''} ${focused ? 'is-focused' : ''}`} id={`feedback-card-${f.id}`}>
+      {/* Who and when (or the type, in the personal space), and the status */}
+      <header className="fb-card-top">
+        {admin ? (
+          <span className="fb-who">
+            <span className="fb-avatar">{initialsOf(f.member_name)}</span>
+            <span className="fb-who-text">
+              <strong>{f.member_name || 'عضو'}</strong>
+              <small>{f.member_role ? `${f.member_role} · ` : ''}{agoText(f.created_at)}</small>
+            </span>
+          </span>
+        ) : (
+          <span className="fb-who">
+            <span className="fb-avatar type"><meta.icon size={18} /></span>
+            <span className="fb-who-text">
+              <strong>{meta.label}</strong>
+              <small><CalendarClock size={12} /> {dateText(f.created_at)}</small>
+            </span>
+          </span>
+        )}
+        <span className={`fb-status tone-${chip.tone}`}><i />{chip.label}</span>
       </header>
 
-      {f.body && <p className="fb-card-body">{f.body}</p>}
-
-      <div className="fb-card-meta">
-        {admin && <span><UserRound size={13} /> {f.member_name}{f.member_role ? ` · ${f.member_role}` : ''}</span>}
-        <span><CalendarClock size={13} /> {dateText(f.created_at)}</span>
+      {/* The opinion */}
+      <div className="fb-card-main">
+        {admin && <span className="fb-chip"><meta.icon size={13} /> {meta.label}</span>}
+        <h4 className="fb-subject">{f.subject}</h4>
+        {f.body && <p className="fb-card-body">{f.body}</p>}
       </div>
 
-      {f.replied_at && (
+      {/* The reply, or (personal space) waiting for it */}
+      {f.replied_at ? (
         <div className="fb-reply">
           <div className="fb-reply-head">
-            <span><MessageSquareReply size={15} /> رد الإدارة</span>
-            {f.type === 'suggestion' && f.rating ? <StarRating value={f.rating} size={16} /> : null}
+            <span className="fb-avatar sm reply"><MessageSquareReply size={14} /></span>
+            <span className="fb-who-text">
+              <strong>رد الإدارة</strong>
+              <small>{f.replied_by ? `${f.replied_by} · ` : ''}{agoText(f.replied_at)}</small>
+            </span>
           </div>
+          {f.type === 'suggestion' && f.rating ? (
+            <div className="fb-rating-row">
+              <StarRating value={f.rating} size={17} />
+              <b>{f.rating}/5</b>
+              <span>{RATING_WORDS[f.rating]}</span>
+            </div>
+          ) : null}
           <p>{f.reply}</p>
-          <small>{f.replied_by ? `${f.replied_by} · ` : ''}{dateText(f.replied_at)}</small>
         </div>
-      )}
+      ) : !admin ? (
+        <div className="fb-waiting"><Hourglass size={15} /> وصل رأيك إلى الإدارة، وستتلقى تنبيهاً عند الرد عليه</div>
+      ) : null}
 
       {(onReply || onDelete) && (
         <footer className="fb-card-actions">
           {onReply && (
-            <button type="button" className="fb-btn soft" onClick={onReply}>
+            <button type="button" className={`fb-btn ${f.replied_at ? 'ghost' : 'primary'}`} onClick={onReply}>
               {f.type === 'suggestion' ? <Star size={16} /> : <Reply size={16} />}
               {f.replied_at ? 'تعديل الرد' : f.type === 'suggestion' ? 'تقييم ورد' : 'رد'}
             </button>
           )}
-          {onDelete && <button type="button" className="fb-btn danger" onClick={onDelete} aria-label="حذف"><Trash2 size={16} /> حذف</button>}
+          {onDelete && (
+            <button type="button" className="fb-icon-btn danger" onClick={onDelete} aria-label="حذف" title="حذف"><Trash2 size={17} /></button>
+          )}
         </footer>
       )}
     </article>

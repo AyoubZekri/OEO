@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake, UserCheck } from 'lucide-react';
+import { AlarmClock, Undo2, Hourglass, PlayCircle, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake, UserCheck, MessageSquareReply, MessageSquareWarning } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import client from '../../../core/api/client';
 import { DATA_CHANGED } from '../../../core/api/dataChanged';
@@ -20,12 +20,13 @@ import type { Meeting } from '../../Screen/Meetings/meeting_model';
 import type { Travel } from '../../Screen/Travels/travelUtils';
 import type { PlayerMedicalRecord } from '../../Screen/Medical/medical_model';
 import type { Debt } from '../../Screen/Debts/debtUtils';
+import type { Feedback } from '../../Screen/Feedback/feedbackUtils';
 import { useAuth } from '../../../core/context/AuthContext';
 import {
   absenceAlerts, alertsFor, disciplinaryAlerts, managerAbsenceAlerts, managerDisciplinaryAlerts, managerMeetingAlerts, matchAlerts, matchNoticeAlerts,
   meetingAlerts, meetingNoticeAlerts, trainingAlerts, trainingNoticeAlerts, type ManagedDecision, type MeetingNotice,
   travelAlerts, travelNoticeAlerts, managerTravelAlerts, type TravelNotice, medicalAlerts, managerMedicalAlerts,
-  medicalNoticeAlerts, type MedicalNotice, debtAlerts, officerHearingAlerts, type OfficiatedHearing,
+  medicalNoticeAlerts, type MedicalNotice, debtAlerts, officerHearingAlerts, type OfficiatedHearing, feedbackAlerts, managerFeedbackAlerts,
   type AlertKind, type AppAlert, type MatchNotice, type MyDisciplinaryAction, type TrainingNotice,
 } from './alertRules';
 import './TaskAlerts.css';
@@ -116,6 +117,9 @@ const ICONS: Record<AlertKind, typeof Bell> = {
   debt_soon: CalendarClock,
   debt_due: AlarmClock,
   debt_late: AlarmClock,
+  fb_replied: MessageSquareReply,
+  mgr_fb_new: MessageSquarePlus,
+  mgr_fb_waiting: MessageSquareWarning,
 };
 
 /**
@@ -208,6 +212,8 @@ export const TaskAlerts: React.FC = () => {
   // Repayment dates: the loans for who manages the debts, the purchases on credit for who manages the payments
   const managesDebts = canDo('debts');
   const managesPayments = canDo('payments');
+  // Members' opinions: who reads them gets the new ones and the ones still without a reply
+  const managesFeedback = canDo('feedback');
   // The task alerts: only who has the tasks permission
   const seesTasks = canDo('tasks');
   const { user } = useAuth();
@@ -236,6 +242,8 @@ export const TaskAlerts: React.FC = () => {
   const [medicalNotices, setMedicalNotices] = useState<MedicalNotice[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [creditPurchases, setCreditPurchases] = useState<Debt[]>([]);
+  const [myFeedback, setMyFeedback] = useState<Feedback[]>([]);
+  const [allFeedback, setAllFeedback] = useState<Feedback[]>([]);
   const [now, setNow] = useState(() => Date.now());
   const [expanded, setExpanded] = useState(false);
   // Keys seen when the stack was folded: it stays folded until an alert not in this list appears
@@ -324,9 +332,14 @@ export const TaskAlerts: React.FC = () => {
       canManage
         ? batch.get('/disciplinary/officiating').then(r => r.data?.data as OfficiatedHearing[]).catch(() => null)
         : Promise.resolve([] as OfficiatedHearing[]),
+      // My opinions (every member: the replies), and every opinion for who reads them
+      batch.get('/feedback/mine').then(r => r.data?.data as Feedback[]).catch(() => null),
+      canManage && managesFeedback
+        ? batch.get('/feedback').then(r => r.data?.data as Feedback[]).catch(() => null)
+        : Promise.resolve([] as Feedback[]),
     ]);
     batch.flush();
-    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit, myHearings] = await lists;
+    const [myTasks, myActions, everyAction, myTraining, everyTraining, myNotices, mineMatches, everyMatch, myMatchNotices, mineAbsences, everyAbsence, mineMeetings, everyMeeting, everyDecision, myMeetingNotices, mineTravels, everyTravel, myTravelNotices, mineMedical, everyMedical, myMedicalNotices, everyDebt, everyCredit, myHearings, mineFeedback, everyFeedback] = await lists;
     if (loadingRef.current === started) loadingRef.current = 0;
     if (myTasks) setTasks(myTasks);
     if (myActions) setActions(myActions);
@@ -352,8 +365,10 @@ export const TaskAlerts: React.FC = () => {
     if (Array.isArray(everyDebt)) setDebts(everyDebt);
     if (Array.isArray(everyCredit)) setCreditPurchases(everyCredit);
     if (Array.isArray(myHearings)) setOfficiated(myHearings);
+    if (Array.isArray(mineFeedback)) setMyFeedback(mineFeedback);
+    if (Array.isArray(everyFeedback)) setAllFeedback(everyFeedback);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- meetCan changes with meetCanKey
-  }, [managesDisciplinary, managesTraining, managesMatches, seesAbsences, meetCanKey, managesTravels, managesMedical, seesTasks, seesTraining, seesMatches, managesDebts, managesPayments, canManage]);
+  }, [managesDisciplinary, managesTraining, managesMatches, seesAbsences, meetCanKey, managesTravels, managesMedical, seesTasks, seesTraining, seesMatches, managesDebts, managesPayments, managesFeedback, canManage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- first load of the user's tasks
@@ -427,6 +442,8 @@ export const TaskAlerts: React.FC = () => {
     ...(managesDisciplinary ? disciplinaryAlerts(actions, now) : []),
     ...managerDisciplinaryAlerts(allActions, now),
     ...(canManage ? officerHearingAlerts(officiated, now) : []),
+    ...feedbackAlerts(myFeedback),
+    ...(canManage && managesFeedback ? managerFeedbackAlerts(allFeedback, now) : []),
     ...(managesDebts ? debtAlerts(debts, now) : []),
     ...(managesPayments ? debtAlerts(creditPurchases, now) : []),
     ...(managesMedical ? medicalAlerts(myMedical, now) : []),
@@ -447,7 +464,7 @@ export const TaskAlerts: React.FC = () => {
     ...(seesTraining ? trainingAlerts(mySessions, 'personal', now) : []),
     ...trainingAlerts(allSessions, 'management', now, canAttend),
     ...(seesTasks ? alertsFor(tasks, now) : []),
-  ], [seesTasks, managesDisciplinary, seesTraining, seesAbsences, seesMatches, seesMeetings, seesDecisions, managesTravels, managesMedical, managesDebts, managesPayments, debts, creditPurchases, actions, allActions, myMedical, allMedical, medicalNotices, travelNotices,myTravels, allTravels, meetingNotices,myMeetings, allMeetings,allDecisions, meetCanKey, user, myAbsences, allAbsences, decidesAbsences,matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now, officiated, canManage]);
+  ], [seesTasks, managesDisciplinary, seesTraining, seesAbsences, seesMatches, seesMeetings, seesDecisions, managesTravels, managesMedical, managesDebts, managesPayments, debts, creditPurchases, actions, allActions, myMedical, allMedical, medicalNotices, travelNotices,myTravels, allTravels, meetingNotices,myMeetings, allMeetings,allDecisions, meetCanKey, user, myAbsences, allAbsences, decidesAbsences,matchNotices,myMatches, allMatches, matchCanKey, notices, mySessions, allSessions, canAttend, tasks, now, officiated, canManage, myFeedback, allFeedback, managesFeedback]);
   const alerts = useMemo(() => all.filter(a => !dismissed.includes(a.key)), [all, dismissed]);
 
   // Phones: the alerts are behind the bell of the app bar (its number, the full list in a sheet);
@@ -506,6 +523,12 @@ export const TaskAlerts: React.FC = () => {
       if (space !== a.target.space) setSpace(a.target.space);
       const page = a.target.space === 'personal' ? Approutes.MyDisciplinary : Approutes.Disciplinary;
       navigate(`${page}?action=${a.target.id}`);
+      return;
+    }
+    if (a.target.type === 'feedback') {
+      if (a.event) dismiss(a);
+      if (space !== a.target.space) setSpace(a.target.space);
+      navigate(`${a.target.space === 'personal' ? Approutes.MyFeedback : Approutes.Feedback}?feedback=${a.target.id}`);
       return;
     }
     if (a.target.type === 'debt') {

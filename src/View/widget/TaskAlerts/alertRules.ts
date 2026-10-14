@@ -8,6 +8,7 @@ import type { Meeting } from '../../Screen/Meetings/meeting_model';
 import type { Travel } from '../../Screen/Travels/travelUtils';
 import type { PlayerMedicalRecord } from '../../Screen/Medical/medical_model';
 import type { Debt } from '../../Screen/Debts/debtUtils';
+import { typeMeta as feedbackType, type Feedback } from '../../Screen/Feedback/feedbackUtils';
 import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
 import { canJustifyNow, dateOf, isMemberRequest, justifyLeft, leftText, recordTitle, statusOf, typeMeta } from '../../Screen/Absence/absenceUtils';
 import { countdown, dayText as matchDay, matchDate, matchState, opponentName, resultOf, RESULT_LABEL, timeText } from '../../Mobile/MobileMatches/matchUtils';
@@ -50,7 +51,9 @@ export type MedicalAlertKind = 'med_new' | 'med_stage' | 'med_recovered' | 'med_
   | 'mgr_med_exam' | 'mgr_med_exam_late' | 'mgr_med_initial' | 'mgr_med_return';
 /** Debts (loans and purchases on credit) not fully paid: the repayment date near, today, passed */
 export type DebtAlertKind = 'debt_soon' | 'debt_due' | 'debt_late';
-export type AlertKind = DebtAlertKind | TaskAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind | MeetingAlertKind | TravelAlertKind | MedicalAlertKind;
+/** Members' opinions: a reply to mine; new ones and ones still without a reply (management) */
+export type FeedbackAlertKind = 'fb_replied' | 'mgr_fb_new' | 'mgr_fb_waiting';
+export type AlertKind = FeedbackAlertKind | DebtAlertKind | TaskAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind | MeetingAlertKind | TravelAlertKind | MedicalAlertKind;
 
 export interface AppAlert {
   /** Changes when the reason or the deadline changes, so a new alert reopens a minimized stack */
@@ -76,7 +79,8 @@ export interface AppAlert {
     /** id 0: the trips page (a deleted trip) */
     | { type: 'travel'; id: number; space: 'personal' | 'management' }
     | { type: 'medical'; id: number; space: 'personal' | 'management' }
-    | { type: 'debt'; id: number; kind: 'loan' | 'purchase' };
+    | { type: 'debt'; id: number; kind: 'loan' | 'purchase' }
+    | { type: 'feedback'; id: number; space: 'personal' | 'management' };
   /** Something that happened (created, decided, replied): opening it marks it seen. Otherwise it stays while its reason holds */
   event?: boolean;
 }
@@ -1265,3 +1269,63 @@ export const debtAlerts = (debts: Debt[], now = Date.now()): AppAlert[] => debts
   .filter((x): x is { alert: AppAlert; days: number } => x !== null)
   .sort((a, b) => a.days - b.days)
   .map(x => x.alert);
+
+/** A member's opinion still without a reply is recalled to the management after this many days */
+export const FEEDBACK_WAITING_DAYS = 3;
+
+const stars = (n: number) => '★'.repeat(n) + '☆'.repeat(Math.max(0, 5 - n));
+const snippet = (text: string | null, max = 70) => {
+  const t = (text || '').replace(/\s+/g, ' ').trim();
+  return t.length > max ? `${t.slice(0, max)}…` : t;
+};
+
+/**
+ * Personal space: the management replied to one of my opinions (and rated it, for a suggestion).
+ * It goes once I open it, or once my opinions' page has been seen.
+ */
+export const feedbackAlerts = (items: Feedback[]): AppAlert[] => items
+  .filter(f => f.replied_at && !f.reply_seen)
+  .map(f => {
+    const rated = f.type === 'suggestion' && f.rating ? `${stars(f.rating)} · ` : '';
+    return {
+      key: `fb:reply:${f.id}:${f.replied_at}`,
+      kind: 'fb_replied' as const,
+      heading: f.subject,
+      title: f.type === 'suggestion' ? 'تم تقييم اقتراحك والرد عليه' : f.type === 'complaint' ? 'تم الرد على شكواك' : 'تم الرد على ملاحظتك',
+      detail: `${rated}${snippet(f.reply)}`,
+      tone: 'blue' as const,
+      target: { type: 'feedback' as const, id: f.id, space: 'personal' as const },
+      event: true,
+    };
+  });
+
+/**
+ * Management: a new opinion (never opened: a complaint in red, a suggestion in amber, a note in blue),
+ * and one still without a reply after 3 days (stays until it is replied to).
+ */
+export const managerFeedbackAlerts = (items: Feedback[], now = Date.now()): AppAlert[] => items
+  .filter(f => !f.replied_at)
+  .map((f): AppAlert | null => {
+    const meta = feedbackType(f.type);
+    const who = `${f.member_name || 'عضو'}${f.member_role ? ` · ${f.member_role}` : ''}`;
+    const target = { type: 'feedback' as const, id: f.id, space: 'management' as const };
+    if (!f.read) {
+      return {
+        key: `fb:new:${f.id}`, kind: 'mgr_fb_new', heading: f.subject,
+        title: `${meta.label} ${f.type === 'suggestion' ? 'جديد' : 'جديدة'} من عضو`,
+        detail: f.body ? `${who} · ${snippet(f.body, 50)}` : who,
+        tone: f.type === 'complaint' ? 'red' : f.type === 'suggestion' ? 'amber' : 'blue',
+        target, event: true,
+      };
+    }
+    const age = daysTo(f.created_at?.slice(0, 10), now);
+    if (age === null || -age < FEEDBACK_WAITING_DAYS) return null;
+    return {
+      key: `fb:waiting:${f.id}`, kind: 'mgr_fb_waiting', heading: f.subject,
+      title: `${meta.label} بانتظار الرد`,
+      detail: `${who} · منذ ${-age} أيام`,
+      tone: f.type === 'complaint' ? 'red' : 'amber',
+      target,
+    };
+  })
+  .filter((a): a is AppAlert => a !== null);
