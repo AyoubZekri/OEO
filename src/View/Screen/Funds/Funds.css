@@ -403,3 +403,20 @@ body.dark-mode .btn-action.view-btn { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   to { opacity: 1; transform: translateY(0); }
 }
 
+
+/* A deposit: is the money a loan? */
+.fund-loan-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.fund-loan-toggle button {
+  min-height: 44px; padding: 0 12px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.fund-loan-toggle button.on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.fund-loan-toggle button.on.loan { border-color: #f59e0b; background: rgba(245, 158, 11, .12); color: #d97706; }
+
+/* Operation and fund dialogs: the same space between every block of the form */
+.add-fund-dialog form { display: flex; flex-direction: column; gap: 20px; }
+.add-fund-dialog form .form-group,
+.add-fund-dialog form .form-row { margin: 0 !important; }
+.add-fund-dialog form .form-row .form-group { flex: 1; }
+.add-fund-dialog form .dialog-footer { margin-top: 4px !important; }

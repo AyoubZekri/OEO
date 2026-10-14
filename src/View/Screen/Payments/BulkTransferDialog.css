@@ -1,0 +1,158 @@
+/* Bulk transfer (BulkTransferDialog): the title and the actions stay; each side's list scrolls on its own */
+.trb {
+  width: 100%; max-width: 680px; max-height: calc(100vh - 32px); box-sizing: border-box;
+  display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  animation: trf-pop .18s ease-out;
+}
+
+.trb-head { display: flex; align-items: center; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+.trb-icon {
+  flex-shrink: 0; width: 40px; height: 40px; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-bg); color: var(--accent);
+}
+.trb-head > div { flex: 1; min-width: 0; }
+.trb-head h3 { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.trb-head small { color: var(--text-muted); font-size: .78rem; font-weight: 600; }
+.trb-close {
+  width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.trb-close:hover { background: var(--bg-hover); color: var(--text-h); }
+
+/* The two sides, the arrow between them */
+.trb-body {
+  flex: 1; min-height: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 12px;
+  padding: 16px 18px;
+}
+.trb-arrow { align-self: center; display: inline-flex; color: var(--accent); }
+
+.trb-col { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 10px; }
+.trb-col header { display: flex; align-items: center; gap: 8px; }
+.trb-col header span {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent); color: #fff; font-size: .74rem; font-weight: 900;
+}
+.trb-col h4 { margin: 0; font-size: .9rem; font-weight: 800; }
+
+.trb-search {
+  display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--bg-hover); color: var(--text-muted);
+}
+.trb-search input,
+body.dark-mode .trb-search input {
+  flex: 1; min-width: 0; height: 38px; border: none !important; outline: none;
+  background: transparent !important; color: var(--text-h) !important; font: inherit; font-size: .86rem;
+}
+
+/* The list scrolls inside its column: many funds never push the dialog off the screen */
+.trb-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 300px; overflow-y: auto; padding: 2px; margin: -2px;
+  overscroll-behavior: contain;
+}
+.trb-list button {
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box; flex-shrink: 0;
+  min-height: 52px; padding: 8px 12px; border-radius: 12px;
+  border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  font: inherit; text-align: start; cursor: pointer; transition: border-color .15s, background .15s;
+}
+.trb-list button:hover:not(:disabled) { border-color: var(--accent-border, var(--accent)); }
+.trb-list button.on { border-color: var(--accent); background: var(--accent-bg); }
+.trb-list button:disabled { opacity: .4; cursor: not-allowed; }
+.trb-radio {
+  flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--border); box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center; color: #fff;
+}
+.trb-list button.on .trb-radio { border-color: var(--accent); background: var(--accent); }
+.trb-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.trb-text strong { font-size: .88rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trb-text small { font-size: .74rem; font-weight: 700; color: var(--text-muted); }
+.trb-empty { margin: 0; padding: 14px 8px; text-align: center; color: var(--text-muted); font-size: .84rem; }
+
+/* What will move, and the actions: always visible */
+.trb-foot { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px 18px; border-top: 1px solid var(--border); }
+.trb-summary {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 12px; background: var(--bg-hover);
+  color: var(--text-muted); font-size: .86rem; font-weight: 600; line-height: 1.6;
+}
+.trb-summary svg { flex-shrink: 0; }
+.trb-summary.ready { background: var(--accent-bg); color: var(--text-h); }
+.trb-summary b { font-weight: 800; color: var(--text-h); }
+.trb-error { margin: 0; color: #ef4444; font-size: .84rem; font-weight: 700; }
+.trb-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Phone: the two sides one under the other, each list shorter */
+@media (max-width: 600px) {
+  .trb { max-height: calc(100vh - 24px); }
+  .trb-body { grid-template-columns: minmax(0, 1fr); overflow-y: auto; }
+  .trb-arrow { transform: rotate(-90deg); justify-self: center; }
+  .trb-list { max-height: 190px; }
+}
+
+/* Phone: a full page; the page scrolls, the lists do not */
+.trb-page { padding: 12px 12px 24px; color: var(--text-h); }
+.trb-page .trb-body { grid-template-columns: minmax(0, 1fr); padding: 0; gap: 14px; overflow: visible; }
+.trb-page .trb-col { padding: 14px; border-radius: 16px; border: 1px solid var(--border); background: var(--card-bg); }
+.trb-page .trb-list { max-height: none; overflow: visible; }
+.trb-page .trb-arrow { transform: rotate(-90deg); justify-self: center; }
+.trb-page-foot { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.trb-page-foot .trf-btn { width: 100%; }
+
+/* ── Funds: an icon by kind, the chosen one stands out ── */
+.trb-avatar {
+  --tone: #f97316;
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: 11px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--tone) 14%, transparent); color: var(--tone);
+}
+.trb-avatar.tone-blue { --tone: #3b82f6; }
+.trb-avatar.tone-violet { --tone: #8b5cf6; }
+.trb-avatar.empty { --tone: #94a3b8; border: 1.5px dashed color-mix(in srgb, var(--tone) 60%, transparent); background: transparent; }
+.trb-list button.on .trb-avatar { background: var(--tone); color: #fff; }
+.trb-col.chosen header span { background: #10b981; }
+
+/* ── Phone page: the route card (from → to, and what moves) ── */
+.trb-route {
+  position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 14px;
+  margin-bottom: 14px; padding: 16px; border-radius: 22px; color: #fff;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(249, 115, 22, 0.45), transparent 60%),
+    linear-gradient(150deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+.trb-route-funds { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: stretch; gap: 8px; }
+.trb-route-line { align-self: center; }
+.trb-slot {
+  min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  padding: 12px 8px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.trb-slot small { font-size: .7rem; font-weight: 800; letter-spacing: .02em; color: rgba(255, 255, 255, 0.6); }
+/* The fund's whole name, on two lines if needed */
+.trb-slot strong { max-width: 100%; font-size: .86rem; font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; color: rgba(255, 255, 255, 0.55); }
+.trb-slot.set strong { color: #fff; }
+.trb-slot .trb-avatar { width: 42px; height: 42px; border-radius: 13px; }
+.trb-slot .trb-avatar.empty { --tone: rgba(255, 255, 255, 0.5); }
+.trb-slot.set .trb-avatar { background: var(--tone); color: #fff; }
+.trb-route-line { display: inline-flex; align-items: center; gap: 2px; color: #fb923c; }
+.trb-route-line i { width: 8px; height: 2px; border-radius: 2px; background: rgba(251, 146, 60, 0.6); }
+.trb-route.ready .trb-route-line { animation: trb-flow 1.4s ease-in-out infinite; }
+@keyframes trb-flow { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
+.trb-route-total {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  padding-top: 12px; border-top: 1px dashed rgba(255, 255, 255, 0.18);
+}
+.trb-route-total small { font-size: .78rem; font-weight: 700; color: rgba(255, 255, 255, 0.7); }
+.trb-route-total b { font-size: 1.35rem; font-weight: 900; white-space: nowrap; }
+
+/* ── Confirm button ── */
+.trb-confirm { min-height: 50px; font-size: 1rem; }
+.trb-confirm:not(:disabled) { background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c); border-color: #ea580c; }

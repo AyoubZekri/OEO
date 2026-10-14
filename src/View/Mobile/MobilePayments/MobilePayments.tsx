@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   Plus, Eye, Pencil, Trash2, Search, X, Filter, ChevronDown, Wallet, Banknote, Printer, Paperclip, RefreshCw, Calendar,
-  CheckCircle2, BookOpen, Clock, HandCoins,
+  CheckCircle2, BookOpen, Clock, HandCoins, ArrowLeftRight, Layers, Repeat,
 } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -23,6 +23,9 @@ import { creditRows, isCredit } from '../../Screen/Payments/creditRows';
 import { MobilePaymentDetails } from './MobilePaymentDetails';
 import { MobilePaymentForm } from './MobilePaymentForm';
 import { MobileReceiptUpload, MobileReceiptView } from './MobileReceipt';
+import { TransferPaymentDialog } from '../../Screen/Payments/TransferPaymentDialog';
+import { TransferableDialog } from '../../Screen/Payments/TransferableDialog';
+import { BulkTransferDialog } from '../../Screen/Payments/BulkTransferDialog';
 import './MobilePayments.css';
 
 interface MobilePaymentsProps {
@@ -47,7 +50,8 @@ const NATURE_OPTIONS = [
 export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   c, form, credit, can, onPrint, printOpen, onPrintChoose, onPrintClose,
 }) => {
-  const [kind, setKind] = useState('');
+  // (?paid=unpaid, from the home page's unpaid in-kind debts card)
+  const [kind, setKind] = useState(() => (new URLSearchParams(window.location.search).get('paid') === 'unpaid' ? 'unpaid' : ''));
   const [detailsId, setDetailsId] = useUrlDetails('payment');
   const [viewing, setViewing] = useState<string | null>(null);
 
@@ -55,7 +59,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   // the purchases not fully paid are expenses too. "unpaid": only those.
   const unpaid = creditRows(credit.debts, { search: c.searchQuery, nature: c.filterNature, fund: c.selectedFundFilter });
   const byStatus = (status: string) => unpaid.filter(r => r.credit.status === status);
-  const list = (kind === 'open' || kind === 'partial' ? byStatus(kind) : [
+  const list = (kind === 'unpaid' ? [...unpaid] : kind === 'open' || kind === 'partial' ? byStatus(kind) : [
     ...(kind && kind !== 'مصروف' ? [] : unpaid),
     ...(kind ? c.payments.filter(p => kindOf(p) === kind) : c.payments),
   ])
@@ -75,6 +79,18 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   const everything: PaymentRecord[] = [...unpaid, ...c.payments];
   const details = detailsId ? c.payments.find(p => String(p.id) === detailsId) : undefined;
   const fund = c.funds.find(f => String(f.id) === c.selectedFundFilter);
+  // Operation type choices, with how many operations each one has
+  const countText = (n: number) => (n ? ` (${n})` : '');
+  const kindOptions = [
+    { value: 'all', short: 'الكل', label: `الكل${countText(c.payments.length + unpaid.length)}` },
+    ...KINDS.map(k => {
+      const n = c.payments.filter(p => kindOf(p) === k.value).length + (k.value === 'مصروف' ? unpaid.length : 0);
+      return { value: k.value as string, short: k.short, label: `${k.label}${countText(n)}` };
+    }),
+    { value: 'unpaid', short: 'غير مسددة', label: `مشتريات غير مدفوعة ومدفوعة جزئياً${countText(unpaid.length)}` },
+    { value: 'open', short: 'غير مدفوعة', label: `مشتريات غير مدفوعة${countText(byStatus('open').length)}` },
+    { value: 'partial', short: 'مدفوعة جزئياً', label: `مشتريات مدفوعة جزئياً${countText(byStatus('partial').length)}` },
+  ];
   const personOf = (p: PaymentRecord) => c.getMemberDetails(p.memberId);
   const nameOf = (p: PaymentRecord) => {
     const m = personOf(p);
@@ -89,6 +105,8 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
       { key: 'upload', label: 'إرفاق وصل العملية', icon: Paperclip, color: '#3b82f6', onClick: () => c.openUploadDialog(p) },
       ...(url ? [{ key: 'receipt', label: 'عرض الوصل', icon: CheckCircle2, color: '#10b981', onClick: () => setViewing(url) }] : []),
       ...(can.edit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => form.handleOpenDialog(p) }] : []),
+      ...(can.edit && c.hasTransferable(p) ? [{ key: 'transferable', label: 'تعديل قابلية التحويل', icon: Repeat, color: '#0d9488', onClick: () => c.openTransferable(p) }] : []),
+      ...(can.edit && c.canTransfer(p) ? [{ key: 'transfer', label: 'تحويل إلى صندوق آخر', icon: ArrowLeftRight, color: '#0ea5e9', onClick: () => c.openTransfer(p) }] : []),
       ...(can.delete ? [
         { key: 'return', label: 'إرجاع المبلغ للصندوق', icon: RefreshCw, color: '#8b5cf6', onClick: () => c.returnPayment(p.id) },
         { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => c.deletePayment(p.id) },
@@ -119,58 +137,68 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
         </div>
       </section>
 
-      <label className="mpy-search">
-        <Search size={17} />
-        <input type="search" value={c.searchQuery} onChange={e => c.setSearchQuery(e.target.value)} placeholder="ابحث بالاسم، النوع أو التاريخ..." />
-        {c.searchQuery && <button type="button" onClick={() => c.setSearchQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
-      </label>
+      {can.edit && c.funds.length > 1 && (
+        <button type="button" className="mpy-bulk" onClick={c.openBulk}>
+          <Layers size={17} /> تحويل جماعي
+        </button>
+      )}
 
-      {/* Operation type */}
-      <div className="mpy-tabs" role="tablist">
-        {[
-          { value: '', short: 'الكل' },
-          ...KINDS,
-          { value: 'open', short: `غير مدفوعة${byStatus('open').length ? ` (${byStatus('open').length})` : ''}` },
-          { value: 'partial', short: `مدفوعة جزئياً${byStatus('partial').length ? ` (${byStatus('partial').length})` : ''}` },
-        ].map(k => (
-          <button key={k.value || 'all'} type="button" role="tab" aria-selected={kind === k.value} className={kind === k.value ? 'active' : ''} onClick={() => setKind(k.value)}>
-            {k.short}
-          </button>
-        ))}
-      </div>
+      {/* Search and filters: one card */}
+      <section className="mpy-filterbar">
+        <label className="mpy-search">
+          <Search size={17} />
+          <input type="search" value={c.searchQuery} onChange={e => c.setSearchQuery(e.target.value)} placeholder="ابحث بالاسم، النوع أو التاريخ..." />
+          {c.searchQuery && <button type="button" onClick={() => c.setSearchQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
+        </label>
 
-      {/* Fund and nature filters: bottom sheets */}
-      <div className="mpy-filters">
-        <MobileSelect
-          label="تصفية حسب الصندوق"
-          icon={Wallet}
-          value={c.selectedFundFilter}
-          options={[{ value: 'all', label: 'كل الصناديق' }, ...c.funds.map(f => ({ value: String(f.id), label: f.name }))]}
-          onChange={c.setSelectedFundFilter}
-          renderTrigger={open => (
-            <button type="button" className={`mpy-filter ${fund ? 'active' : ''}`} onClick={open}>
-              <Wallet size={16} />
-              <span><small>الصندوق</small><strong>{fund?.name || 'الكل'}</strong></span>
-              <ChevronDown size={16} />
-            </button>
-          )}
-        />
-        <MobileSelect
-          label="تصفية حسب طبيعة المبلغ"
-          icon={Filter}
-          value={c.filterNature}
-          options={NATURE_OPTIONS}
-          onChange={c.setFilterNature}
-          searchable
-          renderTrigger={open => (
-            <button type="button" className={`mpy-filter ${c.filterNature !== 'all' ? 'active' : ''}`} onClick={open}>
-              <Filter size={16} />
-              <span><small>طبيعة المبلغ</small><strong>{c.filterNature === 'all' ? 'الكل' : c.filterNature}</strong></span>
-              <ChevronDown size={16} />
-            </button>
-          )}
-        />
-      </div>
+        {/* Operation type, fund and nature: each one opens its sheet from the bottom */}
+        <div className="mpy-filters three">
+          <MobileSelect
+            label="تصفية حسب نوع العملية"
+            icon={Layers}
+            value={kind || 'all'}
+            options={kindOptions}
+            onChange={v => setKind(v === 'all' ? '' : v)}
+            renderTrigger={open => (
+              <button type="button" className={`mpy-filter ${kind ? 'active' : ''}`} onClick={open}>
+                <span className="mpy-filter-icon"><Layers size={15} /></span>
+                <span><small>النوع</small><strong>{kindOptions.find(o => o.value === (kind || 'all'))?.short || 'الكل'}</strong></span>
+                <ChevronDown size={15} />
+              </button>
+            )}
+          />
+          <MobileSelect
+            label="تصفية حسب الصندوق"
+            icon={Wallet}
+            value={c.selectedFundFilter}
+            options={[{ value: 'all', label: 'كل الصناديق' }, ...c.funds.map(f => ({ value: String(f.id), label: f.name })), { value: 'none', label: 'صندوق غير محدد' }]}
+            onChange={c.setSelectedFundFilter}
+            renderTrigger={open => (
+              <button type="button" className={`mpy-filter ${fund || c.selectedFundFilter === 'none' ? 'active' : ''}`} onClick={open}>
+                <span className="mpy-filter-icon"><Wallet size={15} /></span>
+                <span><small>الصندوق</small><strong>{fund?.name || (c.selectedFundFilter === 'none' ? 'غير محدد' : 'الكل')}</strong></span>
+                <ChevronDown size={15} />
+              </button>
+            )}
+          />
+          <MobileSelect
+            label="تصفية حسب طبيعة المبلغ"
+            icon={Filter}
+            value={c.filterNature}
+            options={NATURE_OPTIONS}
+            onChange={c.setFilterNature}
+            searchable
+            renderTrigger={open => (
+              <button type="button" className={`mpy-filter ${c.filterNature !== 'all' ? 'active' : ''}`} onClick={open}>
+                <span className="mpy-filter-icon"><Filter size={15} /></span>
+                <span><small>طبيعة المبلغ</small><strong>{c.filterNature === 'all' ? 'الكل' : c.filterNature}</strong></span>
+                <ChevronDown size={15} />
+              </button>
+            )}
+          />
+        </div>
+
+      </section>
 
       {c.isLoading && !c.payments.length ? (
         <MobileLoader text="جاري تحميل العمليات..." />
@@ -178,7 +206,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
         <div className="mpy-empty">
           <span className="mpy-empty-icon"><Banknote size={36} /></span>
           <strong>لا توجد عمليات</strong>
-          <p>{c.searchQuery || kind || fund || c.filterNature !== 'all' ? 'غيّر البحث أو التصفية.' : can.add ? 'أضف دفعة أو مصروفاً بالزر +' : ''}</p>
+          <p>{c.searchQuery || kind || fund || c.selectedFundFilter === 'none' || c.filterNature !== 'all' ? 'غيّر البحث أو التصفية.' : can.add ? 'أضف دفعة أو مصروفاً بالزر +' : ''}</p>
         </div>
       ) : (
         <div className="mpy-list">
@@ -261,6 +289,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
                       <em className="mpy-chip"><Calendar size={12} /> <span dir="ltr">{dateOf(p) || '—'}</span></em>
                       {methodOf(p) && <em className="mpy-chip">{methodOf(p)}</em>}
                       {receiptUrl(p) && <em className="mpy-chip ok"><Paperclip size={12} /> وصل</em>}
+                      {c.isTransferable(p) && <em className="mpy-chip trf"><Repeat size={12} /> قابل للتحويل</em>}
                       <b className="mpy-amount" dir="ltr">{moneyText(amountOf(p))}</b>
                     </div>
                   </article>
@@ -314,6 +343,40 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
       )}
 
       {viewing && <MobileReceiptView url={viewing} onClose={() => setViewing(null)} />}
+
+      {c.bulkOpen && (
+        <BulkTransferDialog asPage funds={c.funds} payments={c.allPayments} money={moneyText} onConfirm={c.transferAll} onClose={c.closeBulk} />
+      )}
+
+      {c.editingTransferable && (() => {
+        const p = c.editingTransferable;
+        const m = personOf(p);
+        return (
+          <TransferableDialog
+            amountText={moneyText(p.amount)}
+            memberName={m ? `${m.firstName} ${m.lastName}`.trim() : p.creditor || undefined}
+            current={c.isTransferable(p)}
+            onAnswer={c.answerTransferable}
+            onCancel={c.closeTransferable}
+          />
+        );
+      })()}
+
+      {c.transferring && (() => {
+        const p = c.transferring;
+        const m = personOf(p);
+        return (
+          <TransferPaymentDialog
+            amountText={moneyText(p.amount)}
+            memberName={m ? `${m.firstName} ${m.lastName}`.trim() : undefined}
+            fromFund={c.funds.find(f => String(f.id) === String(p.fund_id))}
+            funds={c.funds}
+            money={moneyText}
+            onConfirm={fundId => c.transferPayment(p.id, fundId)}
+            onClose={c.closeTransfer}
+          />
+        );
+      })()}
 
       {printOpen && (
         <MobileSheet title="خيارات الطباعة" onClose={onPrintClose}>

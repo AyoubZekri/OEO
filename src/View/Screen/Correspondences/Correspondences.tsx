@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 
 import { useCorrespondencesController } from './CorrespondencesController';
-import { Search, Eye, Trash2, Edit2, Plus, Calendar, User, FileText, Tag, ChevronDown, Check } from 'lucide-react';
+import { Eye, Trash2, Edit2, Plus, Calendar, User, FileText, Tag, ChevronDown, Check } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 
 import { CorrespondenceDialog } from './CorrespondenceDialog';
 import './Correspondences.css';
 import '../Members/Members.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 const StatusDropdown = ({ value, onChange, disabled }: { value: string, onChange: (val: string) => void, disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -83,16 +84,7 @@ export const Correspondences: React.FC = () => {
 
         
         <div className="members-actions">
-          <div className="search-box">
-            <Search size={18} />
-            <input 
-              type="text" 
-              placeholder="ابحث برقم المراسلة، اللاعب..."
-              className="search-input"
-              value={controller.searchQuery}
-              onChange={(e) => controller.setSearchQuery(e.target.value)}
-            />
-          </div>
+          <TopbarSearch value={controller.searchQuery} onChange={v => controller.setSearchQuery(v)} placeholder="ابحث برقم المراسلة، اللاعب..." />
           <CustomDropdown<string>
             value={controller.filterStatus}
             options={statusOptions}

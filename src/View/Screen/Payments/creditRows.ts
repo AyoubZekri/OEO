@@ -15,7 +15,7 @@ export const creditRows = (debts: Debt[], { search, nature, fund }: { search: st
   return debts
     .filter(d => d.kind === 'purchase' && d.status !== 'paid')
     // Its fund is the one of its payments
-    .filter(d => !fund || fund === 'all' || String(d.fund_id ?? '') === fund)
+    .filter(d => !fund || fund === 'all' || (fund === 'none' ? !d.fund_id : String(d.fund_id ?? '') === fund))
     .filter(d => nature === 'all' || !nature || (d.expense_nature || 'اخرى') === nature)
     .filter(d => !q
       || d.creditor.toLowerCase().includes(q)

@@ -8,6 +8,9 @@ import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileFunds } from '../../Mobile/MobileFunds/MobileFunds';
+import { DebtForm } from '../Debts/parts/DebtForm';
+import { useFundLoan } from './useFundLoan';
+import '../Debts/Debts.css';
 import './Funds.css';
 
 export const Funds: React.FC = () => {
@@ -15,6 +18,8 @@ export const Funds: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useFundsController();
+  // Money put in that is a loan: the debt form opens with the same amount
+  const loan = useFundLoan(controller.reload);
   const {
     funds,
     isFundDialogOpen,
@@ -48,6 +53,8 @@ export const Funds: React.FC = () => {
     description: '',
     toFundId: ''
   });
+  // A deposit: is the money a loan (a debt to pay back)?
+  const [isLoan, setIsLoan] = useState(false);
 
   // Effect to populate Fund Form when editing
   React.useEffect(() => {
@@ -72,6 +79,7 @@ export const Funds: React.FC = () => {
         description: '',
         toFundId: ''
       });
+      setIsLoan(false);
     }
   }, [isOperationDialogOpen]);
 
@@ -80,6 +88,7 @@ export const Funds: React.FC = () => {
     return (
       <MobileFunds
         c={controller}
+        loan={loan}
         can={{
           add: hasAccess(permissions.funds.add),
           edit: hasAccess(permissions.funds.edit),
@@ -113,6 +122,19 @@ export const Funds: React.FC = () => {
     e.preventDefault();
     if (!opFormData.amount || !selectedFundId) return;
     if (opFormData.type === 'تحويل' && !opFormData.toFundId) return;
+
+    // A loan: no deposit of its own, the debt form puts the money into the fund
+    if (opFormData.type === 'إيداع' && isLoan && loan.allowed) {
+      closeOperationDialog();
+      loan.start({
+        amount: parseFloat(opFormData.amount) || 0,
+        fundId: String(selectedFundId),
+        fundName: getFundName(selectedFundId),
+        debtDate: opFormData.date,
+        title: opFormData.description,
+      });
+      return;
+    }
 
     addTransaction({
       fundId: selectedFundId,
@@ -242,6 +264,10 @@ export const Funds: React.FC = () => {
         </div>
       )}
 
+      {loan.debts.form && (
+        <DebtForm c={loan.debts} debt={null} initialKind="loan" mobile={false} prefill={loan.prefill} />
+      )}
+
       {/* Operation Dialog (Add Money / Transfer) */}
       {isOperationDialogOpen && selectedFundId && (
         <div className="dialog-overlay" onClick={closeOperationDialog}>
@@ -270,6 +296,16 @@ export const Funds: React.FC = () => {
                     ]}
                   />
                 </div>
+
+                {opFormData.type === 'إيداع' && loan.allowed && (
+                  <div className="form-group">
+                    <label>هل هذا المال دين؟</label>
+                    <div className="fund-loan-toggle" role="radiogroup">
+                      <button type="button" role="radio" aria-checked={!isLoan} className={!isLoan ? 'on' : ''} onClick={() => setIsLoan(false)}>لا، مال للنادي</button>
+                      <button type="button" role="radio" aria-checked={isLoan} className={isLoan ? 'on loan' : ''} onClick={() => setIsLoan(true)}>نعم، دين (استلاف)</button>
+                    </div>
+                  </div>
+                )}
 
                 {opFormData.type === 'تحويل' && (
                   <div className="form-group">
@@ -301,7 +337,7 @@ export const Funds: React.FC = () => {
 
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
                   <button type="button" className="btn-cancel" onClick={closeOperationDialog}>{t('common.cancel', 'إلغاء')}</button>
-                  <button type="submit" className="btn-primary">{t('common.save', 'حفظ')}</button>
+                  <button type="submit" className="btn-primary">{opFormData.type === 'إيداع' && isLoan && loan.allowed ? 'متابعة لتسجيل الدين' : t('common.save', 'حفظ')}</button>
                 </div>
               </form>
             </div>

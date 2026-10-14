@@ -11,8 +11,11 @@ import type { Fund, FundTransaction } from '../Funds/fund_model';
 import type { ReportCategory, IndividualReportType, ExpenseReportType, ContractReportType } from './report_model';
 import { contractCommitments, expenseSummary, fundSummary, individualSummary, inRange, normDate, presetRange } from './reportMath';
 
+/** The report and fund operation type the address asks for (?category=…&type=…) */
+const fromAddress = (key: string) => new URLSearchParams(window.location.search).get(key) || '';
+
 export const useReportsController = () => {
-  const [activeCategory, setActiveCategory] = useState<ReportCategory>('individuals');
+  const [activeCategory, setActiveCategory] = useState<ReportCategory>(() => (fromAddress('category') as ReportCategory) || 'individuals');
   
   // States for sub-tabs
   const [activeIndividualTab, setActiveIndividualTab] = useState<IndividualReportType>('player');
@@ -27,7 +30,7 @@ export const useReportsController = () => {
   const [expenseTypeFilter, setExpenseTypeFilter] = useState<string>('');
   const [individualPaymentTypeFilter, setIndividualPaymentTypeFilter] = useState<string>('');
   const [fundFilter, setFundFilter] = useState<string>('');
-  const [fundTransactionTypeFilter, setFundTransactionTypeFilter] = useState<string>('');
+  const [fundTransactionTypeFilter, setFundTransactionTypeFilter] = useState<string>(() => (fromAddress('category') === 'funds' ? fromAddress('type') : ''));
   const [expenseTransactionTypeFilter, setExpenseTransactionTypeFilter] = useState<string>('');
 
   const handlePresetDateChange = (preset: string) => {
@@ -237,7 +240,7 @@ export const useReportsController = () => {
   const getContractCommitments = () => contractCommitments(contracts);
 
   const deleteFundTransaction = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة؟')) {
+    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة من السجل؟ يبقى رصيد الصندوق كما هو.')) {
       const response = await fundsData.deleteTransaction({ id });
       if (response) {
         setFundTransactions(prev => prev.filter(t => t.id !== id));

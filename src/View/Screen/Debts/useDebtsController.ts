@@ -14,8 +14,15 @@ const fail = (text: string) => showSnackbar('خطأ', text, '#ef4444');
  * Debts of one kind, with their details, debt form and repayment form:
  * the loans on the debts page, the purchases on credit on the payments & expenses page.
  * `onChange`: called after anything that may add or remove payments (the payments page reloads its list).
+ * `autoLoad` false: nothing is loaded until `reload` (the funds page only adds a loan);
+ * `openAfterSave` false: a saved debt does not open its details.
  */
-export const useDebtsController = ({ kind, onChange }: { kind: DebtKind; onChange?: () => void }) => {
+export const useDebtsController = ({ kind, onChange, autoLoad = true, openAfterSave = true }: {
+  kind: DebtKind;
+  onChange?: () => void;
+  autoLoad?: boolean;
+  openAfterSave?: boolean;
+}) => {
   const canDo = useCan();
   // Loans: the debts section. Purchases on credit belong to the payments & expenses page and follow its permissions
   // (paying one adds an expense).
@@ -50,7 +57,7 @@ export const useDebtsController = ({ kind, onChange }: { kind: DebtKind; onChang
   }, [kind]);
 
   /* eslint-disable-next-line react-hooks/set-state-in-effect -- loading the list from the server */
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { if (autoLoad) load(); }, [load, autoLoad]);
 
   /** Replace one debt in the list with the server's version */
   const put = (debt: Debt) => setDebts(list => (list.some(d => d.id === debt.id) ? list.map(d => (d.id === debt.id ? debt : d)) : [debt, ...list]));
@@ -74,7 +81,7 @@ export const useDebtsController = ({ kind, onChange }: { kind: DebtKind; onChang
     const saved = await run(() => debtApi.save(data));
     put(saved);
     setForm(null);
-    setDetailsId(saved.id);
+    if (openAfterSave) setDetailsId(saved.id);
     refreshFunds();
   };
 
@@ -109,7 +116,7 @@ export const useDebtsController = ({ kind, onChange }: { kind: DebtKind; onChang
 
   const confirmRemove = (d: Debt) => {
     const text = d.kind === 'loan'
-      ? `هل أنت متأكد من حذف دين «${d.creditor}»؟ يُسحب مبلغه من رصيد الصندوق وتُعاد مبالغ التسديدات إلى صناديقها.`
+      ? `هل أنت متأكد من حذف دين «${d.creditor}» من سجل الديون؟ تبقى أرصدة الصناديق وعملياتها كما هي.`
       : `هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`;
     if (window.confirm(text)) remove(d);
   };

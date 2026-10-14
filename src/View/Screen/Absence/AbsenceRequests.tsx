@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Users, UserX, Clock, LogOut, Plane, Hourglass, ShieldCheck, Search, X, FileWarning, History, ClipboardList, Inbox } from 'lucide-react';
+import { Plus, Users, UserX, Clock, LogOut, Plane, Hourglass, ShieldCheck, FileWarning, History, ClipboardList, Inbox } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { useAbsenceRequestsController } from './AbsenceRequestsController';
@@ -14,6 +14,7 @@ import {
 } from './absenceUtils';
 import { MobileAbsences } from '../../Mobile/MobileAbsences/MobileAbsences';
 import './Absence.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- members come untyped from the API */
 
@@ -119,11 +120,7 @@ export const AbsenceRequests: React.FC = () => {
       {/* Toolbar */}
       {controller.activeTab !== 'requests' && (
         <div className="ab-toolbar">
-          <label className="ab-search">
-            <Search size={17} />
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العضو..." />
-            {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={14} /></button>}
-          </label>
+          <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث باسم العضو..." />
 
           {controller.activeTab === 'members' ? (
             <div className="ab-chips">

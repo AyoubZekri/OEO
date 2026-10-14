@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaymentsController } from './PaymentsController';
 import type { PaymentRecord } from './payment_model';
-import { Plus, Search, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen, AlertCircle, CheckCircle2, Clock, HandCoins } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Wallet, Users, ShoppingBag, Eye, Printer, Paperclip, RefreshCw, BookOpen, AlertCircle, CheckCircle2, Clock, HandCoins, ArrowLeftRight, Layers, Repeat } from 'lucide-react';
+import { ActionsMenu } from '../../widget/ActionsMenu';
+import { TransferPaymentDialog } from './TransferPaymentDialog';
+import { BulkTransferDialog } from './BulkTransferDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -10,6 +13,7 @@ import { PrintableReceipt } from './PrintableReceipt/PrintableReceipt';
 import { InternalRegulationsDocument } from './PrintableReceipt/InternalRegulationsDocument';
 import { UploadReceiptDialog } from './UploadReceiptDialog';
 import { ViewReceiptDialog } from './ViewReceiptDialog';
+import { TransferableDialog } from './TransferableDialog';
 import { Applink } from '../../../LinkApi';
 import { Pagination } from '../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
@@ -25,14 +29,7 @@ import '../Tasks/Tasks.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Payments.css';
-
-const PrintReceiptButton = ({ payment, member, contract, onPrint }: any) => {
-  return (
-    <button className="btn-icon" style={{color: '#ea580c'}} onClick={() => onPrint(payment, member, contract)} title="طباعة الوصل">
-      <Printer size={18} />
-    </button>
-  );
-};
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 export const Payments: React.FC = () => {
   const { t } = useTranslation();
@@ -123,10 +120,13 @@ export const Payments: React.FC = () => {
   const credit = useDebtsController({ kind: 'purchase', onChange: controller.reload });
   // The list: purchases on credit not fully paid first, then the payments and expenses (paid purchases included)
   // Payment status filter: all, not paid at all ("open"), partly paid ("partial") — purchases on credit
-  const [paidFilter, setPaidFilter] = useState('all');
+  // (?paid=unpaid, from the home page's unpaid in-kind debts card: not paid at all and partly paid)
+  const [paidFilter, setPaidFilter] = useState(() => new URLSearchParams(window.location.search).get('paid') || 'all');
   const unpaidRows = creditRows(credit.debts, { search: controller.searchQuery, nature: controller.filterNature, fund: controller.selectedFundFilter });
   const countOf = (status: string) => unpaidRows.filter(r => r.credit.status === status).length;
-  const rows = paidFilter === 'all' ? [...unpaidRows, ...controller.payments] : unpaidRows.filter(r => r.credit.status === paidFilter);
+  const rows = paidFilter === 'all' ? [...unpaidRows, ...controller.payments]
+    : paidFilter === 'unpaid' ? unpaidRows
+    : unpaidRows.filter(r => r.credit.status === paidFilter);
   const paginatedPayments = rows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // Form State (shared with the phone page)
@@ -194,20 +194,12 @@ export const Payments: React.FC = () => {
 
         
         <div className="payments-actions">
-          <div className="search-box">
-            <Search size={18} />
-            <input 
-              type="text" 
-              placeholder={t('payments.search_placeholder', 'ابحث...')} 
-              className="search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder={t('payments.search_placeholder', 'ابحث...')} />
           <CustomDropdown
             options={[
               { value: 'all', label: 'كل الصناديق' },
-              ...controller.funds.map(f => ({ value: String(f.id), label: f.name }))
+              ...controller.funds.map(f => ({ value: String(f.id), label: f.name })),
+              { value: 'none', label: 'صندوق غير محدد' },
             ]}
             value={controller.selectedFundFilter}
             onChange={(val) => controller.setSelectedFundFilter(val)}
@@ -244,12 +236,19 @@ export const Payments: React.FC = () => {
           <CustomDropdown
             options={[
               { value: 'all', label: 'الكل' },
+              { value: 'unpaid', label: `غير مدفوعة ومدفوعة جزئياً (${unpaidRows.length})` },
               { value: 'open', label: `غير مدفوعة (${countOf('open')})` },
               { value: 'partial', label: `مدفوعة جزئياً (${countOf('partial')})` },
             ]}
             value={paidFilter}
             onChange={val => { setPaidFilter(val); setCurrentPage(1); }}
           />
+          {hasAccess(permissions.payments.edit) && controller.funds.length > 1 && (
+            <button className="bulk-transfer-btn" onClick={controller.openBulk}>
+              <Layers size={18} />
+              تحويل جماعي
+            </button>
+          )}
           {hasAccess(permissions.payments.add) && (
             <button className="btn-primary" onClick={() => handleOpenDialog()}>
               <Plus size={18} />
@@ -271,13 +270,14 @@ export const Payments: React.FC = () => {
               <th>{t('payments.col_amount', 'المبلغ')}</th>
               <th>المدفوع</th>
               <th>{t('payments.col_method', 'طريقة الدفع')}</th>
+              <th>قابل للتحويل</th>
               <th>{t('payments.col_actions', 'إجراءات')}</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-4 text-muted">
+                <td colSpan={8} className="text-center py-4 text-muted">
                   {t('payments.no_data', 'لا توجد بيانات')}
                 </td>
               </tr>
@@ -303,33 +303,22 @@ export const Payments: React.FC = () => {
                           <Clock size={13} />{d.overdue ? 'غير مدفوع · متأخر' : d.repaid > 0 ? 'مدفوع جزئياً' : 'غير مدفوع'}
                         </span>
                       </td>
+                      <td data-label="قابل للتحويل"><span className="text-muted">—</span></td>
                       <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {hasAccess(permissions.payments.add) && (
-                            <button className="btn-icon" onClick={() => credit.openRepay(d)} title="دفع" style={{ color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
-                              <HandCoins size={18} />
-                            </button>
-                          )}
-                          <button className="btn-icon view" onClick={() => credit.openDebt(d)} title="التفاصيل" style={{ color: '#3b82f6' }}>
-                            <Eye size={18} />
-                          </button>
-                          {hasAccess(permissions.payments.edit) && (
-                            <button className="btn-icon edit" onClick={() => credit.openForm(d)} title="تعديل">
-                              <Edit size={18} />
-                            </button>
-                          )}
-                          {hasAccess(permissions.payments.delete) && (
-                            <button
-                              className="btn-icon delete"
-                              title="حذف"
-                              onClick={() => {
-                                if (window.confirm(`هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`)) credit.remove(d);
-                              }}
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          )}
-                        </div>
+                        <ActionsMenu
+                            label="إجراءات الشراء بالدين"
+                            items={[
+                              ...(hasAccess(permissions.payments.add) ? [{ key: 'pay', label: 'دفع', icon: HandCoins, color: '#10b981', onClick: () => credit.openRepay(d) }] : []),
+                              { key: 'view', label: 'التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => credit.openDebt(d) },
+                              ...(hasAccess(permissions.payments.edit) ? [{ key: 'edit', label: 'تعديل', icon: Edit, color: '#f97316', onClick: () => credit.openForm(d) }] : []),
+                              ...(hasAccess(permissions.payments.delete) ? [{
+                                key: 'delete', label: 'حذف', icon: Trash2, danger: true,
+                                onClick: () => {
+                                  if (window.confirm(`هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`)) credit.remove(d);
+                                },
+                              }] : []),
+                            ]}
+                          />
                       </td>
                     </tr>
                   );
@@ -345,52 +334,35 @@ export const Payments: React.FC = () => {
                     <td className="amount-cell" data-label={t('payments.col_amount', 'المبلغ')}>{formatCurrency(payment.amount)}</td>
                     <td className="amount-cell text-success" data-label="المدفوع">{formatCurrency(payment.amount)}</td>
                     <td data-label={t('payments.col_method', 'طريقة الدفع')}>{payment.paymentMethod}</td>
+                    <td data-label="قابل للتحويل">
+                      {controller.hasTransferable(payment) ? (
+                        <span className={`trf-badge ${controller.isTransferable(payment) ? 'yes' : 'no'}`}>
+                          {controller.isTransferable(payment) ? 'نعم' : 'لا'}
+                        </span>
+                      ) : <span className="text-muted">—</span>}
+                    </td>
                     <td data-label={t('payments.col_actions', 'إجراءات')} className="actions-cell">
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        {hasAccess(permissions.payments.print) && (
-                          <PrintReceiptButton 
-                            payment={payment} 
-                            member={member} 
-                            contract={contractFor(payment)}
-                            onPrint={handleNativePrint}
-                          />
-                        )}
-                        {hasAccess(permissions.payments.edit) && (
-                          <button className="btn-icon edit" onClick={() => handleOpenDialog(payment)}>
-                            <Edit size={18} />
-                          </button>
-                        )}
-                        {hasAccess(permissions.payments.delete) && (
-                          <>
-                            <button className="btn-icon return-btn" onClick={() => controller.returnPayment(payment.id)} title="إرجاع الدفعة للصندوق" style={{ color: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.1)' }}>
-                              <RefreshCw size={18} />
-                            </button>
-                            <button className="btn-icon delete" onClick={() => deletePayment(payment.id)}>
-                              <Trash2 size={18} />
-                            </button>
-                          </>
-                        )}
-                        <button className="btn-icon view" onClick={() => controller.openUploadDialog(payment)} title={t('payments.upload_receipt', 'إرفاق وصل العملية')} style={{color: '#3b82f6'}}>
-                          <Paperclip size={18} />
-                        </button>
-                        {payment.receipt_file && (
-                          <button 
-                            className="btn-icon view"
-                            title={t('payments.view_receipt', 'عرض الوصل')}
-                            style={{ color: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.1)' }}
-                            onClick={() => {
+                      <ActionsMenu
+                        label="إجراءات العملية"
+                        items={[
+                          ...(hasAccess(permissions.payments.print) ? [{ key: 'print', label: 'طباعة الوصل', icon: Printer, color: '#ea580c', onClick: () => handleNativePrint(payment, member, contractFor(payment)) }] : []),
+                          ...(hasAccess(permissions.payments.edit) ? [{ key: 'edit', label: 'تعديل', icon: Edit, color: '#f97316', onClick: () => handleOpenDialog(payment) }] : []),
+                          ...(hasAccess(permissions.payments.edit) && controller.hasTransferable(payment) ? [{ key: 'transferable', label: 'تعديل قابلية التحويل', icon: Repeat, color: '#0d9488', onClick: () => controller.openTransferable(payment) }] : []),
+                          ...(hasAccess(permissions.payments.edit) && controller.canTransfer(payment) ? [{ key: 'transfer', label: 'تحويل إلى صندوق آخر', icon: ArrowLeftRight, color: '#0ea5e9', onClick: () => controller.openTransfer(payment) }] : []),
+                          { key: 'upload', label: t('payments.upload_receipt', 'إرفاق وصل العملية'), icon: Paperclip, color: '#3b82f6', onClick: () => controller.openUploadDialog(payment) },
+                          ...(payment.receipt_file ? [{
+                            key: 'receipt', label: t('payments.view_receipt', 'عرض الوصل'), icon: Eye, color: '#10b981',
+                            onClick: () => {
                               const file = payment.receipt_file;
-                              let url = null;
-                              if (typeof file === 'string') {
-                                url = file.startsWith('http') ? file : `${Applink.image}/${file.replace(/^[\/\\]/, '')}`;
-                              }
-                              setViewingReceiptUrl(url);
-                            }}
-                          >
-                            <Eye size={18} />
-                          </button>
-                        )}
-                      </div>
+                              setViewingReceiptUrl(typeof file === 'string' ? (file.startsWith('http') ? file : `${Applink.image}/${file.replace(/^[/\\]/, '')}`) : null);
+                            },
+                          }] : []),
+                          ...(hasAccess(permissions.payments.delete) ? [
+                            { key: 'return', label: 'إرجاع الدفعة للصندوق', icon: RefreshCw, color: '#8b5cf6', onClick: () => controller.returnPayment(payment.id) },
+                            { key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => deletePayment(payment.id) },
+                          ] : []),
+                        ]}
+                      />
                     </td>
                   </tr>
                 );
@@ -791,6 +763,15 @@ export const Payments: React.FC = () => {
                   <button type="submit" className="btn-primary" disabled={form.creditSaving}>{form.creditMode ? 'تسجيل الشراء بالدين' : t('payments.save', 'حفظ الدفعة')}</button>
                 </div>
               </form>
+              {form.pendingPayment && (
+                <TransferableDialog
+                  amountText={formatCurrency(form.pendingPayment.amount)}
+                  memberName={selectedMemberDetails ? `${selectedMemberDetails.firstName} ${selectedMemberDetails.lastName}`.trim() : undefined}
+                  current={form.savedTransferable}
+                  onAnswer={form.answerTransferable}
+                  onCancel={form.cancelTransferable}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -854,6 +835,46 @@ export const Payments: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {controller.editingTransferable && (() => {
+        const p = controller.editingTransferable;
+        const m = getMemberDetails(p.memberId);
+        return (
+          <TransferableDialog
+            amountText={formatCurrency(p.amount)}
+            memberName={m ? `${m.firstName} ${m.lastName}`.trim() : p.creditor || undefined}
+            current={controller.isTransferable(p)}
+            onAnswer={controller.answerTransferable}
+            onCancel={controller.closeTransferable}
+          />
+        );
+      })()}
+
+      {controller.transferring && (() => {
+        const p = controller.transferring;
+        const m = getMemberDetails(p.memberId);
+        return (
+          <TransferPaymentDialog
+            amountText={formatCurrency(p.amount)}
+            memberName={m ? `${m.firstName} ${m.lastName}`.trim() : undefined}
+            fromFund={controller.funds.find(f => String(f.id) === String(p.fund_id))}
+            funds={controller.funds}
+            money={formatCurrency}
+            onConfirm={fundId => controller.transferPayment(p.id, fundId)}
+            onClose={controller.closeTransfer}
+          />
+        );
+      })()}
+
+      {controller.bulkOpen && (
+        <BulkTransferDialog
+          funds={controller.funds}
+          payments={controller.allPayments}
+          money={formatCurrency}
+          onConfirm={controller.transferAll}
+          onClose={controller.closeBulk}
+        />
       )}
 
       <UploadReceiptDialog 

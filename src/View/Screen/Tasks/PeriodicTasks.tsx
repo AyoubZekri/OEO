@@ -14,6 +14,7 @@ import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import { MobileBaseCard } from './parts/MobileBaseCard';
 import type { TaskTemplate } from './taskUtils';
 import './Tasks.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 const FILTERS = [
   { value: '', label: 'الكل' },
@@ -161,10 +162,7 @@ export const PeriodicTasks: React.FC = () => {
   return (
     <div className="tk-page tk-scope">
       <div className="tk-actions-row">
-        <div className="search-box">
-          <Search size={18} />
-          <input type="text" className="search-input" placeholder="ابحث بالعنوان أو المكلف..." value={query} onChange={e => { setQuery(e.target.value); setPage(1); }} />
-        </div>
+        <TopbarSearch value={query} onChange={v => { setQuery(v); setPage(1); }} placeholder="ابحث بالعنوان أو المكلف..." />
         <CustomDropdown
           options={FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${count(f.value)})` }))}
           value={filter || 'all'}

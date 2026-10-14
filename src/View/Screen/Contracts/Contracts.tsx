@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useContractsController } from './ContractsController';
-import { Search, Plus, FileSignature, Edit2, CalendarClock, X, Trash2, AlertTriangle } from 'lucide-react';
+import { Plus, FileSignature, Edit2, CalendarClock, X, Trash2, AlertTriangle } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CurrencyInput } from '../../widget/CurrencyInput';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -10,6 +10,7 @@ import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileContracts } from '../../Mobile/MobileContracts/MobileContracts';
 import './Contracts.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 export const Contracts: React.FC = () => {
   const { t } = useTranslation();
@@ -70,16 +71,7 @@ export const Contracts: React.FC = () => {
 
         
         <div className="contracts-actions">
-          <div className="search-box">
-            <Search size={18} />
-            <input 
-              type="text" 
-              placeholder={t('contracts.search_placeholder', 'ابحث برقم العقد أو اسم المستفيد...')} 
-              className="search-input" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder={t('contracts.search_placeholder', 'ابحث برقم العقد أو اسم المستفيد...')} />
           <CustomDropdown 
             options={[
               { value: 'all', label: t('contracts.filter_all', 'الكل') },

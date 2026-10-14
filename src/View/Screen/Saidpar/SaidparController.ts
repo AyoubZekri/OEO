@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus, Landmark, Trophy, CalendarX2 } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus, Landmark, Trophy, CalendarX2, MessageSquare } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useSpace, type AppSpace } from '../../../core/context/space';
@@ -115,6 +115,7 @@ export const useSaidparController = (onLogout?: () => void) => {
         { name: 'MyTravels', icon: Bus, isDropdown: false, label: 'تنقلات', route: Approutes.MyTravels },
         { name: 'MyMedical', icon: Stethoscope, isDropdown: false, label: 'تقارير طبية', route: Approutes.MyMedical },
         { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءات تأديبية', route: Approutes.MyDisciplinary },
+        { name: 'MyFeedback', icon: MessageSquare, isDropdown: false, label: 'آرائي واقتراحاتي', route: Approutes.MyFeedback },
       ],
     },
   ];
@@ -215,6 +216,13 @@ export const useSaidparController = (onLogout?: () => void) => {
           isDropdown: false,
           label: 'التنقلات',
           route: Approutes.Travels,
+        }] : []),
+        ...(hasAccess(permissions.feedback?.view ?? false) ? [{
+          name: 'Feedback',
+          icon: MessageSquare,
+          isDropdown: false,
+          label: 'آراء الأعضاء',
+          route: Approutes.Feedback,
         }] : []),
         ...(hasAccess(permissions.medical.view) ? [{
           name: 'MedicalRecords',

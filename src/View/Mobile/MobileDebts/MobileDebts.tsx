@@ -14,7 +14,8 @@ import '../../Screen/Debts/Debts.css';
 
 // Phone version of the debts page (the funds' loans): what is left in the hero, search, status filter, the cards
 export const MobileDebts: React.FC<{ c: DebtsController }> = ({ c }) => {
-  const [status, setStatus] = useState('');
+  // The status the address asks for (?status=unpaid, from the home page's unpaid debts card)
+  const [status, setStatus] = useState(() => new URLSearchParams(window.location.search).get('status') || '');
   const [query, setQuery] = useState('');
 
   const totals = debtTotals(c.debts);

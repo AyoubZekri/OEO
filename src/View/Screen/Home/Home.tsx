@@ -1,8 +1,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useHomeController } from './HomeController';
-import { Wallet, Users, UserCog, CreditCard, Landmark, CalendarClock, History, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, TrendingDown } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Approutes } from '../../../core/constant/routes';
+import { Wallet, History, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, HandCoins, Package } from 'lucide-react';
 import { MobileHome } from '../../Mobile/MobileHome/MobileHome';
+import type { FundFlow } from './HomeController';
 import type { Operation, OperationDirection } from '../Operations/operation_model';
 import './Home.css';
 
@@ -15,6 +18,17 @@ export const Home: React.FC = () => {
   const { t } = useTranslation();
   const controller = useHomeController();
   const { metrics, recentOperations, formatCurrency } = controller;
+  const navigate = useNavigate();
+  // The income: the funds report, its deposits
+  const openIncome = () => navigate(`${Approutes.Reports}?category=funds&type=${encodeURIComponent('إيداع')}`);
+  // The outgoings: the expenses report
+  const openOutgoings = () => navigate(`${Approutes.Reports}?category=expenses`);
+  // The unpaid debts: the debts page, filtered on them
+  // The season expenses: the payments and expenses page
+  const openPayments = () => navigate(Approutes.Payments);
+  const openUnpaidDebts = () => navigate(`${Approutes.Debts}?status=unpaid`);
+  // The unpaid in-kind debts: the payments page, its purchases on credit not paid at all or partly paid
+  const openUnpaidCredit = () => navigate(`${Approutes.Payments}?paid=unpaid`);
 
   const getBadgeClass = (type: string) => {
     if (type === 'إيداع' || type === 'دفعة عقد' || type === 'راتب') return 'badge badge-green';
@@ -43,62 +57,83 @@ export const Home: React.FC = () => {
       <div className="desktop-dashboard-wrapper">
       {/* Financial Metrics Grid */}
       <div className="metrics-grid">
-        <div className="metric-card highlight">
+        <div className="metric-card highlight clickable" role="button" tabIndex={0} onClick={openPayments} onKeyDown={e => { if (e.key === 'Enter') openPayments(); }}>
+          <div className="metric-icon"><Wallet size={28} /></div>
           <div className="metric-info">
             <h3>{t('home.total_expenses')}</h3>
             <p className="amount">{formatCurrency(metrics.totalExpenses)}</p>
           </div>
-          <div className="metric-icon"><Wallet size={32} /></div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-icon"><Users size={28} /></div>
-          <div className="metric-info">
-            <h3>{t('home.paid_players')}</h3>
-            <p className="amount">{formatCurrency(metrics.paidToPlayers)}</p>
-          </div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-icon"><UserCog size={28} /></div>
-          <div className="metric-info">
-            <h3>{t('home.paid_staff')}</h3>
-            <p className="amount">{formatCurrency(metrics.paidToStaff)}</p>
-          </div>
-        </div>
-
-        <div className="metric-card">
-          <div className="metric-icon"><CreditCard size={28} /></div>
-          <div className="metric-info">
-            <h3>{t('home.other_expenses')}</h3>
-            <p className="amount">{formatCurrency(metrics.otherExpenses)}</p>
-          </div>
-        </div>
-
-        <div className="metric-card danger">
-          <div className="metric-icon"><TrendingDown size={28} /></div>
-          <div className="metric-info">
-            <h3>{t('home.total_debts')}</h3>
-            <p className="amount">{formatCurrency(metrics.totalDebts)}</p>
-          </div>
-        </div>
-
-        <div className="metric-card warning">
-          <div className="metric-icon"><CalendarClock size={28} color="#333333" /></div>
-          <div className="metric-info">
-            <h3>{t('home.upcoming_entitlements', 'المستحقات القادمة')}</h3>
-            <p className="amount">{formatCurrency(metrics.upcomingEntitlements)}</p>
-          </div>
-        </div>
-
-        <div className="metric-card success">
-          <div className="metric-icon"><Landmark size={28} /></div>
-          <div className="metric-info">
-            <h3>{t('home.total_balance', 'إجمالي رصيد الصناديق')}</h3>
-            <p className="amount">{formatCurrency(metrics.totalBalance)}</p>
-          </div>
         </div>
       </div>
+
+      {/* Income and outgoings: one block across the page */}
+      <section className="home-block">
+        <div className="section-header">
+          <h2 className="section-title"><ArrowLeftRight size={24} />المداخيل والمخاريج</h2>
+        </div>
+        <div className="metrics-grid">
+        {/* Each fund's income and outgoings */}
+        {([
+          { kind: 'in', title: 'المداخيل', tone: 'success', icon: ArrowDownLeft, value: (f: FundFlow) => f.income },
+          { kind: 'out', title: 'المخاريج', tone: 'danger', icon: ArrowUpRight, value: (f: FundFlow) => f.outcome },
+        ] as const).map(c => (
+          <div
+            key={c.kind}
+            className={`metric-card ${c.tone} metric-flows clickable`}
+            role="button"
+            tabIndex={0}
+            onClick={c.kind === 'in' ? openIncome : openOutgoings}
+            onKeyDown={e => { if (e.key === 'Enter') (c.kind === 'in' ? openIncome : openOutgoings)(); }}
+          >
+            <div className="metric-head">
+            <div className="metric-icon"><c.icon size={28} /></div>
+            <div className="metric-info">
+              <h3>{c.title}</h3>
+              <p className="amount">{formatCurrency(controller.fundFlows.reduce((sum, f) => sum + c.value(f), 0) + (c.kind === 'out' ? controller.unfundedOutcome : 0))}</p>
+            </div>
+            </div>
+              <ul className="metric-funds">
+                {controller.fundFlows.map(f => (
+                  <li key={f.fund.id}>
+                    <span>{f.fund.name}</span>
+                    <b>{formatCurrency(c.value(f))}</b>
+                  </li>
+                ))}
+                {c.kind === 'out' && controller.unfundedOutcome > 0 && (
+                  <li>
+                    <span>صندوق خاص</span>
+                    <b>{formatCurrency(controller.unfundedOutcome)}</b>
+                  </li>
+                )}
+              </ul>
+          </div>
+        ))}
+        </div>
+      </section>
+
+      {/* Unpaid debts: one block across the page */}
+      <section className="home-block">
+        <div className="section-header">
+          <h2 className="section-title"><HandCoins size={24} />الديون</h2>
+        </div>
+        <div className="metrics-grid">
+        <div className="metric-card danger clickable" role="button" tabIndex={0} onClick={openUnpaidDebts} onKeyDown={e => { if (e.key === 'Enter') openUnpaidDebts(); }}>
+          <div className="metric-icon"><HandCoins size={28} /></div>
+          <div className="metric-info">
+            <h3>الديون غير المسددة</h3>
+            <p className="amount">{formatCurrency(controller.unpaidLoans.reduce((sum, d) => sum + (Number(d.remaining) || 0), 0))}</p>
+          </div>
+        </div>
+
+        <div className="metric-card warning clickable" role="button" tabIndex={0} onClick={openUnpaidCredit} onKeyDown={e => { if (e.key === 'Enter') openUnpaidCredit(); }}>
+          <div className="metric-icon"><Package size={28} /></div>
+          <div className="metric-info">
+            <h3>الديون العينية غير المسددة</h3>
+            <p className="amount">{formatCurrency(controller.unpaidCredit.reduce((sum, d) => sum + (Number(d.remaining) || 0), 0))}</p>
+          </div>
+        </div>
+        </div>
+      </section>
 
       {/* Operations Section */}
       <div className="operations-section">

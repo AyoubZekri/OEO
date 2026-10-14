@@ -270,3 +270,11 @@ body.dark-mode .mo-page {
 .mo-grid.rows .mo-tile-icon { width: 42px; height: 42px; flex-shrink: 0; border-radius: 13px; }
 .mo-grid.rows .mo-tile-label { flex: 1; font-size: 0.95rem; font-weight: 800; text-align: start; }
 .mo-tile-go { flex-shrink: 0; color: var(--mo-muted); }
+
+/* Group titles: a full-width bar in the club's orange (same as the home page's group titles) */
+.mo-group h2 {
+  margin: 0 0 10px; padding: 11px 14px;
+  border: 1px solid #fed7aa; border-radius: 16px; background: #fff4ec;
+  font-size: 0.92rem; font-weight: 800; color: #c2410c;
+}
+body.dark-mode .mo-group h2 { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }

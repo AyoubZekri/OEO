@@ -122,6 +122,7 @@
       "decisions": "Decisions",
       "correspondences": "Correspondences",
       "tasks": "Tasks",
+      "feedback": "Members' opinions",
       "dashboard": "Dashboard",
       "equipment": "Team Equipment",
       "equipmentOperations": "Equipment Movements",
@@ -129,6 +130,7 @@
     },
     "actions": {
       "view": "View",
+      "reply": "Reply to opinions and rate suggestions",
       "add": "Add",
       "edit": "Edit",
       "delete": "Delete",

@@ -15,6 +15,8 @@ import { buildOperations } from '../Operations/operation_model';
 import type { Operation } from '../Operations/operation_model';
 import { contractDues, homeExpenses, seasonStartOf } from '../Reports/reportMath';
 import client from '../../../core/api/client';
+import type { Debt } from '../Debts/debtUtils';
+import { txAmount, txFund } from '../../Mobile/MobileFunds/fundUtils';
 
 /** What is left to pay on a list of debts (loans or purchases on credit) */
 const leftOn = (res: { data?: { data?: { remaining?: number }[] } } | null) =>
@@ -33,6 +35,19 @@ export interface FinancialMetrics {
   totalBalance: number;
   upcomingEntitlements: number;
 }
+
+/** A fund: its balance, the money that came in and the money that went out (transfers included) */
+export interface FundFlow {
+  fund: Fund;
+  income: number;
+  outcome: number;
+}
+
+/** The debts not paid in full: loans put into the funds, and purchases on credit (in kind) */
+const unpaidOf = (res: { data?: { data?: Debt[] } } | null): Debt[] =>
+  (res?.data?.data || [])
+    .filter(d => (Number(d.remaining) || 0) > 0.005)
+    .sort((a, b) => Number(b.overdue) - Number(a.overdue) || (a.due_date || '9999').localeCompare(b.due_date || '9999'));
 
 export interface MobileDashboard {
   nextMatch: Match | null;
@@ -74,6 +89,10 @@ export const useHomeController = () => {
     totalBalance: 0,
   });
 
+  const [fundFlows, setFundFlows] = useState<FundFlow[]>([]);
+  const [unfundedOutcome, setUnfundedOutcome] = useState(0);
+  const [unpaidLoans, setUnpaidLoans] = useState<Debt[]>([]);
+  const [unpaidCredit, setUnpaidCredit] = useState<Debt[]>([]);
   const [recentOperations, setRecentOperations] = useState<Operation[]>([]);
   const [allOperations, setAllOperations] = useState<Operation[]>([]);
   const [isOperationsDialogOpen, setIsOperationsDialogOpen] = useState(false);
@@ -157,6 +176,33 @@ export const useHomeController = () => {
         totalBalance: cashBalance + bankBalance,
       });
 
+      // Outgoings: the payments and expenses, by the fund they were paid from
+      // (an advance paid back brings money in; a purchase on credit counts by its own payments, each from its fund)
+      const spentFrom = new Map<string, number>();
+      const addSpent = (fundId: unknown, amount: number) => {
+        const key = fundId ? String(fundId) : '';
+        spentFrom.set(key, (spentFrom.get(key) || 0) + amount);
+      };
+      payments
+        .filter(p => !p.isCredit && p.amountNature !== 'إرجاع سلفة')
+        .forEach(p => addSpent(p.fund_id ?? p.fundId, Number(p.amount) || 0));
+      ((creditRes?.data?.data || []) as Debt[]).forEach(d => (d.repayments || []).forEach(r => addSpent(r.fund_id, Number(r.amount) || 0)));
+      const round = (v: number) => Math.round(v * 100) / 100;
+
+      // Each fund: its income is what was recorded as a deposit (إيداع) in it, its outgoings the payments above
+      setFundFlows(funds.map(fund => {
+        const id = String(fund.id);
+        let income = 0;
+        fundTransactions.forEach(t => {
+          if (txFund(t) === id && t.type === 'إيداع') income += txAmount(t);
+        });
+        return { fund, income: round(income), outcome: round(spentFrom.get(id) || 0) };
+      }));
+      // Paid without a fund (exceptional expenses)
+      setUnfundedOutcome(round(spentFrom.get('') || 0));
+      setUnpaidLoans(unpaidOf(loansRes));
+      setUnpaidCredit(unpaidOf(creditRes));
+
       // Operations for the desktop table (mobile uses the Operations page)
       const ops = buildOperations(payments, members, funds, fundTransactions);
       setRecentOperations(ops.slice(0, 3));
@@ -188,6 +234,10 @@ export const useHomeController = () => {
 
   return {
     metrics,
+    fundFlows,
+    unfundedOutcome,
+    unpaidLoans,
+    unpaidCredit,
     recentOperations,
     allOperations,
     isOperationsDialogOpen,

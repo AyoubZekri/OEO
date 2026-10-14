@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2, LogOut } from 'lucide-react';
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2, LogOut, MessageSquare } from 'lucide-react';
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -28,10 +28,10 @@ const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Matches
 const IN_PERSONAL_NAV = new Set<string>([Approutes.MyTasks, Approutes.MyMatches, Approutes.MyAbsences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
-  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary'] },
+  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary', 'MyFeedback'] },
   { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
   { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
-  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Feedback', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
@@ -58,6 +58,8 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   MyTravels: { icon: Bus, color: '#0ea5e9' },
   MyMedical: { icon: Stethoscope, color: '#ef4444' },
   MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
+  MyFeedback: { icon: MessageSquare, color: '#14b8a6' },
+  Feedback: { icon: MessageSquare, color: '#14b8a6' },
   PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },

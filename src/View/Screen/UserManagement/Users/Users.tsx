@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useUsersController } from './UsersController';
 import { UserDialog } from './UserDialog';
 import { useRolesController } from '../Roles/RolesController';
@@ -10,6 +10,7 @@ import { ItemsPerPageSelector } from '../../../widget/ItemsPerPageSelector';
 import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { MobileUsers } from '../../../Mobile/MobileUsers/MobileUsers';
 import './Users.css';
+import { TopbarSearch } from '../../../widget/TopbarSearch';
 
 export const Users: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
@@ -64,16 +65,7 @@ export const Users: React.FC = () => {
   return (
     <div className="users-container" style={{ fontFamily: 'var(--sans)' }}>
       <div className="users-header" style={{ justifyContent: 'flex-end', gap: '12px' }}>
-        <div className="search-box users-search">
-          <Search size={18} />
-          <input
-            type="text"
-            className="search-input"
-            placeholder="ابحث عن مستخدم..."
-            value={query}
-            onChange={e => { setQuery(e.target.value); setCurrentPage(1); }}
-          />
-        </div>
+        <TopbarSearch value={query} onChange={v => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث عن مستخدم..." />
         {hasAccess(permissions.usersAndRoles.addUsers) && (
           <button className="add-user-btn" onClick={openAddDialog}>
             <Plus size={20} />

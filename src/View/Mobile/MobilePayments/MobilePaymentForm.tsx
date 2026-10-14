@@ -13,6 +13,7 @@ import { TYPE_LABELS } from '../MobileMembers/memberLabels';
 import { isoDay } from '../MobileTrainingSessions/sessionUtils';
 import { moneyText } from '../MobileContracts/contractUtils';
 import { KINDS, initials } from './paymentUtils';
+import { TransferableDialog } from '../../Screen/Payments/TransferableDialog';
 import '../MobileEvaluations/MobileEvaluations.css';
 
 // Natures whose amount the form fills from the member's contract
@@ -355,6 +356,16 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         <h3 className="me-section-title"><span><StickyNote size={16} /></span>ملاحظات</h3>
         <input className="me-input" type="text" value={f.notes} onChange={e => f.setNotes(e.target.value)} placeholder="اختياري" />
       </section>
+
+      {f.pendingPayment && (
+        <TransferableDialog
+          amountText={moneyText(f.pendingPayment.amount)}
+          memberName={f.selectedMemberDetails ? `${f.selectedMemberDetails.firstName} ${f.selectedMemberDetails.lastName}`.trim() : undefined}
+          current={f.savedTransferable}
+          onAnswer={f.answerTransferable}
+          onCancel={f.cancelTransferable}
+        />
+      )}
     </MobileScreen>
   );
 };

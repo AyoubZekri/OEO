@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import axios from 'axios';
-import { Plus, Calendar, Search } from 'lucide-react';
+import { Plus, Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
 import { AddMatchDialog } from './AddMatchDialog';
@@ -30,6 +30,7 @@ import type { MatchActions } from '../../Mobile/MobileMatches/matchActions';
 import { matchState } from '../../Mobile/MobileMatches/matchUtils';
 import '../Members/Members.css';
 import './Matches.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 /** personal: the personal space's page (the matches of my category, read only, with my call-up and attendance) */
 export const Matches = ({ personal = false }: { personal?: boolean }) => {
@@ -307,16 +308,7 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
       <div className="members-header">
 
         <div className="members-actions">
-          <div className="search-box">
-            <Search className="search-icon" size={18} />
-            <input 
-              type="text" 
-              placeholder="البحث بالفريق المنافس..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="search-input"
-            />
-          </div>
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder="البحث بالفريق المنافس..." />
           {can('matches', 'add') && (
             <button className="btn-primary" onClick={openAddDialog}>
               <Plus size={20} /> إضافة مباراة

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Sun, Moon, LayoutDashboard, UserRound, ChevronDown, ArrowLeftRight } from 'lucide-react';
+import { Menu, Sun, Moon, LayoutDashboard, UserRound, ArrowLeftRight, Power } from 'lucide-react';
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../Personal/Personal.css';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../core/context/AuthContext';
 import './Topbar.css';
+import { TOPBAR_SLOT_ID } from '../../widget/TopbarSearch';
 
 interface TopbarProps {
   title: string;
@@ -57,62 +58,76 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
     }
   }
 
+  const initial = user?.name ? user.name.charAt(0).toUpperCase() : t('topbar.avatar_initial');
+  const spaceLabel = SPACE_LABELS[controller.space as 'management' | 'personal'];
+  const run = (action: () => void) => () => { setMenuOpen(false); action(); };
+
   return (
-    <header className="topbar-container">
-      {/* Title & Mobile Menu */}
-      <div className="topbar-right-group">
-        <button className="mobile-menu-btn" onClick={controller.toggleMobileSidebar} aria-label={t('topbar.menu')}>
-          <Menu size={24} />
-        </button>
-        <h1 className="topbar-title">{t(activeLabel, activeLabel)}</h1>
-      </div>
+    <>
+      <header className="topbar-container">
+        {/* Start (right): the menu button on small screens, then the page's search when it has one */}
+        <div className="topbar-right-group">
+          <button className="mobile-menu-btn" onClick={controller.toggleMobileSidebar} aria-label={t('topbar.menu')}>
+            <Menu size={24} />
+          </button>
+          {/* On a phone the page title stays in the bar */}
+          <h1 className="topbar-title tb-phone-title">{t(activeLabel, activeLabel)}</h1>
+          <div id={TOPBAR_SLOT_ID} className="topbar-slot" />
+        </div>
 
-      {/* Actions */}
-      <div className="topbar-actions">
-        {/* Theme Toggle */}
-        <button className="topbar-icon-btn" onClick={controller.toggleTheme} aria-label="Toggle Theme">
-          {controller.isDarkMode ? <Moon size={20} /> : <Sun size={20} />}
-        </button>
-
-        <span className="topbar-divider" aria-hidden="true" />
-
-        {/* Account: opens the menu that switches between the management and the personal space */}
-        <div className="profile-section">
-          <button
-            type="button"
-            className={`profile-button ${menuOpen ? 'open' : ''}`}
-            onClick={() => setMenuOpen(o => !o)}
-            aria-haspopup="menu"
-            aria-expanded={menuOpen}
-          >
-            <span className="profile-avatar">
-              {user?.name ? user.name.charAt(0).toUpperCase() : t('topbar.avatar_initial')}
-            </span>
-            <span className="profile-info">
-              <span className="profile-name">{user?.name || t('topbar.user_name')}</span>
-              <span className="profile-role">{roleName} · {SPACE_LABELS[controller.space as 'management' | 'personal']}</span>
-            </span>
-            <ChevronDown size={16} className="profile-chevron" />
+        {/* End (left): theme, then the account */}
+        <div className="topbar-actions">
+          <button className="topbar-icon-btn" onClick={controller.toggleTheme} aria-label="Toggle Theme" title={controller.isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن'}>
+            {controller.isDarkMode ? <Moon size={22} /> : <Sun size={22} />}
           </button>
 
-          {menuOpen && (
-            <>
-              <div className="space-menu-backdrop" onClick={() => setMenuOpen(false)} />
-              <div className="space-menu" role="menu">
-                {controller.canManage ? (
-                  <button type="button" role="menuitem" onClick={() => { setMenuOpen(false); controller.switchSpace(other); }}>
-                    <span className="space-menu-icon">{other === 'management' ? <LayoutDashboard size={17} /> : <UserRound size={17} />}</span>
-                    <span className="space-menu-label">التبديل إلى {SPACE_LABELS[other]}</span>
-                    <ArrowLeftRight size={15} className="space-menu-go" />
-                  </button>
-                ) : (
-                  <small className="space-menu-none">حسابك يعمل في فضائك الشخصي فقط</small>
-                )}
-              </div>
-            </>
-          )}
+          <div className="profile-section">
+            <button
+              type="button"
+              className={`profile-button ${menuOpen ? 'open' : ''}`}
+              onClick={() => setMenuOpen(o => !o)}
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              aria-label={user?.name || t('topbar.user_name')}
+            >
+              <span className="profile-avatar">{initial}<i className="profile-online" /></span>
+            </button>
+
+            {menuOpen && (
+              <>
+                <div className="space-menu-backdrop" onClick={() => setMenuOpen(false)} />
+                <div className="tb-menu" role="menu">
+                  <div className="tb-menu-head">
+                    <span className="profile-avatar lg">{initial}<i className="profile-online" /></span>
+                    <span className="tb-menu-who">
+                      <strong>{user?.name || t('topbar.user_name')}</strong>
+                      <small>{roleName} · {spaceLabel}</small>
+                    </span>
+                  </div>
+                  <div className="tb-menu-list">
+                    {controller.canManage ? (
+                      <button type="button" role="menuitem" onClick={run(() => controller.switchSpace(other))}>
+                        {other === 'management' ? <LayoutDashboard size={20} /> : <UserRound size={20} />}
+                        <span>التبديل إلى {SPACE_LABELS[other]}</span>
+                        <ArrowLeftRight size={15} className="tb-menu-go" />
+                      </button>
+                    ) : (
+                      <small className="tb-menu-none">حسابك يعمل في فضائك الشخصي فقط</small>
+                    )}
+                  </div>
+                  <div className="tb-menu-list">
+                    <button type="button" role="menuitem" className="danger" onClick={run(controller.handleLogout)}>
+                      <Power size={20} />
+                      <span>تسجيل الخروج</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+    </>
   );
 };

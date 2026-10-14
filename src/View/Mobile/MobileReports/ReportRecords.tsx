@@ -99,7 +99,7 @@ export const ReportRecords: React.FC<{ c: ReturnType<typeof useReportsController
       const to = tx.type === 'تحويل' ? nameOf(txTo(tx)) : undefined;
       const tone = tx.type === 'إيداع' ? 'green' : tx.type === 'سحب' || tx.type === 'تسديد دين' ? 'red' : 'blue';
       return (
-        <article key={tx.id} className={`mrp-row tone-${tone}`}>
+        <article key={tx.id} className={`mrp-row mrp-row-fund tone-${tone}`}>
           <div className="mrp-row-main">
             <strong className="mrp-fundline">{from}{to && <><ArrowLeft size={13} />{to}</>}</strong>
             <small><em className="mrp-type">{tx.type}</em>{tx.description}</small>

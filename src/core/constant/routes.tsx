@@ -16,6 +16,8 @@ export class Approutes {
   static readonly MyMeetings = "/my-meetings";
   static readonly MyTravels = "/my-travels";
   static readonly MyMedical = "/my-medical";
+  static readonly MyFeedback = "/my-feedback";
+  static readonly Feedback = "/feedback";
   static readonly Reports = "/reports";
   static readonly Teams = "/teams";
   static readonly Equipment = "/equipment";

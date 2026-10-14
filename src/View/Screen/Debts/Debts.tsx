@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Search, Landmark, Inbox, RefreshCw, Scale, HandCoins, AlertTriangle, Wallet } from 'lucide-react';
+import { Plus, Landmark, Inbox, RefreshCw, Scale, HandCoins, AlertTriangle, Wallet } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileDebts } from '../../Mobile/MobileDebts/MobileDebts';
@@ -12,13 +12,15 @@ import { debtTotals, filterDebts, sortDebts, STATUS_FILTERS } from './debtUtils'
 import '../Tasks/Tasks.css';
 import '../Travels/Travels.css';
 import './Debts.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 // The funds' debts: money borrowed from someone and put into a fund, and what is left to pay back.
 // (Purchases on credit belong to the payments & expenses page.)
 export const Debts: React.FC = () => {
   const c = useDebtsController({ kind: 'loan' });
   const isMobile = useIsMobile();
-  const [status, setStatus] = useState('');
+  // The status the address asks for (?status=unpaid, from the home page's unpaid debts card)
+  const [status, setStatus] = useState(() => new URLSearchParams(window.location.search).get('status') || '');
   const [query, setQuery] = useState('');
 
   if (isMobile) return <MobileDebts c={c} />;
@@ -49,10 +51,7 @@ export const Debts: React.FC = () => {
       </div>
 
       <div className="tk-actions-row">
-        <div className="search-box">
-          <Search size={18} />
-          <input type="text" className="search-input" placeholder="ابحث بالدائن أو السبب أو الصندوق..." value={query} onChange={e => setQuery(e.target.value)} />
-        </div>
+        <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث بالدائن أو السبب أو الصندوق..." />
         <CustomDropdown
           options={STATUS_FILTERS.map(f => ({ value: f.value || 'all', label: f.label }))}
           value={status || 'all'}

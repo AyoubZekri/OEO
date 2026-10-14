@@ -420,3 +420,11 @@
 .payment-credit-error { background: rgba(239, 68, 68, 0.1); color: #dc2626; font-weight: 700; }
 .payment-credit-note svg, .payment-credit-error svg { flex-shrink: 0; margin-top: 3px; }
 .mpy-kinds.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* A value given by the fund's operation, not changed in the debt form */
+.db-locked {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg-hover) !important; color: var(--text-h);
+  font-weight: 800; cursor: not-allowed; user-select: none;
+}
+.db-locked svg { flex-shrink: 0; color: var(--text-muted); }

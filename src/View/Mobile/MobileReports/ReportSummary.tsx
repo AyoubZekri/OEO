@@ -71,15 +71,15 @@ export const ReportSummary: React.FC<{ c: ReturnType<typeof useReportsController
           const ic = fundIcon(f.icon);
           return (
             <li key={f.id} className={`ic-${ic.value}`}>
-              <span className="mrp-fund-icon"><ic.icon size={16} /></span>
-              <span className="mrp-fund-text">
+              <div className="mrp-fund-head">
+                <span className="mrp-fund-icon"><ic.icon size={16} /></span>
                 <strong>{f.name}</strong>
-                <small>
-                  <em className="in"><ArrowDownLeft size={11} /> إيداعات <span dir="ltr">{moneyText(f.totalDeposits)}</span></em>
-                  <em className="out"><ArrowUpRight size={11} /> <span dir="ltr">{moneyText(f.totalWithdrawals)}</span></em>
-                </small>
-              </span>
-              <b dir="ltr">{moneyText(f.balance)}</b>
+                <b dir="ltr">{moneyText(f.balance)}</b>
+              </div>
+              <div className="mrp-fund-flows">
+                <em className="in"><ArrowDownLeft size={12} /> دخل <span dir="ltr">{moneyText(f.totalDeposits)}</span></em>
+                <em className="out"><ArrowUpRight size={12} /> خرج <span dir="ltr">{moneyText(f.totalWithdrawals)}</span></em>
+              </div>
             </li>
           );
         })}

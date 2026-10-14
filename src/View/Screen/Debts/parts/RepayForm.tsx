@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { HandCoins, Loader2, AlertCircle, Wallet, CreditCard, CalendarDays, Info } from 'lucide-react';
 import { TaskPanel } from '../../Tasks/parts/TaskPanel';
+import { CurrencyInput } from '../../../widget/CurrencyInput';
 import { AppSelect } from '../../Tasks/parts/FormBits';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
 import type { DebtsController } from '../useDebtsController';
@@ -81,7 +82,7 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
 
         <label className="tk-field">
           <span className="tk-label">{d.kind === 'purchase' ? 'المبلغ المدفوع (د.ج)' : 'المبلغ المسدد (د.ج)'}</span>
-          <input className="tk-input db-money-input big" dir="ltr" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} autoFocus={!mobile} />
+          <CurrencyInput className="tk-input db-money-input big" inputMode="numeric" value={amount} onChangeValue={setAmount} autoFocus={!mobile} />
         </label>
         <div className="db-quick">
           {quick.map(q => (

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Applink } from '../../../LinkApi';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Search, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, LogOut, UploadCloud } from 'lucide-react';
+import { Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, LogOut, UploadCloud } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
@@ -25,6 +25,7 @@ import './Members.css';
 import '../Disciplinary/Disciplinary.css';
 import { processImage } from '../../../core/functions/processImage';
 import { useBackCloses } from '../../Mobile/widgets/useBackCloses';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
@@ -182,16 +183,7 @@ export const Members: React.FC = () => {
 
         
         <div className="members-actions">
-          <div className="search-box">
-            <Search size={18} />
-            <input 
-              type="text" 
-              placeholder={t('members.search_placeholder', 'ابحث بالاسم أو المنصب...')} 
-              className="search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder={t('members.search_placeholder', 'ابحث بالاسم أو المنصب...')} />
           <CustomDropdown<string>
             value={filterTeamId}
             options={filterTeamOptions}

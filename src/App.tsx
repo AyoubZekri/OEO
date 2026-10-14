@@ -48,12 +48,14 @@ import { MyAbsences } from './View/Screen/Personal/MyAbsences';
 import { MyMeetings } from './View/Screen/Personal/MyMeetings';
 import { MyTravels } from './View/Screen/Personal/MyTravels';
 import { MyMedical } from './View/Screen/Personal/MyMedical';
+import { MyFeedback } from './View/Screen/Feedback/MyFeedback';
+import { FeedbackAdmin } from './View/Screen/Feedback/FeedbackAdmin';
 import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels, Approutes.MyTasks, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings, Approutes.MyTravels, Approutes.MyMedical];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels, Approutes.MyTasks, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings, Approutes.MyTravels, Approutes.MyMedical, Approutes.MyFeedback, Approutes.Feedback];
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -87,6 +89,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               <Route path={Approutes.MyTravels} element={<MyTravels />} />
               <Route path={Approutes.MyMedical} element={<MyMedical />} />
               <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
+              <Route path={Approutes.MyFeedback} element={<MyFeedback />} />
               <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
               {/* The management pages are not part of the personal space */}
               <Route path="*" element={<Navigate to={Approutes.MyTasks} replace />} />
@@ -119,6 +122,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Tasks} element={<RequirePermission module="tasks"><Tasks /></RequirePermission>} />
             <Route path={Approutes.PeriodicTasks} element={<RequirePermission module="tasks"><PeriodicTasks /></RequirePermission>} />
             <Route path={Approutes.Travels} element={<RequirePermission module="travels"><Travels /></RequirePermission>} />
+            <Route path={Approutes.Feedback} element={<RequirePermission module="feedback"><FeedbackAdmin /></RequirePermission>} />
             {/* Phone-only pages: widening the screen sends the user to the desktop home */}
             <Route path={Approutes.Operations} element={isMobile ? <Operations /> : <Navigate to="/" replace />} />
             <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />

@@ -65,6 +65,7 @@ export const KIND_FILTERS = [
 export const STATUS_FILTERS = [
   { value: '', label: 'كل الحالات' },
   { value: 'unpaid', label: 'غير مسددة بالكامل' },
+  { value: 'partial', label: 'مسددة جزئياً' },
   { value: 'overdue', label: 'متأخرة' },
   { value: 'paid', label: 'مسددة' },
 ];
@@ -108,6 +109,7 @@ export const filterDebts = (list: Debt[], kind: string, status: string, query: s
   return list.filter(d => (!kind || d.kind === kind)
     && (!status
       || (status === 'unpaid' && d.status !== 'paid')
+      || (status === 'partial' && d.status === 'partial')
       || (status === 'overdue' && d.overdue)
       || (status === 'paid' && d.status === 'paid'))
     && (!q

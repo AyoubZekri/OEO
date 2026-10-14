@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import { useTranslation } from 'react-i18next';
-import { Shield, Plus, Edit2, Trash2, Camera, X, UploadCloud, Search } from 'lucide-react';
+import { Shield, Plus, Edit2, Trash2, Camera, X, UploadCloud } from 'lucide-react';
 import { useClubsController } from './ClubsController';
 import type { Club } from './club_model';
 import { CustomInput } from '../../widget/CustomInput';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileClubs } from '../../Mobile/MobileClubs/MobileClubs';
 import './Clubs.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 export const Clubs: React.FC = () => {
   const { t } = useTranslation();
@@ -72,18 +73,9 @@ export const Clubs: React.FC = () => {
   return (
     <div className="clubs-container">
       {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <div className="search-box">
-            <Search size={18} />
-            <input 
-              type="text"
-              placeholder="بحث عن نادي..."
-              className="search-input"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+      <div className="clubs-header" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
+        <div className="clubs-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder="بحث عن نادي..." />
           {can('clubs', 'add') && (
             <button className="add-eq-btn" onClick={openAdd}>
               <Plus size={20} />

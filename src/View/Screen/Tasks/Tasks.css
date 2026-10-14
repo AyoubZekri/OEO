@@ -124,6 +124,7 @@ body.dark-mode .tk-page .tk-scope {
 .tk-actions-row {
   display: flex;
   align-items: center;
+  flex-direction: row-reverse; /* from the right (RTL): add, filters, then search */
   justify-content: flex-end;
   gap: 16px;
   white-space: nowrap;

@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { Applink } from '../../../LinkApi';
 import { Crud } from '../../../core/class/Crud';
 import { PaymentsData } from './payments_data';
 import { MembersData } from '../Members/members_data';
@@ -150,6 +152,66 @@ export const usePaymentsController = () => {
     }
   };
 
+  /** The payment being transferred to another fund (its dialog is open) */
+  const [transferring, setTransferring] = useState<PaymentRecord | null>(null);
+  /** A transferable payment to a member, paid from another fund: an error message, or null once done */
+  const transferPayment = async (id: string, fundId: string): Promise<string | null> => {
+    try {
+      await axios.post(Applink.transferPayment, { id, fund_id: fundId }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, Accept: 'application/json' },
+      });
+      setPayments(list => list.map(p => (p.id === id ? { ...p, fund_id: fundId, fundId } as PaymentRecord : p)));
+      fetchFunds();
+      return null;
+    } catch (e) {
+      return (e as { response?: { data?: { message?: string } } }).response?.data?.message || 'تعذر تحويل الدفعة';
+    }
+  };
+  /** Whether an operation can be transferred: the one whose answer is being changed (its dialog is open) */
+  const [editingTransferable, setEditingTransferable] = useState<PaymentRecord | null>(null);
+  /** Exceptional expenses (paid without a fund) have no such answer */
+  const hasTransferable = (p: PaymentRecord) => p.transactionType !== 'مصاريف استثنائية';
+  const isTransferable = (p: PaymentRecord) => hasTransferable(p) && Boolean(p.isTransferable ?? p.is_transferable);
+  /** Changes only that answer: an error message, or null once done */
+  const saveTransferable = async (id: string, transferable: boolean): Promise<string | null> => {
+    try {
+      await axios.post(Applink.setPaymentTransferable, { id, is_transferable: transferable }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, Accept: 'application/json' },
+      });
+      setPayments(list => list.map(p => (p.id === id ? { ...p, isTransferable: transferable, is_transferable: transferable } : p)));
+      return null;
+    } catch (e) {
+      return (e as { response?: { data?: { message?: string } } }).response?.data?.message || 'تعذر تعديل قابلية التحويل';
+    }
+  };
+  const answerTransferable = async (transferable: boolean) => {
+    if (!editingTransferable) return;
+    const error = await saveTransferable(editingTransferable.id, transferable);
+    if (error) window.alert(error);
+    else setEditingTransferable(null);
+  };
+
+  /** Bulk transfer: every transferable payment of one fund, paid from another one */
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const transferAll = async (fromId: string, toId: string): Promise<string | null> => {
+    try {
+      await axios.post(Applink.transferAllPayments, { from_fund_id: fromId, to_fund_id: toId }, {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, Accept: 'application/json' },
+      });
+      setPayments(list => list.map(p => (
+        String(p.fund_id ?? p.fundId) === fromId && (p.isTransferable ?? p.is_transferable) && !p.isCredit ? { ...p, fund_id: toId, fundId: toId } : p
+      )));
+      fetchFunds();
+      return null;
+    } catch (e) {
+      return (e as { response?: { data?: { message?: string } } }).response?.data?.message || 'تعذر التحويل';
+    }
+  };
+
+  /** Only a payment to a member marked transferable, paid from a fund */
+  const canTransfer = (p: PaymentRecord) =>
+    Boolean((p.isTransferable ?? p.is_transferable) && (p as PaymentRecord & { fund_id?: string }).fund_id && !p.isCredit && funds.length > 1);
+
   const deletePayment = async (id: string) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الدفعة؟ (الحذف لا يقوم بإرجاع المبلغ للصندوق تلقائياً)')) {
       setIsLoading(true);
@@ -228,7 +290,9 @@ export const usePaymentsController = () => {
       (p.paymentDate && p.paymentDate.includes(searchLower));
       
     const matchesFilter = filterNature === 'all' || p.amountNature === filterNature;
-    const matchesFund = selectedFundFilter === 'all' || p.fund_id === selectedFundFilter;
+    // 'none': paid without a fund (no fund chosen)
+    const noFund = !p.fund_id || p.fund_id === 'null' || p.fund_id === '0';
+    const matchesFund = selectedFundFilter === 'all' || (selectedFundFilter === 'none' ? noFund : p.fund_id === selectedFundFilter);
     
     return matchesSearch && matchesFilter && matchesFund;
   });
@@ -236,8 +300,13 @@ export const usePaymentsController = () => {
   return {
     reload: fetchPayments,
     payments: filteredPayments,
+    /** Every payment, whatever the filters (the bulk transfer counts them all) */
+    allPayments: payments,
     members,
     funds,
+    transferring, openTransfer: setTransferring, closeTransfer: () => setTransferring(null), transferPayment, canTransfer,
+    hasTransferable, isTransferable, editingTransferable, openTransferable: setEditingTransferable, closeTransferable: () => setEditingTransferable(null), answerTransferable,
+    bulkOpen, openBulk: () => setBulkOpen(true), closeBulk: () => setBulkOpen(false), transferAll,
     contracts,
     isDialogOpen,
     editingPayment,

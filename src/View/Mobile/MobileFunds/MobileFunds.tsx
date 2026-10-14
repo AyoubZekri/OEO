@@ -12,15 +12,20 @@ import { type FundPermissions, fundIcon, balanceOf, txFund, txTo } from './fundU
 import { MobileFundDetails } from './MobileFundDetails';
 import { MobileFundForm } from './MobileFundForm';
 import { MobileFundOperation } from './MobileFundOperation';
+import { DebtForm } from '../../Screen/Debts/parts/DebtForm';
+import type { FundLoan } from '../../Screen/Funds/useFundLoan';
+import '../../Screen/Debts/Debts.css';
 import './MobileFunds.css';
 
 interface MobileFundsProps {
   c: ReturnType<typeof useFundsController>;
   can: FundPermissions;
+  /** Money put in that is a loan: the debt form */
+  loan: FundLoan;
 }
 
 // Phone version of the funds page: total balance, one card per fund, details with its operations
-export const MobileFunds: React.FC<MobileFundsProps> = ({ c, can }) => {
+export const MobileFunds: React.FC<MobileFundsProps> = ({ c, can, loan }) => {
   const [detailsId, setDetailsId] = useUrlDetails('fund');
   const [opType, setOpType] = useState<TransactionType>('إيداع');
 
@@ -145,8 +150,13 @@ export const MobileFunds: React.FC<MobileFundsProps> = ({ c, can }) => {
           funds={c.funds}
           initialType={opType}
           onSave={c.addTransaction}
+          onLoan={loan.allowed ? values => { c.closeOperationDialog(); loan.start(values); } : undefined}
           onClose={c.closeOperationDialog}
         />
+      )}
+
+      {loan.debts.form && (
+        <DebtForm c={loan.debts} debt={null} initialKind="loan" mobile prefill={loan.prefill} />
       )}
     </div>
   );

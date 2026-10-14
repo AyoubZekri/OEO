@@ -234,6 +234,15 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
     }
   };
 
+  // A payment to a member or an expense waits for the answer to "هل المبلغ قابل للتحويل؟" before it is saved
+  const [pendingPayment, setPendingPayment] = useState<Omit<PaymentRecord, 'id'> | null>(null);
+  const answerTransferable = (transferable: boolean) => {
+    if (!pendingPayment) return;
+    savePayment({ ...pendingPayment, is_transferable: transferable });
+    setPendingPayment(null);
+  };
+  const cancelTransferable = () => setPendingPayment(null);
+
   const handleSave = (e?: React.FormEvent) => {
     e?.preventDefault();
     setFormSubmitted(true);
@@ -253,7 +262,7 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
       computedOccasion = '';
     }
 
-    savePayment({
+    const payment: Omit<PaymentRecord, 'id'> = {
       transactionType,
       memberId: transactionType === 'دفع' ? memberId : undefined,
       fundId: fundId || undefined,
@@ -272,7 +281,13 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
       numberOfGoals: amountNature === 'تسجيل أهداف' ? (parseInt(numberOfGoals) || 0) : undefined,
       notes,
       contract_id: selectedContractId || undefined
-    });
+    };
+    // A payment to a member or an expense: ask first whether its amount can be transferred
+    if (transactionType === 'دفع' || transactionType === 'مصروف') {
+      setPendingPayment(payment);
+      return;
+    }
+    savePayment(payment);
   };
 
   const selectedMemberDetails = memberId ? getMemberDetails(memberId) : null;
@@ -301,6 +316,9 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
     handleOpenDialog,
     handleSave,
     selectedMemberDetails,
+    pendingPayment, answerTransferable, cancelTransferable,
+    /** The answer saved before (editing a payment) */
+    savedTransferable: editingPayment ? Boolean(editingPayment.isTransferable ?? editingPayment.is_transferable) : undefined,
     canCredit: !!saveCredit,
     onCredit, setOnCredit, creditMode,
     creditor, setCreditor,

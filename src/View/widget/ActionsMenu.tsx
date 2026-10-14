@@ -32,27 +32,31 @@ export const ActionsMenu: React.FC<ActionsMenuProps> = ({ items, label = 'الإ
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Place the menu under the button (or above it when there is no room), inside the viewport
-  useLayoutEffect(() => {
-    if (!open || !buttonRef.current || !menuRef.current) return;
+  // Under the button (or above it when there is no room), inside the viewport
+  const place = () => {
+    if (!buttonRef.current || !menuRef.current) return;
     const button = buttonRef.current.getBoundingClientRect();
     const height = menuRef.current.offsetHeight;
     const below = button.bottom + GAP;
     const top = below + height > window.innerHeight - 8 ? Math.max(8, button.top - GAP - height) : below;
     const left = Math.min(Math.max(8, button.left), window.innerWidth - MENU_WIDTH - 8);
     setPos({ top, left });
+  };
+  useLayoutEffect(() => {
+    if (open) place();
   }, [open]);
 
-  // Close on outside click, Escape, resize, or a scroll that really moved the button (the menu does not follow
-  // the page). A layout shift that fires a scroll without moving anything (a row's hover effect…) keeps it open.
+  // Close on outside click, Escape or resize. A scroll (or a row's hover effect that shifts the table and fires
+  // one when the mouse goes from the row to the menu) only moves the menu with its button; it closes once the
+  // button has left the screen.
   useEffect(() => {
     if (!open) return;
     const close = () => setOpen(false);
-    const start = buttonRef.current?.getBoundingClientRect();
     const onScroll = (e: Event) => {
       if (menuRef.current?.contains(e.target as Node)) return;
       const now = buttonRef.current?.getBoundingClientRect();
-      if (!start || !now || Math.abs(now.top - start.top) > 4 || Math.abs(now.left - start.left) > 4) close();
+      if (!now || now.bottom < 0 || now.top > window.innerHeight) close();
+      else place();
     };
     const onPointer = (e: MouseEvent) => {
       const target = e.target as Node;

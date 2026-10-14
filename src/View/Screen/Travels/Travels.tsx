@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, Search, MapPin, Inbox, RefreshCw } from 'lucide-react';
+import { Plus, MapPin, Inbox, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileTravels } from '../../Mobile/MobileTravels/MobileTravels';
@@ -10,6 +10,7 @@ import { TravelOverlays } from './parts/TravelOverlays';
 import { filterTravels, sortTravels, statusOf, STATUS_FILTERS } from './travelUtils';
 import '../Tasks/Tasks.css';
 import './Travels.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 // Team trips: search, status filter (upcoming / ongoing / done), the trip cards.
 // personal: the personal space's page (the trips I am on, read only, with my role)
@@ -28,10 +29,7 @@ export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) 
   return (
     <div className="tk-page tk-scope">
       <div className="tk-actions-row">
-        <div className="search-box">
-          <Search size={18} />
-          <input type="text" className="search-input" placeholder="ابحث بالوجهة أو السبب أو المباراة أو رئيس الوفد..." value={query} onChange={e => setQuery(e.target.value)} />
-        </div>
+        <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث بالوجهة أو السبب أو المباراة أو رئيس الوفد..." />
         <CustomDropdown
           options={STATUS_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${counts[f.value]})` }))}
           value={status || 'all'}

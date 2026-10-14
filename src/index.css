@@ -510,3 +510,24 @@ body.dark-mode .sidebar-container {
     background-color: var(--card-bg) !important;
     border-color: var(--border) !important;
 }
+
+/* ── Page toolbars, desktop: from the right — the add button first, then the filters, then the search ── */
+.members-actions,
+.contracts-actions,
+.payments-actions,
+.header-actions,
+.users-header,
+.clubs-toolbar {
+  flex-direction: row-reverse !important;
+  justify-content: flex-end !important;
+}
+/* Toolbars that sat in a header of their own: across the whole header, so they start at its right */
+.members-header > .header-actions,
+.training-sessions-header > .header-actions,
+.clubs-toolbar { width: 100%; }
+/* Pages with only an add button: on the right */
+.teams-header,
+.roles-header,
+.equipment-header,
+.funds-actions,
+.clubs-header { justify-content: flex-start !important; }

@@ -119,7 +119,7 @@ export const useFundsController = () => {
   };
 
   const deleteTransaction = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة؟')) {
+    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة من السجل؟ يبقى رصيد الصندوق كما هو.')) {
       const response = await fundsData.deleteTransaction({ id });
       if (response) {
         setTransactions(transactions.filter(t => t.id !== id));
@@ -170,6 +170,8 @@ export const useFundsController = () => {
     addTransaction,
     deleteTransaction,
     getBalance,
-    formatCurrency
+    formatCurrency,
+    /** Funds and operations again (a loan added from here moved money) */
+    reload: () => { fetchFunds(); fetchTransactions(); },
   };
 };

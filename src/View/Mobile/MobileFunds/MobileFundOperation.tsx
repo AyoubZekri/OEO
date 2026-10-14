@@ -7,6 +7,7 @@ import type { Fund, FundTransaction, TransactionType } from '../../Screen/Funds/
 import { moneyText } from '../MobileContracts/contractUtils';
 import { isoDay } from '../MobileTrainingSessions/sessionUtils';
 import { OPERATIONS, fundIcon, balanceOf } from './fundUtils';
+import type { DebtPrefill } from '../../Screen/Debts/parts/DebtForm';
 import '../MobileEvaluations/MobileEvaluations.css';
 
 interface MobileFundOperationProps {
@@ -14,11 +15,13 @@ interface MobileFundOperationProps {
   funds: Fund[];
   initialType: TransactionType;
   onSave: (transaction: Omit<FundTransaction, 'id'>) => Promise<void>;
+  /** Present when the user may add debts: a deposit that is a loan opens the debt form instead */
+  onLoan?: (values: DebtPrefill) => void;
   onClose: () => void;
 }
 
 // Phone version of the "new operation" dialog: deposit, withdrawal or transfer (same payload)
-export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, funds, initialType, onSave, onClose }) => {
+export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, funds, initialType, onSave, onLoan, onClose }) => {
   const [type, setType] = useState<TransactionType>(initialType);
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -26,6 +29,9 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
   const [toFundId, setToFundId] = useState('');
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  // A deposit: is the money a loan (a debt to pay back)?
+  const [isLoan, setIsLoan] = useState(false);
+  const loan = type === 'إيداع' && isLoan && Boolean(onLoan);
 
   const meta = fundIcon(fund.icon);
   const others = funds.filter(f => f.id !== fund.id);
@@ -44,6 +50,11 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
   const save = async () => {
     setChecked(true);
     if (Object.values(errors).some(Boolean)) return;
+    // A loan: no deposit of its own, the debt form puts the money into the fund
+    if (loan) {
+      onLoan!({ amount: value, fundId: String(fund.id), fundName: fund.name, debtDate: date, title: description });
+      return;
+    }
     setSaving(true);
     await onSave({
       fundId: fund.id,
@@ -64,7 +75,7 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mfd-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : 'حفظ العملية'}
+          {saving ? 'جاري الحفظ...' : loan ? 'متابعة لتسجيل الدين' : 'حفظ العملية'}
         </button>
       )}
     >
@@ -94,6 +105,16 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
             </button>
           ))}
         </div>
+
+        {type === 'إيداع' && onLoan && (
+          <div className="me-field mfd-loan">
+            <span className="me-label">هل هذا المال دين؟</span>
+            <div className="mfd-loan-toggle" role="radiogroup">
+              <button type="button" role="radio" aria-checked={!isLoan} className={!isLoan ? 'on' : ''} onClick={() => setIsLoan(false)}>لا، مال للنادي</button>
+              <button type="button" role="radio" aria-checked={isLoan} className={isLoan ? 'on loan' : ''} onClick={() => setIsLoan(true)}>نعم، دين</button>
+            </div>
+          </div>
+        )}
 
         {type === 'تحويل' && (
           <>

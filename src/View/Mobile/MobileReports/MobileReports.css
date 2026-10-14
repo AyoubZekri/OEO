@@ -692,3 +692,38 @@ body.dark-mode .mrp-page {
 
 .mrp-commit-total b { font-size: 1rem; font-weight: 900; color: var(--ms-accent, #f97316); }
 .mrp-row-main small.mrp-occasion { color: var(--ms-text); font-weight: 700; }
+
+/* ── Funds report, phone: nothing squeezed side by side ── */
+.mrp-funds li { display: flex; flex-direction: column; align-items: stretch; gap: 8px; padding: 10px 12px; }
+.mrp-fund-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mrp-fund-head strong { flex: 1; min-width: 0; font-size: 0.84rem; font-weight: 800; line-height: 1.4; overflow-wrap: anywhere; }
+.mrp-fund-head b { flex-shrink: 0; font-size: 0.86rem; font-weight: 900; color: #fdba74; white-space: nowrap; }
+.mrp-fund-flows {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 8px; border-top: 1px dashed rgba(255, 255, 255, 0.14);
+}
+.mrp-fund-flows em {
+  display: flex; align-items: center; gap: 4px; min-width: 0;
+  padding: 5px 8px; border-radius: 9px; background: rgba(255, 255, 255, 0.06);
+  font-style: normal; font-size: 0.68rem; font-weight: 700; white-space: nowrap;
+}
+.mrp-fund-flows em span { margin-inline-start: auto; font-size: 0.74rem; font-weight: 800; }
+.mrp-fund-flows em.in { color: #6ee7b7; }
+.mrp-fund-flows em.out { color: #fca5a5; }
+
+/* A fund operation: funds and description on top (delete button beside), amount and date in the footer */
+.mrp-row.mrp-row-fund {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "main del" "side side";
+  align-items: start; gap: 10px;
+}
+.mrp-row-fund .mrp-row-main { grid-area: main; }
+.mrp-row-fund .mrp-del { grid-area: del; }
+.mrp-row-fund .mrp-row-side {
+  grid-area: side; flex-direction: row; align-items: center; justify-content: space-between;
+  padding-top: 10px; border-top: 1px dashed var(--ms-border);
+}
+.mrp-row-fund .mrp-row-main small { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 0; }
+
+/* No coloured glows */
+.mrp-hero, .mrp-hero-icon, .mrp-cats button.on, .mrp-seg button.on { box-shadow: none; }

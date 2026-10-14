@@ -182,6 +182,13 @@ export interface DisciplinaryPermissions {
   editReply: boolean;
 }
 
+/** Members' opinions: read them, reply (and rate a suggestion), delete */
+export interface FeedbackPermissions {
+  view: boolean;
+  reply: boolean;
+  delete: boolean;
+}
+
 export interface AppPermissions {
   dashboard: DashboardPermissions;
   members: MembersPermissions;
@@ -197,6 +204,7 @@ export interface AppPermissions {
   decisions: DecisionsPermissions;
   correspondences: CorrespondencesPermissions;
   tasks: TasksPermissions;
+  feedback: FeedbackPermissions;
   contracts: ContractsPermissions;
   payments: PaymentsPermissions;
   funds: FundsPermissions;
@@ -228,6 +236,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   decisions: ['add', 'edit', 'delete', 'progress'],
   correspondences: ['add', 'changeStatus', 'delete'],
   tasks: ['add', 'edit', 'delete', 'review', 'manage', 'templates'],
+  feedback: ['reply', 'delete'],
   contracts: ['add', 'edit', 'delete', 'print', 'renew'],
   payments: ['add', 'edit', 'delete', 'print'],
   funds: ['add', 'edit', 'delete', 'addTransaction'],
@@ -243,7 +252,7 @@ export const PERMISSION_DOMAINS: { key: string; label: string; modules: Permissi
   { key: 'general', label: 'عام', modules: ['dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical', 'travels'] },
-  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'tasks'] },
+  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'tasks', 'feedback'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },

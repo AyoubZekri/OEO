@@ -1,0 +1,59 @@
+/* Phone home, money (HomeFinance): same look as the desktop home cards — a solid icon, the amount in the
+   card's colour, each fund on a tinted row; no side line, no glow */
+.hf { display: flex; flex-direction: column; gap: 12px; color: var(--text-h); }
+
+.hf-card {
+  --tone: #10b981;
+  display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; width: 100%;
+  padding: 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg);
+  font: inherit; color: var(--text-h); text-align: start; cursor: pointer;
+  transition: transform .15s;
+}
+.hf-card:active { transform: scale(.985); }
+.hf-card.tone-green { --tone: #10b981; }
+.hf-card.tone-red { --tone: #ef4444; }
+.hf-card.tone-amber { --tone: #f59e0b; }
+
+.hf-top { display: flex; align-items: center; gap: 14px; }
+.hf-icon {
+  flex-shrink: 0; width: 48px; height: 48px; border-radius: 15px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--tone); color: #fff;
+}
+.hf-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.hf-label { font-size: .84rem; font-weight: 700; color: var(--text-muted); }
+.hf-amount { font-size: 1.45rem; font-weight: 900; line-height: 1.2; color: var(--tone); white-space: nowrap; }
+
+.hf-funds { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.hf-funds li {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border-radius: 12px;
+  background: color-mix(in srgb, var(--tone) 8%, transparent);
+}
+.hf-fund { min-width: 0; display: inline-flex; align-items: center; gap: 6px; font-size: .86rem; font-weight: 700; color: var(--text-h); overflow-wrap: anywhere; }
+.hf-fund svg { flex-shrink: 0; color: var(--text-muted); }
+.hf-funds li b { font-size: .88rem; font-weight: 800; color: var(--tone); white-space: nowrap; }
+
+/* Unpaid debts: two tiles side by side, the value only */
+.hf-duo { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.hf-tile { align-items: flex-start; gap: 10px; padding: 14px; }
+.hf-tile .hf-icon { width: 42px; height: 42px; border-radius: 13px; }
+.hf-tile .hf-label { line-height: 1.4; min-height: 2.8em; }
+.hf-tile .hf-amount { font-size: 1.05rem; }
+
+/* Titled groups: income & outgoings, debts — a title above the cards */
+.hf-block { display: flex; flex-direction: column; gap: 12px; }
+.hf-block-title {
+  display: flex; align-items: center; gap: 8px; margin: 0; padding: 12px 14px;
+  border: 1px solid var(--border); border-radius: 16px; background: var(--card-bg);
+  font-size: .95rem; font-weight: 800; color: var(--text-h);
+}
+.hf-block-title svg { color: var(--accent, #f97316); }
+
+/* Group titles: in the club's orange */
+.hf-block-title { background: #fff4ec; border-color: #fed7aa; color: #c2410c; }
+.hf-block-title svg {
+  box-sizing: content-box; width: 16px; height: 16px; padding: 7px; border-radius: 10px;
+  background: #f97316; color: #fff;
+}
+body.dark-mode .hf-block-title { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }

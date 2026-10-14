@@ -798,3 +798,96 @@ body.dark-mode .badge-red { color: #f87171; }
     display: block;
   }
 }
+
+/* Income / outgoings cards: the total, then each fund's value */
+.metric-card.metric-flows { align-items: flex-start; }
+.metric-funds { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 8px; }
+.metric-funds li { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: .9rem; }
+.metric-funds li span { min-width: 0; color: var(--text-muted); font-weight: 600; overflow-wrap: anywhere; }
+.metric-funds li b { font-weight: 800; white-space: nowrap; }
+.metric-card.success .metric-funds li b { color: #10b981; }
+.metric-card.danger .metric-funds li b { color: #ef4444; }
+
+/* ── Home cards: no side line, no glow; the icon and the amount in the card's colour ── */
+.metric-card::before { display: none; }
+.metric-card.success,
+.metric-card.danger,
+.metric-card.warning {
+  --tone: #10b981;
+  background: var(--card-bg);
+}
+.metric-card.danger { --tone: #ef4444; }
+.metric-card.warning { --tone: #f59e0b; }
+.metric-card.success .metric-icon,
+.metric-card.danger .metric-icon,
+.metric-card.warning .metric-icon {
+  width: 60px; height: 60px; border-radius: 18px;
+  background: var(--tone); color: #fff;
+}
+.metric-card.warning .metric-icon svg { color: #fff; }
+.metric-card.success .metric-info .amount,
+.metric-card.danger .metric-info .amount,
+.metric-card.warning .metric-info .amount { color: var(--tone); }
+.metric-funds li {
+  padding: 8px 12px; border-radius: 12px;
+  background: color-mix(in srgb, var(--tone, #10b981) 7%, transparent);
+}
+.metric-funds { border-top: none; padding-top: 0; }
+
+/* ── Home page, one look for every block: same padding, radius, icon, title and amount sizes ── */
+.desktop-dashboard-wrapper .metrics-grid { gap: 24px; }
+.desktop-dashboard-wrapper .metric-card {
+  padding: 24px; gap: 18px; border-radius: 20px;
+  box-shadow: none;
+}
+.desktop-dashboard-wrapper .metric-card:hover { transform: translateY(-3px); box-shadow: 0 12px 24px -16px rgba(15, 23, 42, 0.25); }
+.desktop-dashboard-wrapper .metric-card:hover .metric-icon { transform: none; }
+.desktop-dashboard-wrapper .metric-icon,
+.desktop-dashboard-wrapper .metric-card.highlight .metric-icon,
+.desktop-dashboard-wrapper .metric-card.success .metric-icon,
+.desktop-dashboard-wrapper .metric-card.danger .metric-icon,
+.desktop-dashboard-wrapper .metric-card.warning .metric-icon { width: 56px; height: 56px; border-radius: 16px; }
+.desktop-dashboard-wrapper .metric-card.highlight .metric-icon { background: rgba(255, 255, 255, 0.12); color: #fb923c; }
+.desktop-dashboard-wrapper .metric-info h3 {
+  margin: 0 0 6px; font-size: .9rem; font-weight: 700;
+  text-transform: none; letter-spacing: 0;
+}
+.desktop-dashboard-wrapper .metric-info .amount { font-size: 1.65rem; line-height: 1.2; }
+.desktop-dashboard-wrapper .metric-card.highlight .metric-info .amount { font-size: 2.1rem; }
+
+/* Income / outgoings: the head like the other cards, the funds across the whole card under it */
+.desktop-dashboard-wrapper .metric-card.metric-flows { flex-direction: column; align-items: stretch; gap: 18px; }
+.metric-head { display: flex; align-items: center; gap: 18px; }
+.desktop-dashboard-wrapper .metric-funds { margin: 0; padding: 0; gap: 8px; }
+.desktop-dashboard-wrapper .metric-funds li { padding: 10px 14px; }
+
+/* Debts: same height in their row */
+.desktop-dashboard-wrapper .metrics-grid > .metric-card { height: 100%; box-sizing: border-box; }
+
+/* Last operations: the same block as the cards, its title like the cards' titles */
+.desktop-dashboard-wrapper .operations-section { margin-top: 0; padding: 24px; border-radius: 20px; box-shadow: none; }
+.desktop-dashboard-wrapper .section-header { margin-bottom: 16px; padding-bottom: 16px; }
+.desktop-dashboard-wrapper .section-title { font-size: 1.05rem; font-weight: 800; color: var(--text-h); gap: 12px; }
+.desktop-dashboard-wrapper .section-title svg {
+  box-sizing: content-box; width: 22px; height: 22px; padding: 10px; border-radius: 14px;
+  background: var(--accent-bg); color: var(--accent);
+}
+
+/* A card that opens a page */
+.desktop-dashboard-wrapper .metric-card.clickable { cursor: pointer; }
+
+/* Titled groups: income & outgoings, debts — a title above the cards, no frame around them */
+.desktop-dashboard-wrapper .metrics-grid > .metric-card.highlight { grid-column: 1 / -1; }
+.home-block { display: flex; flex-direction: column; gap: 14px; }
+.desktop-dashboard-wrapper .home-block .section-header {
+  margin: 0; padding: 14px 20px;
+  border: 1px solid var(--border); border-radius: 16px; background: var(--card-bg);
+}
+@media (max-width: 1024px) { .home-block .metrics-grid { grid-template-columns: 1fr; } }
+
+/* Group titles: in the club's orange */
+.desktop-dashboard-wrapper .home-block .section-header { background: #fff4ec; border-color: #fed7aa; }
+.desktop-dashboard-wrapper .home-block .section-title { color: #c2410c; }
+.desktop-dashboard-wrapper .home-block .section-title svg { background: #f97316; color: #fff; }
+body.dark-mode .desktop-dashboard-wrapper .home-block .section-header { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.35); }
+body.dark-mode .desktop-dashboard-wrapper .home-block .section-title { color: #fdba74; }

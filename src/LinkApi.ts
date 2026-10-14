@@ -75,6 +75,11 @@ export class Applink {
   static readonly updatePayment: string = `${Applink.server}/payments/update`;
   static readonly deletePayment: string = `${Applink.server}/payments/delete`;
   static readonly returnPayment: string = `${Applink.server}/payments/return`;
+  // Whether a payment or an expense can be transferred, changed on its own
+  static readonly setPaymentTransferable: string = `${Applink.server}/payments/transferable`;
+  // A transferable payment to a member, paid from another fund
+  static readonly transferPayment: string = `${Applink.server}/payments/transfer`;
+  static readonly transferAllPayments: string = `${Applink.server}/payments/transfer-all`;
 //  =============================Equipment Operations============================== //
 
   static readonly equipmentOperations: string = `${Applink.server}/equipment-operations`;

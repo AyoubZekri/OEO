@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Search, RefreshCw, Inbox, ListTodo } from 'lucide-react';
+import { RefreshCw, Inbox, ListTodo } from 'lucide-react';
 import { CustomDropdown } from '../../../widget/CustomDropdown';
 import { Pagination } from '../../../widget/Pagination';
 import { TaskTable } from './TaskTable';
@@ -9,6 +9,7 @@ import { TemplateList } from './TemplateList';
 import { TaskLoader } from './TaskLoader';
 import type { TasksController } from '../useTasksController';
 import { filterTasks, KIND_FILTERS, TASK_FILTERS } from '../taskUtils';
+import { TopbarSearch } from '../../../widget/TopbarSearch';
 
 const EMPTY: Record<string, string> = {
   tasks: 'لا توجد مهام حالياً',
@@ -34,16 +35,7 @@ export const TaskBoard: React.FC<{ c: TasksController; addButton: React.ReactNod
       <div className="tk-actions-row">
         {c.isList && (
           <>
-            <div className="search-box">
-              <Search size={18} />
-              <input
-                type="text"
-                className="search-input"
-                placeholder="ابحث بالعنوان أو المرجع أو المكلف..."
-                value={query}
-                onChange={e => { setQuery(e.target.value); setPage(1); }}
-              />
-            </div>
+            <TopbarSearch value={query} onChange={v => { setQuery(v); setPage(1); }} placeholder="ابحث بالعنوان أو المرجع أو المكلف..." />
             <CustomDropdown
               options={TASK_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${counts[f.value]})` }))}
               value={filter || 'all'}

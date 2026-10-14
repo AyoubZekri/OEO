@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Save, Loader2, AlertCircle, Landmark, UserRound, Wallet, Tag, CalendarDays, FileText, Info, Banknote } from 'lucide-react';
+import { Save, Loader2, AlertCircle, Landmark, UserRound, Wallet, Tag, CalendarDays, FileText, Info, Banknote, Lock } from 'lucide-react';
 import { TaskPanel } from '../../Tasks/parts/TaskPanel';
+import { CurrencyInput } from '../../../widget/CurrencyInput';
 import { AppSelect } from '../../Tasks/parts/FormBits';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
 import type { DebtsController } from '../useDebtsController';
@@ -21,21 +22,33 @@ const Section: React.FC<{ step: number; icon: typeof Info; title: string; hint?:
  * Add or edit a debt of the page's kind: a loan put into a fund (debts page),
  * or a purchase not paid yet (payments & expenses page, mostly added from the payment form).
  */
-export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initialKind: DebtKind; mobile: boolean }> = ({ c, debt, initialKind, mobile }) => {
+/** A new debt's first values (a deposit in a fund that turned out to be a loan): its amount and fund are locked */
+export interface DebtPrefill {
+  amount: number;
+  fundId: string;
+  fundName?: string;
+  debtDate?: string;
+  title?: string;
+}
+
+export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initialKind: DebtKind; mobile: boolean; prefill?: DebtPrefill | null }> = ({ c, debt, initialKind, mobile, prefill }) => {
   const kind: DebtKind = debt?.kind || initialKind;
   const [creditor, setCreditor] = useState(debt?.creditor || '');
   const [phone, setPhone] = useState(debt?.creditor_phone || '');
-  const [title, setTitle] = useState(debt?.title || '');
-  const [amount, setAmount] = useState(debt ? String(debt.amount) : '');
-  const [debtDate, setDebtDate] = useState(debt?.debt_date || todayIso());
+  const [title, setTitle] = useState(debt?.title || prefill?.title || '');
+  const [amount, setAmount] = useState(debt ? String(debt.amount) : prefill ? String(prefill.amount) : '');
+  const [debtDate, setDebtDate] = useState(debt?.debt_date || prefill?.debtDate || todayIso());
   const [dueDate, setDueDate] = useState(debt?.due_date || '');
-  const [fundId, setFundId] = useState(debt?.fund_id ? String(debt.fund_id) : '');
+  const [fundId, setFundId] = useState(debt?.fund_id ? String(debt.fund_id) : prefill?.fundId || '');
   const [nature, setNature] = useState(debt?.expense_nature || '');
   const [notes, setNotes] = useState(debt?.notes || '');
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const isLoan = kind === 'loan';
+  // Opened from a fund's deposit: the amount and the fund are the operation's, not changed here
+  const locked = Boolean(prefill) && !debt;
+  const lockedFund = locked ? prefill!.fundName || c.funds.find(f => String(f.id) === prefill!.fundId)?.name || '' : '';
   const value = Number(amount.replace(',', '.')) || 0;
 
   const save = async () => {
@@ -106,10 +119,16 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
           <div className="tk-grid-2">
             <label className="tk-field">
               <span className="tk-label">مبلغ الدين (د.ج)</span>
-              <input className="tk-input db-money-input" dir="ltr" inputMode="decimal" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0" />
-              {value > 0 && <small className="tk-hint">{moneyText(value)}</small>}
+              {locked
+                ? <span className="tk-input db-locked"><Lock size={14} />{moneyText(value)}</span>
+                : <CurrencyInput className="tk-input db-money-input" inputMode="numeric" value={amount} onChangeValue={setAmount} placeholder="0,00" />}
             </label>
-            {isLoan ? (
+            {isLoan && locked ? (
+              <div className="tk-field">
+                <span className="tk-label"><Wallet size={14} />الصندوق الذي وُضع فيه المال</span>
+                <span className="tk-input db-locked"><Lock size={14} />{lockedFund || '—'}</span>
+              </div>
+            ) : isLoan ? (
               <AppSelect
                 mobile={mobile}
                 label="الصندوق الذي وُضع فيه المال"

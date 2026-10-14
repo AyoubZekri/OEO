@@ -42,4 +42,7 @@ export interface PaymentRecord {
   isCredit?: boolean;
   creditTotal?: number | null;
   creditor?: string | null;
+  /** A payment to a member: can its amount be transferred? (asked when it is saved) */
+  isTransferable?: boolean;
+  is_transferable?: boolean;
 }

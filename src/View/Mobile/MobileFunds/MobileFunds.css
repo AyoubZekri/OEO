@@ -671,3 +671,14 @@ body.dark-mode .mfd-page {
 @keyframes mfd-spin {
   to { transform: rotate(360deg); }
 }
+
+/* A deposit: is the money a loan? */
+.mfd-loan { margin-top: 14px; }
+.mfd-loan-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mfd-loan-toggle button {
+  min-height: 46px; border-radius: 14px;
+  border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  font: inherit; font-size: .9rem; font-weight: 700;
+}
+.mfd-loan-toggle button.on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.mfd-loan-toggle button.on.loan { border-color: #f59e0b; background: rgba(245, 158, 11, .12); color: #d97706; }

@@ -4,7 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 
 import { useAuth } from '../../../core/context/AuthContext';
 
-import { Search, Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, Gavel, Calendar, ChevronDown, Check, Eye, PenLine, Printer, UploadCloud, FileText, Clock } from 'lucide-react';
+import { Trash2, Edit2, Plus, Scale, AlertTriangle, MessageSquare, Gavel, Calendar, ChevronDown, Check, Eye, PenLine, Printer, UploadCloud, FileText, Clock } from 'lucide-react';
 import { useDisciplinaryController } from './DisciplinaryController';
 import type { DisciplinaryModel } from './disciplinary_data';
 import { MobileRowMenu, type MobileRowMenuItem } from '../../Mobile/widgets/MobileRowMenu';
@@ -26,6 +26,7 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 
 import './Disciplinary.css';
 import '../Members/Members.css';
+import { TopbarSearch } from '../../widget/TopbarSearch';
 
 
 const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
@@ -242,16 +243,7 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
 
           
           <div className="members-actions">
-            <div className="search-box">
-              <Search size={18} />
-              <input 
-                type="text" 
-                placeholder="ابحث باسم العضو أو السبب..."
-                className="search-input"
-                value={controller.searchQuery}
-                onChange={(e) => controller.setSearchQuery(e.target.value)}
-              />
-            </div>
+            <TopbarSearch value={controller.searchQuery} onChange={v => controller.setSearchQuery(v)} placeholder="ابحث باسم العضو أو السبب..." />
           
           <CustomDropdown<string>
             value={controller.filterType}

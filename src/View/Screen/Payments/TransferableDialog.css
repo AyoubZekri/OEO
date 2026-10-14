@@ -1,0 +1,72 @@
+/* "هل المبلغ قابل للتحويل؟" asked while saving a payment to a member (desktop and phone) */
+.trf-overlay {
+  position: fixed; inset: 0; z-index: 12000;
+  display: flex; align-items: center; justify-content: center; padding: 16px;
+  background: rgba(15, 23, 42, .45); backdrop-filter: blur(4px);
+}
+.trf-dialog {
+  position: relative;
+  width: 100%; max-width: 380px; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 26px 22px 22px; border-radius: 20px; border: 1px solid var(--border);
+  background: var(--card-bg); color: var(--text-h); text-align: center;
+  animation: trf-pop .18s ease-out;
+}
+@keyframes trf-pop { from { opacity: 0; transform: scale(.96); } }
+.trf-close {
+  position: absolute; top: 12px; inset-inline-end: 12px;
+  width: 32px; height: 32px; border-radius: 10px; border: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+}
+.trf-close:hover { background: var(--bg-hover); color: var(--text-h); }
+.trf-icon {
+  width: 56px; height: 56px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-bg); color: var(--accent);
+}
+.trf-dialog h3 { margin: 4px 0 0; font-size: 1.12rem; font-weight: 800; }
+.trf-dialog p { margin: 0; color: var(--text-muted); font-size: .9rem; font-weight: 600; line-height: 1.7; }
+.trf-dialog p b { color: var(--text-h); font-weight: 800; }
+.trf-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 8px; }
+.trf-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 46px; border-radius: 14px; border: 1.5px solid var(--border);
+  font: inherit; font-size: .95rem; font-weight: 800; cursor: pointer; transition: all .15s;
+}
+.trf-btn.yes { background: var(--accent); border-color: var(--accent); color: #fff; }
+.trf-btn.no { background: var(--card-bg); color: var(--text-h); }
+.trf-btn.no:hover { border-color: var(--text-muted); }
+/* The answer saved before (editing) */
+.trf-btn.was { box-shadow: 0 0 0 3px var(--accent-bg); }
+
+/* Transferring a payment to another fund (TransferPaymentDialog) */
+.trf-transfer { max-width: 420px; }
+.trf-from {
+  width: 100%; box-sizing: border-box; display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px; border-radius: 14px; background: var(--bg-hover);
+}
+.trf-from small { color: var(--text-muted); font-weight: 700; }
+.trf-from strong { display: inline-flex; align-items: center; gap: 6px; font-weight: 800; }
+.trf-arrow { color: var(--accent); }
+.trf-funds { width: 100%; display: flex; flex-direction: column; gap: 8px; max-height: 240px; overflow-y: auto; }
+.trf-funds button {
+  display: flex; align-items: center; gap: 10px; width: 100%; box-sizing: border-box;
+  min-height: 48px; padding: 0 14px; border-radius: 14px;
+  border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  font: inherit; text-align: start; cursor: pointer; transition: all .15s;
+}
+.trf-funds button strong { flex: 1; font-size: .92rem; font-weight: 800; }
+.trf-funds button small { color: var(--text-muted); font-size: .8rem; font-weight: 700; }
+.trf-funds button.on { border-color: var(--accent); background: var(--accent-bg); }
+.trf-radio {
+  flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+  border: 2px solid var(--border); box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center; color: #fff;
+}
+.trf-funds button.on .trf-radio { border-color: var(--accent); background: var(--accent); }
+.trf-empty { margin: 0; padding: 12px; color: var(--text-muted); }
+.trf-error { margin: 0; color: #ef4444 !important; font-size: .85rem; }
+.trf-btn:disabled { opacity: .5; cursor: not-allowed; }
+.trf-spin { animation: trf-spin 1s linear infinite; }
+@keyframes trf-spin { to { transform: rotate(360deg); } }

@@ -506,3 +506,41 @@ body.dark-mode .transaction-type-option input[type="radio"]:checked + .transacti
 
 .credit-badge.late { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
 .credit-badge.paid { background: rgba(16, 185, 129, 0.12); color: #059669; }
+
+/* Bulk transfer button, next to "add" */
+.bulk-transfer-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 44px; padding: 0 18px; border-radius: 12px;
+  border: 1.5px solid var(--accent); background: var(--accent-bg); color: var(--accent);
+  font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.bulk-transfer-btn:hover { background: var(--accent); color: #fff; }
+
+/* ── Toolbar: search, filters and buttons wrap onto new lines instead of overlapping on narrow screens ── */
+.payments-actions {
+  flex-wrap: wrap;
+  white-space: normal;
+  justify-content: flex-start;
+  gap: 12px;
+}
+.payments-actions > * { flex: 1 1 180px; max-width: none; min-width: 0; }
+.payments-actions > .search-box { flex: 2 1 240px; }
+.payments-actions > .bulk-transfer-btn,
+.payments-actions > .btn-primary { flex: 0 0 auto; height: 48px; justify-content: center; }
+.payments-actions .modern-form-group { min-width: 0; }
+
+/* Medium screens: search on its own line, filters share the next, buttons split the last one */
+@media (max-width: 1100px) {
+  .payments-actions > .search-box { flex-basis: 100%; }
+  .payments-actions > .bulk-transfer-btn,
+  .payments-actions > .btn-primary { flex: 1 1 200px; }
+}
+/* Small screens: one item per line */
+@media (max-width: 560px) {
+  .payments-actions > * { flex-basis: 100%; }
+}
+
+/* Whether an operation can be transferred to another fund */
+.trf-badge { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 99px; font-size: 0.78rem; font-weight: 800; }
+.trf-badge.yes { background: rgba(13, 148, 136, 0.12); color: #0f766e; }
+.trf-badge.no { background: var(--bg, #f1f5f9); color: var(--text-muted, #64748b); }
