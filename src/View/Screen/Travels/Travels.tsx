@@ -3,12 +3,12 @@ import { Plus, MapPin, Inbox, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileTravels } from '../../Mobile/MobileTravels/MobileTravels';
-import { TaskLoader } from '../Tasks/parts/TaskLoader';
+import { PageLoader } from '../../shared/PageLoader';
 import { useTravelsController } from './useTravelsController';
 import { TravelCard } from './parts/TravelCard';
 import { TravelOverlays } from './parts/TravelOverlays';
 import { filterTravels, sortTravels, statusOf, STATUS_FILTERS } from './travelUtils';
-import '../Tasks/Tasks.css';
+import '../../shared/kit.css';
 import './Travels.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
 
@@ -38,7 +38,7 @@ export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) 
         {c.can('add') && <button type="button" className="btn-primary" onClick={() => c.openForm()}><Plus size={18} />تنقل جديد</button>}
       </div>
 
-      {c.loading && !c.travels.length ? <TaskLoader mobile={false} text="جاري تحميل التنقلات..." />
+      {c.loading && !c.travels.length ? <PageLoader mobile={false} text="جاري تحميل التنقلات..." />
         : c.error ? (
           <div className="tk-state">
             <MapPin size={30} /><p>{c.error}</p>

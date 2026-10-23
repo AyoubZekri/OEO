@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, TrendingUp, CheckCircle2, AlertTriangle, Target, Activity, Calendar, ShieldCheck, Trophy, Brain, ArrowRight, Trash2 } from 'lucide-react';
+import { periodLabel } from './evaluation_data';
 
 interface ViewEvaluationDialogProps {
   player: any;
@@ -104,7 +105,7 @@ export const ViewEvaluationDialog: React.FC<ViewEvaluationDialogProps> = ({ play
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)' }}>
                   <Activity size={18} />
-                  <span>فترة التقييم: <strong style={{ color: 'var(--text-color)' }}>{evaluation.period || 'مرحلة الذهاب'}</strong></span>
+                  <span>فترة التقييم: <strong style={{ color: 'var(--text-color)' }}>{periodLabel(evaluation) || 'مرحلة الذهاب'}</strong></span>
                 </div>
               </div>
             </div>

@@ -1,0 +1,65 @@
+/* Import matches from Excel */
+.imx-overlay { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(15, 23, 42, .55); }
+.imx-dialog {
+  width: min(980px, 100%); max-height: calc(100vh - 40px); display: flex; flex-direction: column; overflow: hidden;
+  border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-h);
+}
+.imx-head { display: flex; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.imx-head h3 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.imx-head small { color: var(--text-muted); font-size: .8rem; }
+.imx-head > div { flex: 1; min-width: 0; }
+.imx-head-icon { width: 44px; height: 44px; flex-shrink: 0; border-radius: 13px; display: inline-flex; align-items: center; justify-content: center; background: rgba(22, 163, 74, .12); color: #16a34a; }
+.imx-close { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: transparent; color: var(--text-muted); cursor: pointer; }
+.imx-close:hover { background: var(--bg-hover); }
+
+.imx-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 18px 22px; }
+.imx-step { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg, #f8fafc); }
+.imx-num { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: #f97316; color: #fff; font-weight: 900; }
+.imx-step-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.imx-step-text strong { font-size: .95rem; font-weight: 800; }
+.imx-step-text small { font-size: .8rem; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.imx-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 42px; padding: 0 16px; flex-shrink: 0;
+  border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  font: inherit; font-size: .9rem; font-weight: 800; cursor: pointer; white-space: nowrap;
+}
+.imx-btn.primary { border-color: #f97316; background: #f97316; color: #fff; }
+.imx-btn.ghost { background: transparent; }
+.imx-btn:disabled { opacity: .55; cursor: default; }
+.imx-spin { animation: imx-spin 1s linear infinite; }
+@keyframes imx-spin { to { transform: rotate(360deg); } }
+
+.imx-error { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 14px; border-radius: 12px; background: rgba(239, 68, 68, .1); color: #dc2626; font-weight: 700; font-size: .88rem; }
+
+.imx-preview { display: flex; flex-direction: column; gap: 10px; }
+.imx-summary { display: flex; gap: 10px; flex-wrap: wrap; }
+.imx-summary span { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 99px; font-size: .82rem; font-weight: 800; }
+.imx-summary .ok { background: rgba(22, 163, 74, .12); color: #16a34a; }
+.imx-summary .bad { background: rgba(239, 68, 68, .1); color: #dc2626; }
+.imx-table-wrap { max-height: 340px; overflow: auto; border-radius: 14px; border: 1px solid var(--border); }
+.imx-table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.imx-table th { position: sticky; top: 0; z-index: 1; padding: 10px 12px; background: #0f172a; color: #fff; font-weight: 800; text-align: right; white-space: nowrap; }
+.imx-table td { padding: 9px 12px; border-top: 1px solid var(--border); text-align: right; }
+.imx-table tbody tr:nth-child(even) td { background: var(--bg, #f8fafc); }
+.imx-table tr.bad td { background: rgba(239, 68, 68, .06) !important; }
+.imx-ok { display: inline-flex; align-items: center; gap: 4px; color: #16a34a; font-weight: 800; white-space: nowrap; }
+.imx-bad { color: #dc2626; font-weight: 700; }
+
+.imx-result { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 14px; border-radius: 12px; background: var(--bg, #f1f5f9); font-weight: 800; }
+.imx-result.ok { background: rgba(22, 163, 74, .12); color: #16a34a; }
+
+.imx-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 22px; border-top: 1px solid var(--border); }
+
+@media (max-width: 640px) {
+  .imx-step { flex-wrap: wrap; }
+  .imx-step .imx-btn { width: 100%; }
+}
+
+/* The page's button that opens the import */
+.import-excel-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 18px;
+  border-radius: 12px; border: 1.5px solid #16a34a; background: rgba(22, 163, 74, .08); color: #16a34a;
+  font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.import-excel-btn:hover { background: #16a34a; color: #fff; }

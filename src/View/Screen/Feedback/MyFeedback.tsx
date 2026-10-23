@@ -4,11 +4,11 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileAppBar } from '../../Mobile/widgets/MobileAppBar';
 import { MobileSelect } from '../../Mobile/widgets/MobileSelect';
-import { TaskLoader } from '../Tasks/parts/TaskLoader';
+import { PageLoader } from '../../shared/PageLoader';
 import { FEEDBACK_TYPES, type FeedbackType } from './feedbackUtils';
 import { useMyFeedback, useFocusedFeedback } from './useFeedback';
 import { FeedbackCard, FeedbackForm } from './FeedbackParts';
-import '../Tasks/Tasks.css';
+import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Feedback.css';
@@ -29,7 +29,7 @@ export const MyFeedback: React.FC = () => {
   const replied = c.items.filter(f => f.replied_at).length;
   const ofType = (t: FeedbackType) => c.items.filter(f => f.type === t).length;
 
-  const body = c.isLoading && !c.items.length ? <TaskLoader mobile={isMobile} text="جاري تحميل آرائك..." />
+  const body = c.isLoading && !c.items.length ? <PageLoader mobile={isMobile} text="جاري تحميل آرائك..." />
     : list.length === 0 ? (
       <div className="tk-state">
         <Inbox size={32} />

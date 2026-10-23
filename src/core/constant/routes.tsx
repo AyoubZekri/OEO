@@ -8,7 +8,6 @@ export class Approutes {
   static readonly Funds = "/funds";
   static readonly Debts = "/debts";
   /** Personal space */
-  static readonly MyTasks = "/my-tasks";
   static readonly MyDisciplinary = "/my-disciplinary";
   static readonly MyTrainingSessions = "/my-training";
   static readonly MyMatches = "/my-matches";
@@ -17,6 +16,9 @@ export class Approutes {
   static readonly MyTravels = "/my-travels";
   static readonly MyMedical = "/my-medical";
   static readonly MyFeedback = "/my-feedback";
+  static readonly MyTasks = "/my-tasks";
+  static readonly Tasks = "/tasks";
+  static readonly Finance = "/finance";
   static readonly Feedback = "/feedback";
   static readonly Reports = "/reports";
   static readonly Teams = "/teams";
@@ -33,8 +35,6 @@ export class Approutes {
   static readonly Decisions = "/decisions";
   static readonly Clubs = "/clubs";
   static readonly Operations = "/operations";
-  static readonly Tasks = "/tasks";
-  static readonly PeriodicTasks = "/tasks/periodic";
   static readonly Travels = "/travels";
   static readonly More = "/more";
 }

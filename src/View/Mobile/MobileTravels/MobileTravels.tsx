@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { Plus, MapPin, Search, X, Filter, ChevronDown, Inbox, RefreshCw, CalendarClock, Navigation, CheckCircle2 } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileSelect } from '../widgets/MobileSelect';
-import { TaskLoader } from '../../Screen/Tasks/parts/TaskLoader';
+import { PageLoader } from '../../shared/PageLoader';
 import type { TravelsController } from '../../Screen/Travels/useTravelsController';
 import { TravelOverlays } from '../../Screen/Travels/parts/TravelOverlays';
 import { TravelCard } from '../../Screen/Travels/parts/TravelCard';
 import { countdownText, filterTravels, sortTravels, statusOf, STATUS_FILTERS } from '../../Screen/Travels/travelUtils';
-import '../../Screen/Tasks/Tasks.css';
+import '../../shared/kit.css';
 import '../../Screen/Travels/Travels.css';
 
 // Phone version of the travels page: the next trip in the hero, search, the status filter in a bottom sheet, the cards
@@ -70,7 +70,7 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
         />
       </div>
 
-      {c.loading && !c.travels.length ? <TaskLoader mobile text="جاري تحميل التنقلات..." />
+      {c.loading && !c.travels.length ? <PageLoader mobile text="جاري تحميل التنقلات..." />
         : c.error ? (
           <div className="tk-state">
             <MapPin size={30} /><p>{c.error}</p>

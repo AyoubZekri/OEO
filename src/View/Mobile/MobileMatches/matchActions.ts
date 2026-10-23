@@ -19,7 +19,7 @@ export interface MatchActions {
   reschedule: (m: Match, date: string) => void;
 }
 
-export const CLUB_NAME = 'أولمبيك ليو'; // as on the desktop cards
+export const CLUB_NAME = 'أولمبي الوادي';
 export const CLUB_LOGO = '/LOGO.webp';
 
 /** Role permission (matches section) needed for each match action */

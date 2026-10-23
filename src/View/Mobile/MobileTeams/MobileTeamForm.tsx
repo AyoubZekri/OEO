@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { Shirt, Save, Loader2, Sparkles, AlertCircle, Users, Type, Info } from 'lucide-react';
+import { Shirt, Save, Loader2, Sparkles, AlertCircle, Users, Type } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { validInput } from '../../../core/functions/valiedinput';
-import type { TeamModel } from '../../Screen/Teams/team_model';
-import { membersText } from './teamRoster';
+import { TEAM_KINDS, type TeamKind, type TeamModel } from '../../Screen/Teams/team_model';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileTeamForm.css';
 
@@ -15,7 +14,7 @@ interface MobileTeamFormProps {
   /** Members in the edited category, when known */
   memberCount: number | null;
   isSaving: boolean;
-  onSave: (name: string) => void;
+  onSave: (name: string, kind: TeamKind) => void;
   onClose: () => void;
 }
 
@@ -36,9 +35,10 @@ const sameKey = (value: string) =>
 
 // Phone add / edit page of a team category (same rules as the desktop TeamDialog)
 export const MobileTeamForm: React.FC<MobileTeamFormProps> = ({
-  team, otherNames, memberCount, isSaving, onSave, onClose,
+  team, otherNames, isSaving, onSave, onClose,
 }) => {
   const [name, setName] = useState(team?.name || '');
+  const [kind, setKind] = useState<TeamKind>(team?.kind || 'players');
   const [showError, setShowError] = useState(false);
 
   const taken = new Set(otherNames.map(sameKey));
@@ -51,11 +51,11 @@ export const MobileTeamForm: React.FC<MobileTeamFormProps> = ({
       setShowError(true);
       return;
     }
-    if (team && value === team.name) {
+    if (team && value === team.name && kind === team.kind) {
       onClose();
       return;
     }
-    onSave(value);
+    onSave(value, kind);
   };
 
   return (
@@ -74,11 +74,6 @@ export const MobileTeamForm: React.FC<MobileTeamFormProps> = ({
       <section className="mtf-hero">
         <span className="mtf-jersey"><Shirt size={44} strokeWidth={1.6} /></span>
         <strong key={value ? 'name' : 'empty'} className={value ? '' : 'placeholder'}>{value || 'اسم الفئة'}</strong>
-        <span className="mtf-hero-sub">
-          {team
-            ? memberCount != null ? `تضم ${memberCount ? membersText(memberCount) : 'لا أحد بعد'}` : 'تعديل فئة'
-            : 'فئة جديدة في النادي'}
-        </span>
       </section>
 
       <section className="mtf-card">
@@ -97,12 +92,22 @@ export const MobileTeamForm: React.FC<MobileTeamFormProps> = ({
             <span className="mtf-count">{name.length}/{NAME_MAX}</span>
           </span>
         </label>
-        {showError && error
-          ? <p className="mtf-error"><AlertCircle size={14} /> {error}</p>
-          : <p className="mtf-help"><Info size={14} /> يظهر هذا الاسم في قوائم الأعضاء والتدريبات والمباريات.</p>}
+        {showError && error && <p className="mtf-error"><AlertCircle size={14} /> {error}</p>}
       </section>
 
-      {suggestions.length > 0 && (
+      {/* A players' category or a staff one */}
+      <section className="mtf-card">
+        <h3 className="mtf-title"><Users size={16} /> نوع الفئة</h3>
+        <div className="mtf-kinds">
+          {TEAM_KINDS.map(k => (
+            <button key={k.value} type="button" className={`mtf-kind ${k.value} ${kind === k.value ? 'on' : ''}`} onClick={() => setKind(k.value)}>
+              <strong>{k.label}</strong>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {suggestions.length > 0 && kind === 'players' && (
         <section className="mtf-card">
           <h3 className="mtf-title"><Sparkles size={16} /> اقتراحات سريعة</h3>
           <div className="mtf-suggestions">
@@ -115,9 +120,6 @@ export const MobileTeamForm: React.FC<MobileTeamFormProps> = ({
         </section>
       )}
 
-      {team && !!memberCount && (
-        <p className="mtf-note"><Users size={16} /> الاسم الجديد يظهر مباشرة عند {membersText(memberCount)} في هذه الفئة.</p>
-      )}
     </MobileScreen>
   );
 };

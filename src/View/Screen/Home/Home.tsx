@@ -38,14 +38,6 @@ export const Home: React.FC = () => {
     return 'badge badge-purple';
   };
 
-  if (controller.isLoading) {
-    return (
-      <div className="home-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="home-container">
       {/* Phone layout */}
@@ -120,7 +112,7 @@ export const Home: React.FC = () => {
         <div className="metric-card danger clickable" role="button" tabIndex={0} onClick={openUnpaidDebts} onKeyDown={e => { if (e.key === 'Enter') openUnpaidDebts(); }}>
           <div className="metric-icon"><HandCoins size={28} /></div>
           <div className="metric-info">
-            <h3>الديون غير المسددة</h3>
+            <h3>غير مسددة</h3>
             <p className="amount">{formatCurrency(controller.unpaidLoans.reduce((sum, d) => sum + (Number(d.remaining) || 0), 0))}</p>
           </div>
         </div>
@@ -128,7 +120,7 @@ export const Home: React.FC = () => {
         <div className="metric-card warning clickable" role="button" tabIndex={0} onClick={openUnpaidCredit} onKeyDown={e => { if (e.key === 'Enter') openUnpaidCredit(); }}>
           <div className="metric-icon"><Package size={28} /></div>
           <div className="metric-info">
-            <h3>الديون العينية غير المسددة</h3>
+            <h3>عينية غير مسددة</h3>
             <p className="amount">{formatCurrency(controller.unpaidCredit.reduce((sum, d) => sum + (Number(d.remaining) || 0), 0))}</p>
           </div>
         </div>

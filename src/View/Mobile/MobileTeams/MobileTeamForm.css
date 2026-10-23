@@ -229,3 +229,15 @@
 @keyframes mtf-spin {
   to { transform: rotate(360deg); }
 }
+
+/* The category's kind */
+.mtf-kinds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.mtf-kind {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 12px; text-align: start;
+  border-radius: 14px; border: 1.5px solid var(--ms-border, var(--border)); background: var(--ms-card, var(--card-bg));
+  color: var(--ms-text, var(--text-h)); font: inherit; cursor: pointer;
+}
+.mtf-kind strong { font-size: .92rem; font-weight: 800; }
+.mtf-kind small { font-size: .7rem; color: var(--ms-muted, var(--text-muted)); line-height: 1.4; }
+.mtf-kind.players.on { border-color: #16a34a; background: rgba(34, 197, 94, .08); }
+.mtf-kind.staff.on { border-color: #2563eb; background: rgba(59, 130, 246, .08); }

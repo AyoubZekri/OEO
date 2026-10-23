@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
-import { TeamModel } from './team_model';
+import { TeamModel, TEAM_KINDS, type TeamKind } from './team_model';
 import { validInput } from '../../../core/functions/valiedinput';
 
 interface TeamDialogProps {
@@ -13,14 +13,17 @@ interface TeamDialogProps {
 
 export const TeamDialog: React.FC<TeamDialogProps> = ({ isOpen, onClose, onSave, teamToEdit }) => {
   const [name, setName] = useState('');
+  const [kind, setKind] = useState<TeamKind>('players');
   const [errors, setErrors] = useState<{name?: string}>({});
 
   useEffect(() => {
     if (isOpen) {
       if (teamToEdit) {
         setName(teamToEdit.name);
+        setKind(teamToEdit.kind);
       } else {
         setName('');
+        setKind('players');
       }
       setErrors({});
     }
@@ -39,7 +42,8 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({ isOpen, onClose, onSave,
 
     if (Object.keys(newErrors).length === 0) {
       onSave({
-        name
+        name,
+        kind,
       });
     }
   };
@@ -63,6 +67,18 @@ export const TeamDialog: React.FC<TeamDialogProps> = ({ isOpen, onClose, onSave,
               placeholder="مثال: الفريق الأول" 
               error={errors.name}
             />
+          </div>
+
+          {/* A players' category or a staff one */}
+          <div className="team-kind-field">
+            <span className="team-kind-label">نوع الفئة</span>
+            <div className="team-kind-options">
+              {TEAM_KINDS.map(k => (
+                <button key={k.value} type="button" className={`team-kind-option ${k.value} ${kind === k.value ? 'on' : ''}`} onClick={() => setKind(k.value)}>
+                  <strong>{k.label}</strong>
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="form-actions" style={{ marginTop: '24px' }}>

@@ -6,6 +6,7 @@ import type { AbsenceRecord } from './AbsenceRequestsController';
 import { typeMeta, categoryIcon, statusOf, statusLabelOf, dateOf, initials, isMemberRequest, recordTitle } from './absenceUtils';
 import { cardFooter, longDay, statusShort } from './absenceCardState';
 import { RejectionView } from './RejectionView';
+import { openDocument } from '../../widget/openDocument';
 
 interface AbsenceCardProps {
   absence: AbsenceRecord;
@@ -68,7 +69,7 @@ export const AbsenceCard: React.FC<AbsenceCardProps> = ({ absence: a, hideMember
       <div className="abx-facts">
         {/* The document first: the line never wraps, it is never the one cut off */}
         {a.attachment_url && (
-          <a href={a.attachment_url} target="_blank" rel="noreferrer" className="doc"><Paperclip size={13} /> الوثيقة</a>
+          <button type="button" onClick={e => { e.stopPropagation(); openDocument(a.attachment_url, 'الوثيقة المرفقة'); }} className="doc"><Paperclip size={13} /> الوثيقة</button>
         )}
         {a.event_category && (
           <span>

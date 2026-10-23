@@ -1,6 +1,7 @@
 import React, { forwardRef } from 'react';
 import './PrintableEvaluation.css';
 import receiptBg from '../../../../../assets/receipt-template.png';
+import { periodLabel } from '../evaluation_data';
 
 interface PrintableEvaluationProps {
   evaluation: any;
@@ -33,7 +34,7 @@ export const PrintableEvaluation = forwardRef<HTMLDivElement, PrintableEvaluatio
                 <td className="col-50">الفئة / الفريق: <span>{player.team?.name || player.team_name || 'غير محدد'}</span></td>
               </tr>
               <tr>
-                <td className="col-50">فترة التقييم: <span>{evaluation.period}</span></td>
+                <td className="col-50">فترة التقييم: <span>{periodLabel(evaluation)}</span></td>
                 <td className="col-50">تاريخ التقييم: <span>{evaluation.evalDate}</span></td>
               </tr>
             </tbody>

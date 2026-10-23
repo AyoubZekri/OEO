@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import {
   Landmark, HandCoins, Wallet, Tag, CalendarDays, CalendarClock, Phone, FileText, History, X, CreditCard, Scale, CircleCheck,
 } from 'lucide-react';
-import { TaskPanel } from '../../Tasks/parts/TaskPanel';
+import { SidePanel } from '../../../shared/SidePanel';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
-import { parseDate } from '../../Tasks/taskUtils';
+import { parseDate } from '../../../shared/dates';
 import type { DebtsController } from '../useDebtsController';
 import { dayText, dueText, KIND_META, toneOf, type Debt, type DebtRepayment } from '../debtUtils';
 import { CreditorAvatar, DebtBar, PaidRing, StatusPill } from './DebtCard';
@@ -43,7 +43,7 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
   ];
 
   return (
-    <TaskPanel mobile={mobile} size="lg" icon={Landmark} title={d.kind === 'loan' ? 'تفاصيل الدين' : 'تفاصيل الشراء بالدين'} onClose={c.closeDebt} footer={footer}>
+    <SidePanel mobile={mobile} size="lg" icon={Landmark} title={d.kind === 'loan' ? 'تفاصيل الدين' : 'تفاصيل الشراء بالدين'} onClose={c.closeDebt} footer={footer}>
       <div className="tk-view db-view">
         {/* Head: who and what, then the amounts */}
         <section className={`db-sheet tone-${tone}`}>
@@ -140,7 +140,7 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
       </div>
 
       {cancelling && (
-        <TaskPanel
+        <SidePanel
           mobile={mobile}
           sheet
           size="sm"
@@ -159,8 +159,8 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
             {cancelling.fund_name ? ` ويُعاد المبلغ إلى «${cancelling.fund_name}»` : ''}
             {d.kind === 'purchase' ? '، ويُحذف من المصاريف.' : '.'}
           </p>
-        </TaskPanel>
+        </SidePanel>
       )}
-    </TaskPanel>
+    </SidePanel>
   );
 };

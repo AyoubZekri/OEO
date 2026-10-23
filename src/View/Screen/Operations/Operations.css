@@ -325,3 +325,57 @@ body.dark-mode .ops-page {
   .ops-summary-card strong { font-size: 0.95rem; }
   .ops-item-amount { font-size: 0.85rem; }
 }
+
+/* The operation type filter: a button that opens a sheet from the bottom */
+.ops-filter-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 14px; box-sizing: border-box;
+  border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg);
+  font: inherit; color: var(--text-h); text-align: start; cursor: pointer;
+}
+.ops-filter-btn > span:nth-child(2) { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ops-filter-btn small { font-size: .72rem; font-weight: 700; color: var(--text-muted); }
+.ops-filter-btn strong { font-size: .92rem; font-weight: 800; }
+.ops-filter-btn > svg { flex-shrink: 0; color: var(--text-muted); }
+.ops-filter-icon {
+  width: 34px; height: 34px; flex-shrink: 0; border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--accent-bg); color: var(--accent);
+}
+.ops-filter-btn.active { border-color: var(--accent); }
+
+/* One operation: the name in full, the amount under it, then the date; its kind and type in a corner.
+   One row grey, the next one white */
+.ops-list { padding: 0; overflow: hidden; }
+.ops-item {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  padding: 14px 16px; border-radius: 0;
+}
+.ops-item + .ops-item { border-top: none; }
+.ops-item:nth-child(odd) { background: var(--bg-hover-strong, #f1f5f9); }
+.ops-item:nth-child(even) { background: var(--ops-card, var(--card-bg)); }
+.ops-item-name {
+  max-width: calc(100% - 110px); white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere;
+  font-size: .95rem; font-weight: 800; line-height: 1.45;
+}
+.ops-item-amount { font-size: 1.05rem; font-weight: 900; white-space: nowrap; }
+.ops-item-date { font-size: .76rem; font-weight: 600; color: var(--text-muted, #64748b); }
+.ops-item-tag {
+  position: absolute; top: 12px; inset-inline-end: 12px; max-width: 100px;
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 99px;
+  font-size: .68rem; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ops-item-tag svg { flex-shrink: 0; }
+.ops-item.in .ops-item-tag       { background: rgba(22, 163, 74, 0.14);  color: var(--ops-green); }
+.ops-item.out .ops-item-tag      { background: rgba(220, 38, 38, 0.12);  color: var(--ops-red); }
+.ops-item.transfer .ops-item-tag { background: rgba(37, 99, 235, 0.12);  color: var(--ops-blue); }
+
+/* Each operation clearly apart: a stronger grey every other row and a line between them */
+.ops-item { padding: 16px 16px; }
+.ops-item:nth-child(odd) { background: #e9eef4; }
+.ops-item:nth-child(even) { background: #ffffff; }
+.ops-item + .ops-item { border-top: 1px solid #d5dde7; }
+body.dark-mode .ops-item:nth-child(odd) { background: rgba(255, 255, 255, 0.07); }
+body.dark-mode .ops-item:nth-child(even) { background: transparent; }
+body.dark-mode .ops-item + .ops-item { border-top-color: rgba(255, 255, 255, 0.12); }
+.ops-list { border-color: #d5dde7; }
+body.dark-mode .ops-list { border-color: rgba(255, 255, 255, 0.12); }

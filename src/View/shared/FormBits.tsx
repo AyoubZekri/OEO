@@ -1,8 +1,10 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
-import { MobileSelect } from '../../../Mobile/widgets/MobileSelect';
-import { CustomDropdown } from '../../../widget/CustomDropdown';
-import { PRIORITIES, type TaskUser } from '../taskUtils';
+import { MobileSelect } from '../Mobile/widgets/MobileSelect';
+import { CustomDropdown } from '../widget/CustomDropdown';
+
+/** A user offered in a picker */
+export interface PickUser { id: number | string; name: string }
 
 /** The app's dropdown: CustomDropdown (searchable) on desktop, a bottom sheet on phones */
 export const AppSelect: React.FC<{
@@ -25,13 +27,13 @@ export const AppSelect: React.FC<{
   );
 };
 
-/** Assignee / reviewer / member picker, with the app's dropdown */
+/** A user picker, with the app's dropdown */
 export const UserPicker: React.FC<{
   mobile: boolean;
   label: string;
   icon: LucideIcon;
   value: string;
-  users: TaskUser[];
+  users: PickUser[];
   onChange: (v: string) => void;
   exclude?: string;
   placeholder?: string;
@@ -45,25 +47,4 @@ export const UserPicker: React.FC<{
     onChange={onChange}
     placeholder={users.length ? placeholder : 'جاري التحميل...'}
   />
-);
-
-export const PriorityPicker: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => (
-  <div className="tk-field">
-    <span className="tk-label">الأولوية</span>
-    <div className="tk-seg four">
-      {PRIORITIES.map(p => (
-        <button key={p.value} type="button" className={`tone-${p.tone} ${value === p.value ? 'on' : ''}`} onClick={() => onChange(p.value)}>
-          <i className="tk-prio-dot" aria-hidden="true" />{p.label}
-        </button>
-      ))}
-    </div>
-  </div>
-);
-
-export const Toggle: React.FC<{ checked: boolean; onChange: (v: boolean) => void; title: string; hint: string; icon: LucideIcon }> = ({ checked, onChange, title, hint, icon }) => (
-  <button type="button" className={`tk-toggle ${checked ? 'on' : ''}`} onClick={() => onChange(!checked)} role="switch" aria-checked={checked}>
-    <span className="tk-toggle-icon">{React.createElement(icon, { size: 17 })}</span>
-    <span className="tk-toggle-text"><strong>{title}</strong><small>{hint}</small></span>
-    <span className="tk-switch" aria-hidden="true"><i /></span>
-  </button>
 );

@@ -5,6 +5,7 @@ import { MobileSheet } from '../../Mobile/widgets/MobileSheet';
 import type { AbsenceRecord } from './AbsenceRequestsController';
 import { typeMeta, dateOf, isMemberRequest, recordTitle } from './absenceUtils';
 import { longDay } from './absenceCardState';
+import { openDocument } from '../../widget/openDocument';
 
 const decidedOn = (value?: string | null) => {
   const d = value ? new Date(value) : null;
@@ -40,7 +41,7 @@ export const RejectionView: React.FC<{ absence: AbsenceRecord; onClose: () => vo
         <h4><MessageSquareText size={15} /> {request ? 'السبب المرسل' : 'التبرير المرسل'}</h4>
         <p>{a.reason?.trim() || 'بدون نص'}</p>
         {a.attachment_url && (
-          <a href={a.attachment_url} target="_blank" rel="noreferrer"><Paperclip size={14} /> فتح الوثيقة المرفقة</a>
+          <button type="button" className="rjv-doc" onClick={() => openDocument(a.attachment_url, 'الوثيقة المرفقة')}><Paperclip size={14} /> فتح الوثيقة المرفقة</button>
         )}
       </section>
     </div>

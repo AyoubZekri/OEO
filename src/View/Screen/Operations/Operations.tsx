@@ -1,9 +1,11 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Search, Inbox, TrendingUp, TrendingDown } from 'lucide-react';
+import { Approutes } from '../../../core/constant/routes';
+import { ArrowRight, ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Search, Inbox, Filter, ChevronDown } from 'lucide-react';
 import { useOperationsController } from './OperationsController';
 import type { OperationsFilter } from './OperationsController';
 import { MobileLoader } from '../../Mobile/widgets/MobileLoader';
+import { MobileSelect } from '../../Mobile/widgets/MobileSelect';
 import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
 import './Operations.css';
 
@@ -26,12 +28,12 @@ const DIRECTION_ICON = {
 export const Operations: React.FC = () => {
   const navigate = useNavigate();
   const controller = useOperationsController();
-  const { totals, groups, filter, setFilter, search, setSearch } = controller;
+  const { groups, filter, setFilter, search, setSearch } = controller;
 
   // Go back in history, or to home when the page was opened directly
   const goBack = () => {
     if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
-    else navigate('/');
+    else navigate(Approutes.Finance);
   };
 
   return (
@@ -48,19 +50,6 @@ export const Operations: React.FC = () => {
       </header>
       </div>
 
-      <section className="ops-summary">
-        <div className="ops-summary-card in">
-          <span className="ops-summary-icon"><TrendingUp size={20} /></span>
-          <span className="ops-summary-label">الواردات</span>
-          <strong>{formatAmount(totals.in)}</strong>
-        </div>
-        <div className="ops-summary-card out">
-          <span className="ops-summary-icon"><TrendingDown size={20} /></span>
-          <span className="ops-summary-label">المصاريف</span>
-          <strong>{formatAmount(totals.out)}</strong>
-        </div>
-      </section>
-
       <div className="ops-toolbar">
         <label className="ops-search">
           <Search size={18} />
@@ -71,19 +60,21 @@ export const Operations: React.FC = () => {
             onChange={e => setSearch(e.target.value)}
           />
         </label>
-        <div className="ops-chips" role="tablist">
-          {FILTERS.map(f => (
-            <button
-              key={f.key}
-              role="tab"
-              aria-selected={filter === f.key}
-              className={`ops-chip ${filter === f.key ? 'active' : ''}`}
-              onClick={() => setFilter(f.key)}
-            >
-              {f.label}
+        {/* The operation type: a sheet from the bottom */}
+        <MobileSelect
+          label="نوع العملية"
+          icon={Filter}
+          value={filter}
+          options={FILTERS.map(f => ({ value: f.key, label: f.label }))}
+          onChange={v => setFilter(v as OperationsFilter)}
+          renderTrigger={open => (
+            <button type="button" className={`ops-filter-btn ${filter !== 'all' ? 'active' : ''}`} onClick={open}>
+              <span className="ops-filter-icon"><Filter size={15} /></span>
+              <span><small>نوع العملية</small><strong>{FILTERS.find(f => f.key === filter)?.label}</strong></span>
+              <ChevronDown size={15} />
             </button>
-          ))}
-        </div>
+          )}
+        />
       </div>
 
       {controller.isLoading ? (
@@ -104,19 +95,17 @@ export const Operations: React.FC = () => {
                 const date = new Date(op.date);
                 return (
                   <li key={op.id} className={`ops-item ${dir}`}>
-                    <span className="ops-item-icon"><Icon size={18} /></span>
-                    <div className="ops-item-body">
-                      <span className="ops-item-name">{op.name}</span>
-                      <span className="ops-item-meta">
-                        <span className="ops-item-type">{op.type}</span>
-                        {!isNaN(date.getTime()) && (
-                          <span>{new Intl.DateTimeFormat('ar-DZ', { day: 'numeric', month: 'short' }).format(date)}</span>
-                        )}
-                      </span>
-                    </div>
+                    {/* In the corner: in / out / transfer, with the operation's type */}
+                    <span className="ops-item-tag"><Icon size={14} />{op.type}</span>
+                    {/* The name in full, the amount under it, then the date */}
+                    <span className="ops-item-name">{op.name}</span>
                     <span className="ops-item-amount">
-                      {dir === 'out' ? '-' : dir === 'in' ? '+' : ''}{formatAmount(op.amount)}
+                      {/* No sign: the colour says it (green in, red out, blue transfer) */}
+                      {formatAmount(op.amount)}
                     </span>
+                    {!isNaN(date.getTime()) && (
+                      <span className="ops-item-date">{new Intl.DateTimeFormat('ar-DZ', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)}</span>
+                    )}
                   </li>
                 );
               })}

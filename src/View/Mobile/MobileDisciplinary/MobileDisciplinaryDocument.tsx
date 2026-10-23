@@ -5,6 +5,7 @@ import { compressDocumentImage } from '../../../core/functions/compressDocumentI
 import type { DisciplinaryModel } from '../../Screen/Disciplinary/disciplinary_data';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileDisciplinaryActions.css';
+import { openDocument } from '../../widget/openDocument';
 
 const fileSize = (bytes: number) =>
   bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(2)} MB`;
@@ -112,9 +113,9 @@ export const MobileDisciplinaryDocumentView: React.FC<{
       layer={2}
       footer={(
         <>
-          <a className="me-btn mda-btn" href={url} target="_blank" rel="noreferrer">
-            <ExternalLink size={18} /> فتح
-          </a>
+          <button type="button" className="me-btn mda-btn" onClick={() => openDocument(url, 'الوثيقة الممضاة')}>
+            <ExternalLink size={18} /> عرض كامل
+          </button>
           {onReplace && (
             <button type="button" className="me-btn primary mda-btn" onClick={onReplace}>
               <RefreshCw size={18} /> تغيير الوثيقة

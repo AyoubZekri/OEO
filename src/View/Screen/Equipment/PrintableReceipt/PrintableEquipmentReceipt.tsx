@@ -47,7 +47,7 @@ export const PrintableEquipmentReceipt = forwardRef<HTMLDivElement, PrintableEqu
         <div className="receipt-content er">
           <div className="er-meta">
             <span>رقم المحضر: <strong dir="ltr">{recordNumber ? String(recordNumber).padStart(4, '0') : DOTS}</strong></span>
-            <span>أرزيو في: <strong dir="ltr">{now.toLocaleDateString('en-GB')}</strong></span>
+            <span>الوادي في: <strong dir="ltr">{now.toLocaleDateString('en-GB')}</strong></span>
           </div>
 
           <h1 className="er-title">{handover ? 'محضر تسليم معدات' : 'محضر استرجاع معدات'}</h1>

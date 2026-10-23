@@ -3,12 +3,12 @@ import { Plus, Landmark, Search, X, Filter, ChevronDown, Inbox, RefreshCw, Alert
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileSelect } from '../widgets/MobileSelect';
 import { moneyText } from '../MobileContracts/contractUtils';
-import { TaskLoader } from '../../Screen/Tasks/parts/TaskLoader';
+import { PageLoader } from '../../shared/PageLoader';
 import type { DebtsController } from '../../Screen/Debts/useDebtsController';
 import { DebtOverlays } from '../../Screen/Debts/parts/DebtOverlays';
 import { DebtCard } from '../../Screen/Debts/parts/DebtCard';
 import { debtTotals, filterDebts, sortDebts, STATUS_FILTERS } from '../../Screen/Debts/debtUtils';
-import '../../Screen/Tasks/Tasks.css';
+import '../../shared/kit.css';
 import '../../Screen/Travels/Travels.css';
 import '../../Screen/Debts/Debts.css';
 
@@ -72,7 +72,7 @@ export const MobileDebts: React.FC<{ c: DebtsController }> = ({ c }) => {
         />
       </div>
 
-      {c.loading && !c.debts.length ? <TaskLoader mobile text="جاري تحميل الديون..." />
+      {c.loading && !c.debts.length ? <PageLoader mobile text="جاري تحميل الديون..." />
         : c.error ? (
           <div className="tk-state">
             <Landmark size={30} /><p>{c.error}</p>

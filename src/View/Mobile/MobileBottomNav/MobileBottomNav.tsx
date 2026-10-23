@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { House, Users, LayoutGrid, ListTodo, Trophy, CalendarX2 } from 'lucide-react';
+import { House, Users, LayoutGrid, Dumbbell, Trophy, CalendarX2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useCan } from '../../../core/functions/useCan';
@@ -17,7 +17,7 @@ const NAV_ITEMS: { to: string; label: string; icon: LucideIcon; end?: boolean; m
 
 /** The personal space's bar */
 const PERSONAL_ITEMS: typeof NAV_ITEMS = [
-  { to: Approutes.MyTasks, label: 'مهامي', icon: ListTodo },
+  { to: Approutes.MyTrainingSessions, label: 'تدريبات', icon: Dumbbell },
   { to: Approutes.MyMatches, label: 'مباريات', icon: Trophy },
   { to: Approutes.MyAbsences, label: 'غيابات', icon: CalendarX2 },
   NAV_ITEMS[NAV_ITEMS.length - 1],
@@ -26,10 +26,10 @@ const PERSONAL_ITEMS: typeof NAV_ITEMS = [
 export const MobileBottomNav: React.FC = () => {
   const can = useCan();
   const { space } = useSpace();
-  // Personal space (no home page): my tasks, matches, absences, and "More"
+  // Personal space (no home page): my training sessions, matches, absences, and "More"
   const items = space === 'personal' ? PERSONAL_ITEMS : NAV_ITEMS;
   return (
-    <nav className="mobile-bottom-nav" dir="ltr">
+    <nav className="mobile-bottom-nav" dir="rtl">
       {items.filter(item => !item.module || can(item.module)).map(({ to, label, icon: Icon, end }) => (
         <NavLink
           key={to}

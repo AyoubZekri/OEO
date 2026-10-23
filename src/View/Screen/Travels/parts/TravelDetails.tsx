@@ -3,8 +3,8 @@ import {
   MapPin, Bus, BedDouble, Trophy, Clock, FileText, Pencil, Trash2, Navigation, UtensilsCrossed, MessagesSquare, Flag,
   Home, PlaneLanding, Shirt, Briefcase, Layers, CalendarRange, Crown, CalendarClock,
 } from 'lucide-react';
-import { TaskPanel } from '../../Tasks/parts/TaskPanel';
-import { dateText, initials } from '../../Tasks/taskUtils';
+import { SidePanel } from '../../../shared/SidePanel';
+import { dateText, initials } from '../../../shared/dates';
 import { TYPE_LABELS } from '../../../Mobile/MobileMembers/memberLabels';
 import type { TravelsController } from '../useTravelsController';
 import { countdownText, durationText, SCHEDULE, STATUS_META, statusOf, type Travel, type TravelPerson, MY_ROLE_LABEL } from '../travelUtils';
@@ -59,7 +59,7 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
   ];
 
   return (
-    <TaskPanel mobile={mobile} size="lg" icon={MapPin} title="تفاصيل التنقل" onClose={c.closeTravel} footer={hasFooter ? footer : undefined}>
+    <SidePanel mobile={mobile} size="lg" icon={MapPin} title="تفاصيل التنقل" onClose={c.closeTravel} footer={hasFooter ? footer : undefined}>
       <div className="tk-view tv-view">
         {/* Ticket head */}
         <section className="tv-hero-card">
@@ -165,7 +165,7 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
       </div>
 
       {confirmDelete && (
-        <TaskPanel
+        <SidePanel
           mobile={mobile}
           sheet
           size="sm"
@@ -180,8 +180,8 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
           )}
         >
           <p className="tk-text">يُحذف التنقل إلى «{t.destination}» نهائياً مع برنامجه.</p>
-        </TaskPanel>
+        </SidePanel>
       )}
-    </TaskPanel>
+    </SidePanel>
   );
 };

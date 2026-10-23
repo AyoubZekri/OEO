@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { amountText } from '../MobileContracts/contractUtils';
 import { useNavigate } from 'react-router-dom';
-import { Users, Wallet, History, ChevronLeft } from 'lucide-react';
+import { Users, Wallet, History, ChevronLeft, Shield } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { parseMatchDate } from '../../Screen/Home/HomeController';
 import type { useHomeController } from '../../Screen/Home/HomeController';
@@ -13,7 +13,7 @@ interface MobileHomeProps {
   controller: ReturnType<typeof useHomeController>;
 }
 
-const CLUB_NAME = 'أولمبيك الوادي';
+const CLUB_NAME = 'أولمبي الوادي';
 
 const pad = (n: number) => String(Math.max(0, n)).padStart(2, '0');
 
@@ -50,19 +50,16 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
       {/* App bar */}
       <MobileAppBar title="الصفحة الرئيسية" showNotificationDot={dashboard.overdueContracts > 0} />
 
-      {/* Spent since the start of the season */}
+      {/* Total expenses */}
       <section className="mh-funds" dir="rtl" role="button" tabIndex={0} onClick={() => navigate(Approutes.Payments)} onKeyDown={e => { if (e.key === 'Enter') navigate(Approutes.Payments); }}>
         <img className="mh-funds-watermark" src="/LOGO.webp" alt="" aria-hidden="true" />
         <div className="mh-funds-top">
           <span className="mh-funds-icon"><Wallet size={20} /></span>
-          <span className="mh-funds-label">إجمالي المصروف منذ بداية الموسم</span>
+          <span className="mh-funds-label">إجمالي المصاريف</span>
         </div>
         <div className="mh-funds-total" dir="ltr">
           <span className="mh-funds-value">{amountText(metrics.totalExpenses)}</span>
           <span className="mh-funds-currency">د.ج</span>
-        </div>
-        <div className="mh-funds-bottom">
-          <span>نادي {CLUB_NAME}</span>
         </div>
       </section>
 
@@ -85,11 +82,7 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
               </div>
               <span className="mh-vs">VS</span>
               <div className="mh-team">
-                {opponentClub?.logo ? (
-                  <img src={opponentClub.logo} alt={opponentName} />
-                ) : (
-                  <span className="mh-team-placeholder">{opponentName.charAt(0)}</span>
-                )}
+                <span className="mh-team-placeholder"><Shield size={22} /></span>
                 <span>{opponentName}</span>
               </div>
             </div>

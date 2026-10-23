@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, ListTodo, Bus, Repeat, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2, LogOut, MessageSquare } from 'lucide-react';
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, Bus, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2, LogOut, MessageSquare, ClipboardList, PieChart } from 'lucide-react';
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -25,13 +25,13 @@ type IconType = React.ComponentType<{ size?: number }>;
 
 // Pages already in the bottom nav are not repeated here
 const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Matches]);
-const IN_PERSONAL_NAV = new Set<string>([Approutes.MyTasks, Approutes.MyMatches, Approutes.MyAbsences]);
+const IN_PERSONAL_NAV = new Set<string>([Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
-  { title: 'فضائي الشخصي', names: ['MyTasks', 'MyTrainingSessions', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary', 'MyFeedback'] },
-  { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary', 'Clubs'] },
-  { title: 'المالية', names: ['Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
-  { title: 'الإدارة', names: ['Tasks', 'PeriodicTasks', 'Feedback', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'فضائي الشخصي', names: ['MyTrainingSessions', 'MyTasks', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary', 'MyFeedback'] },
+  { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary'] },
+  { title: 'المالية', names: ['Finance', 'Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
+  { title: 'الإدارة', names: ['Tasks', 'Feedback', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
@@ -49,8 +49,6 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   Funds: { icon: Wallet, color: '#f97316' },
   Debts: { icon: Landmark, color: '#ef4444' },
   Reports: { icon: BarChart3, color: '#6366f1' },
-  Tasks: { icon: ListTodo, color: '#f97316' },
-  MyTasks: { icon: ListTodo, color: '#f97316' },
   MyTrainingSessions: { icon: Calendar, color: '#0ea5e9' },
   MyMatches: { icon: Trophy, color: '#f97316' },
   MyAbsences: { icon: CalendarX2, color: '#ef4444' },
@@ -59,8 +57,10 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   MyMedical: { icon: Stethoscope, color: '#ef4444' },
   MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
   MyFeedback: { icon: MessageSquare, color: '#14b8a6' },
+  MyTasks: { icon: ClipboardList, color: '#f97316' },
+  Finance: { icon: PieChart, color: '#10b981' },
+  Tasks: { icon: ClipboardList, color: '#f97316' },
   Feedback: { icon: MessageSquare, color: '#14b8a6' },
-  PeriodicTasks: { icon: Repeat, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
   Equipment: { icon: Package, color: '#f59e0b' },

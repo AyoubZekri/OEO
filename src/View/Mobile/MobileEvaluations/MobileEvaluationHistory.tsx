@@ -12,6 +12,7 @@ import type { EvaluationRecord } from '../../Screen/Members/Evaluation/evaluatio
 import type { MemberModel } from '../../Screen/Members/member_model';
 import './MobileEvaluations.css';
 import './MobileEvaluationHistory.css';
+import { periodLabel } from '../../Screen/Members/Evaluation/evaluation_data';
 
 interface MobileEvaluationHistoryProps {
   player: MemberModel;
@@ -118,7 +119,7 @@ export const MobileEvaluationHistory: React.FC<MobileEvaluationHistoryProps> = (
                 <ScoreRing score={ev.totalScore || 0} size={58} stroke={8} />
                 <span className="eh-card-info">
                   <span className="eh-card-line">
-                    <strong>{ev.period || 'تقييم'}</strong>
+                    <strong>{periodLabel(ev) || 'تقييم'}</strong>
                     <span className="me-grade">{GRADE_LABELS[grade]}</span>
                   </span>
                   <span className="eh-card-meta">

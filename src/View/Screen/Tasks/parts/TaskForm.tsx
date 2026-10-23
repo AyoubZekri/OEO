@@ -1,147 +1,128 @@
 import React, { useState } from 'react';
+import { Save, Loader2, AlertCircle, FileText, UserRound, Layers, Shapes, CalendarClock, CalendarDays, BellRing, Repeat, Zap, Info } from 'lucide-react';
+import { SidePanel } from '../../../shared/SidePanel';
+import { UserPicker } from '../../../shared/FormBits';
+import { toApiDate, toInputDate } from '../../../shared/dates';
+import type { TasksAdmin } from '../useTasks';
 import {
-  Save, Loader2, AlertCircle, UserRound, ShieldCheck, Paperclip, Repeat, Zap, Info, CalendarCheck, ListTodo, FileText,
-  Users, CalendarClock, SlidersHorizontal, Trophy, CalendarRange,
-} from 'lucide-react';
-import { TaskPanel } from './TaskPanel';
-import { UserPicker, PriorityPicker, Toggle } from './FormBits';
-import { EventPicker } from './EventPicker';
-import type { TasksController } from '../useTasksController';
-import {
-  buildRRule, DEFAULT_RECURRENCE, parseRRule, recurrenceText, offsetText, minutesText, toApiDate, toInputDate, nowInput, parseDate, dateText,
-  eventMeta, PERIODIC_LEAD_DAYS, TRIGGERS, WEEK_DAYS, type Recurrence, type Task, type TaskEvent, type TaskKind, type TaskTemplate,
+  durationText, EVENT_META, EVENTS, eventOffsetText, KIND_META, NATURE_META, WEEK_DAYS,
+  type EventType, type Task, type TaskKind, type TaskNature, type TaskTemplate,
 } from '../taskUtils';
 
-const UNITS = [
-  { value: 60, label: 'ساعة' },
-  { value: 1440, label: 'يوم' },
-];
+const UNITS = [{ value: 60, label: 'ساعة' }, { value: 1440, label: 'يوم' }];
 
-/** Minutes → an amount in the biggest whole unit */
+/** Minutes → an amount in the biggest whole unit, and before / after */
 const split = (minutes: number) => {
   const m = Math.abs(minutes);
   const unit = m !== 0 && m % 1440 === 0 ? 1440 : 60;
-  return { amount: String(Math.round((m / unit) * 100) / 100), unit };
+  return { amount: String(Math.round((m / unit) * 100) / 100), unit, before: minutes <= 0 };
 };
-
 const pad = (n: number) => String(n).padStart(2, '0');
-const toLocal = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-
-const KINDS: Record<TaskKind, { label: string; hint: string; icon: typeof Repeat }> = {
-  once: { label: 'مرة واحدة', hint: 'بتاريخ محدد', icon: CalendarCheck },
-  event: { label: 'مرتبطة بحدث', hint: 'مباراة، تدريب، اجتماع، تنقل', icon: Trophy },
-  periodic: { label: 'دورية', hint: 'تتكرر حسب جدول', icon: Repeat },
-  trigger: { label: 'مع كل حدث جديد', hint: 'تُنشأ تلقائياً', icon: Zap },
+/** A periodic appointment's time, from the task's day start: «يوم المهمة 08:00», «اليوم السابق 22:00», «بعد يومين 08:00» */
+const periodicText = (minutes: number) => {
+  const days = Math.floor(minutes / 1440);
+  const rest = minutes - days * 1440;
+  const time = `${pad(Math.floor(rest / 60))}:${pad(rest % 60)}`;
+  const day = days === 0 ? 'يوم المهمة' : days === 1 ? 'اليوم التالي' : days === -1 ? 'اليوم السابق'
+    : days > 0 ? `بعد ${durationText(days * 1440)}` : `قبل ${durationText(days * 1440)}`;
+  return `${day} ${time}`;
 };
 
-/** A titled block of the form: icon, title, a short hint, then its fields */
-const Section: React.FC<{ icon: typeof Repeat; title: string; hint?: string; children: React.ReactNode }> = ({ icon: Icon, title, hint, children }) => (
-  <section className="tk-sec">
-    <header>
-      <span className="tk-sec-icon"><Icon size={16} /></span>
-      <div><h4>{title}</h4>{hint && <small>{hint}</small>}</div>
-    </header>
-    <div className="tk-sec-body">{children}</div>
-  </section>
+/** An appointment's alert or deadline: its name and what it comes to («قبل المباراة بيومين»), then its controls */
+const TimeBox: React.FC<{ label: string; icon: typeof Info; tone: 'orange' | 'blue'; summary?: string; children: React.ReactNode }> = ({ label, icon: Icon, tone, summary, children }) => (
+  <div className={`tsk-time tone-${tone}`}>
+    <span className="tk-label tsk-time-head"><Icon size={14} />{label}{summary && <em>{summary}</em>}</span>
+    {children}
+  </div>
 );
 
-interface TaskFormProps {
-  c: TasksController;
-  task: Task | null;
-  template: TaskTemplate | null;
-  kind: TaskKind;
-  kinds: TaskKind[];
-  mobile: boolean;
-}
+type Offset = { amount: string; unit: number; before: boolean };
+
+/** An appointment's alert or deadline, in reading order: «قبل / بعد», an amount, hour / day (from the event, or the periodic day's start) */
+const EventOffset: React.FC<{ value: Offset; onChange: (v: Offset) => void }> = ({ value, onChange }) => (
+  <div className="tsk-time-row three">
+    <div className="tk-seg two">
+      <button type="button" className={value.before ? 'on' : ''} onClick={() => onChange({ ...value, before: true })}>قبل</button>
+      <button type="button" className={!value.before ? 'on' : ''} onClick={() => onChange({ ...value, before: false })}>بعد</button>
+    </div>
+    <input className="tk-input num" type="number" min={0} step="1" inputMode="numeric" value={value.amount} onChange={e => onChange({ ...value, amount: e.target.value })} aria-label="المدة" />
+    <div className="tk-seg two">
+      {UNITS.map(u => <button key={u.value} type="button" className={value.unit === u.value ? 'on' : ''} onClick={() => onChange({ ...value, unit: u.value })}>{u.label}</button>)}
+    </div>
+  </div>
+);
 
 /**
- * Create or edit a task: once, for a specific upcoming match / training session, periodic, or automatically with
- * every new event. The reviewer is not chosen here: whoever reviews it is recorded.
+ * A new task, all its fields in one block, in the order it is thought of: what it is, who does it, its kind, then its nature.
+ * Kinds: normal (an optional deadline); urgent (given at once, no deadline: only what to do, who, and its nature);
+ * appointment (here or on the appointments page): with every new event or periodic, with its alert and deadline.
+ * The voice note has its own form. Editing shows the same form with the task's data: a normal task can become urgent
+ * and back; an appointment's task keeps its kind, its own alert and deadline can be changed.
  */
-export const TaskForm: React.FC<TaskFormProps> = ({ c, task, template, kind: initialKind, kinds, mobile }) => {
-  const [kind, setKind] = useState<TaskKind>(initialKind);
-
+export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTemplate; appointment?: boolean; mobile: boolean }> = ({ c, task, template, appointment, mobile }) => {
+  const editing = Boolean(task || template);
   const [title, setTitle] = useState(task?.title || template?.title || '');
-  const [description, setDescription] = useState(task?.description || template?.description || '');
-  const [assignee, setAssignee] = useState(task ? String(task.assignee_id) : template ? String(template.assignee_id) : '');
-  const [priority, setPriority] = useState<string>(task?.priority || template?.priority || 'normal');
-  const [needsApproval, setNeedsApproval] = useState(task?.requires_approval ?? template?.requires_approval ?? true);
-  const [needsProof, setNeedsProof] = useState(task?.requires_proof ?? template?.requires_proof ?? false);
+  const [details, setDetails] = useState(task?.details || template?.details || '');
+  const [assignee, setAssignee] = useState(String(task?.assignee?.id ?? template?.assignee?.id ?? ''));
+  const [kind, setKind] = useState<TaskKind>(template || appointment ? 'scheduled' : task?.kind || 'normal');
+  const [nature, setNature] = useState<TaskNature | ''>(task?.nature || template?.nature || '');
+  const [dueAt, setDueAt] = useState(toInputDate(task?.due_at));
+  // A task an appointment created: its own alert and deadline (this task only)
+  const generated = task?.kind === 'scheduled';
+  const [alertAt, setAlertAt] = useState(toInputDate(task?.alert_at));
 
-  // Once
-  const [startsAt, setStartsAt] = useState(task ? toInputDate(task.starts_at) : nowInput());
-  const [dueAt, setDueAt] = useState(task ? toInputDate(task.due_at) : nowInput(24));
-
-  // A specific match / training session
-  const [eventType, setEventType] = useState<TaskEvent['type']>('match');
-  const [event, setEvent] = useState<TaskEvent | null>(null);
-
-  // Deadline relative to the event (event and trigger)
-  const initialOffset = split(template?.offset_minutes ?? -1440);
-  const [offsetAmount, setOffsetAmount] = useState(initialOffset.amount);
-  const [offsetUnit, setOffsetUnit] = useState(initialOffset.unit);
-  const [offsetSide, setOffsetSide] = useState<'before' | 'after'>((template?.offset_minutes ?? -1) > 0 ? 'after' : 'before');
-
-  // Periodic
-  const [rec, setRec] = useState<Recurrence>(template?.rrule ? parseRRule(template.rrule) : DEFAULT_RECURRENCE);
-  const [startsOn, setStartsOn] = useState(template?.starts_on ? toInputDate(template.starts_on) : nowInput());
-
-  // Trigger
-  const [trigger, setTrigger] = useState(template?.trigger || TRIGGERS[0].value);
-
-  // Time to do an automatic task
-  const initialDuration = split(template?.duration_minutes ?? 1440);
-  const [durationAmount, setDurationAmount] = useState(initialDuration.amount);
-  const [durationUnit, setDurationUnit] = useState(initialDuration.unit);
+  // The appointment
+  const [schedule, setSchedule] = useState<'event' | 'periodic'>(template?.schedule || 'event');
+  const [eventType, setEventType] = useState<EventType>(template?.event_type || 'match');
+  const [alertOff, setAlertOff] = useState(split(template?.schedule === 'event' ? template.alert_offset : -2880));
+  const [dueOff, setDueOff] = useState(split(template?.schedule === 'event' ? template.due_offset : -1440));
+  const [repeat, setRepeat] = useState<'weekly' | 'monthly'>(template?.repeat || 'weekly');
+  const [weekDay, setWeekDay] = useState(template?.repeat === 'weekly' ? template.repeat_day || 7 : 7);
+  const [monthDay, setMonthDay] = useState(template?.repeat === 'monthly' ? template.repeat_day || 1 : 1);
+  const periodic = template?.schedule === 'periodic' ? template : null;
+  // From the periodic day's start: by default the alert at 08:00 and the deadline at 18:00 that day
+  const [pAlertOff, setPAlertOff] = useState(split(periodic ? periodic.alert_offset : 480));
+  const [pDueOff, setPDueOff] = useState(split(periodic ? periodic.due_offset : 1080));
 
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const patch = (p: Partial<Recurrence>) => setRec(r => ({ ...r, ...p }));
-  const toggleDay = (code: string) => patch({ days: rec.days.includes(code) ? rec.days.filter(d => d !== code) : [...rec.days, code] });
-
-  const duration = Math.round(Number(durationAmount) * durationUnit);
-  const offset = Math.round(Number(offsetAmount) * offsetUnit) * (offsetSide === 'before' ? -1 : 1);
-  const rrule = buildRRule(rec);
-  const triggerMeta = TRIGGERS.find(t => t.value === trigger) || TRIGGERS[0];
-  const eventAt = parseDate(event?.at);
-  const eventDue = eventAt && !Number.isNaN(offset) ? new Date(eventAt.getTime() + offset * 60000) : null;
-  const close = () => c.closeForm();
+  const eventMinutes = (v: typeof alertOff) => Math.round((Number(v.amount) || 0) * v.unit) * (v.before ? -1 : 1);
+  const alertMinutes = eventMinutes(schedule === 'event' ? alertOff : pAlertOff);
+  const dueMinutes = eventMinutes(schedule === 'event' ? dueOff : pDueOff);
+  // An appointment's schedule (a task an appointment created keeps its dates)
+  const scheduled = kind === 'scheduled' && !task;
+  // Only a normal task has a deadline of its own
+  const withDeadline = kind === 'normal';
 
   const save = async () => {
-    if (!title.trim()) return setError('اكتب عنوان المهمة');
-    if (!assignee) return setError('اختر المكلف بالمهمة');
-    if (kind === 'once' && startsAt && dueAt && dueAt < startsAt) return setError('آخر أجل يجب أن يكون بعد تاريخ البداية');
-    if (kind === 'event' && !event) return setError(eventMeta(eventType).pick);
-    if (kind === 'event' && !eventDue) return setError('هذا الحدث بدون تاريخ، حدد آخر أجل من خيار «مرة واحدة»');
-    if (kind === 'event' && eventDue && eventDue.getTime() < Date.now()) return setError('آخر أجل المحسوب مرّ، غيّر المدة قبل الحدث');
-    if ((kind === 'periodic' || kind === 'trigger') && !(duration > 0)) return setError('حدد المدة المتاحة للإنجاز');
-    if (kind === 'periodic' && rec.freq === 'WEEKLY' && rec.days.length === 0) return setError('اختر يوماً واحداً على الأقل');
+    if (!title.trim()) return setError('اكتب المهمة');
+    if (!assignee) return setError('اختر المكلّف بالمهمة');
+    if (scheduled && dueMinutes < alertMinutes) return setError('آخر أجل يكون بعد التنبيه');
+    if (generated && alertAt && dueAt && dueAt < alertAt) return setError('آخر أجل يكون بعد التنبيه');
+    if (!nature) return setError('اختر طبيعة المهمة: داخلية، خارجية أو اتصال');
     setError('');
     setSaving(true);
-
-    const common = {
-      title: title.trim(),
-      description: description.trim() || null,
-      assignee_id: Number(assignee),
-      priority,
-      requires_approval: needsApproval,
-      requires_proof: needsProof,
-    };
     try {
-      if (kind === 'once') {
-        await c.saveTask({ ...(task ? { id: task.id } : {}), ...common, starts_at: toApiDate(startsAt), due_at: toApiDate(dueAt) });
-      } else if (kind === 'event' && event && eventDue) {
-        await c.saveTask({ ...common, starts_at: toLocal(new Date()), due_at: toLocal(eventDue), event_type: event.type, event_id: event.id });
-      } else {
-        await c.saveTemplate({
-          ...(template ? { id: template.id, active: template.active } : {}),
-          ...common,
-          kind: kind === 'trigger' ? 'event' : 'periodic',
-          duration_minutes: duration,
-          ...(kind === 'periodic' ? { rrule, starts_on: toApiDate(startsOn) } : { trigger, offset_minutes: offset }),
-        });
-      }
+      await c.save({
+        ...(task ? { id: task.id } : template ? { id: template.id } : {}),
+        title: title.trim(),
+        details: kind === 'urgent' ? null : details.trim() || null,
+        kind,
+        nature,
+        assignee_id: Number(assignee),
+        ...(scheduled
+          ? {
+            schedule,
+            event_type: schedule === 'event' ? eventType : null,
+            repeat: schedule === 'periodic' ? repeat : null,
+            repeat_day: schedule === 'periodic' ? (repeat === 'weekly' ? weekDay : monthDay) : null,
+            alert_offset: alertMinutes,
+            due_offset: dueMinutes,
+          }
+          : generated ? { alert_at: toApiDate(alertAt), due_at: toApiDate(dueAt) }
+            : withDeadline ? { due_at: toApiDate(dueAt) } : {}),
+      });
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -149,189 +130,156 @@ export const TaskForm: React.FC<TaskFormProps> = ({ c, task, template, kind: ini
     }
   };
 
-  const unitSeg = (unit: number, setUnit: (v: number) => void) => (
-    <div className="tk-seg two">
-      {UNITS.map(u => <button key={u.value} type="button" className={unit === u.value ? 'on' : ''} onClick={() => setUnit(u.value)}>{u.label}</button>)}
-    </div>
-  );
-
-  const offsetFields = (
-    <div className="tk-field">
-      <span className="tk-label">آخر أجل للمهمة</span>
-      <div className="tk-inline wrap">
-        <input className="tk-input num" type="number" min={0} step="0.5" inputMode="decimal" value={offsetAmount} onChange={e => setOffsetAmount(e.target.value)} />
-        {unitSeg(offsetUnit, setOffsetUnit)}
-        <div className="tk-seg two">
-          <button type="button" className={offsetSide === 'before' ? 'on' : ''} onClick={() => setOffsetSide('before')}>قبل</button>
-          <button type="button" className={offsetSide === 'after' ? 'on' : ''} onClick={() => setOffsetSide('after')}>بعد</button>
-        </div>
-      </div>
-    </div>
-  );
-
-  const heading = task ? 'تعديل المهمة'
-    : template ? (template.kind === 'periodic' ? 'تعديل المهمة الدورية' : 'تعديل مهمة تلقائية')
-      : kinds.includes('once') || kinds.includes('event') ? 'مهمة جديدة' : 'مهمة دورية جديدة';
-  const HeadIcon = KINDS[kind]?.icon || ListTodo;
+  const heading = template ? 'تعديل الموعد' : appointment ? 'موعد جديد' : task ? 'تعديل المهمة' : 'مهمة جديدة';
+  const kinds: TaskKind[] = ['normal', 'urgent', 'scheduled'];
+  // Editing: a normal task can become urgent and back; an appointment's task stays one
+  const kindLocked = (k: TaskKind) => Boolean(task) && (generated ? k !== 'scheduled' : k === 'scheduled');
 
   return (
-    <TaskPanel
+    <SidePanel
       mobile={mobile}
       layer={2}
-      icon={HeadIcon}
+      icon={KIND_META[kind].icon}
       title={heading}
-      subtitle={task?.reference || undefined}
-      onClose={close}
+      onClose={c.closeForm}
       footer={(
         <>
-          {!mobile && <button type="button" className="btn-cancel tk-dlg-btn" onClick={close}>إلغاء</button>}
+          {!mobile && <button type="button" className="btn-cancel tk-dlg-btn" onClick={c.closeForm}>إلغاء</button>}
           <button type="button" className={`tk-btn primary ${mobile ? 'block' : 'tk-dlg-btn'}`} onClick={save} disabled={saving}>
             {saving ? <Loader2 size={17} className="tk-spin" /> : <Save size={17} />}
-            {task || template ? 'حفظ التعديلات' : 'إنشاء المهمة'}
+            {editing ? 'حفظ التعديلات' : scheduled ? 'حفظ الموعد' : 'إسناد المهمة'}
           </button>
         </>
       )}
     >
-      <div className="tk-form calm">
-        {kinds.length > 1 && (
-          <div className={`tk-kind n${kinds.length}`} role="radiogroup" aria-label="نوع المهمة">
-            {kinds.map(k => {
-              const meta = KINDS[k];
-              return (
-                <button key={k} type="button" role="radio" aria-checked={kind === k} className={kind === k ? 'on' : ''} onClick={() => { setKind(k); setError(''); }}>
-                  <meta.icon size={18} /><strong>{meta.label}</strong><small>{meta.hint}</small>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        <Section icon={FileText} title="المهمة" hint="ما المطلوب إنجازه">
-          <label className="tk-field">
-            <span className="tk-label">العنوان</span>
-            <input className="tk-input" value={title} onChange={e => setTitle(e.target.value)} autoFocus={!mobile && !!(task || template)}
-              placeholder={kind === 'trigger' ? 'مثال: تجهيز ملابس {event}' : kind === 'periodic' ? 'مثال: التقرير الأسبوعي للعتاد' : 'مثال: تجهيز أرضية الملعب'} />
-            {kind === 'trigger' && <small className="tk-hint"><Info size={12} />اكتب {'{event}'} ليُستبدل باسم الحدث، مثل «مباراة ضد النجم»</small>}
-          </label>
-          <label className="tk-field">
-            <span className="tk-label">الوصف <em>اختياري</em></span>
-            <textarea className="tk-input" rows={2} value={description} onChange={e => setDescription(e.target.value)} placeholder="تفاصيل تساعد المكلف" />
-          </label>
-        </Section>
-
-        <Section icon={Users} title="التكليف" hint="من ينفذ المهمة، وما أولويتها">
-          <UserPicker mobile={mobile} label="المكلف بالتنفيذ" icon={UserRound} value={assignee} users={c.users} onChange={setAssignee} />
-          <PriorityPicker value={priority} onChange={setPriority} />
-        </Section>
-
-        {kind === 'once' && (
-          <Section icon={CalendarClock} title="التوقيت">
-            <div className="tk-grid-2">
+      <div className={`tk-form calm tsk-form ${mobile ? 'phone' : ''}`}>
+        <section className="tk-sec tv-sec">
+          <div className="tk-sec-body">
+            <label className="tk-field">
+              <span className="tk-label"><FileText size={14} />المهمة</span>
+              <input className="tk-input" value={title} maxLength={200} onChange={e => setTitle(e.target.value)} />
+            </label>
+            {kind !== 'urgent' && (
               <label className="tk-field">
-                <span className="tk-label">البداية</span>
-                <input className="tk-input" type="datetime-local" value={startsAt} onChange={e => setStartsAt(e.target.value)} />
+                <span className="tk-label">التفاصيل <em>اختياري</em></span>
+                <textarea className="tk-input" rows={2} value={details} onChange={e => setDetails(e.target.value)} />
               </label>
-              <label className="tk-field">
-                <span className="tk-label">آخر أجل</span>
-                <input className="tk-input" type="datetime-local" value={dueAt} onChange={e => setDueAt(e.target.value)} />
-              </label>
-            </div>
-          </Section>
-        )}
-
-        {kind === 'event' && (
-          <Section icon={Trophy} title="الحدث" hint="المباريات، الحصص التدريبية، الاجتماعات والتنقلات القادمة">
-            <EventPicker type={eventType} onType={setEventType} value={event} onChange={setEvent} />
-            {offsetFields}
-            {event && eventDue && (
-              <p className="tk-preview"><CalendarClock size={14} />آخر أجل: {dateText(toLocal(eventDue))} ({offsetText(offset || 0).replace('الحدث', eventMeta(event.type).the)})</p>
             )}
-          </Section>
-        )}
 
-        {kind === 'periodic' && (
-          <Section icon={Repeat} title="الجدولة" hint="متى تتكرر المهمة">
-            <div className="tk-seg three">
-              {([['DAILY', 'يومياً'], ['WEEKLY', 'أسبوعياً'], ['MONTHLY', 'شهرياً']] as const).map(([v, l]) => (
-                <button key={v} type="button" className={rec.freq === v ? 'on' : ''} onClick={() => patch({ freq: v, days: v === 'WEEKLY' && !rec.days.length ? ['SU'] : rec.days })}>{l}</button>
-              ))}
-            </div>
-            {rec.freq === 'WEEKLY' && (
-              <div className="tk-days">
-                {WEEK_DAYS.map(d => (
-                  <button key={d.code} type="button" className={rec.days.includes(d.code) ? 'on' : ''} onClick={() => toggleDay(d.code)}>{d.label}</button>
-                ))}
+            <UserPicker mobile={mobile} label="المكلّف بالمهمة" icon={UserRound} value={assignee} users={c.users} onChange={setAssignee} placeholder="اختر العضو" />
+
+            {!appointment && !template && (
+              <div className="tk-field">
+                <span className="tk-label"><Layers size={14} />النوع</span>
+                <div className="tk-kind n3" role="radiogroup" aria-label="نوع المهمة">
+                  {kinds.map(k => {
+                    const meta = KIND_META[k];
+                    return (
+                      <button key={k} type="button" role="radio" aria-checked={kind === k} className={`tone-${meta.tone} ${kind === k ? 'on' : ''}`} disabled={kindLocked(k)} onClick={() => { setKind(k); setError(''); }}>
+                        <span className="tsk-kind-icon"><meta.icon size={18} /></span><strong>{meta.label}</strong>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
-            <div className="tk-grid-3">
-              <label className="tk-field">
-                <span className="tk-label">كل</span>
-                <div className="tk-inline">
-                  <input className="tk-input" type="number" min={1} max={12} value={rec.interval} onChange={e => patch({ interval: Math.max(1, Number(e.target.value) || 1) })} />
-                  <span className="tk-unit">{rec.freq === 'DAILY' ? 'يوم' : rec.freq === 'WEEKLY' ? 'أسبوع' : 'شهر'}</span>
-                </div>
-              </label>
-              {rec.freq === 'MONTHLY' && (
-                <label className="tk-field">
-                  <span className="tk-label">يوم الشهر</span>
-                  <input className="tk-input" type="number" min={1} max={31} value={rec.monthDay} onChange={e => patch({ monthDay: Math.min(31, Math.max(1, Number(e.target.value) || 1)) })} />
-                </label>
-              )}
-              <label className="tk-field">
-                <span className="tk-label">الساعة</span>
-                <input className="tk-input" type="time" value={rec.time} onChange={e => patch({ time: e.target.value || '09:00' })} />
-              </label>
-            </div>
-            <div className="tk-grid-2">
-              <label className="tk-field">
-                <span className="tk-label">تبدأ من</span>
-                <input className="tk-input" type="datetime-local" value={startsOn} onChange={e => setStartsOn(e.target.value)} />
-              </label>
-              <label className="tk-field">
-                <span className="tk-label">تنتهي في <em>اختياري</em></span>
-                <input className="tk-input" type="date" value={rec.until} onChange={e => patch({ until: e.target.value })} />
-              </label>
-            </div>
-            <p className="tk-preview"><CalendarRange size={14} />{recurrenceText(rrule)} · تظهر كل مهمة قبل موعدها بـ {PERIODIC_LEAD_DAYS} أيام</p>
-          </Section>
-        )}
 
-        {kind === 'trigger' && (
-          <Section icon={Zap} title="الحدث" hint="تُنشأ المهمة تلقائياً مع كل حدث جديد">
-            <div className="tk-choice-list">
-              {TRIGGERS.map(t => (
-                <button key={t.value} type="button" className={trigger === t.value ? 'on' : ''} onClick={() => setTrigger(t.value)}>
-                  <t.icon size={16} />{t.label}
-                </button>
-              ))}
-            </div>
-            {offsetFields}
-            <p className="tk-preview"><Zap size={14} />آخر أجل كل مهمة {offsetText(offset || 0).replace('الحدث', triggerMeta.event)}</p>
-          </Section>
-        )}
-
-        {(kind === 'periodic' || kind === 'trigger') && (
-          <div className="tk-field">
-            <span className="tk-label">المدة المتاحة للإنجاز</span>
-            <div className="tk-inline">
-              <input className="tk-input num" type="number" min={0} step="0.5" inputMode="decimal" value={durationAmount} onChange={e => setDurationAmount(e.target.value)} />
-              {unitSeg(durationUnit, setDurationUnit)}
-            </div>
-            {duration > 0 && (
-              <small className="tk-hint"><Info size={12} />
-                {kind === 'periodic' ? `كل مهمة تبدأ في موعدها وآخر أجل لها بعد ${minutesText(duration)}` : `تبدأ المهمة قبل آخر أجل بـ ${minutesText(duration)}`}
-              </small>
+            {generated && (
+              <>
+                <TimeBox label="التنبيه" icon={BellRing} tone="orange" summary={task?.event_label || undefined}>
+                  <div className="tsk-time-row">
+                    <input className="tk-input" type="datetime-local" value={alertAt} onChange={e => setAlertAt(e.target.value)} aria-label="التنبيه" />
+                  </div>
+                </TimeBox>
+                <TimeBox label="آخر أجل" icon={CalendarClock} tone="blue">
+                  <div className="tsk-time-row">
+                    <input className="tk-input" type="datetime-local" value={dueAt} onChange={e => setDueAt(e.target.value)} aria-label="آخر أجل" />
+                  </div>
+                </TimeBox>
+              </>
             )}
-          </div>
-        )}
 
-        <Section icon={SlidersHorizontal} title="الخيارات">
-          <Toggle checked={needsApproval} onChange={setNeedsApproval} icon={ShieldCheck} title="تتطلب مراجعة واعتماد" hint="يعتمدها أو يرجعها من له صلاحية المراجعة" />
-          <Toggle checked={needsProof} onChange={setNeedsProof} icon={Paperclip} title="تتطلب إثبات الإنجاز" hint="صورة أو ملف أو نص أو رابط قبل الإرسال" />
-        </Section>
+            {withDeadline && (
+              <label className="tk-field">
+                <span className="tk-label"><CalendarClock size={14} />آخر أجل <em>اختياري</em></span>
+                <input className="tk-input" type="datetime-local" value={dueAt} onChange={e => setDueAt(e.target.value)} />
+              </label>
+            )}
+
+            {scheduled && (
+              <>
+                <span className="tk-label"><CalendarClock size={14} />الموعد</span>
+                <div className="tk-seg two">
+                  <button type="button" className={schedule === 'event' ? 'on' : ''} onClick={() => setSchedule('event')}><Zap size={15} />مرتبطة بحدث</button>
+                  <button type="button" className={schedule === 'periodic' ? 'on' : ''} onClick={() => setSchedule('periodic')}><Repeat size={15} />دورية</button>
+                </div>
+
+                {schedule === 'event' ? (
+                  <>
+                    <div className="tk-choice-list tsk-events">
+                      {EVENTS.filter(e => e !== 'birthday' || template?.event_type === 'birthday').map(e => {
+                        const meta = EVENT_META[e];
+                        return (
+                          <button key={e} type="button" className={eventType === e ? 'on' : ''} onClick={() => setEventType(e)}>
+                            <meta.icon size={16} />{meta.every}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <TimeBox label="التنبيه" icon={BellRing} tone="orange" summary={eventOffsetText(alertMinutes, eventType)}>
+                      <EventOffset value={alertOff} onChange={setAlertOff} />
+                    </TimeBox>
+                    <TimeBox label="آخر أجل" icon={CalendarClock} tone="blue" summary={eventOffsetText(dueMinutes, eventType)}>
+                      <EventOffset value={dueOff} onChange={setDueOff} />
+                    </TimeBox>
+                  </>
+                ) : (
+                  <>
+                    <div className="tk-field">
+                      <span className="tk-label"><Repeat size={14} />التكرار</span>
+                      <div className="tk-seg two">
+                        <button type="button" className={repeat === 'weekly' ? 'on' : ''} onClick={() => setRepeat('weekly')}>كل أسبوع</button>
+                        <button type="button" className={repeat === 'monthly' ? 'on' : ''} onClick={() => setRepeat('monthly')}>كل شهر</button>
+                      </div>
+                    </div>
+                    {repeat === 'weekly' ? (
+                      <div className="tk-field">
+                        <span className="tk-label"><CalendarDays size={14} />يوم المهمة</span>
+                        <div className="tk-days tsk-week">
+                          {WEEK_DAYS.map(d => <button key={d.value} type="button" className={weekDay === d.value ? 'on' : ''} onClick={() => setWeekDay(d.value)}>{d.label}</button>)}
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="tk-field">
+                        <span className="tk-label"><CalendarDays size={14} />يوم الشهر</span>
+                        <input className="tk-input tsk-month-day" type="number" min={1} max={31} inputMode="numeric" value={monthDay} onChange={e => setMonthDay(Math.min(31, Math.max(1, Number(e.target.value) || 1)))} />
+                      </label>
+                    )}
+                    <TimeBox label="التنبيه" icon={BellRing} tone="orange" summary={periodicText(alertMinutes)}>
+                      <EventOffset value={pAlertOff} onChange={setPAlertOff} />
+                    </TimeBox>
+                    <TimeBox label="آخر أجل" icon={CalendarClock} tone="blue" summary={periodicText(dueMinutes)}>
+                      <EventOffset value={pDueOff} onChange={setPDueOff} />
+                    </TimeBox>
+                  </>
+                )}
+              </>
+            )}
+
+            <div className="tk-field">
+              <span className="tk-label"><Shapes size={14} />طبيعة المهمة</span>
+              <div className="tk-seg three tsk-nature">
+                {(Object.keys(NATURE_META) as TaskNature[]).map(n => {
+                  const meta = NATURE_META[n];
+                  return <button key={n} type="button" className={nature === n ? 'on' : ''} onClick={() => { setNature(n); setError(''); }}><meta.icon size={15} />{meta.label}</button>;
+                })}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
-    </TaskPanel>
+    </SidePanel>
   );
 };

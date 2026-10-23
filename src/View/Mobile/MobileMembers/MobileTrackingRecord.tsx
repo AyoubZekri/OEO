@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import {
-  Wallet, Shirt, Scale, FileSignature, CheckCircle2, Landmark, Calendar, Package, AlertTriangle,
-  FileWarning, MessageSquare, Gavel, ArrowDownLeft, ArrowUpRight, CalendarX, Clock, DoorOpen, Plane,
-} from 'lucide-react';
+import { Wallet, Shirt, Scale, FileSignature, CheckCircle2, Landmark, Calendar, Package, AlertTriangle, FileWarning, MessageSquare, Gavel, ArrowDownLeft, ArrowUpRight, CalendarX, Clock, DoorOpen, Plane, TrendingUp } from 'lucide-react';
+import type { EvaluationRecord } from '../../Screen/Members/Evaluation/evaluation_data';
+import { MemberEvaluationsPanel } from '../../Screen/Members/MemberEvaluationsPanel';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -20,9 +19,13 @@ interface MobileTrackingRecordProps {
   member: MemberModel;
   controller: ReturnType<typeof useMembersController>;
   onClose: () => void;
+  /** A player's evaluations, in their own tab */
+  evaluations?: { onEdit?: (evaluation: EvaluationRecord) => void; onDelete?: (id: string) => void; refreshKey?: unknown };
+  /** Without the record's permission: only the evaluations */
+  onlyEvaluations?: boolean;
 }
 
-type Tab = 'financial' | 'equipment' | 'disciplinary' | 'absences';
+type Tab = 'financial' | 'equipment' | 'disciplinary' | 'absences' | 'evaluations';
 
 interface PaymentRow {
   id?: string | number;
@@ -147,8 +150,12 @@ const AbsenceList: React.FC<{ absences: AbsenceRecord[] }> = ({ absences }) => {
 };
 
 // Phone version of the member's tracking record: account, equipment, disciplinary actions and absences
-export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ member, controller, onClose }) => {
-  const [tab, setTab] = useState<Tab>('financial');
+export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ member, controller, onClose, evaluations, onlyEvaluations }) => {
+  const [tab, setTab] = useState<Tab>(onlyEvaluations ? 'evaluations' : 'financial');
+  const tabs = [
+    ...(onlyEvaluations ? [] : TABS),
+    ...(evaluations ? [{ id: 'evaluations' as Tab, label: 'التقييم', icon: TrendingUp }] : []),
+  ];
   // Equipment, disciplinary actions and absences; the account comes from the members controller
   const record = useMemberRecord(member.id);
   const loadingExtra = record.isLoading;
@@ -179,12 +186,16 @@ export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ memb
 
       {/* Tabs */}
       <div className="tr-tabs" role="tablist">
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {tabs.map(({ id, label, icon: Icon }) => (
           <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? 'active' : ''} onClick={() => setTab(id)}>
             <Icon size={16} /> {label}
           </button>
         ))}
       </div>
+
+      {tab === 'evaluations' && evaluations && (
+        <MemberEvaluationsPanel player={member} {...evaluations} />
+      )}
 
       {tab === 'financial' && (
         <>

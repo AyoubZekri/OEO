@@ -6,11 +6,11 @@ import { CustomDropdown } from '../../widget/CustomDropdown';
 import { TopbarSearch } from '../../widget/TopbarSearch';
 import { MobileAppBar } from '../../Mobile/widgets/MobileAppBar';
 import { MobileSelect } from '../../Mobile/widgets/MobileSelect';
-import { TaskLoader } from '../Tasks/parts/TaskLoader';
+import { PageLoader } from '../../shared/PageLoader';
 import { FEEDBACK_TYPES, STATUS_META, statusOf, type FeedbackStatus, type FeedbackType } from './feedbackUtils';
 import { useFeedbackAdmin, useFocusedFeedback } from './useFeedback';
 import { FeedbackCard, ReplyForm } from './FeedbackParts';
-import '../Tasks/Tasks.css';
+import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Feedback.css';
@@ -54,7 +54,7 @@ export const FeedbackAdmin: React.FC = () => {
       onDelete={can('feedback', 'delete') ? () => c.remove(f) : undefined}
     />
   ));
-  const body = c.isLoading && !c.items.length ? <TaskLoader mobile={isMobile} text="جاري تحميل الآراء..." />
+  const body = c.isLoading && !c.items.length ? <PageLoader mobile={isMobile} text="جاري تحميل الآراء..." />
     : c.error ? (
       <div className="tk-state">
         <MessageSquare size={30} /><p>{c.error}</p>

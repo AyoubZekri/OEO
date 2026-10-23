@@ -41,6 +41,8 @@ export interface FundFlow {
   fund: Fund;
   income: number;
   outcome: number;
+  /** The deposits the income is made of, newest first */
+  incomeItems: FundTransaction[];
 }
 
 /** The debts not paid in full: loans put into the funds, and purchases on credit (in kind) */
@@ -192,11 +194,11 @@ export const useHomeController = () => {
       // Each fund: its income is what was recorded as a deposit (إيداع) in it, its outgoings the payments above
       setFundFlows(funds.map(fund => {
         const id = String(fund.id);
-        let income = 0;
-        fundTransactions.forEach(t => {
-          if (txFund(t) === id && t.type === 'إيداع') income += txAmount(t);
-        });
-        return { fund, income: round(income), outcome: round(spentFrom.get(id) || 0) };
+        const incomeItems = fundTransactions
+          .filter(t => txFund(t) === id && t.type === 'إيداع')
+          .sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')) || Number(b.id) - Number(a.id));
+        const income = incomeItems.reduce((sum, t) => sum + txAmount(t), 0);
+        return { fund, income: round(income), outcome: round(spentFrom.get(id) || 0), incomeItems };
       }));
       // Paid without a fund (exceptional expenses)
       setUnfundedOutcome(round(spentFrom.get('') || 0));

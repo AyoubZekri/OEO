@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Save, Loader2, AlertCircle, MapPin, Bus, Users, Clock, FileText, Trophy, UserRound, Info, Shirt, Briefcase, Layers } from 'lucide-react';
-import { TaskPanel } from '../../Tasks/parts/TaskPanel';
-import { AppSelect, UserPicker } from '../../Tasks/parts/FormBits';
-import { dateText, toApiDate, toInputDate } from '../../Tasks/taskUtils';
+import { SidePanel } from '../../../shared/SidePanel';
+import { AppSelect, UserPicker } from '../../../shared/FormBits';
+import { dateText, toApiDate, toInputDate } from '../../../shared/dates';
 import type { TravelsController } from '../useTravelsController';
 import { SCHEDULE, type Travel, type TravelMatch } from '../travelUtils';
 import { MemberMultiPicker } from './MemberMultiPicker';
@@ -110,7 +110,7 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
   };
 
   return (
-    <TaskPanel
+    <SidePanel
       mobile={mobile}
       layer={2}
       icon={MapPin}
@@ -225,6 +225,6 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
 
         {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
-    </TaskPanel>
+    </SidePanel>
   );
 };

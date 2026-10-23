@@ -9,6 +9,9 @@ export interface EvaluationRecord {
   evalDate: string;
   totalScore: number;
   recommendation: string;
+  /** A monthly evaluation: the month it is about (its first and last day) */
+  fromDate?: string;
+  toDate?: string;
   strengths: string;
   weaknesses: string;
   // Specific scores
@@ -54,7 +57,9 @@ export class EvaluationsData {
           member_id: item.member_id || item.playerId || 0,
           season: item.sports_season || item.season || '',
           period: item.evaluation_type || item.evaluationType || '',
-          evalDate: item.evaluation_date || item.periodStart || '',
+          evalDate: item.createdAt || item.evaluation_date || item.periodStart || '',
+          fromDate: item.periodStart || item.period_start || '',
+          toDate: item.periodEnd || item.period_end || '',
           totalScore: item.total_score || item.totalScore || 0,
           recommendation: mapRecommendation(item.recommendations || item.recommendation || ''),
           strengths: item.strengths || '',
@@ -77,7 +82,9 @@ export class EvaluationsData {
           member_id: item.member_id || item.playerId || 0,
           season: item.sports_season || item.season || '',
           period: item.evaluation_type || item.evaluationType || '',
-          evalDate: item.evaluation_date || item.periodStart || '',
+          evalDate: item.createdAt || item.evaluation_date || item.periodStart || '',
+          fromDate: item.periodStart || item.period_start || '',
+          toDate: item.periodEnd || item.period_end || '',
           totalScore: item.total_score || item.totalScore || 0,
           recommendation: mapRecommendation(item.recommendations || item.recommendation || ''),
           strengths: item.strengths || '',
@@ -109,7 +116,9 @@ export class EvaluationsData {
     try {
       const payload = {
         playerId: evaluation.member_id,
-        periodStart: evaluation.evalDate,
+        // A monthly evaluation: its month; otherwise the evaluation's day
+        periodStart: evaluation.fromDate || evaluation.evalDate,
+        periodEnd: evaluation.toDate || undefined,
         evaluationType: evaluation.period,
         season: evaluation.season,
         scoreFitness: evaluation.scores.physical,
@@ -137,7 +146,9 @@ export class EvaluationsData {
           member_id: item.member_id || item.playerId || 0,
           season: item.sports_season || item.season || '',
           period: item.evaluation_type || item.evaluationType || '',
-          evalDate: item.evaluation_date || item.periodStart || '',
+          evalDate: item.createdAt || item.evaluation_date || item.periodStart || '',
+          fromDate: item.periodStart || item.period_start || '',
+          toDate: item.periodEnd || item.period_end || '',
           totalScore: item.total_score || item.totalScore || 0,
           recommendation: mapRecommendation(item.recommendations || item.recommendation || ''),
           strengths: item.strengths || '',
@@ -167,7 +178,9 @@ export class EvaluationsData {
       const payload = {
         id: evaluation.id,
         playerId: evaluation.member_id,
-        periodStart: evaluation.evalDate,
+        // A monthly evaluation: its month; otherwise the evaluation's day
+        periodStart: evaluation.fromDate || evaluation.evalDate,
+        periodEnd: evaluation.toDate || undefined,
         evaluationType: evaluation.period,
         season: evaluation.season,
         scoreFitness: evaluation.scores.physical,
@@ -217,3 +230,11 @@ export class EvaluationsData {
     }
   }
 }
+
+const MONTHS_AR = ['جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+/** The evaluation's period as shown: a monthly one with its month and year ("شهري · أكتوبر 2026") */
+export const periodLabel = (e: Pick<EvaluationRecord, 'period' | 'fromDate'>) => {
+  const m = e.period === 'شهري' ? /^(\d{4})-(\d{2})/.exec(e.fromDate || '') : null;
+  return m ? `شهري · ${MONTHS_AR[Number(m[2]) - 1]} ${m[1]}` : e.period;
+};

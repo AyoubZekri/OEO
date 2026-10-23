@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Save, Loader2, AlertCircle, Landmark, UserRound, Wallet, Tag, CalendarDays, FileText, Info, Banknote, Lock } from 'lucide-react';
-import { TaskPanel } from '../../Tasks/parts/TaskPanel';
+import { SidePanel } from '../../../shared/SidePanel';
 import { CurrencyInput } from '../../../widget/CurrencyInput';
-import { AppSelect } from '../../Tasks/parts/FormBits';
+import { AppSelect } from '../../../shared/FormBits';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
 import type { DebtsController } from '../useDebtsController';
 import { DEBT_NATURES, todayIso, type Debt, type DebtKind } from '../debtUtils';
@@ -81,7 +81,7 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
   };
 
   return (
-    <TaskPanel
+    <SidePanel
       mobile={mobile}
       layer={2}
       icon={Landmark}
@@ -174,6 +174,6 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
 
         {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
-    </TaskPanel>
+    </SidePanel>
   );
 };

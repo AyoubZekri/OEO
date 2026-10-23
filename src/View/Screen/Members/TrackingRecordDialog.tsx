@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import {
   X, Wallet, Shirt, Scale, CalendarX, FileSignature, Landmark, Package, AlertTriangle, FileWarning,
-  MessageSquare, Gavel, Calendar, Clock, CheckCircle2, ArrowDownLeft, ArrowUpRight, DoorOpen, Plane,
+  MessageSquare, Gavel, Calendar, Clock, CheckCircle2, ArrowDownLeft, ArrowUpRight, DoorOpen, Plane, TrendingUp,
 } from 'lucide-react';
+import type { EvaluationRecord } from './Evaluation/evaluation_data';
+import { MemberEvaluationsPanel } from './MemberEvaluationsPanel';
 import type { useMembersController } from './MembersController';
 import type { MemberModel } from './member_model';
 import {
@@ -15,9 +17,13 @@ interface TrackingRecordDialogProps {
   member: MemberModel;
   controller: ReturnType<typeof useMembersController>;
   onClose: () => void;
+  /** A player's evaluations, in their own tab */
+  evaluations?: { onEdit?: (evaluation: EvaluationRecord) => void; onDelete?: (id: string) => void; refreshKey?: unknown };
+  /** Without the record's permission: only the evaluations */
+  onlyEvaluations?: boolean;
 }
 
-type Tab = 'financial' | 'equipment' | 'disciplinary' | 'absences';
+type Tab = 'financial' | 'equipment' | 'disciplinary' | 'absences' | 'evaluations';
 type AbsenceFilter = 'all' | 'absence' | 'late';
 
 interface PaymentRow {
@@ -74,8 +80,8 @@ const formatDate = (value?: string) => {
 const isDeduction = (nature?: string) => nature === 'استقطاع' || nature === 'خصم';
 
 // Desktop tracking record of a member: account statement, equipment, disciplinary actions and absences
-export const TrackingRecordDialog: React.FC<TrackingRecordDialogProps> = ({ member, controller, onClose }) => {
-  const [tab, setTab] = useState<Tab>('financial');
+export const TrackingRecordDialog: React.FC<TrackingRecordDialogProps> = ({ member, controller, onClose, evaluations, onlyEvaluations }) => {
+  const [tab, setTab] = useState<Tab>(onlyEvaluations ? 'evaluations' : 'financial');
   const [absenceFilter, setAbsenceFilter] = useState<AbsenceFilter>('all');
   const record = useMemberRecord(member.id);
   const { formatCurrency } = controller;
@@ -90,12 +96,14 @@ export const TrackingRecordDialog: React.FC<TrackingRecordDialogProps> = ({ memb
     : record.absences.filter(a => absenceKind(a).kind === absenceFilter);
   const photo = member.photo && !member.photo.includes('ui-avatars.com') ? member.photo : null;
 
-  const tabs: { id: Tab; label: string; icon: React.ComponentType<{ size?: number }>; count?: number }[] = [
+  const allTabs: { id: Tab; label: string; icon: React.ComponentType<{ size?: number }>; count?: number }[] = [
     { id: 'financial', label: 'كشف الحساب', icon: Wallet, count: payments.length },
     { id: 'equipment', label: 'سجل المعدات', icon: Shirt, count: record.movements.length },
     { id: 'disciplinary', label: 'الإجراءات التأديبية', icon: Scale, count: record.disciplinary.length },
     { id: 'absences', label: 'الغياب والتأخر', icon: CalendarX, count: record.absences.length },
+    ...(evaluations ? [{ id: 'evaluations' as Tab, label: 'التقييمات', icon: TrendingUp }] : []),
   ];
+  const tabs = onlyEvaluations ? allTabs.filter(t => t.id === 'evaluations') : allTabs;
 
   const loadingRow = (cols: number, text = 'جاري التحميل...') => (
     <tr><td colSpan={cols} className="trd-empty-cell">{text}</td></tr>
@@ -270,6 +278,10 @@ export const TrackingRecordDialog: React.FC<TrackingRecordDialogProps> = ({ memb
               })}
             </div>
           ))}
+
+          {tab === 'evaluations' && evaluations && (
+            <MemberEvaluationsPanel player={member} {...evaluations} />
+          )}
 
           {tab === 'absences' && (
             <section className="trd-card">

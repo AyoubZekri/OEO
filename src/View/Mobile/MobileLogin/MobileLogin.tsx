@@ -3,7 +3,7 @@ import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import type { useLoginController } from '../../Screen/Auth/Login/LoginController';
 import './MobileLogin.css';
 
-const CLUB_NAME = 'أولمبيك الوادي';
+const CLUB_NAME = 'أولمبي الوادي';
 
 interface MobileLoginProps {
   c: ReturnType<typeof useLoginController>;

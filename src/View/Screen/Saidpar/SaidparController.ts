@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Shield, ListTodo, Bus, Landmark, Trophy, CalendarX2, MessageSquare } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Bus, Landmark, Trophy, CalendarX2, MessageSquare, ClipboardList, PieChart } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useSpace, type AppSpace } from '../../../core/context/space';
@@ -107,8 +107,8 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
       title: '',
       items: [
-        { name: 'MyTasks', icon: ListTodo, isDropdown: false, label: 'مهامي', route: Approutes.MyTasks },
         { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.MyTrainingSessions },
+        { name: 'MyTasks', icon: ClipboardList, isDropdown: false, label: 'مهامي', route: Approutes.MyTasks },
         { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مباريات', route: Approutes.MyMatches },
         { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غيابات', route: Approutes.MyAbsences },
         { name: 'MyMeetings', icon: Briefcase, isDropdown: false, label: 'اجتماعات', route: Approutes.MyMeetings },
@@ -124,22 +124,26 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
      title: "",
       items: [
-        ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
+        // Home: the tasks whose time came; the tasks page (tasks and appointments); the finance (the former home page)
+        ...(hasAccess(permissions.tasks?.view ?? false) ? [{
           name: 'Home',
           icon: Home,
           isDropdown: false,
           label: 'sidebar.home',
           route: '/',
+        }, {
+          name: 'Tasks',
+          icon: ClipboardList,
+          isDropdown: false,
+          label: 'المهام',
+          route: Approutes.Tasks,
         }] : []),
-        ...(hasAccess(permissions.tasks?.view ?? true) ? [{
-          name: 'TasksGroup',
-          icon: ListTodo,
-          isDropdown: true,
-          label: 'sidebar.tasks',
-          subItems: [
-            { name: 'Tasks', label: 'المهام', route: Approutes.Tasks },
-            { name: 'PeriodicTasks', label: 'المهام الدورية', route: Approutes.PeriodicTasks },
-          ],
+        ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
+          name: 'Finance',
+          icon: PieChart,
+          isDropdown: false,
+          label: 'المالية',
+          route: Approutes.Finance,
         }] : []),
         ...(hasAccess(permissions.members.view) ? [{
           name: 'Members',
@@ -162,13 +166,6 @@ export const useSaidparController = (onLogout?: () => void) => {
           isDropdown: false,
           label: 'فئات الفرق',
           route: Approutes.Teams,
-        }] : []),
-        ...(hasAccess(permissions.clubs.view) ? [{
-          name: 'Clubs',
-          icon: Shield,
-          isDropdown: false,
-          label: 'الأندية الأخرى',
-          route: Approutes.Clubs,
         }] : []),
         ...(hasAccess(permissions.trainingSessions.view) ? [{
           name: 'TrainingSessions',

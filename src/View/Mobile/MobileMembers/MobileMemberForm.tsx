@@ -11,6 +11,7 @@ import { useBackCloses } from '../widgets/useBackCloses';
 import type { MobileSelectOption } from '../widgets/MobileSelect';
 import type { useMembersController } from '../../Screen/Members/MembersController';
 import './MobileMemberForm.css';
+import { openDocument } from '../../widget/openDocument';
 
 interface MobileMemberFormProps {
   controller: ReturnType<typeof useMembersController>;
@@ -282,9 +283,9 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
                   <small>{doc.file ? doc.file.name : hasExisting ? 'ملف مرفق مسبقاً' : 'PDF أو صورة'}</small>
                 </span>
                 {hasExisting && (
-                  <a className="mf-doc-view" href={`${Applink.image}/${doc.existing}`} target="_blank" rel="noreferrer" aria-label="عرض الملف">
+                  <button type="button" className="mf-doc-view" onClick={() => openDocument(`${Applink.image}/${doc.existing}`, 'عرض الملف')} aria-label="عرض الملف">
                     <Eye size={16} />
-                  </a>
+                  </button>
                 )}
                 <label className="mf-doc-pick">
                   {doc.file || hasExisting ? 'تغيير' : 'رفع'}

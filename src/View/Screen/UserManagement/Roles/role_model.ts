@@ -160,15 +160,6 @@ export interface TravelsPermissions {
   delete: boolean;
 }
 
-export interface TasksPermissions {
-  view: boolean;
-  add: boolean;
-  edit: boolean;
-  delete: boolean;
-  review: boolean;
-  manage: boolean;
-  templates: boolean;
-}
 
 export interface DisciplinaryPermissions {
   view: boolean;
@@ -189,6 +180,14 @@ export interface FeedbackPermissions {
   delete: boolean;
 }
 
+/** Tasks: follow them (and talk with the member), give new ones and appointments, change their status / edit, delete */
+export interface TasksPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
 export interface AppPermissions {
   dashboard: DashboardPermissions;
   members: MembersPermissions;
@@ -203,8 +202,8 @@ export interface AppPermissions {
   meetings: MeetingsPermissions;
   decisions: DecisionsPermissions;
   correspondences: CorrespondencesPermissions;
-  tasks: TasksPermissions;
   feedback: FeedbackPermissions;
+  tasks: TasksPermissions;
   contracts: ContractsPermissions;
   payments: PaymentsPermissions;
   funds: FundsPermissions;
@@ -235,8 +234,8 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   meetings: ['add', 'edit', 'delete', 'attendance'],
   decisions: ['add', 'edit', 'delete', 'progress'],
   correspondences: ['add', 'changeStatus', 'delete'],
-  tasks: ['add', 'edit', 'delete', 'review', 'manage', 'templates'],
   feedback: ['reply', 'delete'],
+  tasks: ['add', 'edit', 'delete'],
   contracts: ['add', 'edit', 'delete', 'print', 'renew'],
   payments: ['add', 'edit', 'delete', 'print'],
   funds: ['add', 'edit', 'delete', 'addTransaction'],
@@ -251,8 +250,8 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
 export const PERMISSION_DOMAINS: { key: string; label: string; modules: PermissionModule[] }[] = [
   { key: 'general', label: 'عام', modules: ['dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
-  { key: 'sport', label: 'الرياضي', modules: ['teams', 'clubs', 'trainingSessions', 'matches', 'medical', 'travels'] },
-  { key: 'admin', label: 'الإدارة', modules: ['meetings', 'decisions', 'tasks', 'feedback'] },
+  { key: 'sport', label: 'الرياضي', modules: ['teams', 'trainingSessions', 'matches', 'medical', 'travels'] },
+  { key: 'admin', label: 'الإدارة', modules: ['tasks', 'meetings', 'decisions', 'feedback'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
@@ -315,8 +314,6 @@ export const parsePermissions = (parsed: any): AppPermissions => {
       // The disciplinary page used to be listed for everyone who could view members
       if (m === 'disciplinary' && stored?.view === undefined) merged.view = parsed?.members?.view === true;
     }
-    // Roles saved before the tasks section: everyone sees the tasks given to them (same rule as the server)
-    if (m === 'tasks' && stored === undefined) merged.view = true;
     // Roles saved before the debts section: whoever manages the funds manages the debts
     if (m === 'debts' && stored === undefined) {
       const funds = parsed?.funds || {};

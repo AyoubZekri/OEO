@@ -1,5 +1,6 @@
 import React from 'react';
-import { Plus, Edit2, Trash2, Users } from 'lucide-react';
+import { Plus, Edit2, Trash2, Users, Briefcase } from 'lucide-react';
+import { teamKindLabel } from './team_model';
 import { useTeamsController } from './TeamsController';
 import { TeamDialog } from './TeamDialog';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -51,12 +52,13 @@ export const Teams: React.FC = () => {
       ) : (
         <div className="teams-grid">
           {controller.teams.map(team => (
-            <div key={team.id} className="team-card">
+            <div key={team.id} className={`team-card kind-${team.kind}`}>
               <div className="team-icon-wrapper">
-                <Users size={32} strokeWidth={1.5} />
+                {team.kind === 'staff' ? <Briefcase size={32} strokeWidth={1.5} /> : <Users size={32} strokeWidth={1.5} />}
               </div>
               
               <h2 className="team-name">{team.name}</h2>
+              <span className={`team-kind-badge ${team.kind}`}>{teamKindLabel(team.kind)}</span>
               
               <div className="team-card-actions">
                 {hasAccess(permissions.teams.edit) && (

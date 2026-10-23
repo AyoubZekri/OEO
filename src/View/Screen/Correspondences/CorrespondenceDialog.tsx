@@ -127,7 +127,7 @@ export const CorrespondenceDialog: React.FC<CorrespondenceDialogProps> = ({
           {/* Print Only Header */}
           <div className="print-header only-print" style={{ textAlign: 'center', marginBottom: '24px' }}>
             <h2>المراسلة الرسمية مع اللاعب</h2>
-            <h3>نادي: أولمبيك أوراس باتنة (OEB) – فرع كرة القدم</h3>
+            <h3>نادي: أولمبي الوادي – فرع كرة القدم</h3>
           </div>
 
           <form className="no-print" style={{ display: viewOnly ? 'none' : 'flex', flexDirection: 'column', gap: '16px' }}>

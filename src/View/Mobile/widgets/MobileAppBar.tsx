@@ -15,7 +15,7 @@ export const MobileAppBar: React.FC<MobileAppBarProps> = ({ title, showNotificat
     // The slot keeps the bar's space in the page; the bar itself is fixed to the screen
     <div className="m-appbar-slot">
     <header className="m-appbar" dir="rtl">
-      <img className="m-appbar-logo" src="/LOGO.webp" alt="أولمبيك الوادي" />
+      <img className="m-appbar-logo" src="/LOGO.webp" alt="أولمبي الوادي" />
       <h1 className="m-appbar-title">{title}</h1>
       <button type="button" className="m-appbar-bell" onClick={alertsBell.open} aria-label={count ? `التنبيهات: ${count}` : 'التنبيهات'}>
         <Bell size={22} />

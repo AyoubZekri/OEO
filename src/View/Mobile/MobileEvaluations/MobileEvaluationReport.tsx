@@ -5,6 +5,7 @@ import { ScoreRing } from './EvaluationWidgets';
 import { CRITERIA, GRADE_LABELS, gradeOf } from './evaluationShared';
 import type { EvaluationRecord } from '../../Screen/Members/Evaluation/evaluation_data';
 import './MobileEvaluations.css';
+import { periodLabel } from '../../Screen/Members/Evaluation/evaluation_data';
 
 interface MobileEvaluationReportProps {
   evaluation: EvaluationRecord;
@@ -27,7 +28,7 @@ export const MobileEvaluationReport: React.FC<MobileEvaluationReportProps> = ({ 
         <span className="me-grade">مستوى: {GRADE_LABELS[grade]}</span>
         <div className="me-chips" style={{ justifyContent: 'center' }}>
           <span className="me-chip"><Calendar size={13} /> {evaluation.season || '—'}</span>
-          <span className="me-chip"><Activity size={13} /> {evaluation.period || '—'}</span>
+          <span className="me-chip"><Activity size={13} /> {periodLabel(evaluation) || '—'}</span>
           {evaluation.evalDate && <span className="me-chip">{evaluation.evalDate}</span>}
         </div>
       </section>

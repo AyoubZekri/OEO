@@ -1,7 +1,7 @@
 import React from 'react';
-import { Landmark, ShoppingBag, CalendarClock, ChevronLeft, Wallet, Tag } from 'lucide-react';
+import { Landmark, ShoppingBag, CalendarClock, ChevronLeft, Wallet, Tag, CircleAlert, CircleCheck, AlarmClock, PieChart } from 'lucide-react';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
-import { initials } from '../../Tasks/taskUtils';
+import { initials } from '../../../shared/dates';
 import { MobileRowMenu, type MobileRowMenuItem } from '../../../Mobile/widgets/MobileRowMenu';
 import { dayText, dueText, KIND_META, paidPercent, STATUS_META, toneOf, type Debt } from '../debtUtils';
 
@@ -47,6 +47,20 @@ export const StatusPill: React.FC<{ debt: Debt }> = ({ debt: d }) => {
     : <span className={`db-pill tone-${s.tone}`}><i />{s.label}</span>;
 };
 
+/** Phones: the debt's status in place of the initials — late, not paid, partly paid (its share), paid */
+export const StatusBadge: React.FC<{ debt: Debt }> = ({ debt: d }) => {
+  const late = d.overdue && d.status !== 'paid';
+  const tone = late ? 'red' : STATUS_META[d.status].tone;
+  const Icon = late ? AlarmClock : d.status === 'paid' ? CircleCheck : d.status === 'partial' ? PieChart : CircleAlert;
+  const label = late ? 'متأخر' : d.status === 'paid' ? 'مسدد' : d.status === 'partial' ? `جزئي ${paidPercent(d)}%` : 'غير مسدد';
+  return (
+    <span className={`db-status-badge tone-${tone}`} role="img" aria-label={late ? 'متأخر' : STATUS_META[d.status].label}>
+      <Icon size={20} />
+      <small>{label}</small>
+    </span>
+  );
+};
+
 /**
  * One debt: the creditor, what is left (with the paid ring and bar), then the fund or nature and the due date.
  * `compact` (phones): creditor, what is left and the status.
@@ -61,10 +75,10 @@ export const DebtCard: React.FC<{ debt: Debt; onOpen: (d: Debt) => void; actions
   if (compact) {
     return (
       <article className={`db-card compact tone-${tone} ${paid ? 'done' : ''}`} role="button" tabIndex={0} onClick={open} onKeyDown={key}>
-        <CreditorAvatar debt={d} />
+        <StatusBadge debt={d} />
         <div className="db-card-title">
-          <div className="db-card-name"><h3>{d.creditor}</h3><StatusPill debt={d} /></div>
-          <span className="db-sub">{d.title || KIND_META[d.kind].short}</span>
+          <h3 className="db-compact-name">{d.creditor}</h3>
+          <span className="db-sub db-compact-sub"><KindIcon debt={d} size={13} /> {d.title || KIND_META[d.kind].short}</span>
           <div className="db-compact-money">
             <b className={paid ? 'db-paid' : 'db-left'}>{moneyText(paid ? d.amount : d.remaining)}</b>
             <small>{paid ? 'مسدد بالكامل' : `باقي من ${moneyText(d.amount)}`}</small>

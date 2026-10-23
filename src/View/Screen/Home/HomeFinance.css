@@ -57,3 +57,83 @@
   background: #f97316; color: #fff;
 }
 body.dark-mode .hf-block-title { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }
+
+/* The income / outgoings cards look as before; a fund's income row opens its page (same look, only clickable) */
+.hf-card.static:active { transform: none; }
+.hf-fund-row {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 0; border: none; background: none; font: inherit; color: inherit; text-align: start; cursor: pointer;
+}
+.hf-funds li:has(.hf-fund-row):active { background: color-mix(in srgb, var(--tone) 16%, transparent); }
+
+/* A fund's income page */
+/* Search in a fund's income */
+.hf-search {
+  display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 14px; box-sizing: border-box;
+  border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-muted);
+}
+.hf-search input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; font: inherit; font-size: .92rem; color: var(--text-h); }
+.hf-search input::-webkit-search-cancel-button { display: none; }
+.hf-search button { display: inline-flex; padding: 4px; border: none; background: none; color: inherit; cursor: pointer; }
+.hf-search:focus-within { border-color: var(--accent, #f97316); }
+.hf-income-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.hf-income-list li {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border-radius: 16px; border: 1px solid var(--border); background: var(--card-bg);
+}
+.hf-income-icon {
+  width: 38px; height: 38px; flex-shrink: 0; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(16, 185, 129, .12); color: #10b981;
+}
+.hf-income-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.hf-income-text strong { font-size: .9rem; font-weight: 800; color: var(--text-h); overflow-wrap: anywhere; }
+.hf-income-text small { display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; color: var(--text-muted); }
+.hf-income-list li { align-items: flex-start; }
+.hf-income-text b { font-size: 1rem; font-weight: 900; color: #10b981; white-space: nowrap; }
+.hf-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 36px 16px; color: var(--text-muted); text-align: center; }
+.hf-empty p { margin: 0; font-size: .88rem; }
+
+/* A fund's outgoings: the same list in red */
+.hf-income-list.out .hf-income-icon { background: rgba(239, 68, 68, .12); color: #ef4444; }
+.hf-income-list.out .hf-income-text b { color: #ef4444; }
+
+/* An outgoing line opens its details */
+.hf-income-list li.tappable { padding: 0; }
+.hf-line-btn {
+  width: 100%; display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px;
+  border: none; border-radius: 16px; background: transparent; font: inherit; color: inherit; text-align: start; cursor: pointer;
+}
+.hf-line-btn:active { background: var(--bg-hover, #f1f5f9); }
+.hf-line-go { flex-shrink: 0; align-self: center; color: var(--text-muted); }
+
+/* The details page */
+.hf-detail-head {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 20px 16px; text-align: center;
+  border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg);
+}
+.hf-detail-head .hf-income-icon { width: 52px; height: 52px; border-radius: 16px; }
+.hf-income-icon.out { background: rgba(239, 68, 68, .12); color: #ef4444; }
+.hf-detail-head b { font-size: 1.6rem; font-weight: 900; color: #ef4444; }
+.hf-detail-head strong { font-size: .95rem; font-weight: 800; color: var(--text-h); overflow-wrap: anywhere; }
+.hf-detail-rows { margin: 0; border-radius: 18px; border: 1px solid var(--border); background: var(--card-bg); overflow: hidden; }
+.hf-detail-rows > div { display: flex; justify-content: space-between; gap: 16px; padding: 13px 16px; }
+.hf-detail-rows > div + div { border-top: 1px solid var(--border); }
+.hf-detail-rows dt { flex-shrink: 0; font-size: .84rem; font-weight: 700; color: var(--text-muted); }
+.hf-detail-rows dd { margin: 0; font-size: .9rem; font-weight: 800; color: var(--text-h); text-align: end; overflow-wrap: anywhere; }
+.hf-receipt {
+  display: flex; align-items: center; justify-content: center; gap: 8px; height: 48px; border-radius: 14px;
+  background: var(--accent-bg); color: var(--accent); font-weight: 800; text-decoration: none;
+}
+
+button.hf-receipt { width: 100%; border: none; font: inherit; cursor: pointer; }
+
+/* The two debt tiles: the same height, their content centred and lined up (icon, title, amount) */
+.hf-duo { align-items: stretch; }
+.hf-tile { height: 100%; align-items: center; justify-content: center; text-align: center; gap: 8px; padding: 16px 12px; }
+.hf-tile .hf-label { min-height: 0; line-height: 1.35; white-space: nowrap; }
+.hf-tile .hf-amount { font-size: 1.1rem; }
+
+/* The in-kind debts page */
+.hf-credit { display: flex; flex-direction: column; gap: 12px; }
+.hf-credit .tk-filter-btn { width: 100%; }

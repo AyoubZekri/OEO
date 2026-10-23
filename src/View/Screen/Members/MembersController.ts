@@ -349,7 +349,11 @@ export const useMembersController = () => {
       member.last_name.toLowerCase().includes(searchLower) ||
       typeArabic.includes(searchLower);
       
-    const matchesTeam = filterTeamId === '' || member.team_id?.toString() === filterTeamId;
+    // '' everyone; 'kind:staff' / 'kind:players' every category of that kind; else one category
+    const kindFilter = filterTeamId.startsWith('kind:') ? filterTeamId.slice(5) : '';
+    const memberTeam = teams.find(t => t.id === member.team_id?.toString());
+    const matchesTeam = filterTeamId === ''
+      || (kindFilter ? memberTeam?.kind === kindFilter : member.team_id?.toString() === filterTeamId);
 
     return matchesSearch && matchesTeam;
   });

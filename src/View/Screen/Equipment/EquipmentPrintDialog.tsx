@@ -84,7 +84,7 @@ export const EquipmentPrintDialog: React.FC<EquipmentPrintDialogProps> = ({ isOp
 
           {/* Hidden printable component */}
           <div className="print-only-receipt" ref={printRef}>
-            <PrintableEquipmentReceipt clubName="أولمبي أرزيو" {...receipt} />
+            <PrintableEquipmentReceipt clubName="أولمبي الوادي" {...receipt} />
           </div>
         </div>
 

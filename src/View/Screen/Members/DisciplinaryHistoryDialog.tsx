@@ -60,7 +60,7 @@ export const DisciplinaryHistoryDialog: React.FC<DisciplinaryHistoryDialogProps>
         <div className="dialog-body printable-area" style={{ padding: '0', background: 'var(--bg-body, #f8fafc)' }}>
           
           <div className="print-header only-print">
-            <h2>نادي أولمبيك - السجل التأديبي</h2>
+            <h2>نادي أولمبي الوادي - السجل التأديبي</h2>
             <h3>{member.first_name} {member.last_name}</h3>
             <p>تاريخ الإصدار: {new Intl.DateTimeFormat('ar-DZ').format(new Date())}</p>
           </div>

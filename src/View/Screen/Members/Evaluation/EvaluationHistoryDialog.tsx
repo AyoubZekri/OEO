@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, TrendingUp, Calendar, AlertCircle, Edit2, Trash2, Check, Star, Eye, Target, Handshake, ArrowRight } from 'lucide-react';
+import { X, TrendingUp, Calendar, AlertCircle, Edit2, Trash2, Eye, Target, Handshake, ArrowRight } from 'lucide-react';
 import type { MemberModel } from '../member_model';
 import type { EvaluationRecord } from './evaluation_data';
 import { ViewEvaluationDialog } from './ViewEvaluationDialog';
@@ -7,6 +7,7 @@ import { ImprovementProgramDialog } from './ImprovementProgramDialog';
 import { ContractReviewDialog } from './ContractReviewDialog';
 import './EvaluationHistory.css';
 import './Evaluation.css';
+import { periodLabel } from './evaluation_data';
 
 interface EvaluationHistoryDialogProps {
   player: MemberModel;
@@ -91,7 +92,7 @@ export const EvaluationHistoryDialog: React.FC<EvaluationHistoryDialogProps> = (
                       </div>
                       <div className="eval-card-meta" style={{ margin: 0 }}>
                         <span className="eval-season-badge">{ev.season}</span>
-                        <span className="eval-period-badge">{ev.period}</span>
+                        <span className="eval-period-badge">{periodLabel(ev)}</span>
                       </div>
                     </div>
                   </div>

@@ -44,7 +44,6 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
     match_status: match?.match_status || 'upcoming',
     opponent_club_id: match?.opponent_club_id ? String(match.opponent_club_id) : '',
   }));
-  const [clubs, setClubs] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
@@ -54,9 +53,8 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
   useEffect(() => {
     const headers = { Authorization: `Bearer ${localStorage.getItem('token')}` };
     const get = (url: string) => axios.get(url, { headers }).catch(() => null);
-    Promise.all([get(Applink.clubs), get(Applink.teams), get(Applink.individuals), get(Applink.users)])
-      .then(([clubsRes, teamsRes, indRes, usersRes]) => {
-        setClubs(listOf(clubsRes));
+    Promise.all([get(Applink.teams), get(Applink.individuals), get(Applink.users)])
+      .then(([teamsRes, indRes, usersRes]) => {
         setTeams(listOf(teamsRes));
         const people = listOf(indRes);
         const allowed = people.filter((p: any) => p.role?.name && STAFF_ROLES.includes(String(p.role.name).trim()));
@@ -66,12 +64,10 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
   }, []);
 
   const set = (field: keyof typeof form, value: string) => setForm(prev => ({ ...prev, [field]: value }));
-  const club = clubs.find(c => String(c.id) === form.opponent_club_id);
-  const opponentLogo = club?.logo || match?.opponentClub?.logo || match?.opponent_club?.logo || '';
   const date = form.match_date ? new Date(form.match_date) : null;
 
   const errors = {
-    opponent: !form.opponent_club_id && !form.opponent ? 'اختر الفريق الخصم' : null,
+    opponent: !form.opponent.trim() ? 'اكتب اسم الفريق الخصم' : null,
     competition: !form.competition.trim() ? 'اكتب اسم المنافسة' : null,
     date: !form.match_date ? 'حدد تاريخ وتوقيت المباراة' : null,
     location: !form.location.trim() ? 'اكتب مكان المباراة' : null,
@@ -86,7 +82,9 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
     setSaving(true);
     try {
       const url = match ? Applink.updateMatch : Applink.createMatch;
-      const payload = match ? { ...form, id: match.id } : form;
+      // The opponent is the name typed (no club chosen from a list any more)
+      const typed = { ...form, opponent: form.opponent.trim(), opponent_club_id: '' };
+      const payload = match ? { ...typed, id: match.id } : typed;
       const res = await axios.post(url, payload, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
       if (res.data.status === 'success') {
         onSave();
@@ -156,9 +154,7 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
             <small>{date ? dayText(date) : 'بدون موعد'}</small>
           </span>
           <span className="mmf-team">
-            {form.opponent
-              ? <TeamBadge logo={opponentLogo} short={(form.match_title || form.opponent).slice(0, 4)} className="big" />
-              : <span className="mmf-team-empty"><Shield size={24} /></span>}
+            <TeamBadge short={form.opponent.slice(0, 4)} className="big" />
             <small>{form.opponent || 'الخصم'}</small>
           </span>
         </div>
@@ -168,29 +164,17 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
       {/* Opponent + competition */}
       <section className={`mmf-card ${showErrors && (errors.opponent || errors.competition) ? 'has-error' : ''}`}>
         <h3 className="mmf-title"><span>1</span> المواجهة</h3>
-        <MobileSelect
-          label="الفريق الخصم"
-          icon={Shield}
-          value={form.opponent_club_id}
-          options={clubs.map(c => ({ value: String(c.id), label: c.name, hint: c.symbol || undefined }))}
-          onChange={v => {
-            const selected = clubs.find(c => String(c.id) === v);
-            setForm(prev => ({ ...prev, opponent_club_id: v, opponent: selected?.name || '', match_title: selected?.symbol || '' }));
-          }}
-          searchable
-          renderTrigger={open => (
-            <button type="button" className={`mmf-opponent ${form.opponent ? 'has-value' : ''}`} onClick={open}>
-              {form.opponent
-                ? <TeamBadge logo={opponentLogo} short={(form.match_title || form.opponent).slice(0, 4)} />
-                : <span className="mmf-pick-icon big"><Shield size={20} /></span>}
-              <span className="mmf-pick-text">
-                <small>الفريق الخصم</small>
-                <strong>{form.opponent || 'اختر المنافس'}</strong>
-              </span>
-              <ChevronDown size={18} />
-            </button>
-          )}
-        />
+        <label className="me-field">
+          <span className="me-label"><Shield size={14} /> الفريق الخصم</span>
+          <input
+            className="me-input"
+            type="text"
+            value={form.opponent}
+            maxLength={120}
+            placeholder="اكتب اسم الفريق الخصم"
+            onChange={e => set('opponent', e.target.value)}
+          />
+        </label>
         {err(errors.opponent)}
 
         <label className="me-field">

@@ -10,6 +10,7 @@ import type { MemberModel } from '../../Screen/Members/member_model';
 import { useClubMembers, isPlayer, memberPhoto, playersText, staffText, membersText } from './teamRoster';
 import { MobileTeamDetails } from './MobileTeamDetails';
 import { MobileTeamForm } from './MobileTeamForm';
+import { teamKindLabel } from '../../Screen/Teams/team_model';
 import './MobileTeams.css';
 
 interface MobileTeamsProps {
@@ -128,7 +129,7 @@ export const MobileTeams: React.FC<MobileTeamsProps> = ({ controller, can }) => 
                   <div className="mt-card-top">
                     <span className="mt-badge"><Shirt size={22} /></span>
                     <div className="mt-card-text">
-                      <strong>{team.name}</strong>
+                      <strong>{team.name} <em className={`mt-kind ${team.kind}`}>{teamKindLabel(team.kind)}</em></strong>
                       {can.viewMembers && (members
                         ? <small>{rosterSummary(roster)}</small>
                         : <span className="mt-skeleton" aria-hidden="true" />)}
@@ -176,7 +177,7 @@ export const MobileTeams: React.FC<MobileTeamsProps> = ({ controller, can }) => 
           otherNames={teams.filter(t => t.id !== editing?.id).map(t => t.name)}
           memberCount={editing && members ? (byTeam.get(editing.id) || []).length : null}
           isSaving={controller.isLoading}
-          onSave={name => controller.handleSaveTeam({ name })}
+          onSave={(name, kind) => controller.handleSaveTeam({ name, kind })}
           onClose={controller.closeDialog}
         />
       )}

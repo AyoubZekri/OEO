@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, ClipboardList, LogOut, FileText } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, LogOut, FileText, Briefcase, ChevronDown } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import type { useMembersController } from '../../Screen/Members/MembersController';
 import type { MemberModel } from '../../Screen/Members/member_model';
+import { MobileSelect } from '../widgets/MobileSelect';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { revealMenu, menuPositionUnder } from '../widgets/revealMenu';
@@ -26,7 +27,30 @@ const getPhoto = (member: MemberModel) =>
 export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onAddEvaluation }) => {
   const can = useCan();
   const { filteredMembers, searchQuery, setSearchQuery, filterTeamId, setFilterTeamId, teams } = controller;
-  const categories = [{ id: '', name: 'الكل' }, ...teams];
+  // The filter's kind: chosen whole ('kind:…') or through one of its categories
+  const chosenTeam = teams.find(t => t.id === filterTeamId);
+  const activeKind = filterTeamId.startsWith('kind:') ? filterTeamId.slice(5) : chosenTeam?.kind || '';
+  const kindButton = (kind: 'staff' | 'players', label: string, Icon: typeof Users) => {
+    const list = teams.filter(t => (kind === 'staff' ? t.kind === 'staff' : t.kind !== 'staff'));
+    const active = activeKind === kind;
+    return (
+      <MobileSelect
+        label={label}
+        icon={Icon}
+        value={filterTeamId}
+        // "كل الأعضاء" brings everyone back (there is no "all" button)
+        options={[{ value: '', label: 'كل الأعضاء' }, { value: `kind:${kind}`, label: `كل ${label}` }, ...list.map(t => ({ value: t.id, label: t.name }))]}
+        onChange={setFilterTeamId}
+        renderTrigger={open => (
+          <button type="button" className={`mm-kind ${active ? 'active' : ''}`} onClick={open}>
+            <Icon size={16} />
+            <span>{active && chosenTeam ? chosenTeam.name : label}</span>
+            <ChevronDown size={14} />
+          </button>
+        )}
+      />
+    );
+  };
 
   // Member whose actions menu is open; the menu sits inside that card so it scrolls with it
   const [actionMember, setActionMember] = useState<MemberModel | null>(null);
@@ -66,18 +90,10 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
         />
       </label>
 
-      <div className="mm-chips" role="tablist" aria-label="الفئات">
-        {categories.map(team => (
-          <button
-            key={team.id || 'all'}
-            role="tab"
-            aria-selected={filterTeamId === team.id}
-            className={`mm-chip ${filterTeamId === team.id ? 'active' : ''}`}
-            onClick={() => setFilterTeamId(team.id)}
-          >
-            {team.name}
-          </button>
-        ))}
+      {/* The staff or the players: each opens its categories from the bottom */}
+      <div className="mm-kinds" role="group" aria-label="الفئات">
+        {kindButton('staff', 'الطاقم', Briefcase)}
+        {kindButton('players', 'اللاعبين', Users)}
       </div>
 
       {controller.isLoading ? (
@@ -140,13 +156,8 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
                         إضافة تقييم
                       </button>
                     )}
-                    {member.type === 'player' && (
-                      <button role="menuitem" className="mm-menu-item history" onClick={() => runAction(controller.openEvalHistory)}>
-                        <ClipboardList size={17} />
-                        عرض التقييمات
-                      </button>
-                    )}
-                    {canViewRecord && (
+                    {/* The record holds the player's evaluations too */}
+                    {(canViewRecord || member.type === 'player') && (
                       <button role="menuitem" className="mm-menu-item record" onClick={() => runAction(controller.openExpensesDialog)}>
                         <FileText size={17} />
                         سجل المتابعة

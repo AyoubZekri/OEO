@@ -29,10 +29,7 @@ import { Medical } from './View/Screen/Medical/Medical';
 import { Meetings } from './View/Screen/Meetings/Meetings';
 import { TakeMeetingAttendance } from './View/Screen/Meetings/Attendance/TakeMeetingAttendance';
 import { Decisions } from './View/Screen/Decisions/Decisions';
-import { Clubs } from './View/Screen/Clubs/Clubs'; 
 import { Operations } from './View/Screen/Operations/Operations';
-import { Tasks } from './View/Screen/Tasks/Tasks';
-import { PeriodicTasks } from './View/Screen/Tasks/PeriodicTasks';
 import { Travels } from './View/Screen/Travels/Travels';
 import { MobileMore } from './View/Mobile/MobileMore/MobileMore';
 import { Approutes } from './core/constant/routes';
@@ -40,7 +37,6 @@ import { Login } from './View/Screen/Auth/Login/Login';
 import { useAuth } from './core/context/AuthContext';
 import { SpaceProvider } from './core/context/SpaceContext';
 import { useSpace } from './core/context/space';
-import { MyTasks } from './View/Screen/Personal/MyTasks';
 import { MyDisciplinary } from './View/Screen/Personal/MyDisciplinary';
 import { MyTrainingSessions } from './View/Screen/Personal/MyTrainingSessions';
 import { MyMatches } from './View/Screen/Personal/MyMatches';
@@ -50,12 +46,23 @@ import { MyTravels } from './View/Screen/Personal/MyTravels';
 import { MyMedical } from './View/Screen/Personal/MyMedical';
 import { MyFeedback } from './View/Screen/Feedback/MyFeedback';
 import { FeedbackAdmin } from './View/Screen/Feedback/FeedbackAdmin';
+import { TasksHome } from './View/Screen/Tasks/TasksHome';
+import { HomeTasks } from './View/Screen/Tasks/HomeTasks';
+import { useCan } from './core/functions/useCan';
+import { MyTasks } from './View/Screen/Tasks/MyTasks';
 import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
+import { DocViewerHost } from './View/widget/DocViewer';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Tasks, Approutes.PeriodicTasks, Approutes.Travels, Approutes.MyTasks, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings, Approutes.MyTravels, Approutes.MyMedical, Approutes.MyFeedback, Approutes.Feedback];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Travels, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings, Approutes.MyTravels, Approutes.MyMedical, Approutes.MyFeedback, Approutes.Feedback, Approutes.MyTasks, Approutes.Tasks, Approutes.Finance];
+
+/** The management's home page: the tasks whose time came; without the tasks permission, the finance page */
+const HomeRoute: React.FC = () => {
+  const can = useCan();
+  return can('tasks') ? <HomeTasks /> : <Navigate to={Approutes.Finance} replace />;
+};
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const controller = useSaidparController(onLogout);
@@ -79,9 +86,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         <div style={{ padding: '20px', flex: 1 }}>
           {space === 'personal' ? (
             <Routes>
-              {/* No home page in the personal space: it opens on my tasks */}
-              <Route path="/" element={<Navigate to={Approutes.MyTasks} replace />} />
-              <Route path={Approutes.MyTasks} element={<MyTasks />} />
+              {/* No home page in the personal space: it opens on my training sessions */}
+              <Route path="/" element={<Navigate to={Approutes.MyTrainingSessions} replace />} />
               <Route path={Approutes.MyTrainingSessions} element={<MyTrainingSessions />} />
               <Route path={Approutes.MyMatches} element={<MyMatches />} />
               <Route path={Approutes.MyAbsences} element={<MyAbsences />} />
@@ -90,13 +96,17 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               <Route path={Approutes.MyMedical} element={<MyMedical />} />
               <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
               <Route path={Approutes.MyFeedback} element={<MyFeedback />} />
+              <Route path={Approutes.MyTasks} element={<MyTasks />} />
               <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
               {/* The management pages are not part of the personal space */}
-              <Route path="*" element={<Navigate to={Approutes.MyTasks} replace />} />
+              <Route path="*" element={<Navigate to={Approutes.MyTrainingSessions} replace />} />
             </Routes>
           ) : (
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<HomeRoute />} />
+            <Route path={Approutes.Finance} element={<Home />} />
+            <Route path={Approutes.Tasks} element={<RequirePermission module="tasks"><TasksHome /></RequirePermission>} />
+            <Route path="/appointments" element={<Navigate to={Approutes.Tasks} replace />} />
             <Route path={Approutes.Roles} element={<RequirePermission module="usersAndRoles" action="viewRoles"><Roles /></RequirePermission>} />
             <Route path={Approutes.Users} element={<RequirePermission module="usersAndRoles" action="viewUsers"><Users /></RequirePermission>} />
             <Route path={Approutes.Members} element={<RequirePermission module="members"><Members /></RequirePermission>} />
@@ -118,9 +128,6 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Meetings} element={<RequirePermission module="meetings"><Meetings /></RequirePermission>} />
             <Route path="/meetings/:id/attendance" element={<RequirePermission module="meetings" action="attendance"><TakeMeetingAttendance /></RequirePermission>} />
             <Route path={Approutes.Decisions} element={<RequirePermission module="decisions"><Decisions /></RequirePermission>} />
-            <Route path={Approutes.Clubs} element={<RequirePermission module="clubs"><Clubs /></RequirePermission>} />
-            <Route path={Approutes.Tasks} element={<RequirePermission module="tasks"><Tasks /></RequirePermission>} />
-            <Route path={Approutes.PeriodicTasks} element={<RequirePermission module="tasks"><PeriodicTasks /></RequirePermission>} />
             <Route path={Approutes.Travels} element={<RequirePermission module="travels"><Travels /></RequirePermission>} />
             <Route path={Approutes.Feedback} element={<RequirePermission module="feedback"><FeedbackAdmin /></RequirePermission>} />
             {/* Phone-only pages: widening the screen sends the user to the desktop home */}
@@ -138,6 +145,7 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
       {/* Alerts about the user's tasks, on every page */}
       <TaskAlerts />
+      <DocViewerHost />
     </div>
   );
 };

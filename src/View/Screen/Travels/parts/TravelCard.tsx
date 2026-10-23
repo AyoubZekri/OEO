@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bus, Users, Briefcase, Trophy, Layers, MapPin, ChevronLeft } from 'lucide-react';
-import { initials } from '../../Tasks/taskUtils';
+import { initials } from '../../../shared/dates';
 import { countdownText, dateTile, durationText, MY_ROLE_LABEL, shortDate, STATUS_META, statusOf, timeOf, type Travel } from '../travelUtils';
 
 /** Calendar tile of the departure day */

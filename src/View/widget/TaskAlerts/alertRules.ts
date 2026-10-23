@@ -1,4 +1,4 @@
-import { dueText, parseDate, type Task } from '../../Screen/Tasks/taskUtils';
+import { parseDate } from '../../shared/dates';
 import type { TrainingSessionModel } from '../../Screen/TrainingSessions/TrainingSessionDialog';
 import { computedStatus, countdownText, dayLabel, endOf, myAttendance, startOf } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import type { Match } from '../../Screen/Matches/match_model';
@@ -9,12 +9,12 @@ import type { Travel } from '../../Screen/Travels/travelUtils';
 import type { PlayerMedicalRecord } from '../../Screen/Medical/medical_model';
 import type { Debt } from '../../Screen/Debts/debtUtils';
 import { typeMeta as feedbackType, type Feedback } from '../../Screen/Feedback/feedbackUtils';
+import { dueText as taskDueText, isOpen as taskOpen, STATUS_META as TASK_STATUS, type Task } from '../../Screen/Tasks/taskUtils';
 import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
 import { canJustifyNow, dateOf, isMemberRequest, justifyLeft, leftText, recordTitle, statusOf, typeMeta } from '../../Screen/Absence/absenceUtils';
 import { countdown, dayText as matchDay, matchDate, matchState, opponentName, resultOf, RESULT_LABEL, timeText } from '../../Mobile/MobileMatches/matchUtils';
 
-/** Why something needs attention: a task (most urgent first), or a disciplinary action */
-export type TaskAlertKind = 'overdue' | 'returned' | 'due_soon' | 'start';
+/** Why something needs attention: a disciplinary action */
 export type DisciplinaryAlertKind =
   // for the member concerned
   | 'disciplinary' | 'disc_reply_due' | 'disc_reply_late' | 'disc_hearing' | 'disc_decision'
@@ -53,20 +53,21 @@ export type MedicalAlertKind = 'med_new' | 'med_stage' | 'med_recovered' | 'med_
 export type DebtAlertKind = 'debt_soon' | 'debt_due' | 'debt_late';
 /** Members' opinions: a reply to mine; new ones and ones still without a reply (management) */
 export type FeedbackAlertKind = 'fb_replied' | 'mgr_fb_new' | 'mgr_fb_waiting';
-export type AlertKind = FeedbackAlertKind | DebtAlertKind | TaskAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind | MeetingAlertKind | TravelAlertKind | MedicalAlertKind;
+/** Tasks: given to me (new, its alert time, deadline near, late, a message / a status change); the management: late, a message from the member */
+export type TaskAlertKind = 'task_new' | 'task_alert' | 'task_due' | 'task_late' | 'task_msg' | 'mgr_task_late' | 'mgr_task_msg';
+export type AlertKind = TaskAlertKind | FeedbackAlertKind | DebtAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind | MeetingAlertKind | TravelAlertKind | MedicalAlertKind;
 
 export interface AppAlert {
   /** Changes when the reason or the deadline changes, so a new alert reopens a minimized stack */
   key: string;
   kind: AlertKind;
-  /** What it is about, in bold: the task's title, the action's reason */
+  /** What it is about, in bold: the action's reason, the session's category… */
   heading: string;
   title: string;
   detail: string;
   tone: 'red' | 'amber' | 'blue' | 'violet';
   /** Where a click leads (a disciplinary action: in the member's personal space, or in the management space) */
   target:
-    | { type: 'task'; id: number }
     | { type: 'disciplinary'; id: string; space: 'personal' | 'management' }
     /** attendance: open the session's attendance sheet (a manager who can take it) */
     | { type: 'training'; id: number; space: 'personal' | 'management'; attendance?: boolean }
@@ -80,54 +81,12 @@ export interface AppAlert {
     | { type: 'travel'; id: number; space: 'personal' | 'management' }
     | { type: 'medical'; id: number; space: 'personal' | 'management' }
     | { type: 'debt'; id: number; kind: 'loan' | 'purchase' }
-    | { type: 'feedback'; id: number; space: 'personal' | 'management' };
+    | { type: 'feedback'; id: number; space: 'personal' | 'management' }
+    | { type: 'task'; id: number; space: 'personal' | 'management' };
   /** Something that happened (created, decided, replied): opening it marks it seen. Otherwise it stays while its reason holds */
   event?: boolean;
 }
 
-/** Kept for the task side */
-export type TaskAlert = AppAlert;
-
-/** A task is "due soon" this long before its deadline: the last 3 hours */
-export const DUE_SOON_MS = 3 * 3600 * 1000;
-
-const RANK: Record<TaskAlertKind, number> = { overdue: 0, returned: 1, due_soon: 2, start: 3 };
-
-const clock = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-
-/**
- * The alerts of the signed-in user's tasks (one per task, the most urgent reason):
- * late, sent back for correction, deadline within 3 hours, or start time reached on a task not started yet.
- * Tasks waiting for review, done or deleted give none.
- */
-export const alertsFor = (tasks: Task[], now = Date.now()): AppAlert[] => tasks
-  .filter(t => !t.deleted_at && t.status !== 'approved' && t.status !== 'in_review')
-  .map((t): { alert: AppAlert; rank: number; due: number } | null => {
-    const due = parseDate(t.due_at);
-    const start = parseDate(t.starts_at);
-    const make = (kind: TaskAlertKind, title: string, detail: string, tone: AppAlert['tone']) => ({
-      alert: {
-        key: `${t.id}:${kind}:${t.due_at ?? ''}`,
-        kind,
-        heading: t.title,
-        title,
-        detail,
-        tone,
-        target: { type: 'task' as const, id: t.id },
-      },
-      rank: RANK[kind],
-      due: due?.getTime() ?? Infinity,
-    });
-
-    if (due && due.getTime() < now) return make('overdue', 'تأخر في إنجاز مهمة', dueText(t), 'red');
-    if (t.status === 'returned') return make('returned', 'أُرجعت مهمة للتصحيح', t.return_reason || 'راجع ملاحظة المراجع', 'amber');
-    if (due && due.getTime() - now <= DUE_SOON_MS) return make('due_soon', 'اقترب موعد مهمة', `آخر أجل: ${dueText(t)}`, 'amber');
-    if (start && start.getTime() <= now && t.status === 'assigned') return make('start', 'حان وقت مهمة', `بدأ وقتها ${clock(start)}`, 'blue');
-    return null;
-  })
-  .filter((x): x is { alert: AppAlert; rank: number; due: number } => x !== null)
-  .sort((a, b) => a.rank - b.rank || a.due - b.due)
-  .map(x => x.alert);
 
 /** A disciplinary action as /disciplinary and /disciplinary/mine return it (the fields the alerts need) */
 export interface MyDisciplinaryAction {
@@ -1329,3 +1288,66 @@ export const managerFeedbackAlerts = (items: Feedback[], now = Date.now()): AppA
     };
   })
   .filter((a): a is AppAlert => a !== null);
+
+/** A task's deadline is "near" in its last 3 hours */
+const TASK_DUE_SOON_MS = 3 * 3600 * 1000;
+
+/**
+ * Personal space: the tasks given to me. One alert for its time (late, deadline near, its alert time reached,
+ * or new: not opened yet), and one for what was written in its conversation (a message, a status change).
+ */
+export const myTaskAlerts = (tasks: Task[], now = Date.now()): AppAlert[] => tasks.flatMap(t => {
+  const out: AppAlert[] = [];
+  const target = { type: 'task' as const, id: t.id, space: 'personal' as const };
+  const urgent = t.kind === 'urgent';
+  if (taskOpen(t)) {
+    const due = parseDate(t.due_at)?.getTime() ?? null;
+    const alertAt = parseDate(t.alert_at)?.getTime() ?? null;
+    const when = t.due_at ? `آخر أجل: ${t.due_at.replace(/-/g, '/')}` : 'بدون أجل';
+    if (due !== null && due < now) {
+      out.push({ key: `task:late:${t.id}:${t.due_at}`, kind: 'task_late', heading: t.title, title: 'تأخرت مهمة', detail: taskDueText(t), tone: 'red', target });
+    } else if (!t.seen) {
+      out.push({
+        key: `task:new:${t.id}`, kind: 'task_new', heading: t.title,
+        title: urgent ? 'مهمة عاجلة أُسندت إليك' : 'مهمة جديدة أُسندت إليك',
+        detail: `${t.created_by ? `من ${t.created_by} · ` : ''}${t.event_label || when}`, tone: urgent ? 'red' : 'blue', target,
+      });
+    } else if (due !== null && due - now <= TASK_DUE_SOON_MS) {
+      out.push({ key: `task:due:${t.id}:${t.due_at}`, kind: 'task_due', heading: t.title, title: 'اقترب آخر أجل مهمة', detail: taskDueText(t), tone: 'amber', target });
+    } else if (alertAt !== null && alertAt <= now) {
+      out.push({ key: `task:alert:${t.id}:${t.alert_at}`, kind: 'task_alert', heading: t.title, title: 'حان موعد مهمة', detail: t.event_label ? `${t.event_label} · ${when}` : when, tone: 'violet', target });
+    }
+  }
+  const last = t.last_message;
+  if (t.unread > 0 && last) {
+    out.push({
+      key: `task:msg:${t.id}:${last.at}`, kind: 'task_msg', heading: t.title,
+      title: last.status ? `تحولت مهمتك إلى «${TASK_STATUS[last.status].label}»` : t.unread > 1 ? `${t.unread} رسائل جديدة حول مهمة` : 'رسالة جديدة حول مهمة',
+      detail: last.body ? `${last.by ? `${last.by}: ` : ''}${snippet(last.body)}` : last.by || '',
+      tone: last.status === 'cancelled' || last.status === 'on_hold' ? 'amber' : 'blue', target, event: true,
+    });
+  }
+  return out;
+});
+
+/** Management: a task late (stays until it is finished), and a message from the member it is given to */
+export const managerTaskAlerts = (tasks: Task[], me: string | number | undefined, now = Date.now()): AppAlert[] => tasks
+  // The tasks given to me are already in my own alerts
+  .filter(t => String(t.assignee?.id ?? '') !== String(me ?? ''))
+  .flatMap(t => {
+    const out: AppAlert[] = [];
+    const target = { type: 'task' as const, id: t.id, space: 'management' as const };
+    const who = t.assignee?.name || 'المكلّف';
+    const due = parseDate(t.due_at)?.getTime() ?? null;
+    if (taskOpen(t) && due !== null && due < now) {
+      out.push({ key: `mtask:late:${t.id}:${t.due_at}`, kind: 'mgr_task_late', heading: t.title, title: 'مهمة متأخرة', detail: `${who} · ${taskDueText(t)}`, tone: 'red', target });
+    }
+    if (t.unread > 0 && t.last_message) {
+      out.push({
+        key: `mtask:msg:${t.id}:${t.last_message.at}`, kind: 'mgr_task_msg', heading: t.title,
+        title: t.unread > 1 ? `${t.unread} رسائل من المكلّف` : 'رسالة من المكلّف',
+        detail: `${who}: ${snippet(t.last_message.body || '')}`, tone: 'blue', target, event: true,
+      });
+    }
+    return out;
+  });

@@ -48,7 +48,9 @@ export const resultOf = (m: Match): Result | null => {
 export const RESULT_LABEL: Record<Result, string> = { win: 'فوز', draw: 'تعادل', loss: 'خسارة' };
 
 export const opponentName = (m: Match) => m.opponent || m.opponentClub?.name || m.opponent_club?.name || 'خصم غير محدد';
-export const opponentLogo = (m: Match) => m.opponentClub?.logo || m.opponent_club?.logo || '';
+/** Opponents have no logo any more: every one shows the same icon */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for its callers
+export const opponentLogo = (_m: Match) => '';
 /** Code shown when the opponent has no logo: its symbol, else the first letter of its name */
 export const opponentShort = (m: Match) => {
   const code = m.opponentClub?.symbol || m.opponent_club?.symbol || m.match_title;

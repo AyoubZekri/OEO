@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
-import { X, Calendar, User, MapPin, Tag } from 'lucide-react';
+import { X, User, Tag } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 
@@ -30,7 +30,6 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
   const [individuals, setIndividuals] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [clubs, setClubs] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -67,17 +66,11 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-      const [indRes, usersRes, teamsRes, clubsRes] = await Promise.all([
+      const [indRes, usersRes, teamsRes] = await Promise.all([
         axios.get(Applink.individuals, { headers }),
         axios.get(Applink.users, { headers }),
         axios.get(Applink.teams, { headers }),
-        axios.get(Applink.clubs, { headers })
       ]);
-      if (clubsRes.data.status === 'success' || Array.isArray(clubsRes.data)) {
-        setClubs(Array.isArray(clubsRes.data) ? clubsRes.data : clubsRes.data.data || []);
-      } else if (clubsRes.data) {
-        setClubs(clubsRes.data.data || clubsRes.data);
-      }
       if (indRes.data.status === 'success') {
         const allowedRoles = ['مدرب', 'مساعد مدرب', 'مدرب حراس', 'موظف', 'إداري', 'طبيب'];
         const filtered = indRes.data.data.filter((ind: any) => 
@@ -109,7 +102,9 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     try {
       const token = localStorage.getItem('token');
       const url = matchData ? Applink.updateMatch : Applink.createMatch;
-      const payload = matchData ? { ...formData, id: matchData.id } : formData;
+      // The opponent is the name typed (no club chosen from a list any more)
+      const typed = { ...formData, opponent: formData.opponent.trim(), opponent_club_id: '' };
+      const payload = matchData ? { ...typed, id: matchData.id } : typed;
       
       const res = await axios.post(url, payload, {
         headers: { Authorization: `Bearer ${token}` }
@@ -145,22 +140,12 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
               onChange={e => setFormData({...formData, competition: e.target.value})}
               required
             />
-            <CustomDropdown<string>
+            <CustomInput
               label="الفريق الخصم"
-              value={formData.opponent_club_id}
-              onChange={(val) => {
-                const selectedClub = clubs.find(c => c.id.toString() === val);
-                setFormData({
-                  ...formData, 
-                  opponent_club_id: val,
-                  opponent: selectedClub ? selectedClub.name : '',
-                  match_title: selectedClub ? selectedClub.symbol : ''
-                });
-              }}
-              options={[
-                { value: "", label: "-- اختر المنافس --" },
-                ...clubs.map(c => ({ value: c.id.toString(), label: c.name }))
-              ]}
+              type="text"
+              value={formData.opponent}
+              onChange={e => setFormData({ ...formData, opponent: e.target.value })}
+              placeholder="اكتب اسم الفريق الخصم"
               required
             />
           </div>

@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Applink } from '../../../LinkApi';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, TrendingUp, ClipboardList, LogOut, UploadCloud } from 'lucide-react';
+import { Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, LogOut, UploadCloud, TrendingUp } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
+import type { EvaluationRecord } from './Evaluation/evaluation_data';
 import { ClearanceDialog } from './ClearanceDialog';
 import { MobileMembers } from '../../Mobile/MobileMembers/MobileMembers';
 import { ActionsMenu } from '../../widget/ActionsMenu';
@@ -26,6 +27,7 @@ import '../Disciplinary/Disciplinary.css';
 import { processImage } from '../../../core/functions/processImage';
 import { useBackCloses } from '../../Mobile/widgets/useBackCloses';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { openDocument } from '../../widget/openDocument';
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
@@ -72,6 +74,16 @@ export const Members: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [evalMember, setEvalMember] = useState<MemberModel | null>(null);
+  /** The tracking record's evaluations tab (players): each evaluation's actions there; only it without the record's permission */
+  const recordEvaluations = (member: MemberModel) => (member.type === 'player' ? {
+    evaluations: {
+      onEdit: hasAccess(permissions.members.evaluate) ? (ev: EvaluationRecord) => setEditingEvaluation({ player: member, data: ev }) : undefined,
+      onDelete: hasAccess(permissions.members.evaluate) ? (id: string) => controller.deleteEvaluation(id) : undefined,
+      // Read again after a save, an edit or a delete
+      refreshKey: `${controller.evaluations.map(e => `${e.id}:${e.totalScore}`).join(',')}-${evalMember ? 'add' : ''}-${editingEvaluation ? 'edit' : ''}`,
+    },
+    onlyEvaluations: !hasAccess(permissions.members.viewFinancialRecord),
+  } : {});
   const [editingEvaluation, setEditingEvaluation] = useState<{player: MemberModel, data: any} | null>(null);
 
 
@@ -99,6 +111,8 @@ export const Members: React.FC = () => {
         evalDate: editingEvaluation.data.evalDate,
         season: data.season,
         period: data.period,
+        fromDate: data.period === 'شهري' ? data.fromDate : '',
+        toDate: data.period === 'شهري' ? data.toDate : '',
         totalScore: data.totalScore,
         recommendation: data.recommendation,
         strengths: data.strengths,
@@ -111,6 +125,8 @@ export const Members: React.FC = () => {
         member_id: Number(evalMember.id),
         season: data.season,
         period: data.period,
+        fromDate: data.period === 'شهري' ? data.fromDate : '',
+        toDate: data.period === 'شهري' ? data.toDate : '',
         evalDate: date,
         totalScore: data.totalScore,
         recommendation: data.recommendation,
@@ -137,7 +153,10 @@ export const Members: React.FC = () => {
 
   const filterTeamOptions = [
     { value: '', label: t('members.all_teams', 'جميع الفئات (الفرق)') },
-    ...teams.map(team => ({ value: team.id.toString(), label: team.name }))
+    { value: 'kind:players', label: 'كل اللاعبين' },
+    ...teams.filter(team => team.kind !== 'staff').map(team => ({ value: team.id.toString(), label: `— ${team.name}` })),
+    { value: 'kind:staff', label: 'كل الطاقم' },
+    ...teams.filter(team => team.kind === 'staff').map(team => ({ value: team.id.toString(), label: `— ${team.name}` })),
   ];
 
   const typeOptions = [
@@ -168,12 +187,12 @@ export const Members: React.FC = () => {
       {/* Phone layout */}
       <div className="members-mobile">
         <MobileMembers
+          onAddEvaluation={setEvalMember}
           controller={controller}
           canAdd={hasAccess(permissions.members.add)}
           canEdit={hasAccess(permissions.members.edit)}
           canDelete={hasAccess(permissions.members.delete)}
           canViewRecord={hasAccess(permissions.members.viewFinancialRecord)}
-          onAddEvaluation={setEvalMember}
         />
       </div>
 
@@ -285,11 +304,9 @@ export const Members: React.FC = () => {
                     <ActionsMenu
                       label="إجراءات العضو"
                       items={[
-                        ...(member.type === 'player' ? [
-                          ...(hasAccess(permissions.members.evaluate) ? [{ key: 'eval', label: 'إضافة تقييم', icon: TrendingUp, color: '#8b5cf6', onClick: () => setEvalMember(member) }] : []),
-                          { key: 'evals', label: 'عرض التقييمات', icon: ClipboardList, color: '#0ea5e9', onClick: () => controller.openEvalHistory(member) },
-                        ] : []),
-                        ...(hasAccess(permissions.members.viewFinancialRecord) ? [
+                        ...(member.type === 'player' && hasAccess(permissions.members.evaluate) ? [{ key: 'eval', label: 'إضافة تقييم', icon: TrendingUp, color: '#8b5cf6', onClick: () => setEvalMember(member) }] : []),
+                        // The record holds the player's evaluations too: open to whoever can see the record or a player's evaluations
+                        ...(hasAccess(permissions.members.viewFinancialRecord) || member.type === 'player' ? [
                           { key: 'record', label: 'سجل المتابعة', icon: Eye, color: '#10b981', onClick: () => openExpensesDialog(member) },
                         ] : []),
                         ...(hasAccess(permissions.members.edit) ? [
@@ -549,9 +566,9 @@ export const Members: React.FC = () => {
                             <span>ملف مرفق مسبقاً</span>
                           </div>
                           <div className="uploaded-file-actions">
-                            <a href={`${Applink.image}/${memberToEdit.national_id_document}`} target="_blank" rel="noreferrer" className="action-icon-btn" title="عرض">
+                            <button type="button" onClick={() => openDocument(`${Applink.image}/${memberToEdit.national_id_document}`)} className="action-icon-btn" title="عرض">
                               <Eye size={16} />
-                            </a>
+                            </button>
                           </div>
                         </div>
                       )}
@@ -572,9 +589,9 @@ export const Members: React.FC = () => {
                             <span>ملف مرفق مسبقاً</span>
                           </div>
                           <div className="uploaded-file-actions">
-                            <a href={`${Applink.image}/${memberToEdit.medical_certificate}`} target="_blank" rel="noreferrer" className="action-icon-btn" title="عرض">
+                            <button type="button" onClick={() => openDocument(`${Applink.image}/${memberToEdit.medical_certificate}`)} className="action-icon-btn" title="عرض">
                               <Eye size={16} />
-                            </a>
+                            </button>
                           </div>
                         </div>
                       )}
@@ -595,9 +612,9 @@ export const Members: React.FC = () => {
                             <span>ملف مرفق مسبقاً</span>
                           </div>
                           <div className="uploaded-file-actions">
-                            <a href={`${Applink.image}/${memberToEdit.insurance_document}`} target="_blank" rel="noreferrer" className="action-icon-btn" title="عرض">
+                            <button type="button" onClick={() => openDocument(`${Applink.image}/${memberToEdit.insurance_document}`)} className="action-icon-btn" title="عرض">
                               <Eye size={16} />
-                            </a>
+                            </button>
                           </div>
                         </div>
                       )}
@@ -619,12 +636,12 @@ export const Members: React.FC = () => {
 
       {/* Tracking Record: full-screen page on phones */}
       {isDialogOpen && selectedMember && isMobile && (
-        <MobileTrackingRecord member={selectedMember} controller={controller} onClose={closeDialog} />
+        <MobileTrackingRecord member={selectedMember} controller={controller} onClose={closeDialog} {...recordEvaluations(selectedMember)} />
       )}
 
       {/* Tracking Record Dialog */}
       {isDialogOpen && selectedMember && !isMobile && (
-        <TrackingRecordDialog member={selectedMember} controller={controller} onClose={closeDialog} />
+        <TrackingRecordDialog member={selectedMember} controller={controller} onClose={closeDialog} {...recordEvaluations(selectedMember)} />
       )}
 
       {/* Evaluation Dialog */}

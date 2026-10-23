@@ -34,9 +34,9 @@ export const Saidpar: React.FC<{ controller: ReturnType<typeof useSaidparControl
           {effectivelyOpen && (
           <div className="saidpar-logo-area">
             <div className="logo-icon">
-              <img src="/LOGO.webp" alt="OEO Logo" />
+              <img src="/LOGO.webp" alt="أولمبي الوادي" />
             </div>
-            <span className="saidpar-logo-text">Olympic OEO</span>
+            <span className="saidpar-logo-text">أولمبي الوادي</span>
           </div>
         )}
         <button onClick={toggleSidebar} className="toggle-btn" aria-label="Toggle Sidebar">

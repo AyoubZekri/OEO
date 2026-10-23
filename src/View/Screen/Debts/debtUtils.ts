@@ -1,6 +1,6 @@
 import client from '../../../core/api/client';
 import { EXPENSE_NATURES } from '../Payments/usePaymentForm';
-import { parseDate } from '../Tasks/taskUtils';
+import { parseDate } from '../../shared/dates';
 
 export { apiError } from '../Travels/travelUtils';
 

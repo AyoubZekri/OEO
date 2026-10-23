@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, type LucideIcon } from 'lucide-react';
-import { MobileScreen } from '../../../Mobile/widgets/MobileScreen';
-import { MobileSheet } from '../../../Mobile/widgets/MobileSheet';
+import { MobileScreen } from '../Mobile/widgets/MobileScreen';
+import { MobileSheet } from '../Mobile/widgets/MobileSheet';
 
-interface TaskPanelProps {
+interface SidePanelProps {
   mobile: boolean;
   title: string;
   subtitle?: string;
@@ -20,7 +20,7 @@ interface TaskPanelProps {
 }
 
 /** Desktop: the app's usual dialog (same classes as the other pages). Phone: a full-screen page (or a bottom sheet for short prompts) */
-export const TaskPanel: React.FC<TaskPanelProps> = ({ mobile, title, subtitle, icon: Icon, onClose, footer, sheet, layer = 1, size = 'md', children }) => {
+export const SidePanel: React.FC<SidePanelProps> = ({ mobile, title, subtitle, icon: Icon, onClose, footer, sheet, layer = 1, size = 'md', children }) => {
   useEffect(() => {
     if (mobile) return;
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };

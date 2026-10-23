@@ -1,0 +1,75 @@
+/* A player's evaluations inside the tracking record (computer and phone) */
+.mep { display: flex; flex-direction: column; gap: 14px; }
+.mep-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.mep-kpis > div {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; text-align: center;
+  border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg);
+}
+.mep-kpis small { font-size: .74rem; font-weight: 700; color: var(--text-muted); }
+.mep-kpis strong { font-size: 1.2rem; font-weight: 900; color: var(--text-h); }
+
+.tone-good { color: #16a34a !important; }
+.tone-mid { color: #d97706 !important; }
+.tone-low { color: #dc2626 !important; }
+
+.mep-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.mep-btn {
+  flex: 1 1 160px; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text-h);
+  font: inherit; font-size: .9rem; font-weight: 800; cursor: pointer;
+}
+.mep-btn.primary { border-color: #8b5cf6; background: #8b5cf6; color: #fff; }
+
+.mep-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mep-list li {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  border-radius: 14px; border: 1px solid var(--border); background: var(--card-bg);
+}
+.mep-score {
+  flex-shrink: 0; min-width: 62px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 6px 8px; border-radius: 10px; background: var(--bg, #f1f5f9); font-size: .9rem; font-weight: 900;
+}
+.mep-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.mep-text strong { font-size: .9rem; font-weight: 800; color: var(--text-h); overflow-wrap: anywhere; }
+.mep-text small { display: inline-flex; align-items: center; gap: 4px; font-size: .76rem; color: var(--text-muted); }
+.mep-date { flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; font-size: .74rem; color: var(--text-muted); }
+.mep-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; margin: 0; padding: 24px; color: var(--text-muted); text-align: center; }
+
+@media (max-width: 768px) {
+  .mep-list li { flex-wrap: wrap; }
+  .mep-date { width: 100%; padding-inline-start: 74px; }
+}
+
+/* Every evaluation in full */
+.mep-item { flex-direction: column; align-items: stretch !important; gap: 12px; }
+.mep-item-head { display: flex; align-items: center; gap: 12px; }
+.mep-axes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 16px; }
+.mep-axis { display: grid; grid-template-columns: minmax(0, 1fr) 70px auto; align-items: center; gap: 8px; font-size: .78rem; }
+.mep-axis span { color: var(--text-muted); font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mep-axis i { height: 6px; border-radius: 99px; background: var(--bg, #f1f5f9); overflow: hidden; }
+.mep-axis i b { display: block; height: 100%; border-radius: inherit; background: #8b5cf6; }
+.mep-axis em { font-style: normal; font-weight: 800; color: var(--text-h); white-space: nowrap; }
+.mep-notes { display: flex; flex-direction: column; gap: 4px; padding-top: 10px; border-top: 1px dashed var(--border); }
+.mep-notes p { margin: 0; font-size: .84rem; line-height: 1.6; color: var(--text-h); overflow-wrap: anywhere; }
+.mep-notes b { color: var(--text-muted); }
+.mep > .mep-btn { align-self: flex-start; flex: 0 0 auto; padding: 0 16px; }
+@media (max-width: 768px) {
+  .mep-axes { grid-template-columns: 1fr; }
+  .mep-item-head { flex-wrap: wrap; }
+}
+.mep-mobile-list { display: flex; flex-direction: column; gap: 10px; }
+
+/* Computer: the full history's cards inside the record */
+.mep-desktop-grid { margin: 0; }
+.mep-reco { display: inline-flex; align-items: center; gap: 5px; margin: 4px 0 10px; font-size: .82rem; font-weight: 700; color: var(--text-muted); }
+.mep-card-actions {
+  display: flex; gap: 10px; padding: 14px 16px; margin-top: auto;
+  background: var(--bg); border-top: 1px solid var(--border); justify-content: center; flex-wrap: wrap;
+}
+.mep-card-actions button {
+  flex: 1; min-width: 40px; height: 40px; border: none; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--act) 12%, transparent); color: var(--act);
+}
+.mep-card-actions button:hover { background: color-mix(in srgb, var(--act) 20%, transparent); }
+.eval-history-card .mep-notes { margin-top: 12px; text-align: start; }

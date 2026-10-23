@@ -428,3 +428,26 @@
   font-weight: 800; cursor: not-allowed; user-select: none;
 }
 .db-locked svg { flex-shrink: 0; color: var(--text-muted); }
+
+/* Phones: the status in place of the initials, and nothing cut off (the name and the reason wrap) */
+.db-status-badge {
+  width: 58px; min-height: 58px; flex-shrink: 0; align-self: flex-start; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; padding: 6px 4px;
+  border-radius: 16px; background: color-mix(in srgb, var(--tk-t) 13%, transparent); color: var(--tk-t);
+}
+.db-status-badge small { font-size: .66rem; font-weight: 900; line-height: 1.2; text-align: center; }
+.db-card.compact { align-items: flex-start; }
+.db-card.compact .db-card-title { flex: 1; min-width: 0; }
+.db-card.compact .db-compact-name { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.35; }
+.db-card.compact .db-compact-sub { display: inline-flex; align-items: center; gap: 5px; white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+.db-card.compact .db-compact-sub svg { flex-shrink: 0; }
+.db-card.compact .db-compact-money b { white-space: nowrap; }
+.db-card.compact .db-card-menu, .db-card.compact .db-compact-go { align-self: center; }
+
+/* Phones: the status in the middle of the card's side, the rest one under the other */
+.db-card.compact { align-items: center; gap: 14px; }
+.db-card.compact .db-status-badge { align-self: center; }
+.db-card.compact .db-card-title { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.db-card.compact .db-compact-money { flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 2px; }
+.db-card.compact .db-compact-money b { font-size: 1.12rem; line-height: 1.3; }
+.db-card.compact .db-bar { width: 100%; margin-top: 6px; }

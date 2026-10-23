@@ -338,3 +338,8 @@ body.dark-mode .mt-page {
 }
 
 .mt-fab:active { transform: scale(0.92); }
+
+/* The category's kind, next to its name */
+.mt-kind { display: inline-flex; vertical-align: middle; margin-inline-start: 6px; padding: 2px 9px; border-radius: 99px; font-style: normal; font-size: .68rem; font-weight: 800; }
+.mt-kind.players { background: rgba(34, 197, 94, .12); color: #16a34a; }
+.mt-kind.staff { background: rgba(59, 130, 246, .12); color: #2563eb; }

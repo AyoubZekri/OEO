@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import axios from 'axios';
-import { Plus, Calendar } from 'lucide-react';
+import { Plus, Calendar, FileSpreadsheet } from 'lucide-react';
+import { ImportMatchesDialog } from './ImportMatchesDialog';
 import { useNavigate } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
 import { AddMatchDialog } from './AddMatchDialog';
@@ -35,6 +36,8 @@ import { TopbarSearch } from '../../widget/TopbarSearch';
 /** personal: the personal space's page (the matches of my category, read only, with my call-up and attendance) */
 export const Matches = ({ personal = false }: { personal?: boolean }) => {
   const navigate = useNavigate();
+  // Many matches at once, from the Excel template
+  const [importOpen, setImportOpen] = useState(false);
   const {
     matches,
     isLoading,
@@ -314,8 +317,14 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
               <Plus size={20} /> إضافة مباراة
             </button>
           )}
+          {can('matches', 'add') && (
+            <button className="bulk-transfer-btn import-excel-btn" onClick={() => setImportOpen(true)}>
+              <FileSpreadsheet size={18} /> استيراد من Excel
+            </button>
+          )}
         </div>
       </div>
+      {importOpen && <ImportMatchesDialog onClose={() => setImportOpen(false)} onDone={fetchMatches} />}
 
       {isLoading ? (
         <div className="loading-container">

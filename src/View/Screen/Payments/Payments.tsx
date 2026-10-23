@@ -25,7 +25,7 @@ import { useDebtsController } from '../Debts/useDebtsController';
 import { DebtOverlays } from '../Debts/parts/DebtOverlays';
 import { creditRows, isCredit } from './creditRows';
 import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
-import '../Tasks/Tasks.css';
+import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Payments.css';

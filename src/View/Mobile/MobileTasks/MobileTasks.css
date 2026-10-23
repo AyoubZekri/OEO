@@ -1,0 +1,259 @@
+/* The tasks on phones (home page, tasks and appointments tabs, the task form): what the computer pages do not have */
+
+.tsk-hero-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+
+/* The home page's title bars (tasks, archive): smaller on phones */
+.tk-mpage .tsk-sections .tsk-sec-head { padding: 12px 14px; font-size: 0.95rem; gap: 8px; }
+.tk-mpage .tsk-sections .tsk-sec-icon { padding: 7px; border-radius: 10px; }
+.tk-mpage .tsk-sections .tsk-sec-icon svg { width: 16px; height: 16px; }
+
+/* Phones: three filters on one line (status, kind, nature): their labels only */
+.tk-mfilters.tsk-mfilters3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.tsk-mfilters3 .tk-filter-btn { padding-inline: 9px; gap: 4px; }
+.tsk-mfilters3 .tk-filter-btn > svg:first-child { display: none; }
+
+/* Phones: one task / appointment per row */
+.tsk-mlist {
+  display: flex;
+  flex-direction: column;
+  border-radius: 16px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  overflow: hidden;
+  margin-bottom: 140px;
+}
+.tsk-mrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  cursor: pointer;
+}
+.tsk-mrow + .tsk-mrow { border-top: 1px solid var(--tk-border); }
+.tsk-mrow:active { background: var(--tk-hover); }
+.tsk-mrow-icon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--tk-t) 12%, transparent);
+  color: var(--tk-t);
+}
+.tsk-mrow-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tsk-mrow-main strong {
+  color: var(--tk-text);
+  font-size: 0.92rem;
+  font-weight: 800;
+  line-height: 1.45;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.tsk-mrow-main small { color: var(--tk-muted); font-size: 0.76rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-mrow-main small b { font-weight: 700; direction: ltr; unicode-bidi: isolate; }
+.tsk-mrow-main small b.late { color: #ef4444; }
+.tsk-mrow-end { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.tsk-mrow-status { color: var(--tk-t); font-size: 0.74rem; font-weight: 800; font-style: normal; }
+.tsk-mrow-new {
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: #f97316;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  font-style: normal;
+}
+.tsk-mrow-go { flex-shrink: 0; color: var(--tk-muted); }
+.tsk-mrow.done .tsk-mrow-main strong { color: var(--tk-muted); }
+.tk-scope .tsk-mrow .tsk-unread { margin-inline-start: 0; }
+
+/* The home page: each row in its kind's colour (the urgent glow and dark mode are with the computer table's) */
+.tsk-mrow.tsk-tint-urgent { background: #fef2f2; }
+.tsk-mrow.tsk-tint-scheduled { background: #fff7ed; }
+.tsk-mrow.tsk-tint-voice { background: #eff6ff; }
+
+/* The voice note's floating button, above the new task one */
+.tk-fab.tsk-fab-voice {
+  bottom: 160px;
+  background: #10b981;
+  box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.45);
+}
+
+/* The task form on phones: the fields in one rounded card, big touch targets */
+.tsk-form.phone { gap: 14px; padding-bottom: 8px; }
+.tsk-form.phone .tk-sec {
+  padding: 18px 16px;
+  border-radius: 20px;
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -12px rgba(15, 23, 42, 0.18);
+}
+.tsk-form.phone .tk-sec-body { gap: 18px; }
+.tsk-form.phone .tk-label { color: var(--tk-text); font-size: 0.85rem; gap: 8px; }
+.tsk-form.phone .tk-label svg {
+  box-sizing: content-box;
+  padding: 5px;
+  border-radius: 8px;
+  background: rgba(249, 115, 22, 0.12);
+  color: var(--tk-accent);
+}
+.tk-scope .tsk-form.phone .tk-input,
+.tk-scope .tsk-form.phone .tk-field select {
+  min-height: 50px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tk-scope .tsk-form.phone .tk-input:focus,
+.tk-scope .tsk-form.phone .tk-field select:focus { box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.15); }
+
+/* The kind: two cards, an icon in a circle, the chosen one in its colour */
+.tsk-form.phone .tk-kind button {
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border-width: 1.5px;
+}
+.tsk-kind-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--tk-field);
+  color: var(--tk-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.tsk-form.phone .tk-kind button.on { border-color: var(--tk-t); background: color-mix(in srgb, var(--tk-t) 8%, var(--tk-card)); }
+.tsk-form.phone .tk-kind button.on .tsk-kind-icon { background: var(--tk-t); color: #fff; }
+.tsk-form.phone .tk-kind button.on strong { color: var(--tk-t); }
+/* Three kinds (normal, urgent, appointment): the icon above its name */
+.tsk-form.phone .tk-kind.n3 button { flex-direction: column; justify-content: center; gap: 6px; min-height: 76px; padding: 10px 6px; text-align: center; }
+
+/* The nature, the appointment's choices: taller segments */
+.tsk-form.phone .tk-seg { padding: 5px; border-radius: 14px; }
+.tsk-form.phone .tk-seg button { min-height: 42px; border-radius: 10px; font-size: 0.85rem; }
+.tsk-form.phone .tsk-nature button { flex-direction: column; gap: 3px; min-height: 58px; }
+.tsk-form.phone .tsk-nature button svg { width: 18px; height: 18px; }
+
+.tsk-form.phone .tk-error { padding: 12px 14px; border-radius: 14px; background: rgba(239, 68, 68, 0.08); }
+
+/* The save button: wide, in the club's orange */
+.m-screen:has(.tsk-form.phone) .m-screen-footer .tk-btn.primary.block {
+  min-height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fb923c, #ea580c);
+  box-shadow: 0 10px 20px -10px rgba(234, 88, 12, 0.7);
+  font-size: 1rem;
+}
+body.dark-mode .tsk-form.phone .tk-sec { box-shadow: none; border-color: var(--tk-border); }
+
+/* The home page: each task a whole card in its kind's colour — urgent red (glowing), appointment orange,
+   voice note pale blue, normal white; its facts one under the other */
+.tsk-hcards { display: flex; flex-direction: column; gap: 12px; }
+.tsk-sections > .tsk-sec:last-child .tsk-hcards { margin-bottom: 140px; }
+.tsk-hcard {
+  --k: #94a3b8;
+  --k-bg: var(--tk-card);
+  --k-line: var(--tk-border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--k-line);
+  background: var(--k-bg);
+  box-shadow: 0 6px 18px -14px rgba(15, 23, 42, 0.35);
+  cursor: pointer;
+  overflow: hidden;
+}
+.tsk-hcard:active { transform: scale(0.99); }
+.tsk-hcard.kind-urgent { --k: #ef4444; --k-bg: #fef2f2; --k-line: #fecaca; }
+.tsk-hcard.kind-scheduled { --k: #f97316; --k-bg: #fff7ed; --k-line: #fed7aa; }
+.tsk-hcard.kind-voice { --k: #3b82f6; --k-bg: #eff6ff; --k-line: #bfdbfe; }
+.tsk-hcard.kind-normal { --k: #cbd5e1; --k-bg: #ffffff; --k-line: #e2e8f0; }
+body.dark-mode .tsk-hcard.kind-urgent { --k-bg: rgba(239, 68, 68, 0.12); --k-line: rgba(239, 68, 68, 0.35); }
+body.dark-mode .tsk-hcard.kind-scheduled { --k-bg: rgba(249, 115, 22, 0.12); --k-line: rgba(249, 115, 22, 0.35); }
+body.dark-mode .tsk-hcard.kind-voice { --k-bg: rgba(59, 130, 246, 0.12); --k-line: rgba(59, 130, 246, 0.35); }
+body.dark-mode .tsk-hcard.kind-normal { --k: #64748b; --k-bg: var(--tk-card); --k-line: var(--tk-border); }
+
+/* Urgent: the frame glows softly, a live beacon in its red badge */
+.tsk-hcard.live { animation: tsk-hcard-glow 1.8s ease-in-out infinite; }
+@keyframes tsk-hcard-glow {
+  0%, 100% { box-shadow: 0 6px 18px -14px rgba(239, 68, 68, 0.5), 0 0 0 0 rgba(239, 68, 68, 0); }
+  50% { box-shadow: 0 8px 22px -12px rgba(239, 68, 68, 0.55), 0 0 0 3px rgba(239, 68, 68, 0.18); }
+}
+
+.tsk-hcard-top { display: flex; align-items: center; gap: 8px; }
+.tsk-hcard-kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--k) 15%, transparent);
+  color: var(--k);
+  font-size: 0.74rem;
+  font-weight: 900;
+}
+.tsk-hcard.kind-normal .tsk-hcard-kind { background: var(--tk-field); color: var(--tk-muted); }
+.tsk-hcard.live .tsk-hcard-kind { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; box-shadow: 0 4px 10px -4px rgba(220, 38, 38, 0.7); }
+.tsk-hcard.live .tsk-live { width: 7px; height: 7px; margin-inline-end: 2px; background: #fff; }
+.tsk-hcard.live .tsk-live::after { background: #fff; }
+.tsk-hcard-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+  color: var(--tk-t);
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+.tsk-hcard-title {
+  margin: 2px 0 0;
+  color: var(--tk-text);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.tsk-hcard-event { margin: 0; color: var(--k); font-size: 0.8rem; font-weight: 800; }
+.tsk-hcard.kind-normal .tsk-hcard-event { color: var(--tk-muted); }
+.tsk-hcard-details {
+  margin: 0;
+  color: var(--tk-text);
+  opacity: 0.8;
+  font-size: 0.86rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tsk-hcard-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--k-line);
+  color: var(--tk-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.tsk-hcard-meta span { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.tsk-hcard-meta svg { flex-shrink: 0; }
+.tsk-hcard-meta b { color: var(--tk-text); font-weight: 800; unicode-bidi: isolate; }
+.tsk-hcard-meta em { font-style: normal; opacity: 0.85; }
+.tsk-hcard-meta em::before { content: '· '; }
+.tsk-hcard-meta .late, .tsk-hcard-meta .late b { color: #ef4444; }
+.tsk-hcard-unread { color: #f97316; }
+@media (prefers-reduced-motion: reduce) { .tsk-hcard.live { animation: none; } }

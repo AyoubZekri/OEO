@@ -45,7 +45,7 @@ export const MobileEquipmentPrint: React.FC<{ operation: any; members: any[]; on
 
       {/* Hidden printable component */}
       <div className="print-only-receipt">
-        <PrintableEquipmentReceipt clubName="أولمبي أرزيو" {...receipt} />
+        <PrintableEquipmentReceipt clubName="أولمبي الوادي" {...receipt} />
       </div>
     </MobileSheet>
   );

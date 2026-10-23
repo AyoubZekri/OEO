@@ -4,12 +4,12 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileDebts } from '../../Mobile/MobileDebts/MobileDebts';
 import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
-import { TaskLoader } from '../Tasks/parts/TaskLoader';
+import { PageLoader } from '../../shared/PageLoader';
 import { useDebtsController } from './useDebtsController';
 import { DebtCard } from './parts/DebtCard';
 import { DebtOverlays } from './parts/DebtOverlays';
 import { debtTotals, filterDebts, sortDebts, STATUS_FILTERS } from './debtUtils';
-import '../Tasks/Tasks.css';
+import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import './Debts.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
@@ -60,7 +60,7 @@ export const Debts: React.FC = () => {
         {c.can('add') && <button type="button" className="btn-primary" onClick={() => c.openForm()}><Plus size={18} />استلاف جديد</button>}
       </div>
 
-      {c.loading && !c.debts.length ? <TaskLoader mobile={false} text="جاري تحميل الديون..." />
+      {c.loading && !c.debts.length ? <PageLoader mobile={false} text="جاري تحميل الديون..." />
         : c.error ? (
           <div className="tk-state">
             <Landmark size={30} /><p>{c.error}</p>
