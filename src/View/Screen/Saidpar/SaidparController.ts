@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Bus, Landmark, Trophy, CalendarX2, MessageSquare, ClipboardList, PieChart } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Bus, Landmark, Trophy, CalendarX2, MessageSquare, ClipboardList, PieChart, CalendarClock } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useSpace, type AppSpace } from '../../../core/context/space';
@@ -107,8 +107,9 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
       title: '',
       items: [
+        { name: 'MyHome', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
+        { name: 'MyTasks', icon: CalendarClock, isDropdown: false, label: 'مواعيدي', route: Approutes.MyTasks },
         { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.MyTrainingSessions },
-        { name: 'MyTasks', icon: ClipboardList, isDropdown: false, label: 'مهامي', route: Approutes.MyTasks },
         { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مباريات', route: Approutes.MyMatches },
         { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غيابات', route: Approutes.MyAbsences },
         { name: 'MyMeetings', icon: Briefcase, isDropdown: false, label: 'اجتماعات', route: Approutes.MyMeetings },
@@ -124,18 +125,19 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
      title: "",
       items: [
-        // Home: the tasks whose time came; the tasks page (tasks and appointments); the finance (the former home page)
+        // Home: the tasks whose time came; the appointments page; the finance (the former home page)
         ...(hasAccess(permissions.tasks?.view ?? false) ? [{
           name: 'Home',
           icon: Home,
           isDropdown: false,
           label: 'sidebar.home',
           route: '/',
-        }, {
+        }] : []),
+        ...(hasAccess(permissions.appointments?.view ?? false) ? [{
           name: 'Tasks',
-          icon: ClipboardList,
+          icon: CalendarClock,
           isDropdown: false,
-          label: 'المهام',
+          label: 'المواعيد',
           route: Approutes.Tasks,
         }] : []),
         ...(hasAccess(permissions.dashboard?.view ?? true) ? [{

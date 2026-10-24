@@ -1,9 +1,10 @@
 import React from 'react';
-import { Pencil, Trash2, MessageCircle, Power, PowerOff } from 'lucide-react';
+import { MessageCircle, AlertTriangle, CalendarClock } from 'lucide-react';
 import { ActionsMenu, type ActionsMenuItem } from '../../../widget/ActionsMenu';
 import {
-  dateText, isOpen, NATURE_META, scheduleText, templateTimesText, type Task, type TaskTemplate,
+  dateText, isOpen, KIND_META, NATURE_META, showSoon, sourceMeta, type Task,
 } from '../taskUtils';
+import { initials } from '../../../shared/dates';
 import { KindBadge, StatusBadge } from './TaskCard';
 import '../../Members/Members.css';
 
@@ -66,51 +67,49 @@ export const TaskTable: React.FC<{
   </div>
 );
 
-/** Desktop: the appointments in a table; ⋮: edit, stop / start, delete */
-export const TemplateTable: React.FC<{
-  templates: TaskTemplate[];
-  onEdit?: (t: TaskTemplate) => void;
-  onToggle?: (t: TaskTemplate) => void;
-  onDelete?: (t: TaskTemplate) => void;
-}> = ({ templates, onEdit, onToggle, onDelete }) => (
+/**
+ * Desktop: the appointments' tasks still to come, in a table like the tasks', each row edged in how soon it shows on
+ * the home page (a day: red, three days: orange, later: blue): the task with its event's icon and its event, its kind
+ * (موعد), its alert's date, its deadline, who does it (or «بلا مكلّف»). A row opens it.
+ */
+export const UpcomingTable: React.FC<{ tasks: Task[]; onOpen: (t: Task) => void; menu: (t: Task) => ActionsMenuItem[]; mine?: boolean }> = ({ tasks, onOpen, menu, mine }) => (
   <div className="members-table-wrapper">
-    <table className="custom-table tk-table">
+    <table className="custom-table tk-table tsk-utable">
       <thead>
         <tr>
-          <th>الموعد</th>
-          <th>التكرار</th>
-          <th>التنبيه</th>
+          <th>المهمة</th>
+          <th>النوع</th>
+          <th>تاريخ التنبيه</th>
           <th>آخر أجل</th>
-          <th>المكلّف</th>
-          <th>المهام</th>
-          <th>الحالة</th>
+          <th>{mine ? 'من طرف' : 'المكلّف'}</th>
           <th>إجراءات</th>
         </tr>
       </thead>
       <tbody>
-        {templates.map(t => {
-          const on = t.status === 'active';
-          const times = templateTimesText(t);
-          const items = [
-            ...(onEdit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#10b981', onClick: () => onEdit(t) }] : []),
-            ...(onToggle ? [on
-              ? { key: 'stop', label: 'إيقاف', icon: PowerOff, color: '#64748b', onClick: () => onToggle(t) }
-              : { key: 'start', label: 'تشغيل', icon: Power, color: '#16a34a', onClick: () => onToggle(t) }] : []),
-            ...(onDelete ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => onDelete(t) }] : []),
-          ];
+        {tasks.map(t => {
+          const open = () => onOpen(t);
+          const src = sourceMeta(t);
           return (
-            <tr key={t.id} className={`tk-brow ${on ? '' : 'off'}`}>
-              <td data-label="الموعد" className="tk-title-cell"><strong>{t.title}</strong></td>
-              <td data-label="التكرار" className="tk-next-cell">{scheduleText(t)}</td>
-              <td data-label="التنبيه" className="tk-next-cell">{times.alert}</td>
-              <td data-label="آخر أجل" className="tk-next-cell">{times.due}</td>
-              <td data-label="المكلّف">{t.assignee?.name || '—'}</td>
-              <td data-label="المهام"><span className="tk-count">{t.tasks_count}</span></td>
-              <td data-label="الحالة">
-                <span className={`tk-badge tone-${on ? 'green' : 'slate'}`}>{on ? 'مفعل' : 'متوقف'}</span>
+            <tr key={t.id} className={`tk-row tsk-urow ${showSoon(t.alert_at)} ${t.source === 'periodic' ? 'periodic' : 'event'}`} tabIndex={0} onClick={open} onKeyDown={e => { if (e.key === 'Enter') open(); }}>
+              <td data-label="المهمة" className="tk-title-cell">
+                <span className="tsk-utitle">
+                  <span className="tsk-uicon"><src.icon size={18} /></span>
+                  <span>
+                    <strong>{t.title}</strong>
+                    {t.event_label && <small>{t.event_label}</small>}
+                  </span>
+                </span>
               </td>
-              <td data-label="إجراءات" className="actions-cell">
-                {items.length ? <ActionsMenu label="إجراءات الموعد" items={items} /> : <span className="tk-muted">—</span>}
+              <td data-label="النوع"><span className="tk-badge soft tone-orange"><CalendarClock size={12} />{KIND_META.scheduled.label}</span></td>
+              <td data-label="تاريخ التنبيه"><span className="tsk-ushow" dir="ltr">{dateText(t.alert_at)}</span></td>
+              <td data-label="آخر أجل"><span className="tk-due" dir="ltr">{t.due_at ? dateText(t.due_at) : '—'}</span></td>
+              <td data-label={mine ? 'من طرف' : 'المكلّف'}>
+                {mine ? (t.created_by || 'النظام') : t.assignee
+                  ? <span className="tsk-uwho"><span className="tk-avatar xs">{initials(t.assignee.name)}</span>{t.assignee.name}</span>
+                  : <span className="tsk-unassigned"><AlertTriangle size={13} />بلا مكلّف</span>}
+              </td>
+              <td data-label="إجراءات" className="actions-cell" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+                <ActionsMenu label="إجراءات المهمة" items={menu(t)} />
               </td>
             </tr>
           );

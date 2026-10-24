@@ -24,8 +24,8 @@ interface PageLink {
 type IconType = React.ComponentType<{ size?: number }>;
 
 // Pages already in the bottom nav are not repeated here
-const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Matches]);
-const IN_PERSONAL_NAV = new Set<string>([Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences]);
+const IN_BOTTOM_NAV = new Set<string>(['/', Approutes.Members, Approutes.Finance]);
+const IN_PERSONAL_NAV = new Set<string>(['/', Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences]);
 
 const GROUPS: { title: string; names: string[] }[] = [
   { title: 'فضائي الشخصي', names: ['MyTrainingSessions', 'MyTasks', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary', 'MyFeedback'] },

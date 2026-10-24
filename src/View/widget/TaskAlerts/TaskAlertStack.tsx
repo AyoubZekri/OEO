@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlarmClock, Hourglass, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake, UserCheck, MessageSquareReply, MessageSquareWarning, ClipboardList, BellRing, MessagesSquare } from 'lucide-react';
+import { AlarmClock, Hourglass, ChevronLeft, ChevronDown, Bell, X, Scale, MessageSquare, Gavel, CalendarClock, FileSignature, Dumbbell, Radio, CalendarCheck, CalendarPlus, CalendarCog, CalendarX, Trophy, Megaphone, Flag, PauseCircle, UserPlus, LayoutGrid, ClipboardCheck, Star, FileText, CalendarX2, BadgeCheck, XCircle, Inbox, TimerOff, ShieldCheck, Plane, Repeat2, UserMinus, Briefcase, MessageSquarePlus, ClipboardX, Timer, CalendarSync, UserX, Bus, Navigation, Crown, Users as UsersIcon, HeartPulse, Stethoscope, Activity, HeartHandshake, UserCheck, MessageSquareReply, MessageSquareWarning, ClipboardList, BellRing, MessagesSquare, Zap } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import client from '../../../core/api/client';
 import { DATA_CHANGED } from '../../../core/api/dataChanged';
@@ -119,6 +119,9 @@ const ICONS: Record<AlertKind, typeof Bell> = {
   task_due: Hourglass,
   task_late: AlarmClock,
   task_msg: MessagesSquare,
+  mgr_task_alert: BellRing,
+  mgr_task_due: Hourglass,
+  mgr_task_urgent: Zap,
   mgr_task_late: AlarmClock,
   mgr_task_msg: MessagesSquare,
   mgr_fb_new: MessageSquarePlus,
@@ -536,7 +539,8 @@ export const TaskAlerts: React.FC = () => {
     if (a.target.type === 'task') {
       if (a.event) dismiss(a);
       if (space !== a.target.space) setSpace(a.target.space);
-      navigate(`${a.target.space === 'personal' ? Approutes.MyTasks : Approutes.Tasks}?task=${a.target.id}`);
+      // Both spaces: the home page (its tasks' list), the task's details open there
+      navigate(`/?task=${a.target.id}`);
       return;
     }
     if (a.target.type === 'feedback') {

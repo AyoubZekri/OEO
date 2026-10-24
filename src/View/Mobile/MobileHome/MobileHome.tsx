@@ -8,6 +8,7 @@ import type { useHomeController } from '../../Screen/Home/HomeController';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import './MobileHome.css';
 import { HomeFinance } from '../../Screen/Home/HomeFinance';
+import { useCan } from '../../../core/functions/useCan';
 
 interface MobileHomeProps {
   controller: ReturnType<typeof useHomeController>;
@@ -37,6 +38,9 @@ const useCountdown = (target: Date | null) => {
 
 export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
   const navigate = useNavigate();
+  // Each section of the page has its own permission (المالية)
+  const can = useCan();
+  const see = (section: string) => can('dashboard', section);
   const { dashboard, metrics } = controller;
   const match = dashboard.nextMatch;
   const matchDate = parseMatchDate(match?.match_date);
@@ -51,7 +55,7 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
       <MobileAppBar title="الصفحة الرئيسية" showNotificationDot={dashboard.overdueContracts > 0} />
 
       {/* Total expenses */}
-      <section className="mh-funds" dir="rtl" role="button" tabIndex={0} onClick={() => navigate(Approutes.Payments)} onKeyDown={e => { if (e.key === 'Enter') navigate(Approutes.Payments); }}>
+      {see('viewExpenses') && <section className="mh-funds" dir="rtl" role="button" tabIndex={0} onClick={() => navigate(Approutes.Payments)} onKeyDown={e => { if (e.key === 'Enter') navigate(Approutes.Payments); }}>
         <img className="mh-funds-watermark" src="/LOGO.webp" alt="" aria-hidden="true" />
         <div className="mh-funds-top">
           <span className="mh-funds-icon"><Wallet size={20} /></span>
@@ -61,10 +65,10 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
           <span className="mh-funds-value">{amountText(metrics.totalExpenses)}</span>
           <span className="mh-funds-currency">د.ج</span>
         </div>
-      </section>
+      </section>}
 
       {/* Next match */}
-      <section className="mh-card mh-match">
+      {see('viewNextMatch') && <section className="mh-card mh-match">
         <div className="mh-match-head">
           <div className="mh-card-head">
             <span className="mh-icon mh-icon-green"><Users size={18} /></span>
@@ -104,20 +108,20 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
         ) : (
           <p className="mh-empty" dir="rtl">لا توجد مباراة مبرمجة حالياً</p>
         )}
-      </section>
+      </section>}
 
       {/* Each fund's income and outgoings, the unpaid debts */}
-      <HomeFinance mobile flows={controller.fundFlows} unfunded={controller.unfundedOutcome} loans={controller.unpaidLoans} credit={controller.unpaidCredit} money={controller.formatCurrency} />
+      <HomeFinance mobile showFlows={see('viewFlows')} showDebts={see('viewDebts')} flows={controller.fundFlows} unfunded={controller.unfundedOutcome} loans={controller.unpaidLoans} credit={controller.unpaidCredit} money={controller.formatCurrency} />
 
       {/* Operations page shortcut */}
-      <button className="mh-card mh-ops-link" onClick={() => navigate(Approutes.Operations)}>
+      {see('viewOperations') && <button className="mh-card mh-ops-link" onClick={() => navigate(Approutes.Operations)}>
         <ChevronLeft size={20} />
         <span className="mh-ops-text" dir="rtl">
           <strong>آخر العمليات</strong>
           <small>كل الواردات والمصاريف والتحويلات</small>
         </span>
         <span className="mh-icon mh-icon-orange"><History size={18} /></span>
-      </button>
+      </button>}
     </div>
   );
 };

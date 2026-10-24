@@ -97,8 +97,8 @@ export const HomeTasks: React.FC = () => {
           value={nature || 'all'}
           onChange={pick(setNature)}
         />
-        {c.can('add') && <button type="button" className="btn-primary tsk-voice-add" onClick={() => c.openForm({ voice: true })}><Mic size={18} />تنبيه صوتي</button>}
-        {c.can('add') && <button type="button" className="btn-primary" onClick={() => c.openForm()}><Plus size={18} />مهمة جديدة</button>}
+        {c.can('voice') && <button type="button" className="btn-primary tsk-voice-add" onClick={() => c.openForm({ voice: true })}><Mic size={18} />تنبيه صوتي</button>}
+        {(c.can('add') || c.canAppointments('add')) && <button type="button" className="btn-primary" onClick={() => c.openForm()}><Plus size={18} />مهمة جديدة</button>}
       </div>
 
       {content}

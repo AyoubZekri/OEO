@@ -93,7 +93,10 @@ export const HomeFinance: React.FC<{
   unfunded?: number;
   money: (v: number) => string;
   mobile?: boolean;
-}> = ({ flows, unfunded = 0, loans, credit, money }) => {
+  /** The sections this role sees (المالية: income and outgoings, debts) */
+  showFlows?: boolean;
+  showDebts?: boolean;
+}> = ({ flows, unfunded = 0, loans, credit, money, showFlows = true, showDebts = true }) => {
   const navigate = useNavigate();
   // A fund's income or outgoings, on its own page (outgoings of no fund: the "special fund")
   const [opened, setOpened] = useState<{ kind: 'in' | 'out'; flow: FundFlow | null } | null>(null);
@@ -102,21 +105,21 @@ export const HomeFinance: React.FC<{
   return (
     <div className="hf" dir="rtl">
       {/* Income, then outgoings under it: each with its own title */}
-      <section className="hf-block">
+      {showFlows && <section className="hf-block">
         <h3 className="hf-block-title"><ArrowDownLeft size={17} /> المداخيل</h3>
         <FlowCard kind="in" flows={flows} money={money} onFund={f => f && setOpened({ kind: 'in', flow: f })} />
-      </section>
-      <section className="hf-block">
+      </section>}
+      {showFlows && <section className="hf-block">
         <h3 className="hf-block-title"><ArrowUpRight size={17} /> المخاريج</h3>
         <FlowCard kind="out" flows={flows} unfunded={unfunded} money={money} onFund={f => setOpened({ kind: 'out', flow: f })} />
-      </section>
-      <section className="hf-block">
+      </section>}
+      {showDebts && <section className="hf-block">
         <h3 className="hf-block-title"><HandCoins size={17} /> الديون</h3>
       <div className="hf-duo">
         <DebtTile title="غير مسددة" icon={HandCoins} tone="red" debts={loans} money={money} onOpen={() => navigate(`${Approutes.Debts}?status=unpaid`)} />
         <DebtTile title="عينية غير مسددة" icon={Package} tone="amber" debts={credit} money={money} onOpen={() => setCreditOpen(true)} />
       </div>
-      </section>
+      </section>}
 
       {creditOpen && <CreditDebtsPage onBack={() => setCreditOpen(false)} />}
       {opened && <FundMoney kind={opened.kind} flow={opened.flow} money={money} onBack={() => setOpened(null)} />}

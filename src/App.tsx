@@ -49,7 +49,8 @@ import { FeedbackAdmin } from './View/Screen/Feedback/FeedbackAdmin';
 import { TasksHome } from './View/Screen/Tasks/TasksHome';
 import { HomeTasks } from './View/Screen/Tasks/HomeTasks';
 import { useCan } from './core/functions/useCan';
-import { MyTasks } from './View/Screen/Tasks/MyTasks';
+import { MyHome } from './View/Screen/Tasks/MyHome';
+import { MyAppointments } from './View/Screen/Tasks/MyAppointments';
 import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
 import './App.css';
@@ -86,8 +87,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         <div style={{ padding: '20px', flex: 1 }}>
           {space === 'personal' ? (
             <Routes>
-              {/* No home page in the personal space: it opens on my training sessions */}
-              <Route path="/" element={<Navigate to={Approutes.MyTrainingSessions} replace />} />
+              {/* The personal space's home page: my tasks whose time came, like the management's */}
+              <Route path="/" element={<MyHome />} />
               <Route path={Approutes.MyTrainingSessions} element={<MyTrainingSessions />} />
               <Route path={Approutes.MyMatches} element={<MyMatches />} />
               <Route path={Approutes.MyAbsences} element={<MyAbsences />} />
@@ -96,16 +97,16 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               <Route path={Approutes.MyMedical} element={<MyMedical />} />
               <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
               <Route path={Approutes.MyFeedback} element={<MyFeedback />} />
-              <Route path={Approutes.MyTasks} element={<MyTasks />} />
+              <Route path={Approutes.MyTasks} element={<MyAppointments />} />
               <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
               {/* The management pages are not part of the personal space */}
-              <Route path="*" element={<Navigate to={Approutes.MyTrainingSessions} replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           ) : (
           <Routes>
             <Route path="/" element={<HomeRoute />} />
             <Route path={Approutes.Finance} element={<Home />} />
-            <Route path={Approutes.Tasks} element={<RequirePermission module="tasks"><TasksHome /></RequirePermission>} />
+            <Route path={Approutes.Tasks} element={<RequirePermission module="appointments"><TasksHome /></RequirePermission>} />
             <Route path="/appointments" element={<Navigate to={Approutes.Tasks} replace />} />
             <Route path={Approutes.Roles} element={<RequirePermission module="usersAndRoles" action="viewRoles"><Roles /></RequirePermission>} />
             <Route path={Approutes.Users} element={<RequirePermission module="usersAndRoles" action="viewUsers"><Users /></RequirePermission>} />

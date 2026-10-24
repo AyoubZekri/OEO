@@ -43,17 +43,9 @@
   color: var(--tk-t);
 }
 .tsk-mrow-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.tsk-mrow-main strong {
-  color: var(--tk-text);
-  font-size: 0.92rem;
-  font-weight: 800;
-  line-height: 1.45;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-}
-.tsk-mrow-main small { color: var(--tk-muted); font-size: 0.76rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The task and who does it, whole */
+.tsk-mrow-main strong { color: var(--tk-text); font-size: 0.92rem; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
+.tsk-mrow-main small { color: var(--tk-muted); font-size: 0.76rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .tsk-mrow-main small b { font-weight: 700; direction: ltr; unicode-bidi: isolate; }
 .tsk-mrow-main small b.late { color: #ef4444; }
 .tsk-mrow-end { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -257,3 +249,53 @@ body.dark-mode .tsk-hcard.kind-normal { --k: #64748b; --k-bg: var(--tk-card); --
 .tsk-hcard-meta .late, .tsk-hcard-meta .late b { color: #ef4444; }
 .tsk-hcard-unread { color: #f97316; }
 @media (prefers-reduced-motion: reduce) { .tsk-hcard.live { animation: none; } }
+
+/* An appointment on phones: compact, like the other pages' tickets — a tile, the title and three lines, state and ⋮ */
+.tsk-acard.compact { flex-direction: row; align-items: stretch; gap: 12px; padding: 12px; border-radius: 18px; box-shadow: 0 6px 18px -12px rgba(0, 0, 0, 0.35); }
+.tsk-acard.compact:hover { transform: none; }
+.tsk-acard.compact:active { transform: scale(0.985); }
+.tsk-acard-tile {
+  width: 58px;
+  flex-shrink: 0;
+  align-self: flex-start;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--a) 30%, var(--tk-border));
+  background: color-mix(in srgb, var(--a) 8%, var(--tk-card));
+}
+.tsk-acard-tile small {
+  width: 100%;
+  padding: 3px 2px;
+  background: var(--a);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tsk-acard-tile b { display: flex; padding: 10px 0 11px; color: var(--a); }
+.tsk-acard.off .tsk-acard-tile small { background: #94a3b8; }
+.tsk-acard.off .tsk-acard-tile b { color: #94a3b8; }
+.tsk-acard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tsk-acard-body h4 { margin: 0 0 2px; color: var(--tk-text); font-size: 0.95rem; font-weight: 900; line-height: 1.5; overflow-wrap: anywhere; }
+/* Every line whole: the title and who does it never cut */
+.tsk-acard-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  min-width: 0;
+  color: var(--tk-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.tsk-acard-line svg { flex-shrink: 0; margin-top: 3px; color: var(--a); }
+.tsk-acard-line.sched { color: var(--a); font-weight: 800; }
+.tsk-acard-side { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.tsk-acard.compact .tsk-acard-state { padding: 2px 8px; font-size: 0.68rem; }

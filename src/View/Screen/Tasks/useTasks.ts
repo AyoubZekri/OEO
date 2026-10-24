@@ -54,10 +54,11 @@ export interface TaskPayload {
 }
 
 /**
- * Management: the tasks (home page) or the appointments (their own page) — giving / editing them, their status,
+ * Management: the tasks (home page), the appointments (their own page), or the appointments' tasks still to come
+ * (the appointments page's other side) — giving / editing them, their status,
  * stopping an appointment, deleting
  */
-export const useTasksAdmin = (list: 'tasks' | 'templates') => {
+export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
   const can = useCan();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [templates, setTemplates] = useState<TaskTemplate[]>([]);
@@ -69,12 +70,12 @@ export const useTasksAdmin = (list: 'tasks' | 'templates') => {
 
   const load = useCallback(async () => {
     try {
-      const res = await client.get(list === 'tasks' ? '/tasks' : '/tasks/templates');
-      if (list === 'tasks') setTasks(listOf<Task>(res.data));
+      const res = await client.get(list === 'tasks' ? '/tasks' : list === 'upcoming' ? '/tasks/upcoming' : '/tasks/templates');
+      if (list !== 'templates') setTasks(listOf<Task>(res.data));
       else setTemplates(listOf<TaskTemplate>(res.data));
       setError('');
     } catch (e) {
-      setError(errorText(e, list === 'tasks' ? 'تعذر تحميل المهام' : 'تعذر تحميل المواعيد'));
+      setError(errorText(e, list === 'templates' ? 'تعذر تحميل المواعيد' : 'تعذر تحميل المهام'));
     } finally {
       setLoading(false);
     }
@@ -143,7 +144,10 @@ export const useTasksAdmin = (list: 'tasks' | 'templates') => {
 
   return {
     tasks, templates, users, loading, error, reload: load,
-    can: (action: 'add' | 'edit' | 'delete') => can('tasks', action),
+    // The home page's actions (tasks.*), or the appointments page's (appointments.*)
+    can: (action: string) => can(list === 'templates' ? 'appointments' : 'tasks', action),
+    /** Adding an appointment (from the home page's form too) */
+    canAppointments: (action: string) => can('appointments', action),
     form, openForm, closeForm: () => setForm(null), save,
     opened: details.opened, openTask: details.open, closeTask: details.close,
     replace, setStatus, toggleTemplate, remove,

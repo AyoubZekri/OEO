@@ -1,0 +1,94 @@
+/* The group evaluation (the matches' import look): its season, type and month */
+.bev-settings { align-items: flex-start; }
+.bev-settings .imx-step-text strong { display: inline-flex; align-items: center; gap: 6px; }
+.bev-fields { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; }
+.bev-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.bev-field > small { color: var(--text-muted); font-size: .78rem; font-weight: 800; }
+
+/* The season: ‹ 2026-2027 › */
+.bev-season {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+}
+.bev-season b { min-width: 110px; padding: 0 8px; color: var(--text-h); font-size: 1.05rem; font-weight: 900; text-align: center; letter-spacing: .5px; }
+.bev-season button {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: rgba(249, 115, 22, .1);
+  color: #ea580c;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.bev-season button:hover { background: #f97316; color: #fff; }
+
+/* The type: four cards, the chosen one in orange */
+.bev-types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.bev-types button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 6px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: .82rem;
+  font-weight: 800;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.bev-types button span {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--bg, #f1f5f9);
+  color: var(--text-muted);
+  transition: background .15s ease, color .15s ease;
+}
+.bev-types button:hover { border-color: rgba(249, 115, 22, .5); }
+.bev-types button.on { border-color: #f97316; background: rgba(249, 115, 22, .07); color: #ea580c; }
+.bev-types button.on span { background: #f97316; color: #fff; box-shadow: 0 6px 14px -8px rgba(234, 88, 12, .8); }
+
+/* A monthly one: the season's months, July to June */
+.bev-months { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+.bev-months button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 7px 4px;
+  border-radius: 11px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.bev-months button em { color: var(--text-muted); font-size: .66rem; font-style: normal; font-weight: 700; }
+.bev-months button:hover { border-color: rgba(249, 115, 22, .5); }
+.bev-months button.on { border-color: transparent; background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; }
+.bev-months button.on em { color: rgba(255, 255, 255, .85); }
+
+@media (max-width: 640px) {
+  .bev-types { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bev-months { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

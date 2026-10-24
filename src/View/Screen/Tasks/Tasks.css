@@ -121,9 +121,6 @@ body.dark-mode .tk-table tbody tr.tsk-tint-voice td, body.dark-mode .tsk-mrow.ts
   .tsk-live::after, .tk-table tbody tr.tsk-tint-urgent td::before, .tsk-mrow.tsk-tint-urgent::before { animation: none; }
 }
 
-/* Tasks / appointments: the switch takes the page's whole width, two equal halves */
-.tsk-tabs { align-self: stretch; display: flex; width: 100%; }
-.tsk-tabs button { flex: 1; justify-content: center; }
 
 /* The task's details (read only): a head in its kind's colour (normal: white), the deadline (when it has one), who,
    its other dates on a timeline, its details */
@@ -152,11 +149,6 @@ body.dark-mode .tk-table tbody tr.tsk-tint-voice td, body.dark-mode .tsk-mrow.ts
   color: var(--tk-text);
   box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.45);
 }
-.tsk-d-hero.kind-normal .tsk-d-pill { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
-.tsk-d-hero.kind-normal .tsk-d-pill.status { background: color-mix(in srgb, var(--tk-t) 14%, transparent); color: var(--tk-t); }
-.tsk-d-hero.kind-normal .tsk-d-hero-foot { color: var(--tk-muted); }
-.tsk-d-hero.kind-normal .tsk-d-hero-foot svg { color: var(--tk-accent); }
-.tsk-d-hero.kind-normal .tsk-d-hero-mark { color: var(--tk-accent); opacity: 0.08; }
 .tsk-d-hero.live { animation: tsk-d-glow 1.8s ease-in-out infinite; }
 @keyframes tsk-d-glow {
   0%, 100% { box-shadow: 0 14px 28px -18px #ef4444, 0 0 0 0 rgba(239, 68, 68, 0); }
@@ -181,6 +173,31 @@ body.dark-mode .tk-table tbody tr.tsk-tint-voice td, body.dark-mode .tsk-mrow.ts
 .tsk-d-hero h2 { position: relative; margin: 0; font-size: 1.2rem; font-weight: 900; line-height: 1.6; overflow-wrap: anywhere; }
 .tsk-d-hero-foot { position: relative; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; font-weight: 700; opacity: 0.95; }
 .tsk-d-hero-foot span { display: inline-flex; align-items: center; gap: 6px; }
+.tsk-d-hero.kind-normal .tsk-d-pill { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
+.tsk-d-hero.kind-normal .tsk-d-pill.status { background: color-mix(in srgb, var(--tk-t) 14%, transparent); color: var(--tk-t); }
+.tsk-d-hero.kind-normal .tsk-d-hero-foot { color: var(--tk-muted); }
+.tsk-d-hero.kind-normal .tsk-d-hero-foot svg { color: var(--tk-accent); }
+.tsk-d-hero.kind-normal .tsk-d-hero-mark { color: var(--tk-accent); opacity: 0.08; }
+
+/* A task's event, from its details: a button on its head */
+.tsk-d-event {
+  position: relative;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: none;
+  border-radius: 99px;
+  background: #fff;
+  color: var(--k2, #ea580c);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 14px -10px rgba(15, 23, 42, 0.6);
+}
+.tsk-d-hero.kind-normal .tsk-d-event { background: rgba(249, 115, 22, 0.12); color: #ea580c; box-shadow: none; }
 
 .tsk-d-due {
   --d: #3b82f6;
@@ -299,18 +316,7 @@ body.dark-mode .tk-table tbody tr.tsk-tint-voice td, body.dark-mode .tsk-mrow.ts
   .tsk-d-due { flex-wrap: wrap; }
   .tsk-d-due > b { width: 100%; padding-inline-start: 52px; }
 }
-@media (prefers-reduced-motion: reduce) { .tsk-d-hero.kind-normal {
-  background: var(--tk-card);
-  border: 1px solid var(--tk-border);
-  color: var(--tk-text);
-  box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.45);
-}
-.tsk-d-hero.kind-normal .tsk-d-pill { background: rgba(249, 115, 22, 0.12); color: #ea580c; }
-.tsk-d-hero.kind-normal .tsk-d-pill.status { background: color-mix(in srgb, var(--tk-t) 14%, transparent); color: var(--tk-t); }
-.tsk-d-hero.kind-normal .tsk-d-hero-foot { color: var(--tk-muted); }
-.tsk-d-hero.kind-normal .tsk-d-hero-foot svg { color: var(--tk-accent); }
-.tsk-d-hero.kind-normal .tsk-d-hero-mark { color: var(--tk-accent); opacity: 0.08; }
-.tsk-d-hero.live { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .tsk-d-hero.live { animation: none; } }
 
 /* ⋮ with a dot when a message is new */
 .tsk-menu-cell { position: relative; display: inline-flex; }
@@ -450,46 +456,120 @@ body.dark-mode .tk-table tbody tr.tsk-tint-voice td, body.dark-mode .tsk-mrow.ts
 .tk-scope .tk-kind button.on.tone-red small { color: #ef4444; }
 .tk-scope .tk-kind button.on.tone-violet small { color: #8b5cf6; }
 
-/* A voice note: a big microphone in the middle, then the recorded text (read only) */
-.tsk-voice { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 8px 0 4px; }
-.tsk-voice-btn {
+/* A voice note's recording, without words: the microphone in fine rings (emerald; red while it listens), a thin
+   waveform and the time while it listens, then the text in a clean card (to correct once it stops) */
+.tsk-rec { --g: #10b981; --g2: #047857; display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
+.tsk-rec.live { --g: #f43f5e; --g2: #be123c; }
+.tsk-rec-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 16px 18px;
+  border-radius: 28px;
+  background: radial-gradient(90% 80% at 50% 30%, color-mix(in srgb, var(--g) 10%, var(--tk-card)), var(--tk-card) 70%);
+  border: 1px solid color-mix(in srgb, var(--g) 16%, var(--tk-border));
+  transition: background 0.4s ease, border-color 0.4s ease;
+}
+.tsk-rec-mic-wrap { display: flex; align-items: center; justify-content: center; }
+.tsk-rec-mic {
   position: relative;
-  width: 84px;
-  height: 84px;
-  flex-shrink: 0;
-  display: inline-flex;
+  z-index: 1;
+  width: 92px;
+  height: 92px;
+  display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: #10b981;
+  background: linear-gradient(150deg, color-mix(in srgb, var(--g) 65%, #fff) 0%, var(--g) 45%, var(--g2) 100%);
   color: #fff;
   cursor: pointer;
+  box-shadow: 0 20px 36px -16px var(--g2), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  transition: transform 0.2s ease, background 0.4s ease, box-shadow 0.4s ease;
 }
-.tsk-voice.live .tsk-voice-btn { background: #ef4444; }
-.tsk-voice.live .tsk-voice-btn::after {
-  content: '';
+.tsk-rec-mic:hover { transform: translateY(-1px); }
+.tsk-rec-mic:active { transform: scale(0.95); }
+.tsk-rec-wave { height: 28px; display: flex; align-items: center; gap: 3px; opacity: 0; transition: opacity 0.3s ease; }
+.tsk-rec.live .tsk-rec-wave { opacity: 1; }
+.tsk-rec-wave span { width: 3px; height: 4px; border-radius: 3px; background: linear-gradient(180deg, var(--g), var(--g2)); }
+.tsk-rec.live .tsk-rec-wave span { animation: tsk-rec-bar 1s ease-in-out infinite; }
+.tsk-rec.live .tsk-rec-wave span:nth-child(3n) { animation-duration: 0.75s; }
+.tsk-rec.live .tsk-rec-wave span:nth-child(4n + 1) { animation-duration: 1.2s; }
+@keyframes tsk-rec-bar { 0%, 100% { height: 4px; } 50% { height: 26px; } }
+.tsk-rec-time {
+  min-height: 20px;
+  color: var(--g2);
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.tsk-rec.live .tsk-rec-time { opacity: 1; }
+
+/* The words' field: soft, rounded, its border glowing in the recording's colour while it listens */
+.tsk-rec-field {
+  position: relative;
+  padding: 2px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--g) 30%, var(--tk-border)), var(--tk-border) 60%);
+  box-shadow: 0 16px 32px -26px rgba(15, 23, 42, 0.55);
+  transition: background 0.4s ease, box-shadow 0.4s ease;
+}
+.tsk-rec.live .tsk-rec-field {
+  background: linear-gradient(120deg, var(--g), color-mix(in srgb, var(--g) 30%, #fff), var(--g2), var(--g));
+  background-size: 300% 300%;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--g) 12%, transparent), 0 18px 34px -24px var(--g2);
+  animation: tsk-rec-glow 3s linear infinite;
+}
+@keyframes tsk-rec-glow { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
+.tsk-rec-text {
+  display: block;
+  width: 100%;
+  min-height: 58px;
+  margin: 0;
+  box-sizing: border-box;
+  padding: 12px 16px;
+  padding-inline-end: 52px;
+  border: none;
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--tk-card), color-mix(in srgb, var(--g) 3%, var(--tk-card)));
+  color: var(--tk-text);
+  font: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  line-height: 1.95;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.tsk-rec-text > span { color: var(--tk-muted); font-weight: 500; }
+.tk-scope textarea.tsk-rec-text { resize: none; overflow: hidden; outline: none; }
+.tsk-rec-field:focus-within { background: linear-gradient(135deg, var(--g), color-mix(in srgb, var(--g) 40%, var(--tk-border))); }
+.tsk-rec-caret { display: inline-block; width: 2px; height: 1.15em; margin-inline-start: 3px; vertical-align: middle; border-radius: 2px; background: var(--g); animation: tsk-rec-blink 1s steps(2, start) infinite; }
+@keyframes tsk-rec-blink { to { visibility: hidden; } }
+.tsk-rec-clear {
   position: absolute;
-  inset: -8px;
+  top: 50%;
+  inset-inline-end: 10px;
+  width: 34px;
+  height: 34px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
   border-radius: 50%;
-  border: 2px solid #ef4444;
-  animation: tsk-pulse 1.2s ease-out infinite;
-}
-@keyframes tsk-pulse { from { opacity: 0.9; transform: scale(0.9); } to { opacity: 0; transform: scale(1.25); } }
-@media (prefers-reduced-motion: reduce) { .tsk-voice.live .tsk-voice-btn::after { animation: none; } }
-.tsk-voice-state { color: var(--tk-text); font-size: 0.95rem; font-weight: 900; }
-.tsk-voice-text {
-  align-self: stretch;
-  min-height: 96px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px dashed var(--tk-border);
   background: var(--tk-field);
+  color: var(--tk-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-.tsk-voice-text p { margin: 0; color: var(--tk-text); font-size: 0.95rem; line-height: 1.8; white-space: pre-wrap; }
-.tsk-voice-text p span { color: var(--tk-muted); }
-.tsk-voice-text p.empty { color: var(--tk-muted); text-align: center; }
-.tsk-voice .tk-error { align-self: stretch; }
+.tsk-rec-clear:hover { background: rgba(244, 63, 94, 0.12); color: #e11d48; }
+@media (prefers-reduced-motion: reduce) {
+  .tsk-rec.live .tsk-rec-wave span, .tsk-rec-caret, .tsk-rec.live .tsk-rec-field { animation: none; }
+}
 
 /* The voice note's second step: the recorded text, then who and the nature */
 .tsk-voice-quote {
@@ -775,3 +855,158 @@ body.dark-mode .tsk-del-btn.cancel { border-color: rgba(255, 255, 255, 0.1); bac
 @keyframes tsk-del-fade { from { opacity: 0; } }
 @keyframes tsk-del-pop { from { opacity: 0; transform: translateY(10px) scale(0.94); } }
 @media (prefers-reduced-motion: reduce) { .tsk-del-overlay, .tsk-del { animation: none; } }
+
+
+/* An appointment as a card: event ones orange, periodic violet; a stopped one dimmed */
+.tsk-acard {
+  --a: #f97316;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  box-shadow: 0 10px 24px -20px rgba(15, 23, 42, 0.5);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.tsk-acard.periodic { --a: #8b5cf6; }
+.tsk-acard:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--a) 35%, var(--tk-border)); box-shadow: 0 16px 30px -20px color-mix(in srgb, var(--a) 70%, transparent); }
+.tsk-acard:active { transform: scale(0.99); }
+.tsk-acard.off { opacity: 0.62; }
+.tsk-acard.off .tsk-acard-icon { background: #94a3b8; }
+.tsk-acard-top { display: flex; align-items: flex-start; gap: 12px; }
+.tsk-acard-icon {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--a) 75%, #fff), var(--a));
+  color: #fff;
+  box-shadow: 0 8px 16px -10px var(--a);
+}
+.tsk-acard-title { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tsk-acard-title h4 { margin: 0; color: var(--tk-text); font-size: 0.98rem; font-weight: 900; line-height: 1.5; overflow-wrap: anywhere; }
+.tsk-acard-title small { color: var(--a); font-size: 0.78rem; font-weight: 800; }
+.tsk-acard-state {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  background: var(--tk-field);
+  color: var(--tk-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.tsk-acard-state i { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; }
+.tsk-acard-state.on { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.tsk-acard-state.on i { background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+.tsk-acard-times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tsk-acard-times span {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--tk-field);
+}
+.tsk-acard-times svg { color: #f97316; }
+.tsk-acard-times .due svg { color: #3b82f6; }
+.tsk-acard-times small { color: var(--tk-muted); font-size: 0.72rem; font-weight: 800; }
+.tsk-acard-times b { grid-column: 1 / -1; color: var(--tk-text); font-size: 0.82rem; font-weight: 800; line-height: 1.5; }
+.tsk-acard-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-top: 12px; border-top: 1px solid var(--tk-border); }
+.tsk-acard-who { flex: 1 1 100%; min-width: 0; display: inline-flex; align-items: center; gap: 8px; color: var(--tk-text); font-size: 0.82rem; font-weight: 800; overflow-wrap: anywhere; }
+.tsk-acard-who i {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fdba74, #f97316);
+  color: #fff;
+  font-size: 0.7rem;
+  font-style: normal;
+  font-weight: 900;
+}
+.tsk-acard-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 99px;
+  background: var(--tk-field);
+  color: var(--tk-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+@media (max-width: 420px) { .tsk-acard-times { grid-template-columns: 1fr; } }
+
+/* The appointments page's two sides: the switch takes the page's whole width, two equal halves */
+.tsk-tabs { align-self: stretch; display: flex; width: 100%; }
+.tsk-tabs button { flex: 1; justify-content: center; }
+
+/* An appointment's task still to come (the appointments page's other side), in how soon it shows on the home page:
+   within a day red, three days orange, later blue — its edge and its countdown */
+.tsk-urow { --u: #3b82f6; --a: #f97316; }
+.tsk-urow.periodic { --a: #8b5cf6; }
+.tsk-urow.near { --u: #f97316; }
+.tsk-urow.soon { --u: #ef4444; }
+.tsk-utable tbody tr.tsk-urow td:first-child { position: relative; }
+.tsk-utable tbody tr.tsk-urow td:first-child::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 4px;
+  background: var(--u);
+}
+.tsk-utable tbody tr.tsk-urow:hover td { background: color-mix(in srgb, var(--u) 5%, transparent); }
+.tsk-utitle { display: flex; align-items: center; gap: 12px; padding-inline-start: 8px; }
+.tsk-uicon {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--a) 70%, #fff), var(--a));
+  color: #fff;
+  box-shadow: 0 6px 12px -8px var(--a);
+}
+.tsk-ushow { color: var(--u); font-size: 0.86rem; font-weight: 900; unicode-bidi: isolate; }
+.tsk-uwho { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
+.tsk-unassigned {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.tsk-hcard-meta .tsk-unassigned { align-self: flex-start; }
+
+/* Phones: the home page's appointment card, on white here; its alert's date in the appointment's orange */
+.tsk-ucards .tsk-hcard.kind-scheduled,
+body.dark-mode .tsk-ucards .tsk-hcard.kind-scheduled { --k-bg: var(--tk-card); --k-line: var(--tk-border); }
+.tsk-hcard-meta .tsk-ucard-alert { color: #ea580c; }
+.tsk-ucards .tsk-hcard-top .tsk-menu-cell { margin-inline-start: auto; }
+.tsk-hcard-meta .tsk-ucard-alert b { color: #ea580c; }
+.tsk-ucards { margin-bottom: 80px; }

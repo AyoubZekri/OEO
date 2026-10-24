@@ -7,6 +7,7 @@ import { Wallet, History, ArrowUpRight, ArrowDownLeft, ArrowLeftRight, HandCoins
 import { MobileHome } from '../../Mobile/MobileHome/MobileHome';
 import type { FundFlow } from './HomeController';
 import type { Operation, OperationDirection } from '../Operations/operation_model';
+import { useCan } from '../../../core/functions/useCan';
 import './Home.css';
 
 // Payments and withdrawals are money going out; deposits and returns come in; transfers only move money between funds
@@ -19,6 +20,9 @@ export const Home: React.FC = () => {
   const controller = useHomeController();
   const { metrics, recentOperations, formatCurrency } = controller;
   const navigate = useNavigate();
+  // Each section of the page has its own permission (المالية)
+  const can = useCan();
+  const see = (section: string) => can('dashboard', section);
   // The income: the funds report, its deposits
   const openIncome = () => navigate(`${Approutes.Reports}?category=funds&type=${encodeURIComponent('إيداع')}`);
   // The outgoings: the expenses report
@@ -48,7 +52,7 @@ export const Home: React.FC = () => {
       {/* Desktop layout (unchanged) */}
       <div className="desktop-dashboard-wrapper">
       {/* Financial Metrics Grid */}
-      <div className="metrics-grid">
+      {see('viewExpenses') && <div className="metrics-grid">
         <div className="metric-card highlight clickable" role="button" tabIndex={0} onClick={openPayments} onKeyDown={e => { if (e.key === 'Enter') openPayments(); }}>
           <div className="metric-icon"><Wallet size={28} /></div>
           <div className="metric-info">
@@ -56,10 +60,10 @@ export const Home: React.FC = () => {
             <p className="amount">{formatCurrency(metrics.totalExpenses)}</p>
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Income and outgoings: one block across the page */}
-      <section className="home-block">
+      {see('viewFlows') && <section className="home-block">
         <div className="section-header">
           <h2 className="section-title"><ArrowLeftRight size={24} />المداخيل والمخاريج</h2>
         </div>
@@ -101,10 +105,10 @@ export const Home: React.FC = () => {
           </div>
         ))}
         </div>
-      </section>
+      </section>}
 
       {/* Unpaid debts: one block across the page */}
-      <section className="home-block">
+      {see('viewDebts') && <section className="home-block">
         <div className="section-header">
           <h2 className="section-title"><HandCoins size={24} />الديون</h2>
         </div>
@@ -125,10 +129,10 @@ export const Home: React.FC = () => {
           </div>
         </div>
         </div>
-      </section>
+      </section>}
 
       {/* Operations Section */}
-      <div className="operations-section">
+      {see('viewOperations') && <div className="operations-section">
         <div className="section-header">
           <h2 className="section-title">
             <History size={24} />
@@ -177,7 +181,7 @@ export const Home: React.FC = () => {
             </tbody>
           </table>
         </div>
-      </div>
+      </div>}
       </div>
 
       {/* All Operations Dialog */}

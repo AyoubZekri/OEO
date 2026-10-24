@@ -40,8 +40,12 @@ const mapRecommendation = (rec: string): string => {
 
 export class EvaluationsData {
   
-  // Load all evaluations for a specific member
+  // Load all evaluations for a specific member (only theirs, even if the server gave more)
   public async getEvaluationsByMember(memberId: number): Promise<EvaluationRecord[]> {
+    return (await this.fetchEvaluations(memberId)).filter(e => String(e.member_id) === String(memberId));
+  }
+
+  private async fetchEvaluations(memberId: number): Promise<EvaluationRecord[]> {
     try {
       console.log(`[getEvaluationsByMember] Fetching evaluations for member: ${memberId}`);
       const response = await axios.get(`${Applink.playerEvaluations}?member_id=${memberId}`, {

@@ -337,3 +337,7 @@ body.dark-mode .mm-menu {
 .mm-kind svg { flex-shrink: 0; }
 .mm-kind.active { border-color: var(--accent, #f97316); background: var(--accent, #f97316); color: #fff; }
 .mm-kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* The group evaluation (Excel): a second floating button above «add», in Excel's green (as the matches' import) */
+.mm-fab.mm-fab-eval { bottom: calc(148px + env(safe-area-inset-bottom)); background: linear-gradient(135deg, #4ade80, #16a34a 55%, #15803d); box-shadow: 0 12px 26px -8px rgba(22, 163, 74, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+.mm-fab.mm-fab-eval.alone { bottom: calc(88px + env(safe-area-inset-bottom)); }

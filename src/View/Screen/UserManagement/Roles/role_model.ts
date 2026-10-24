@@ -1,5 +1,11 @@
+/** The finance page (the former home page): each of its sections */
 export interface DashboardPermissions {
   view: boolean;
+  viewExpenses: boolean;
+  viewFlows: boolean;
+  viewDebts: boolean;
+  viewOperations: boolean;
+  viewNextMatch: boolean;
 }
 
 export interface MembersPermissions {
@@ -181,10 +187,24 @@ export interface FeedbackPermissions {
 }
 
 /** Tasks: follow them (and talk with the member), give new ones and appointments, change their status / edit, delete */
+/** The home page: the tasks given to the members */
 export interface TasksPermissions {
   view: boolean;
   add: boolean;
+  voice: boolean;
   edit: boolean;
+  changeStatus: boolean;
+  chat: boolean;
+  delete: boolean;
+}
+
+/** The appointments page: the appointments that create tasks (with an event, or periodic) */
+export interface AppointmentsPermissions {
+  view: boolean;
+  viewUpcoming: boolean;
+  add: boolean;
+  edit: boolean;
+  toggle: boolean;
   delete: boolean;
 }
 
@@ -204,6 +224,7 @@ export interface AppPermissions {
   correspondences: CorrespondencesPermissions;
   feedback: FeedbackPermissions;
   tasks: TasksPermissions;
+  appointments: AppointmentsPermissions;
   contracts: ContractsPermissions;
   payments: PaymentsPermissions;
   funds: FundsPermissions;
@@ -221,7 +242,7 @@ export type PermissionModule = keyof AppPermissions;
  * Single source for the role editors, the role views and the defaults below.
  */
 export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
-  dashboard: [],
+  dashboard: ['viewExpenses', 'viewFlows', 'viewDebts', 'viewOperations', 'viewNextMatch'],
   members: ['add', 'edit', 'delete', 'viewFinancialRecord', 'evaluate', 'clearance'],
   absences: ['add', 'justify', 'delete'],
   disciplinary: ['add', 'edit', 'delete', 'print', 'changeStatus', 'viewReply', 'editReply'],
@@ -235,7 +256,8 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   decisions: ['add', 'edit', 'delete', 'progress'],
   correspondences: ['add', 'changeStatus', 'delete'],
   feedback: ['reply', 'delete'],
-  tasks: ['add', 'edit', 'delete'],
+  tasks: ['add', 'voice', 'edit', 'changeStatus', 'chat', 'delete'],
+  appointments: ['viewUpcoming', 'add', 'edit', 'toggle', 'delete'],
   contracts: ['add', 'edit', 'delete', 'print', 'renew'],
   payments: ['add', 'edit', 'delete', 'print'],
   funds: ['add', 'edit', 'delete', 'addTransaction'],
@@ -248,10 +270,10 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
 
 /** The sections grouped by domain, in the order the role editors show them */
 export const PERMISSION_DOMAINS: { key: string; label: string; modules: PermissionModule[] }[] = [
-  { key: 'general', label: 'عام', modules: ['dashboard'] },
+  { key: 'general', label: 'عام', modules: ['tasks', 'dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'trainingSessions', 'matches', 'medical', 'travels'] },
-  { key: 'admin', label: 'الإدارة', modules: ['tasks', 'meetings', 'decisions', 'feedback'] },
+  { key: 'admin', label: 'الإدارة', modules: ['appointments', 'meetings', 'decisions', 'feedback'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
@@ -284,6 +306,29 @@ const NEW_ACTIONS_V2: Partial<Record<PermissionModule, string[]>> = {
   payments: ['print'],
 };
 
+/**
+ * Actions added after roles were saved: until a role is saved again, each follows the one it came from
+ * (the finance page's sections; the home page's voice notes, status and conversation; the appointments, once part of
+ * the tasks).
+ * The same rule as the server's (RolePermissions::FALLBACK).
+ */
+const FOLLOWS: Record<string, [PermissionModule, string]> = {
+  'dashboard.viewExpenses': ['dashboard', 'view'],
+  'dashboard.viewFlows': ['dashboard', 'view'],
+  'dashboard.viewDebts': ['dashboard', 'view'],
+  'dashboard.viewOperations': ['dashboard', 'view'],
+  'dashboard.viewNextMatch': ['dashboard', 'view'],
+  'tasks.voice': ['tasks', 'add'],
+  'tasks.changeStatus': ['tasks', 'edit'],
+  'tasks.chat': ['tasks', 'view'],
+  'appointments.view': ['tasks', 'view'],
+  'appointments.viewUpcoming': ['appointments', 'view'],
+  'appointments.add': ['tasks', 'add'],
+  'appointments.edit': ['tasks', 'edit'],
+  'appointments.toggle': ['tasks', 'edit'],
+  'appointments.delete': ['tasks', 'delete'],
+};
+
 /* eslint-disable @typescript-eslint/no-explicit-any -- roles come untyped from the API */
 
 /**
@@ -313,6 +358,15 @@ export const parsePermissions = (parsed: any): AppPermissions => {
       });
       // The disciplinary page used to be listed for everyone who could view members
       if (m === 'disciplinary' && stored?.view === undefined) merged.view = parsed?.members?.view === true;
+    }
+    // An action the role was saved without: as the one it came from
+    if (parsed) {
+      ['view', ...MODULE_ACTIONS[m]].forEach(a => {
+        const from = FOLLOWS[`${m}.${a}`];
+        // What it follows, as already worked out (it may itself follow another): this section's, or an earlier one's
+        const source = from && (from[0] === m ? merged : result[from[0]] || parsed?.[from[0]]);
+        if (from && stored?.[a] === undefined) merged[a] = source?.[from[1]] === true;
+      });
     }
     // Roles saved before the debts section: whoever manages the funds manages the debts
     if (m === 'debts' && stored === undefined) {

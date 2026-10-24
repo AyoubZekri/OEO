@@ -121,9 +121,10 @@
       "meetings": "Meetings",
       "decisions": "Decisions",
       "correspondences": "Correspondences",
-      "tasks": "Tasks",
+      "tasks": "Home page (tasks)",
+      "appointments": "Appointments",
       "feedback": "Members' opinions",
-      "dashboard": "Dashboard",
+      "dashboard": "Finance",
       "equipment": "Team Equipment",
       "equipmentOperations": "Equipment Movements",
       "disciplinary": "Disciplinary Actions"
@@ -170,6 +171,15 @@
       "review": "Review & approve tasks",
       "manage": "Follow all tasks & dashboard",
       "templates": "Periodic & event tasks",
+      "viewExpenses": "Total expenses",
+      "viewFlows": "Income & outgoings",
+      "viewDebts": "Debts",
+      "viewOperations": "Latest operations",
+      "viewNextMatch": "Next match",
+      "voice": "Voice note",
+      "viewUpcoming": "View upcoming tasks",
+      "chat": "Talk with the assignee",
+      "toggle": "Stop & start",
       "repay": "Repay debts"
     },
     "domains": {

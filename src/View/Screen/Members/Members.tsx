@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, LogOut, UploadCloud, TrendingUp } from 'lucide-react';
+import { Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, LogOut, UploadCloud, TrendingUp, FileSpreadsheet } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
+import { BulkEvaluationDialog } from './Evaluation/BulkEvaluationDialog';
 import { EvaluationHistoryDialog } from './Evaluation/EvaluationHistoryDialog';
 import type { EvaluationRecord } from './Evaluation/evaluation_data';
 import { ClearanceDialog } from './ClearanceDialog';
@@ -35,6 +37,21 @@ export const Members: React.FC = () => {
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useMembersController();
   const isMobile = useIsMobile();
+
+  // ?member=ID (from a birthday task): that member's record opens once the list is there
+  const [params, setParams] = useSearchParams();
+  const askedMember = params.get('member');
+  const { members: allMembers, openExpensesDialog: openRecord } = controller;
+  useEffect(() => {
+    if (!askedMember || !allMembers.length) return;
+    const member = allMembers.find(m => String(m.id) === askedMember);
+    if (member) openRecord(member);
+    setParams(prev => {
+      const next = new URLSearchParams(prev);
+      next.delete('member');
+      return next;
+    }, { replace: true });
+  }, [askedMember, allMembers, openRecord, setParams]);
   const { 
     filteredMembers,
     searchQuery,
@@ -74,6 +91,11 @@ export const Members: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [evalMember, setEvalMember] = useState<MemberModel | null>(null);
+  // The active players' group evaluation from Excel
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const activePlayers = controller.members
+    .filter(m => m.type === 'player' && m.status === 'active')
+    .map(m => ({ id: String(m.id), name: `${m.first_name} ${m.last_name}`.trim(), team: m.team_name || '' }));
   /** The tracking record's evaluations tab (players): each evaluation's actions there; only it without the record's permission */
   const recordEvaluations = (member: MemberModel) => (member.type === 'player' ? {
     evaluations: {
@@ -188,6 +210,7 @@ export const Members: React.FC = () => {
       <div className="members-mobile">
         <MobileMembers
           onAddEvaluation={setEvalMember}
+          onBulkEvaluate={hasAccess(permissions.members.evaluate) ? () => setBulkOpen(true) : undefined}
           controller={controller}
           canAdd={hasAccess(permissions.members.add)}
           canEdit={hasAccess(permissions.members.edit)}
@@ -209,6 +232,12 @@ export const Members: React.FC = () => {
             onChange={(val) => setFilterTeamId(val)}
             placeholder={t('members.all_teams', 'جميع الفئات (الفرق)')}
           />
+          {hasAccess(permissions.members.evaluate) && (
+            <button className="import-excel-btn" onClick={() => setBulkOpen(true)}>
+              <FileSpreadsheet size={18} />
+              تقييم جماعي (Excel)
+            </button>
+          )}
           {hasAccess(permissions.members.add) && (
             <button className="btn-primary" onClick={openAddMemberDialog}>
               <Plus size={18} />
@@ -633,6 +662,8 @@ export const Members: React.FC = () => {
           </div>
         </div>
       )}
+
+      {bulkOpen && <BulkEvaluationDialog players={activePlayers} onClose={() => setBulkOpen(false)} onDone={() => undefined} />}
 
       {/* Tracking Record: full-screen page on phones */}
       {isDialogOpen && selectedMember && isMobile && (

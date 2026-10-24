@@ -1,8 +1,9 @@
 import {
   CircleDot, PlayCircle, PauseCircle, CheckCircle2, XCircle, AlarmClock, ClipboardList, Zap, CalendarClock,
-  Building2, MapPinned, Phone, Mic, Cake, Trophy, Dumbbell, Bus, Briefcase, Repeat, type LucideIcon,
+  Building2, MapPinned, Phone, Mic, Cake, Trophy, Dumbbell, Bus, Briefcase, Repeat, Layers, Shapes, Power, Filter, UserRound, type LucideIcon,
 } from 'lucide-react';
 import { parseDate } from '../../shared/dates';
+import { Approutes } from '../../../core/constant/routes';
 
 export type TaskStatus = 'new' | 'in_progress' | 'on_hold' | 'done' | 'cancelled';
 export type TaskKind = 'normal' | 'urgent' | 'voice' | 'scheduled';
@@ -27,6 +28,8 @@ export interface Task {
   event_label: string | null;
   source: EventType | 'periodic' | null;
   template_id: number | null;
+  /** The event it was created for (an appointment's task), to open it: a birthday's is the member */
+  event: { type: EventType; id: number } | null;
   assignee: TaskUser | null;
   created_by: string | null;
   /** The member opened it */
@@ -100,6 +103,16 @@ export const EVENT_META: Record<EventType, { label: string; every: string; the: 
   birthday: { label: 'عيد ميلاد', every: 'كل عيد ميلاد عضو', the: 'عيد الميلاد', icon: Cake },
 };
 export const EVENTS = Object.keys(EVENT_META) as EventType[];
+
+/** Opening a task's event: its page, with the item opened (?match=, ?session=…), and what the button says */
+export const EVENT_LINK: Record<EventType, { page: string; param: string; open: string }> = {
+  match: { page: Approutes.Matches, param: 'match', open: 'عرض المباراة' },
+  training: { page: Approutes.TrainingSessions, param: 'session', open: 'عرض الحصة' },
+  travel: { page: Approutes.Travels, param: 'travel', open: 'عرض التنقل' },
+  meeting: { page: Approutes.Meetings, param: 'meeting', open: 'عرض الاجتماع' },
+  birthday: { page: Approutes.Members, param: 'member', open: 'عرض العضو' },
+};
+export const eventLink = (e: NonNullable<Task['event']>) => `${EVENT_LINK[e.type].page}?${EVENT_LINK[e.type].param}=${e.id}`;
 export const PERIODIC_ICON = Repeat;
 
 /** 1 = Monday … 7 = Sunday, shown from Saturday */
@@ -176,6 +189,13 @@ const spanText = (ms: number) => {
   const h = Math.round(min / 60);
   if (h < 24) return `${h} سا`;
   return durationText(Math.round(h / 24) * 1440);
+};
+
+/** How soon an appointment's task shows on the home page: within a day, within three days, or later */
+export const showSoon = (s: string | null | undefined): 'soon' | 'near' | 'far' => {
+  const d = parseDate(s);
+  const left = d ? d.getTime() - Date.now() : Infinity;
+  return left <= 86400000 ? 'soon' : left <= 3 * 86400000 ? 'near' : 'far';
 };
 
 /** The deadline: «باقي 3 سا», «متأخرة بيومين», «بدون أجل», «منجزة» */
@@ -292,3 +312,57 @@ export const homeTasks = (tasks: Task[], now = Date.now()) => ({
   }),
   archive: sortTasks(onHome(tasks, now).filter(t => !isOpen(t))),
 });
+
+/** The appointments page's filters: the search (title, who), event / periodic, its nature, on / stopped */
+export interface AppointmentFilter { query: string; schedule: '' | 'event' | 'periodic'; nature: string; status: '' | 'active' | 'paused' }
+
+export const NO_APPOINTMENT_FILTER: AppointmentFilter = { query: '', schedule: '', nature: '', status: '' };
+
+/** The appointments page's three filters, as on the other pages (a dropdown each; a bottom sheet on phones) */
+export const APPOINTMENT_FILTERS: { key: 'schedule' | 'nature' | 'status'; label: string; icon: LucideIcon; options: { value: string; label: string }[] }[] = [
+  { key: 'schedule', label: 'النوع', icon: Layers, options: [{ value: '', label: 'كل الأنواع' }, { value: 'event', label: 'مرتبطة بحدث' }, { value: 'periodic', label: 'دورية' }] },
+  { key: 'nature', label: 'الطبيعة', icon: Shapes, options: NATURE_FILTERS },
+  { key: 'status', label: 'الحالة', icon: Power, options: [{ value: '', label: 'كل الحالات' }, { value: 'active', label: 'مفعلة' }, { value: 'paused', label: 'متوقفة' }] },
+];
+
+export const filterAppointments = (templates: TaskTemplate[], f: AppointmentFilter, skip?: keyof AppointmentFilter) => {
+  const q = f.query.trim().toLowerCase();
+  return templates.filter(t => (skip === 'schedule' || !f.schedule || t.schedule === f.schedule)
+    && (skip === 'nature' || !f.nature || t.nature === f.nature)
+    && (skip === 'status' || !f.status || t.status === f.status)
+    && (!q || [t.title, t.details, t.assignee?.name, scheduleText(t)].some(v => (v || '').toLowerCase().includes(q))));
+};
+
+/** The appointments' tasks still to come (the appointments page's other side, my appointments): their filters */
+export type UpcomingFilterKey = 'source' | 'nature' | 'status' | 'given';
+export type UpcomingFilters = { query: string } & Record<UpcomingFilterKey, string>;
+export const NO_UPCOMING_FILTER: UpcomingFilters = { query: '', source: '', nature: '', status: '', given: '' };
+
+/** What it comes from, its nature, its status, and whether it is given to someone */
+export const UPCOMING_FILTERS: {
+  key: UpcomingFilterKey; label: string; icon: LucideIcon; options: { value: string; label: string }[]; test: (t: Task, v: string) => boolean;
+}[] = [
+  {
+    key: 'source', label: 'النوع', icon: Layers,
+    options: [{ value: '', label: 'كل الأنواع' }, ...EVENTS.map(e => ({ value: e, label: EVENT_META[e].label })), { value: 'periodic', label: 'دورية' }],
+    test: (t, v) => t.source === v,
+  },
+  {
+    key: 'nature', label: 'الطبيعة', icon: Shapes,
+    options: NATURE_FILTERS,
+    test: (t, v) => t.nature === v,
+  },
+  {
+    key: 'status', label: 'الحالة', icon: Filter,
+    options: [{ value: '', label: 'كل الحالات' }, ...(['new', 'in_progress', 'on_hold'] as const).map(st => ({ value: st, label: STATUS_META[st].label }))],
+    test: (t, v) => t.status === v,
+  },
+  {
+    key: 'given', label: 'المكلّف', icon: UserRound,
+    options: [{ value: '', label: 'الكل' }, { value: 'given', label: 'مسندة' }, { value: 'none', label: 'بلا مكلّف' }],
+    test: (t, v) => (v === 'none' ? !t.assignee : Boolean(t.assignee)),
+  },
+];
+
+export const filterUpcoming = (tasks: Task[], f: UpcomingFilters) => filterTasks(tasks, '', f.query)
+  .filter(t => UPCOMING_FILTERS.every(x => !f[x.key] || x.test(t, f[x.key])));

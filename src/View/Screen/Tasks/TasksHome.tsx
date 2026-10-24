@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
-import { ListTodo, CalendarClock } from 'lucide-react';
+import { CalendarClock, Hourglass } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
-import { Tasks } from './Tasks';
+import { useCan } from '../../../core/functions/useCan';
 import { Appointments } from './Appointments';
+import { UpcomingTasks } from './UpcomingTasks';
 
-type Tab = 'tasks' | 'templates';
-const TAB_KEY = 'tasksHomeTab';
+type Tab = 'appointments' | 'upcoming';
+const TAB_KEY = 'appointmentsTab';
 
-/** The tasks page: the tasks and the appointments, switched by two tabs (the whole page's width) */
+/**
+ * The appointments page, two sides: the appointments, and their tasks still to come (not on the home page yet: for
+ * who has «عرض المهام القادمة»).
+ * The tasks themselves are on the home page.
+ */
 export const TasksHome: React.FC = () => {
   const isMobile = useIsMobile();
+  // The upcoming side: its own permission (المواعيد · عرض المهام القادمة)
+  const withUpcoming = useCan()('appointments', 'viewUpcoming');
   const [tab, setTab] = useState<Tab>(() => {
-    // Opened on a task (from an alert): the tasks tab
-    if (new URLSearchParams(window.location.search).has('task')) return 'tasks';
-    try { return sessionStorage.getItem(TAB_KEY) === 'templates' ? 'templates' : 'tasks'; } catch { return 'tasks'; }
+    try { return sessionStorage.getItem(TAB_KEY) === 'upcoming' ? 'upcoming' : 'appointments'; } catch { return 'appointments'; }
   });
   const pick = (next: Tab) => {
     setTab(next);
@@ -22,14 +27,15 @@ export const TasksHome: React.FC = () => {
 
   const tabs = (
     <div className={`${isMobile ? 'tk-mtabs' : 'tk-tabs'} tsk-tabs`} role="tablist">
-      <button type="button" role="tab" aria-selected={tab === 'tasks'} className={tab === 'tasks' ? 'on' : ''} onClick={() => pick('tasks')}>
-        <ListTodo size={16} />المهام
-      </button>
-      <button type="button" role="tab" aria-selected={tab === 'templates'} className={tab === 'templates' ? 'on' : ''} onClick={() => pick('templates')}>
+      <button type="button" role="tab" aria-selected={tab === 'appointments'} className={tab === 'appointments' ? 'on' : ''} onClick={() => pick('appointments')}>
         <CalendarClock size={16} />المواعيد
+      </button>
+      <button type="button" role="tab" aria-selected={tab === 'upcoming'} className={tab === 'upcoming' ? 'on' : ''} onClick={() => pick('upcoming')}>
+        <Hourglass size={16} />مهام قادمة
       </button>
     </div>
   );
 
-  return tab === 'tasks' ? <Tasks tabs={tabs} /> : <Appointments tabs={tabs} />;
+  if (!withUpcoming) return <Appointments />;
+  return tab === 'appointments' ? <Appointments tabs={tabs} /> : <UpcomingTasks tabs={tabs} />;
 };

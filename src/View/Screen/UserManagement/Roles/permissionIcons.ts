@@ -2,7 +2,7 @@ import {
   Activity, Users, UsersRound, FileText, Wallet, Vault, PieChart, Shield, Package, ArrowLeftRight, Gavel, FileWarning,
   ShieldHalf, Dumbbell, Trophy, Stethoscope, Briefcase, ListChecks, Mail, Plus, Pencil, Trash2, Printer, Search, RefreshCw,
   PenTool, CheckCircle, MessageSquare, RotateCw, TrendingUp, LogOut, FileCheck, ClipboardCheck, LayoutGrid, Megaphone,
-  ClipboardList, Target, Eye, Bus, BadgeCheck, BarChart3, Repeat, Landmark, HandCoins,
+  ClipboardList, Target, Eye, Bus, BadgeCheck, BarChart3, Repeat, Landmark, HandCoins, CalendarClock, Mic, MessagesSquare, Power, History, Hourglass,
 } from 'lucide-react';
 import type { PermissionModule } from './role_model';
 
@@ -24,6 +24,7 @@ export const MODULE_ICONS: Record<PermissionModule, PermissionIcon> = {
   correspondences: Mail,
   feedback: MessageSquare,
   tasks: ClipboardList,
+  appointments: CalendarClock,
   contracts: FileText,
   payments: Wallet,
   funds: Vault,
@@ -59,6 +60,15 @@ const ACTION_ICONS: Record<string, PermissionIcon> = {
   repay: HandCoins,
   sign: PenTool,
   changeStatus: CheckCircle,
+  viewExpenses: Wallet,
+  viewFlows: ArrowLeftRight,
+  viewDebts: HandCoins,
+  viewOperations: History,
+  viewNextMatch: Trophy,
+  voice: Mic,
+  viewUpcoming: Hourglass,
+  chat: MessagesSquare,
+  toggle: Power,
   viewReply: MessageSquare,
   reply: MessageSquare,
   editReply: Pencil,

@@ -1,21 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ClipboardList, MessagesSquare, Send, Loader2, AlertCircle, CheckCircle2, UserRound, CalendarPlus, CalendarClock,
-  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock,
+  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock, ExternalLink,
 } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { initials, parseDate } from '../../../shared/dates';
 import { useTaskChat } from '../useTasks';
 import {
-  dateText, dueText, isOpen, NATURE_META, sourceMeta, STATUS_META, STATUSES, statusView, type Task, type TaskStatus,
+  dateText, dueText, EVENT_LINK, eventLink, isOpen, NATURE_META, sourceMeta, STATUS_META, STATUSES, statusView, type Task, type TaskStatus,
 } from '../taskUtils';
 
 /**
  * A task, to read only (its actions are in the ⋮ menu of its row): a head in its kind's colour (urgent red, appointment
  * orange, voice note blue, normal white) with its kind, title, status and nature; the deadline and what is left (only
  * when it has one); who does it and who gave it; its other dates on a timeline; then its details.
+ * withEvent (management): an appointment's task opens its event («عرض المباراة»…).
  */
-export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () => void }> = ({ task: t, mobile, onClose }) => {
+export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () => void; withEvent?: boolean }> = ({
+  task: t, mobile, onClose, withEvent,
+}) => {
+  const navigate = useNavigate();
   const s = statusView(t);
   const src = sourceMeta(t);
   const nature = NATURE_META[t.nature];
@@ -51,6 +56,11 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
             <span><nature.icon size={14} />{nature.label}</span>
             {t.event_label && <span><src.icon size={14} />{t.event_label}</span>}
           </div>
+          {withEvent && t.event && (
+            <button type="button" className="tsk-d-event" onClick={() => navigate(eventLink(t.event!))}>
+              <ExternalLink size={14} />{EVENT_LINK[t.event.type].open}
+            </button>
+          )}
           <span className="tsk-d-hero-mark" aria-hidden="true"><src.icon size={88} strokeWidth={1.4} /></span>
         </section>
 

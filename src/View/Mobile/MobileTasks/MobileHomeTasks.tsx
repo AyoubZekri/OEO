@@ -15,9 +15,9 @@ import './MobileTasks.css';
 
 const ARCHIVE_PAGE = 10;
 
-// Phone version of the home page: the search and filters on top (status, kind, nature), the tasks whose time came as whole cards in their kind's colour
-// (urgent red, appointments orange, voice notes pale blue, normal white), the archive's own list under it, and the two
-// floating buttons (voice note, new task)
+// Phone version of the home page: the search and filters on top (status, kind, nature), the tasks whose time came as
+// whole cards in their kind's colour (urgent red, appointments orange, voice notes pale blue, normal white), the
+// archive's own list under it, and the two floating buttons (voice note, new task)
 export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
   const [archiveShownCount, setArchiveShownCount] = useState(ARCHIVE_PAGE);
   const { menu, overlays } = useTaskActions(c, true);
@@ -67,15 +67,15 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
           </div>
         )}
 
-      {c.can('add') && (
-        <>
-          <button type="button" className="tk-fab tsk-fab-voice" onClick={() => c.openForm({ voice: true })} aria-label="تنبيه صوتي">
-            <Mic size={22} strokeWidth={2.5} />
-          </button>
-          <button type="button" className="tk-fab" onClick={() => c.openForm()} aria-label="مهمة جديدة">
-            <Plus size={22} strokeWidth={2.5} />
-          </button>
-        </>
+      {c.can('voice') && (
+        <button type="button" className={`tk-fab ${c.can('add') || c.canAppointments('add') ? 'tsk-fab-voice' : ''}`} onClick={() => c.openForm({ voice: true })} aria-label="تنبيه صوتي">
+          <Mic size={22} strokeWidth={2.5} />
+        </button>
+      )}
+      {(c.can('add') || c.canAppointments('add')) && (
+        <button type="button" className="tk-fab" onClick={() => c.openForm()} aria-label="مهمة جديدة">
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
       )}
 
       {overlays}

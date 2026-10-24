@@ -1,13 +1,15 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Mic, Square, RotateCcw, AlertCircle } from 'lucide-react';
+import { Mic, Square, RotateCcw } from 'lucide-react';
 
 /* The browser's speech recognition (Chrome, Edge, Safari): not in TypeScript's DOM types */
-interface RecognitionResult { isFinal: boolean; 0: { transcript: string } }
-interface RecognitionEvent { results: ArrayLike<RecognitionResult> }
+interface RecognitionAlternative { transcript: string; confidence: number }
+interface RecognitionResult { isFinal: boolean; length: number; [i: number]: RecognitionAlternative }
+interface RecognitionEvent { resultIndex: number; results: ArrayLike<RecognitionResult> }
 interface Recognition {
   lang: string;
   continuous: boolean;
   interimResults: boolean;
+  maxAlternatives: number;
   start: () => void;
   stop: () => void;
   abort: () => void;
@@ -22,72 +24,134 @@ const recognitionCtor = (): RecognitionCtor | null => {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 };
 
-const ERRORS: Record<string, string> = {
-  'not-allowed': 'اسمح للتطبيق باستعمال الميكروفون من إعدادات المتصفح',
-  'service-not-allowed': 'اسمح للتطبيق باستعمال الميكروفون من إعدادات المتصفح',
-  'no-speech': 'لم يُسمع أي كلام، اضغط وتكلم',
-  'audio-capture': 'لا يوجد ميكروفون في هذا الجهاز',
-  network: 'تحويل الكلام إلى كتابة يحتاج إلى الإنترنت',
-};
+// Errors that end the recording, without a word (the others — silence, a cut — only start the next phrase)
+const FATAL = ['not-allowed', 'service-not-allowed', 'audio-capture', 'network'];
 
 /**
- * A voice note: spoken into the microphone and written as it is said. Only what was recorded is kept
- * (it cannot be typed); speaking again adds to it, and it can be cleared to record it again.
- * autoStart: it listens as soon as it opens. What is still being heard when it closes is kept.
+ * The dialect (ar-DZ) and classical Arabic (ar-SA), chosen by the speech itself: the browser cannot tell them apart,
+ * so the first phrase is heard as the dialect, the second as classical Arabic, then each phrase in the one the engine
+ * has been surer of so far (its average confidence), weighed again with every phrase.
+ */
+type Dialect = 'ar-DZ' | 'ar-SA';
+
+/** A result's surest wording (the engine gives several) */
+const best = (r: RecognitionResult) => {
+  let pick = r[0];
+  for (let i = 1; i < r.length; i++) if ((r[i]?.confidence ?? 0) > (pick?.confidence ?? 0)) pick = r[i];
+  return { text: (pick?.transcript || '').trim(), confidence: pick?.confidence ?? 0 };
+};
+
+const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+/**
+ * A voice note: spoken into the microphone and written as it is said, in the dialect or classical Arabic as the speech
+ * goes (see Dialect). It listens phrase by phrase — each phrase heard once, then the next — so a phone does not repeat
+ * what was said; it keeps the engine's surest wording. Once it stops, the text can be corrected by hand; speaking again
+ * adds to it, and it can be cleared to record it again. autoStart: it listens as soon as it opens. What is still being
+ * heard when it closes is kept.
  */
 export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void; autoStart?: boolean }> = ({ value, onChange, autoStart }) => {
   const Ctor = recognitionCtor();
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');
-  const [error, setError] = useState('');
+  const [seconds, setSeconds] = useState(0);
   const rec = useRef<Recognition | null>(null);
-  // The text before this recording: what is heard is added to it
-  const before = useRef(value);
+  // The field grows with its text (one line when short)
+  const field = useRef<HTMLTextAreaElement>(null);
+  // Still wanted: when a phrase ends, the next one starts (until stopped)
+  const wanted = useRef(false);
+  // How sure the engine was in each (sum of confidences, phrases heard)
+  const scores = useRef<Record<Dialect, { sum: number; n: number }>>({ 'ar-DZ': { sum: 0, n: 0 }, 'ar-SA': { sum: 0, n: 0 } });
   // The latest text and what is still being heard (kept when it closes mid-sentence)
   const latest = useRef({ value, interim: '', onChange });
   useLayoutEffect(() => {
     latest.current = { value, interim, onChange };
   });
 
-  const start = useCallback(() => {
+  // The next phrase starts from here (listen itself, once it is made)
+  const next = useRef<() => void>(() => undefined);
+
+  // One phrase: heard, written, then the next one (while still wanted)
+  const listen = useCallback(() => {
     if (!Ctor) return;
-    setError('');
-    before.current = latest.current.value;
+    // Each dialect tried once, then the surer one so far
+    const s = scores.current;
+    const lang: Dialect = !s['ar-DZ'].n ? 'ar-DZ' : !s['ar-SA'].n ? 'ar-SA'
+      : s['ar-SA'].sum / s['ar-SA'].n > s['ar-DZ'].sum / s['ar-DZ'].n ? 'ar-SA' : 'ar-DZ';
     const r = new Ctor();
-    r.lang = 'ar-DZ';
-    r.continuous = true;
+    r.lang = lang;
+    r.continuous = false;
     r.interimResults = true;
+    r.maxAlternatives = 3;
     r.onresult = e => {
-      let done = '';
       let live = '';
-      for (let i = 0; i < e.results.length; i++) {
-        const part = e.results[i][0].transcript;
-        if (e.results[i].isFinal) done += part;
-        else live += part;
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const { text: part, confidence } = best(e.results[i]);
+        if (!part) continue;
+        if (e.results[i].isFinal) {
+          s[lang].sum += confidence || 0.5;
+          s[lang].n += 1;
+          const { value: text, onChange: save } = latest.current;
+          const joined = [text, part].filter(Boolean).join(' ');
+          latest.current.value = joined;
+          save(joined);
+        } else live += `${part} `;
       }
-      latest.current.onChange([before.current, done.trim()].filter(Boolean).join(' '));
       setInterim(live.trim());
     };
     r.onerror = e => {
-      if (e.error !== 'aborted') setError(ERRORS[e.error] || 'تعذر التسجيل، أعد المحاولة');
+      if (FATAL.includes(e.error)) wanted.current = false;
     };
     r.onend = () => {
-      setListening(false);
       setInterim('');
+      if (wanted.current) next.current();
+      else setListening(false);
     };
     rec.current = r;
     try {
       r.start();
-      setListening(true);
     } catch {
-      setError('تعذر تشغيل الميكروفون');
+      wanted.current = false;
+      setListening(false);
     }
   }, [Ctor]);
+
+  useLayoutEffect(() => {
+    next.current = listen;
+  }, [listen]);
+
+  const start = useCallback(() => {
+    if (!Ctor) return;
+    setSeconds(0);
+    wanted.current = true;
+    setListening(true);
+    listen();
+  }, [Ctor, listen]);
+
+  const stop = () => {
+    wanted.current = false;
+    rec.current?.stop();
+  };
+
+  useLayoutEffect(() => {
+    const el = field.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [value, listening]);
+
+  // The time it has been listening
+  useEffect(() => {
+    if (!listening) return;
+    const id = window.setInterval(() => setSeconds(x => x + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [listening]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- the listening dialog starts recording at once
     if (autoStart) start();
     return () => {
+      wanted.current = false;
       const r = rec.current;
       if (!r) return;
       r.onresult = null;
@@ -98,36 +162,36 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     };
   }, [autoStart, start]);
 
-  const stop = () => rec.current?.stop();
-
-  if (!Ctor) {
-    return <p className="tk-error"><AlertCircle size={15} />هذا المتصفح لا يدعم تحويل الصوت إلى كتابة، استعمل Chrome أو Edge أو Safari</p>;
-  }
 
   return (
-    <div className={`tsk-voice ${listening ? 'live' : ''}`}>
-      <button
-        type="button"
-        className="tsk-voice-btn"
-        onClick={listening ? stop : start}
-        aria-label={listening ? 'إيقاف التسجيل' : 'بدء التسجيل'}
-      >
-        {listening ? <Square size={26} /> : <Mic size={30} />}
-      </button>
-      <strong className="tsk-voice-state">{listening ? 'جاري الاستماع...' : value ? 'اضغط لإضافة كلام' : 'اضغط وتكلم'}</strong>
-      <div className="tsk-voice-text" aria-live="polite">
-        {value || interim ? (
-          <p>{value}{interim && <span>{value ? ' ' : ''}{interim}</span>}</p>
+    <div className={`tsk-rec ${listening ? 'live' : ''}`}>
+      <div className="tsk-rec-stage">
+        {Ctor && <div className="tsk-rec-mic-wrap">
+          <button type="button" className="tsk-rec-mic" onClick={listening ? stop : start} aria-label={listening ? 'إيقاف التسجيل' : 'بدء التسجيل'}>
+            {listening ? <Square size={26} fill="currentColor" /> : <Mic size={34} strokeWidth={1.8} />}
+          </button>
+        </div>}
+        <div className="tsk-rec-wave" aria-hidden="true">
+          {Array.from({ length: 21 }, (_, i) => <span key={i} style={{ animationDelay: `${(i % 7) * 0.09}s` }} />)}
+        </div>
+        <span className="tsk-rec-time" dir="ltr" aria-hidden={!listening}>{clock(seconds)}</span>
+      </div>
+
+      {/* The words: as they are heard, then to correct (always there; with no speech in the browser, typed) */}
+      <div className="tsk-rec-field">
+        {listening ? (
+          <p className="tsk-rec-text" aria-live="polite">
+            {value}{interim && <span>{value ? ' ' : ''}{interim}</span>}<i className="tsk-rec-caret" />
+          </p>
         ) : (
-          <p className="empty">—</p>
+          <textarea ref={field} className="tsk-rec-text" value={value} rows={1} onChange={e => onChange(e.target.value)} aria-label="نص التنبيه" />
+        )}
+        {value && !listening && (
+          <button type="button" className="tsk-rec-clear" onClick={() => { onChange(''); setInterim(''); }} aria-label="إعادة التسجيل" title="إعادة التسجيل">
+            <RotateCcw size={16} />
+          </button>
         )}
       </div>
-      {value && !listening && (
-        <button type="button" className="tk-btn ghost sm tsk-voice-clear" onClick={() => { onChange(''); setInterim(''); }}>
-          <RotateCcw size={15} />إعادة التسجيل
-        </button>
-      )}
-      {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
     </div>
   );
 };

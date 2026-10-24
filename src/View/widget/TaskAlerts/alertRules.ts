@@ -9,7 +9,7 @@ import type { Travel } from '../../Screen/Travels/travelUtils';
 import type { PlayerMedicalRecord } from '../../Screen/Medical/medical_model';
 import type { Debt } from '../../Screen/Debts/debtUtils';
 import { typeMeta as feedbackType, type Feedback } from '../../Screen/Feedback/feedbackUtils';
-import { dueText as taskDueText, isOpen as taskOpen, STATUS_META as TASK_STATUS, type Task } from '../../Screen/Tasks/taskUtils';
+import { dueText as taskDueText, isOpen as taskOpen, STATUS_META as TASK_STATUS, type EventType, type Task } from '../../Screen/Tasks/taskUtils';
 import { moneyText } from '../../Mobile/MobileContracts/contractUtils';
 import { canJustifyNow, dateOf, isMemberRequest, justifyLeft, leftText, recordTitle, statusOf, typeMeta } from '../../Screen/Absence/absenceUtils';
 import { countdown, dayText as matchDay, matchDate, matchState, opponentName, resultOf, RESULT_LABEL, timeText } from '../../Mobile/MobileMatches/matchUtils';
@@ -54,7 +54,8 @@ export type DebtAlertKind = 'debt_soon' | 'debt_due' | 'debt_late';
 /** Members' opinions: a reply to mine; new ones and ones still without a reply (management) */
 export type FeedbackAlertKind = 'fb_replied' | 'mgr_fb_new' | 'mgr_fb_waiting';
 /** Tasks: given to me (new, its alert time, deadline near, late, a message / a status change); the management: late, a message from the member */
-export type TaskAlertKind = 'task_new' | 'task_alert' | 'task_due' | 'task_late' | 'task_msg' | 'mgr_task_late' | 'mgr_task_msg';
+export type TaskAlertKind = 'task_new' | 'task_alert' | 'task_due' | 'task_late' | 'task_msg'
+  | 'mgr_task_alert' | 'mgr_task_due' | 'mgr_task_urgent' | 'mgr_task_late' | 'mgr_task_msg';
 export type AlertKind = TaskAlertKind | FeedbackAlertKind | DebtAlertKind | DisciplinaryAlertKind | TrainingAlertKind | MatchAlertKind | AbsenceAlertKind | MeetingAlertKind | TravelAlertKind | MedicalAlertKind;
 
 export interface AppAlert {
@@ -1292,6 +1293,24 @@ export const managerFeedbackAlerts = (items: Feedback[], now = Date.now()): AppA
 /** A task's deadline is "near" in its last 3 hours */
 const TASK_DUE_SOON_MS = 3 * 3600 * 1000;
 
+/** An event's appointment task, once its alert came: «اقتراب …» before the event's day, «حان موعد …» on it */
+const APPOINTMENT_TEXT: Record<EventType, { near: string; now: string }> = {
+  birthday: { near: 'اقتراب عيد ميلاد', now: 'اليوم عيد ميلاد' },
+  match: { near: 'اقتراب موعد المباراة', now: 'حان موعد المباراة' },
+  training: { near: 'اقتراب موعد التدريب', now: 'حان موعد التدريب' },
+  meeting: { near: 'اقتراب موعد الاجتماع', now: 'حان موعد الاجتماع' },
+  travel: { near: 'اقتراب موعد التنقل', now: 'حان موعد التنقل' },
+};
+
+/** An appointment's task whose alert came: what it says, and whether it is the event's day (its deadline's day) */
+const appointmentAlert = (t: Task, now: number) => {
+  const due = parseDate(t.due_at);
+  const today = new Date(now);
+  const onTheDay = Boolean(due && due.toDateString() === today.toDateString());
+  const text = t.source && t.source !== 'periodic' ? APPOINTMENT_TEXT[t.source] : null;
+  return { onTheDay, title: text ? (onTheDay ? text.now : text.near) : 'حان موعد مهمة' };
+};
+
 /**
  * Personal space: the tasks given to me. One alert for its time (late, deadline near, its alert time reached,
  * or new: not opened yet), and one for what was written in its conversation (a message, a status change).
@@ -1315,7 +1334,11 @@ export const myTaskAlerts = (tasks: Task[], now = Date.now()): AppAlert[] => tas
     } else if (due !== null && due - now <= TASK_DUE_SOON_MS) {
       out.push({ key: `task:due:${t.id}:${t.due_at}`, kind: 'task_due', heading: t.title, title: 'اقترب آخر أجل مهمة', detail: taskDueText(t), tone: 'amber', target });
     } else if (alertAt !== null && alertAt <= now) {
-      out.push({ key: `task:alert:${t.id}:${t.alert_at}`, kind: 'task_alert', heading: t.title, title: 'حان موعد مهمة', detail: t.event_label ? `${t.event_label} · ${when}` : when, tone: 'violet', target });
+      const { onTheDay, title } = appointmentAlert(t, now);
+      out.push({
+        key: `task:alert:${t.id}:${t.alert_at}:${onTheDay ? 'day' : 'near'}`, kind: 'task_alert', heading: t.title, title,
+        detail: t.event_label ? `${t.event_label} · ${when}` : when, tone: onTheDay ? 'red' : 'violet', target,
+      });
     }
   }
   const last = t.last_message;
@@ -1330,7 +1353,11 @@ export const myTaskAlerts = (tasks: Task[], now = Date.now()): AppAlert[] => tas
   return out;
 });
 
-/** Management: a task late (stays until it is finished), and a message from the member it is given to */
+/**
+ * Management (the tasks given to others, and the automatic ones given to no one yet), while a task is open: its
+ * appointment's alert came («اقتراب موعد المباراة», then «حان موعد المباراة» on its day), an urgent one its member has
+ * not opened, its deadline near, late (stays until it is finished); and a message from the member it is given to.
+ */
 export const managerTaskAlerts = (tasks: Task[], me: string | number | undefined, now = Date.now()): AppAlert[] => tasks
   // The tasks given to me are already in my own alerts
   .filter(t => String(t.assignee?.id ?? '') !== String(me ?? ''))
@@ -1339,8 +1366,23 @@ export const managerTaskAlerts = (tasks: Task[], me: string | number | undefined
     const target = { type: 'task' as const, id: t.id, space: 'management' as const };
     const who = t.assignee?.name || 'المكلّف';
     const due = parseDate(t.due_at)?.getTime() ?? null;
-    if (taskOpen(t) && due !== null && due < now) {
-      out.push({ key: `mtask:late:${t.id}:${t.due_at}`, kind: 'mgr_task_late', heading: t.title, title: 'مهمة متأخرة', detail: `${who} · ${taskDueText(t)}`, tone: 'red', target });
+    const alertAt = parseDate(t.alert_at)?.getTime() ?? null;
+    const given = t.assignee ? who : 'بلا مكلّف';
+    if (taskOpen(t)) {
+      if (due !== null && due < now) {
+        out.push({ key: `mtask:late:${t.id}:${t.due_at}`, kind: 'mgr_task_late', heading: t.title, title: 'مهمة متأخرة', detail: `${given} · ${taskDueText(t)}`, tone: 'red', target });
+      } else if (t.kind === 'scheduled' && alertAt !== null && alertAt <= now) {
+        const { onTheDay, title } = appointmentAlert(t, now);
+        out.push({
+          key: `mtask:alert:${t.id}:${t.alert_at}:${onTheDay ? 'day' : 'near'}`, kind: 'mgr_task_alert', heading: t.title, title,
+          detail: `${t.event_label ? `${t.event_label} · ` : ''}${given}`, tone: onTheDay ? 'red' : 'violet', target,
+        });
+      } else if (due !== null && due - now <= TASK_DUE_SOON_MS) {
+        out.push({ key: `mtask:due:${t.id}:${t.due_at}`, kind: 'mgr_task_due', heading: t.title, title: 'اقترب آخر أجل مهمة', detail: `${given} · ${taskDueText(t)}`, tone: 'amber', target });
+      }
+      if (t.kind === 'urgent' && t.assignee && !t.seen) {
+        out.push({ key: `mtask:urgent:${t.id}`, kind: 'mgr_task_urgent', heading: t.title, title: 'مهمة عاجلة لم يفتحها المكلّف بعد', detail: who, tone: 'red', target });
+      }
     }
     if (t.unread > 0 && t.last_message) {
       out.push({

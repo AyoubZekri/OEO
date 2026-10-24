@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, LogOut, FileText, Briefcase, ChevronDown } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, LogOut, FileText, Briefcase, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import type { useMembersController } from '../../Screen/Members/MembersController';
 import type { MemberModel } from '../../Screen/Members/member_model';
@@ -18,13 +18,15 @@ interface MobileMembersProps {
   canDelete: boolean;
   canViewRecord: boolean;
   onAddEvaluation: (member: MemberModel) => void;
+  /** The active players' group evaluation from Excel (who may evaluate) */
+  onBulkEvaluate?: () => void;
 }
 
 // The model falls back to a generated ui-avatars URL; use the app's own default image instead
 const getPhoto = (member: MemberModel) =>
   member.photo && !member.photo.includes('ui-avatars.com') ? member.photo : defaultAvatar;
 
-export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onAddEvaluation }) => {
+export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onAddEvaluation, onBulkEvaluate }) => {
   const can = useCan();
   const { filteredMembers, searchQuery, setSearchQuery, filterTeamId, setFilterTeamId, teams } = controller;
   // The filter's kind: chosen whole ('kind:…') or through one of its categories
@@ -189,6 +191,11 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
         </div>
       )}
 
+      {onBulkEvaluate && (
+        <button className={`mm-fab mm-fab-eval ${canAdd ? '' : 'alone'}`} onClick={onBulkEvaluate} aria-label="تقييم جماعي (Excel)" title="تقييم جماعي (Excel)">
+          <FileSpreadsheet size={21} strokeWidth={2.3} />
+        </button>
+      )}
       {canAdd && (
         <button className="mm-fab" onClick={controller.openAddMemberDialog} aria-label="إضافة عضو" title="إضافة عضو">
           <Plus size={22} strokeWidth={2.5} />

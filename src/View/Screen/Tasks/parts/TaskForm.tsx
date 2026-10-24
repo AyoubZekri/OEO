@@ -64,7 +64,7 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
   const [title, setTitle] = useState(task?.title || template?.title || '');
   const [details, setDetails] = useState(task?.details || template?.details || '');
   const [assignee, setAssignee] = useState(String(task?.assignee?.id ?? template?.assignee?.id ?? ''));
-  const [kind, setKind] = useState<TaskKind>(template || appointment ? 'scheduled' : task?.kind || 'normal');
+  const [kind, setKind] = useState<TaskKind>(template || appointment || (!task && !c.can('add')) ? 'scheduled' : task?.kind || 'normal');
   const [nature, setNature] = useState<TaskNature | ''>(task?.nature || template?.nature || '');
   const [dueAt, setDueAt] = useState(toInputDate(task?.due_at));
   // A task an appointment created: its own alert and deadline (this task only)
@@ -133,7 +133,10 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
   const heading = template ? 'تعديل الموعد' : appointment ? 'موعد جديد' : task ? 'تعديل المهمة' : 'مهمة جديدة';
   const kinds: TaskKind[] = ['normal', 'urgent', 'scheduled'];
   // Editing: a normal task can become urgent and back; an appointment's task stays one
-  const kindLocked = (k: TaskKind) => Boolean(task) && (generated ? k !== 'scheduled' : k === 'scheduled');
+  // A new one: only the kinds this role may give (a task: «إسناد مهمة»; an appointment: the appointments' «إضافة»)
+  const kindLocked = (k: TaskKind) => (task
+    ? (generated ? k !== 'scheduled' : k === 'scheduled')
+    : !(k === 'scheduled' ? c.canAppointments('add') : c.can('add')));
 
   return (
     <SidePanel
