@@ -37,7 +37,7 @@ export const MyAppointments: React.FC = () => {
     .sort((a, b) => (parseDate(a.alert_at)?.getTime() ?? 0) - (parseDate(b.alert_at)?.getTime() ?? 0));
   const visible = filterUpcoming(upcoming, filters);
 
-  const list = c.loading && !c.tasks.length ? <PageLoader mobile={isMobile} text="جاري تحميل مواعيدي..." />
+  const list = c.loading && !c.tasks.length ? <PageLoader mobile={isMobile} text="جاري تحميل المواعيد..." />
     : c.error ? (
       <div className="tk-state">
         <CalendarClock size={30} /><p>{c.error}</p>
@@ -61,7 +61,7 @@ export const MyAppointments: React.FC = () => {
   if (isMobile) {
     return (
       <div className="tk-mpage tk-scope">
-        <MobileAppBar title="مواعيدي" />
+        <MobileAppBar title="مواعيد" />
         <div className="tk-toolbar">
           <label className="tk-search">
             <Search size={17} />

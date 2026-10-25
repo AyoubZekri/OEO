@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { amountText } from '../MobileContracts/contractUtils';
 import { useNavigate } from 'react-router-dom';
-import { Users, Wallet, History, ChevronLeft, Shield } from 'lucide-react';
+import { Users, Wallet, History, ChevronLeft, Trophy } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { parseMatchDate } from '../../Screen/Home/HomeController';
 import type { useHomeController } from '../../Screen/Home/HomeController';
@@ -9,6 +9,10 @@ import { MobileAppBar } from '../widgets/MobileAppBar';
 import './MobileHome.css';
 import { HomeFinance } from '../../Screen/Home/HomeFinance';
 import { useCan } from '../../../core/functions/useCan';
+import { TeamBadge } from '../MobileMatches/TeamBadge';
+import { CLUB_LOGO } from '../MobileMatches/matchActions';
+import { opponentLogo, opponentShort } from '../MobileMatches/matchUtils';
+import '../MobileMatches/MobileMatches.css';
 
 interface MobileHomeProps {
   controller: ReturnType<typeof useHomeController>;
@@ -52,7 +56,7 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
   return (
     <div className="mobile-home" dir="ltr">
       {/* App bar */}
-      <MobileAppBar title="الصفحة الرئيسية" showNotificationDot={dashboard.overdueContracts > 0} />
+      <MobileAppBar title="المالية" showNotificationDot={dashboard.overdueContracts > 0} />
 
       {/* Total expenses */}
       {see('viewExpenses') && <section className="mh-funds" dir="rtl" role="button" tabIndex={0} onClick={() => navigate(Approutes.Payments)} onKeyDown={e => { if (e.key === 'Enter') navigate(Approutes.Payments); }}>
@@ -80,13 +84,14 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
         {match && matchDate ? (
           <>
             <div className="mh-teams">
+              {/* The two teams' badges, as on the matches page */}
               <div className="mh-team">
-                <img src="/LOGO.webp" alt={CLUB_NAME} />
+                <TeamBadge logo={CLUB_LOGO} short="OL" className="big" />
                 <span>{CLUB_NAME}</span>
               </div>
               <span className="mh-vs">VS</span>
               <div className="mh-team">
-                <span className="mh-team-placeholder"><Shield size={22} /></span>
+                <TeamBadge logo={opponentLogo(match)} short={opponentShort(match)} className="big" />
                 <span>{opponentName}</span>
               </div>
             </div>
@@ -107,6 +112,13 @@ export const MobileHome: React.FC<MobileHomeProps> = ({ controller }) => {
           </>
         ) : (
           <p className="mh-empty" dir="rtl">لا توجد مباراة مبرمجة حالياً</p>
+        )}
+
+        {/* To the matches page */}
+        {can('matches') && (
+          <button type="button" className="mh-match-go" onClick={() => navigate(Approutes.Matches)}>
+            <Trophy size={17} />كل المباريات<ChevronLeft size={17} />
+          </button>
         )}
       </section>}
 

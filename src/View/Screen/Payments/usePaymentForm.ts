@@ -264,7 +264,8 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
 
     const payment: Omit<PaymentRecord, 'id'> = {
       transactionType,
-      memberId: transactionType === 'دفع' ? memberId : undefined,
+      // A payment: its member; an expense (normal or exceptional): its member if one was chosen
+      memberId: memberId || undefined,
       fundId: fundId || undefined,
       amount: parseFloat(amount) || 0,
       paymentMethod,

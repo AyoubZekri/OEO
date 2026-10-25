@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Mic, Square, RotateCcw } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition as NativeSpeech } from '@capacitor-community/speech-recognition';
 
 /* The browser's speech recognition (Chrome, Edge, Safari): not in TypeScript's DOM types */
 interface RecognitionAlternative { transcript: string; confidence: number }
@@ -41,6 +43,9 @@ const best = (r: RecognitionResult) => {
   return { text: (pick?.transcript || '').trim(), confidence: pick?.confidence ?? 0 };
 };
 
+/** In the Android app (Capacitor): the phone's own speech recognition (its WebView has none) */
+const NATIVE = Capacitor.isNativePlatform();
+
 const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
 /**
@@ -48,10 +53,11 @@ const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${S
  * goes (see Dialect). It listens phrase by phrase — each phrase heard once, then the next — so a phone does not repeat
  * what was said; it keeps the engine's surest wording. Once it stops, the text can be corrected by hand; speaking again
  * adds to it, and it can be cleared to record it again. autoStart: it listens as soon as it opens. What is still being
- * heard when it closes is kept.
+ * heard when it closes is kept. In the Android app it is the phone's own recognition (NATIVE), phrase by phrase too.
  */
 export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void; autoStart?: boolean }> = ({ value, onChange, autoStart }) => {
   const Ctor = recognitionCtor();
+  const supported = NATIVE || Boolean(Ctor);
   const [listening, setListening] = useState(false);
   const [interim, setInterim] = useState('');
   const [seconds, setSeconds] = useState(0);
@@ -120,17 +126,62 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     next.current = listen;
   }, [listen]);
 
+  // The Android app: the phone's recognition — the phrase so far as it comes, written when the phone stops listening
+  const phrase = useRef('');
+  const commit = () => {
+    const part = phrase.current.trim();
+    phrase.current = '';
+    setInterim('');
+    if (!part) return;
+    const { value: text, onChange: save } = latest.current;
+    const joined = [text, part].filter(Boolean).join(' ');
+    latest.current.value = joined;
+    save(joined);
+  };
+  const nativePhrase = () => {
+    NativeSpeech.start({ language: 'ar-DZ', partialResults: true, popup: false, maxResults: 3 }).catch(() => {
+      wanted.current = false;
+      setListening(false);
+    });
+  };
+  const startNative = async () => {
+    try {
+      let perm = await NativeSpeech.checkPermissions();
+      if (perm.speechRecognition !== 'granted') perm = await NativeSpeech.requestPermissions();
+      if (perm.speechRecognition !== 'granted') throw new Error('no microphone');
+      await NativeSpeech.removeAllListeners();
+      await NativeSpeech.addListener('partialResults', d => {
+        phrase.current = (d.matches?.[0] || '').trim();
+        setInterim(phrase.current);
+      });
+      await NativeSpeech.addListener('listeningState', d => {
+        if (d.status !== 'stopped') return;
+        commit();
+        // The next phrase, until stopped
+        if (wanted.current) nativePhrase();
+        else setListening(false);
+      });
+      nativePhrase();
+    } catch {
+      wanted.current = false;
+      setListening(false);
+    }
+  };
+
   const start = useCallback(() => {
-    if (!Ctor) return;
+    if (!supported) return;
     setSeconds(0);
     wanted.current = true;
     setListening(true);
-    listen();
-  }, [Ctor, listen]);
+    if (NATIVE) startNative();
+    else listen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startNative reads refs only
+  }, [supported, listen]);
 
   const stop = () => {
     wanted.current = false;
-    rec.current?.stop();
+    if (NATIVE) NativeSpeech.stop().catch(() => setListening(false));
+    else rec.current?.stop();
   };
 
   useLayoutEffect(() => {
@@ -152,6 +203,12 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     if (autoStart) start();
     return () => {
       wanted.current = false;
+      if (NATIVE) {
+        NativeSpeech.removeAllListeners().catch(() => undefined);
+        NativeSpeech.stop().catch(() => undefined);
+        if (phrase.current) latest.current.onChange([latest.current.value, phrase.current].filter(Boolean).join(' '));
+        return;
+      }
       const r = rec.current;
       if (!r) return;
       r.onresult = null;
@@ -166,7 +223,7 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
   return (
     <div className={`tsk-rec ${listening ? 'live' : ''}`}>
       <div className="tsk-rec-stage">
-        {Ctor && <div className="tsk-rec-mic-wrap">
+        {supported && <div className="tsk-rec-mic-wrap">
           <button type="button" className="tsk-rec-mic" onClick={listening ? stop : start} aria-label={listening ? 'إيقاف التسجيل' : 'بدء التسجيل'}>
             {listening ? <Square size={26} fill="currentColor" /> : <Mic size={34} strokeWidth={1.8} />}
           </button>

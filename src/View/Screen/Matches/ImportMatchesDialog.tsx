@@ -99,7 +99,6 @@ export const ImportMatchesDialog: React.FC<{ onClose: () => void; onDone: () => 
           <span className="imx-head-icon"><FileSpreadsheet size={22} /></span>
           <div>
             <h3>استيراد المباريات من Excel</h3>
-            <small>عدة مباريات في مرة وحدة</small>
           </div>
           <button type="button" className="imx-close" onClick={onClose} disabled={busy === 'import'} aria-label="إغلاق"><X size={20} /></button>
         </header>
@@ -110,7 +109,6 @@ export const ImportMatchesDialog: React.FC<{ onClose: () => void; onDone: () => 
             <span className="imx-num">1</span>
             <div className="imx-step-text">
               <strong>حمّل النموذج</strong>
-              <small>فيه قوائم منسدلة للفئات والمدربين والإداريين من التطبيق</small>
             </div>
             <button type="button" className="imx-btn" onClick={template} disabled={!lists || busy !== null}>
               {busy === 'template' ? <Loader2 size={17} className="imx-spin" /> : <Download size={17} />} تحميل النموذج
@@ -122,7 +120,7 @@ export const ImportMatchesDialog: React.FC<{ onClose: () => void; onDone: () => 
             <span className="imx-num">2</span>
             <div className="imx-step-text">
               <strong>ارفع الملف المملوء</strong>
-              <small>{fileName || 'ملف ‎.xlsx‎ بنفس النموذج'}</small>
+              {fileName && <small>{fileName}</small>}
             </div>
             <button type="button" className="imx-btn primary" onClick={() => input.current?.click()} disabled={!lists || busy !== null}>
               {busy === 'read' ? <Loader2 size={17} className="imx-spin" /> : <Upload size={17} />} اختيار الملف
@@ -147,13 +145,13 @@ export const ImportMatchesDialog: React.FC<{ onClose: () => void; onDone: () => 
                   <tbody>
                     {rows.map(r => (
                       <tr key={r.line} className={r.errors.length ? 'bad' : ''}>
-                        <td>{r.line}</td>
-                        <td>{r.competition || '—'}</td>
-                        <td>{r.opponent || '—'}</td>
-                        <td dir="ltr">{r.date ? `${r.date.split('-').reverse().join('/')} ${r.time}` : '—'}</td>
-                        <td>{r.location || '—'}</td>
-                        <td>{r.team || '—'}</td>
-                        <td>
+                        <td data-label="السطر">{r.line}</td>
+                        <td data-label="المنافسة">{r.competition || '—'}</td>
+                        <td data-label="الخصم">{r.opponent || '—'}</td>
+                        <td data-label="التاريخ والساعة"><span dir="ltr">{r.date ? `${r.date.split('-').reverse().join('/')} ${r.time}` : '—'}</span></td>
+                        <td data-label="المكان">{r.location || '—'}</td>
+                        <td data-label="الفئة">{r.team || '—'}</td>
+                        <td data-label="الحالة">
                           {r.errors.length ? <span className="imx-bad">{r.errors.join('، ')}</span>
                             : refused[r.line] ? <span className="imx-bad">رفضها الخادم: {refused[r.line]}</span>
                               : <span className="imx-ok"><CheckCircle2 size={14} /> {finished ? 'أُضيفت' : 'صالحة'}</span>}

@@ -559,3 +559,10 @@ body.dark-mode .mmt-vars {
 
 @keyframes mmt-modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes mmt-modal-pop { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: none; } }
+
+/* Import from Excel: a second floating button above «add», in Excel's green (as the members' group evaluation) */
+.mmt-fab.mmt-fab-excel {
+  bottom: calc(148px + env(safe-area-inset-bottom));
+  background: linear-gradient(135deg, #4ade80, #16a34a 55%, #15803d);
+  box-shadow: 0 12px 26px -8px rgba(22, 163, 74, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}

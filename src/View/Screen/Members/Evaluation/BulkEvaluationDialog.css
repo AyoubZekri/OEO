@@ -1,13 +1,16 @@
 /* The group evaluation (the matches' import look): its season, type and month */
-.bev-settings { align-items: flex-start; }
+/* The step's fields under its title, across the whole card (not beside its number) */
+.bev-settings { flex-wrap: wrap; }
 .bev-settings .imx-step-text strong { display: inline-flex; align-items: center; gap: 6px; }
-.bev-fields { display: flex; flex-direction: column; gap: 14px; margin-top: 10px; }
+.bev-fields { flex: 1 1 100%; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.bev-settings .bev-fields { grid-column: 1 / -1; }
 .bev-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .bev-field > small { color: var(--text-muted); font-size: .78rem; font-weight: 800; }
 
 /* The season: ‹ 2026-2027 › */
 .bev-season {
-  align-self: flex-start;
+  align-self: stretch;
+  justify-content: space-between;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -16,7 +19,7 @@
   border: 1px solid var(--border);
   background: var(--card-bg);
 }
-.bev-season b { min-width: 110px; padding: 0 8px; color: var(--text-h); font-size: 1.05rem; font-weight: 900; text-align: center; letter-spacing: .5px; }
+.bev-season b { flex: 1; min-width: 110px; padding: 0 8px; color: var(--text-h); font-size: 1.05rem; font-weight: 900; text-align: center; letter-spacing: .5px; }
 .bev-season button {
   width: 36px;
   height: 36px;

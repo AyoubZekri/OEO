@@ -544,3 +544,6 @@ body.dark-mode .transaction-type-option input[type="radio"]:checked + .transacti
 .trf-badge { display: inline-flex; align-items: center; padding: 3px 12px; border-radius: 99px; font-size: 0.78rem; font-weight: 800; }
 .trf-badge.yes { background: rgba(13, 148, 136, 0.12); color: #0f766e; }
 .trf-badge.no { background: var(--bg, #f1f5f9); color: var(--text-muted, #64748b); }
+
+/* An expense's member: optional */
+.optional-hint { color: var(--text-muted); font-size: 0.8em; font-weight: 600; }

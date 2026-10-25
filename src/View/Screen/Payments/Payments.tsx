@@ -487,15 +487,18 @@ export const Payments: React.FC = () => {
                   </div>
                 )}
 
-                {/* Member Selection */}
-                {transactionType === 'دفع' && (
+                {/* Member Selection: a payment's (required), an expense's (optional) */}
+                {!form.creditMode && (
                   <div className="form-group mb-3">
-                    <label>{t('payments.form_select_member', 'تحديد العضو / المستفيد')}</label>
+                    <label>
+                      {transactionType === 'دفع' ? t('payments.form_select_member', 'تحديد العضو / المستفيد') : 'العضو'}
+                      {transactionType !== 'دفع' && <span className="optional-hint"> (اختياري)</span>}
+                    </label>
                   <CustomDropdown
                     value={memberId}
                     onChange={setMemberId}
                     options={[
-                      { value: '', label: t('payments.form_select_member_placeholder', '-- اختر العضو --') },
+                      { value: '', label: transactionType === 'دفع' ? t('payments.form_select_member_placeholder', '-- اختر العضو --') : '-- بدون عضو --' },
                       ...members.map(m => ({
                         value: m.id,
                         label: `${m.firstName} ${m.lastName} (${m.memberRole})`
@@ -651,7 +654,7 @@ export const Payments: React.FC = () => {
                   </div>
                 </div>
 
-                {contracts.filter(c => String(c.individuals_id) === String(memberId)).length > 1 && (
+                {transactionType === 'دفع' && contracts.filter(c => String(c.individuals_id) === String(memberId)).length > 1 && (
                   <div className="form-row">
                     <div className="form-group" style={{ width: '100%' }}>
                       <label>تحديد العقد (الموسم)</label>

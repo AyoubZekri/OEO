@@ -45,13 +45,13 @@ export const MyFeedback: React.FC = () => {
   if (isMobile) {
     return (
       <div className="tk-mpage tk-scope">
-        <MobileAppBar title="آرائي واقتراحاتي" />
+        <MobileAppBar title="آراء واقتراحات" />
 
         <section className="tk-hero">
           <div className="tk-hero-top">
             <span className="tk-hero-icon"><MessageSquare size={26} /></span>
             <div>
-              <small>آرائي واقتراحاتي</small>
+              <small>آراء واقتراحات</small>
               <strong>{c.items.length} رأي</strong>
             </div>
           </div>
@@ -101,7 +101,7 @@ export const MyFeedback: React.FC = () => {
   }
 
   const stats = [
-    { icon: MessageSquare, label: 'آرائي', value: String(c.items.length), hint: `${replied} تم الرد عليها`, tone: 'orange' },
+    { icon: MessageSquare, label: 'آراء', value: String(c.items.length), hint: `${replied} تم الرد عليها`, tone: 'orange' },
     { icon: Lightbulb, label: 'الاقتراحات', value: String(ofType('suggestion')), hint: 'أفكار لتحسين النادي', tone: 'amber' },
     { icon: AlertTriangle, label: 'الشكاوى', value: String(ofType('complaint')), hint: 'مشاكل تريد حلها', tone: 'red' },
     { icon: StickyNote, label: 'الملاحظات', value: String(ofType('note')), hint: 'ملاحظات للإدارة', tone: 'blue' },

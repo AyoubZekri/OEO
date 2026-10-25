@@ -125,19 +125,22 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         </section>
       ) : (
       <section className="me-card">
-        <h3 className="me-section-title"><span><Wallet size={16} /></span>{f.transactionType === 'دفع' ? 'المستفيد والصندوق' : 'الصندوق'}</h3>
+        <h3 className="me-section-title"><span><Wallet size={16} /></span>{f.transactionType === 'دفع' ? 'المستفيد والصندوق' : 'العضو والصندوق'}</h3>
 
-        {f.transactionType === 'دفع' && (
-          <>
+        {/* The member: a payment's (required), an expense's (optional, it can be left without one) */}
+        <>
             <MobileSelect
-              label="العضو المستفيد"
+              label={f.transactionType === 'دفع' ? 'العضو المستفيد' : 'العضو (اختياري)'}
               icon={User}
               value={f.memberId}
-              options={c.members.map(m => ({
-                value: String(m.id),
-                label: `${m.firstName} ${m.lastName}`.trim() || `عضو ${m.id}`,
-                group: TYPE_LABELS[m.memberRole] || 'أخرى',
-              }))}
+              options={[
+                ...(f.transactionType === 'دفع' ? [] : [{ value: '', label: 'بدون عضو' }]),
+                ...c.members.map(m => ({
+                  value: String(m.id),
+                  label: `${m.firstName} ${m.lastName}`.trim() || `عضو ${m.id}`,
+                  group: TYPE_LABELS[m.memberRole] || 'أخرى',
+                })),
+              ]}
               onChange={f.setMemberId}
               searchable
               renderTrigger={open => (
@@ -146,8 +149,8 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
                     ? <span className="mpy-avatar">{initials(person.firstName, person.lastName)}</span>
                     : <span className="mpy-pick-icon"><UserRound size={20} /></span>}
                   <span className="mpy-pick-text">
-                    <small>{person ? TYPE_LABELS[person.memberRole] || person.memberRole : 'العضو المستفيد'}</small>
-                    <strong>{person ? `${person.firstName} ${person.lastName}` : 'اختر العضو'}</strong>
+                    <small>{person ? TYPE_LABELS[person.memberRole] || person.memberRole : f.transactionType === 'دفع' ? 'العضو المستفيد' : 'العضو (اختياري)'}</small>
+                    <strong>{person ? `${person.firstName} ${person.lastName}` : f.transactionType === 'دفع' ? 'اختر العضو' : 'بدون عضو'}</strong>
                   </span>
                   <ChevronDown size={18} />
                 </button>
@@ -161,7 +164,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
               </div>
             )}
 
-            {memberContracts.length > 1 && (
+            {f.transactionType === 'دفع' && memberContracts.length > 1 && (
               <MobileSelect
                 label="تحديد العقد (الموسم)"
                 icon={FileSignature}
@@ -177,8 +180,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
                 )}
               />
             )}
-          </>
-        )}
+        </>
 
         {f.transactionType !== 'مصاريف استثنائية' ? (
           <>

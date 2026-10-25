@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Plus, Search, Clock, Radio, Trophy, Calendar } from 'lucide-react';
+import { Plus, Search, Clock, Radio, Trophy, Calendar, FileSpreadsheet } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { useUrlDetails } from '../widgets/useUrlDetails';
@@ -22,12 +22,14 @@ interface MobileMatchesProps {
   actions: MatchActions;
   /** Personal space: the matches of my category, read only, with my participation */
   personal?: boolean;
+  /** Many matches at once from Excel (who may add) */
+  onImport?: () => void;
 }
 
 type Tab = 'upcoming' | 'played';
 
 // Phone version of the matches page
-export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading, actions, personal = false }) => {
+export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading, actions, personal = false, onImport }) => {
   const allowed = useCan();
   const can: typeof allowed = (...args) => !personal && allowed(...args);
   const now = useMatchNow();
@@ -142,6 +144,11 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
         </>
       )}
 
+      {can('matches', 'add') && onImport && (
+        <button type="button" className="mmt-fab mmt-fab-excel" onClick={onImport} aria-label="استيراد من Excel" title="استيراد من Excel">
+          <FileSpreadsheet size={21} strokeWidth={2.3} />
+        </button>
+      )}
       {can('matches', 'add') && (
         <button type="button" className="mmt-fab" onClick={actions.add} aria-label="إضافة مباراة" title="إضافة مباراة">
           <Plus size={22} strokeWidth={2.5} />

@@ -300,8 +300,10 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
           isLoading={isLoading}
           personal={personal}
           actions={actions}
+          onImport={() => setImportOpen(true)}
         />
         {dialogs}
+        {importOpen && <ImportMatchesDialog onClose={() => setImportOpen(false)} onDone={fetchMatches} />}
       </>
     );
   }

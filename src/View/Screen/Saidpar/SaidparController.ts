@@ -108,7 +108,7 @@ export const useSaidparController = (onLogout?: () => void) => {
       title: '',
       items: [
         { name: 'MyHome', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
-        { name: 'MyTasks', icon: CalendarClock, isDropdown: false, label: 'مواعيدي', route: Approutes.MyTasks },
+        { name: 'MyTasks', icon: CalendarClock, isDropdown: false, label: 'مواعيد', route: Approutes.MyTasks },
         { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.MyTrainingSessions },
         { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مباريات', route: Approutes.MyMatches },
         { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غيابات', route: Approutes.MyAbsences },
@@ -116,7 +116,7 @@ export const useSaidparController = (onLogout?: () => void) => {
         { name: 'MyTravels', icon: Bus, isDropdown: false, label: 'تنقلات', route: Approutes.MyTravels },
         { name: 'MyMedical', icon: Stethoscope, isDropdown: false, label: 'تقارير طبية', route: Approutes.MyMedical },
         { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءات تأديبية', route: Approutes.MyDisciplinary },
-        { name: 'MyFeedback', icon: MessageSquare, isDropdown: false, label: 'آرائي واقتراحاتي', route: Approutes.MyFeedback },
+        { name: 'MyFeedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.MyFeedback },
       ],
     },
   ];

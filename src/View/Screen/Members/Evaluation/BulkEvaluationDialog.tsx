@@ -124,7 +124,6 @@ export const BulkEvaluationDialog: React.FC<{ players: SheetPlayer[]; onClose: (
           <span className="imx-head-icon"><FileSpreadsheet size={22} /></span>
           <div>
             <h3>تقييم جماعي من Excel</h3>
-            <small>اللاعبون النشطون فقط · {players.length} لاعب</small>
           </div>
           <button type="button" className="imx-close" onClick={onClose} disabled={busy === 'save'} aria-label="إغلاق"><X size={20} /></button>
         </header>
@@ -135,57 +134,57 @@ export const BulkEvaluationDialog: React.FC<{ players: SheetPlayer[]; onClose: (
             <span className="imx-num">1</span>
             <div className="imx-step-text">
               <strong><Settings2 size={15} /> التقييم</strong>
-              <div className="bev-fields">
-                {/* The season: one step back or forward */}
-                <div className="bev-field">
-                  <small>الموسم</small>
-                  <div className="bev-season">
-                    <button type="button" onClick={() => moveSeason(-1)} aria-label="الموسم السابق"><ChevronRight size={18} /></button>
-                    <b dir="ltr">{season}</b>
-                    <button type="button" onClick={() => moveSeason(1)} aria-label="الموسم التالي"><ChevronLeft size={18} /></button>
-                  </div>
+            </div>
+            <div className="bev-fields">
+              {/* The season: one step back or forward */}
+              <div className="bev-field">
+                <small>الموسم</small>
+                <div className="bev-season">
+                  <button type="button" onClick={() => moveSeason(-1)} aria-label="الموسم السابق"><ChevronRight size={18} /></button>
+                  <b dir="ltr">{season}</b>
+                  <button type="button" onClick={() => moveSeason(1)} aria-label="الموسم التالي"><ChevronLeft size={18} /></button>
                 </div>
+              </div>
 
-                {/* The evaluation's type: four cards */}
+              {/* The evaluation's type: four cards */}
+              <div className="bev-field">
+                <small>نوع التقييم</small>
+                <div className="bev-types" role="radiogroup" aria-label="نوع التقييم">
+                  {PERIODS.map(p => (
+                    <button
+                      key={p.value}
+                      type="button"
+                      role="radio"
+                      aria-checked={period === p.value}
+                      className={period === p.value ? 'on' : ''}
+                      onClick={() => { setPeriod(p.value); setSaved(null); }}
+                    >
+                      <span><p.icon size={17} /></span>{p.value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* A monthly one: the season's months */}
+              {monthly && (
                 <div className="bev-field">
-                  <small>نوع التقييم</small>
-                  <div className="bev-types" role="radiogroup" aria-label="نوع التقييم">
-                    {PERIODS.map(p => (
+                  <small>الشهر</small>
+                  <div className="bev-months" role="radiogroup" aria-label="الشهر">
+                    {monthsOf(season).map(m => (
                       <button
-                        key={p.value}
+                        key={m.value}
                         type="button"
                         role="radio"
-                        aria-checked={period === p.value}
-                        className={period === p.value ? 'on' : ''}
-                        onClick={() => { setPeriod(p.value); setSaved(null); }}
+                        aria-checked={month === m.value}
+                        className={month === m.value ? 'on' : ''}
+                        onClick={() => { setMonth(m.value); setSaved(null); }}
                       >
-                        <span><p.icon size={17} /></span>{p.value}
+                        {m.label}<em>{m.year}</em>
                       </button>
                     ))}
                   </div>
                 </div>
-
-                {/* A monthly one: the season's months */}
-                {monthly && (
-                  <div className="bev-field">
-                    <small>الشهر</small>
-                    <div className="bev-months" role="radiogroup" aria-label="الشهر">
-                      {monthsOf(season).map(m => (
-                        <button
-                          key={m.value}
-                          type="button"
-                          role="radio"
-                          aria-checked={month === m.value}
-                          className={month === m.value ? 'on' : ''}
-                          onClick={() => { setMonth(m.value); setSaved(null); }}
-                        >
-                          {m.label}<em>{m.year}</em>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </section>
 
@@ -194,7 +193,6 @@ export const BulkEvaluationDialog: React.FC<{ players: SheetPlayer[]; onClose: (
             <span className="imx-num">2</span>
             <div className="imx-step-text">
               <strong>حمّل ورقة التقييم</strong>
-              <small>سطر لكل لاعب نشط، والعلامات محدودة بأقصى كل معيار</small>
             </div>
             <button type="button" className="imx-btn" onClick={template} disabled={!players.length || busy !== null}>
               {busy === 'template' ? <Loader2 size={17} className="imx-spin" /> : <Download size={17} />} تحميل الورقة
@@ -206,7 +204,7 @@ export const BulkEvaluationDialog: React.FC<{ players: SheetPlayer[]; onClose: (
             <span className="imx-num">3</span>
             <div className="imx-step-text">
               <strong>ارفع الورقة المملوءة</strong>
-              <small>{fileName || 'ملف ‎.xlsx‎ بنفس الورقة'}</small>
+              {fileName && <small>{fileName}</small>}
             </div>
             <button type="button" className="imx-btn primary" onClick={() => input.current?.click()} disabled={busy !== null}>
               {busy === 'read' ? <Loader2 size={17} className="imx-spin" /> : <Upload size={17} />} اختيار الملف
@@ -232,11 +230,11 @@ export const BulkEvaluationDialog: React.FC<{ players: SheetPlayer[]; onClose: (
                   <tbody>
                     {rows.map(r => (
                       <tr key={r.line} className={r.errors.length ? 'bad' : ''}>
-                        <td>{r.line}</td>
-                        <td>{r.name}</td>
-                        <td dir="ltr">{r.errors.length ? '—' : `${r.total} / ${TOTAL_MAX}`}</td>
-                        <td>{r.recommendation || '—'}</td>
-                        <td>
+                        <td data-label="السطر">{r.line}</td>
+                        <td data-label="اللاعب">{r.name}</td>
+                        <td data-label="المجموع"><span dir="ltr">{r.errors.length ? '—' : `${r.total} / ${TOTAL_MAX}`}</span></td>
+                        <td data-label="التوصية">{r.recommendation || '—'}</td>
+                        <td data-label="الحالة">
                           {r.errors.length ? <span className="imx-bad">{r.errors.join('، ')}</span>
                             : <span className="imx-ok"><CheckCircle2 size={14} /> {saved !== null ? 'حُفظ' : 'صالح'}</span>}
                         </td>
