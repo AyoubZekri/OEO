@@ -53,6 +53,7 @@ import { MyHome } from './View/Screen/Tasks/MyHome';
 import { MyAppointments } from './View/Screen/Tasks/MyAppointments';
 import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
+import { usePushNotifications } from './core/functions/usePushNotifications';
 import './App.css';
 import { DocViewerHost } from './View/widget/DocViewer';
 
@@ -76,6 +77,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const isMobile = useIsMobile();
   const { space } = useSpace();
+  // The Android app: this phone's notifications
+  usePushNotifications();
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', backgroundColor: 'var(--bg)', overflow: 'hidden' }}>

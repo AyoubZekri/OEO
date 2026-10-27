@@ -1,10 +1,10 @@
 import React from 'react';
-import { KIND_META, sourceMeta, statusView, type Task } from '../taskUtils';
+import { KIND_META, shownStatus, sourceMeta, type Task } from '../taskUtils';
 
-/** The status (late first) as a badge */
+/** The status (late first) as a badge; a new one (on time) shows none */
 export const StatusBadge: React.FC<{ task: Task }> = ({ task }) => {
-  const s = statusView(task);
-  return <span className={`tk-badge tone-${s.tone}`}><s.icon size={13} />{s.label}</span>;
+  const s = shownStatus(task);
+  return s ? <span className={`tk-badge tone-${s.tone}`}><s.icon size={13} />{s.label}</span> : <span className="tk-muted">—</span>;
 };
 
 /** Normal / urgent / voice note, or the event / periodic appointment it comes from */

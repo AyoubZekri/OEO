@@ -59,18 +59,19 @@ export const MyHome: React.FC = () => {
     <div className="tk-page tk-scope">
       <div className="tk-actions-row">
         <TopbarSearch value={query} onChange={v => { setQuery(v); setArchivePage(1); }} placeholder="بحث بالمهمة، التفاصيل أو التاريخ..." />
+        {/* The filters, named as the home page says them: «الإنجاز» (status), «المهمة» (kind), «التنفيذ» (nature) */}
         <CustomDropdown
-          options={presentStatusFilters(shown, status).map(f => ({ value: f.value || 'all', label: `${f.label} (${statusCount(f.value)})` }))}
+          options={presentStatusFilters(shown, status).map(f => ({ value: f.value || 'all', label: `${f.value ? f.label : 'الإنجاز: الكل'} (${statusCount(f.value)})` }))}
           value={status || 'all'}
           onChange={pick(setStatus)}
         />
         <CustomDropdown
-          options={KIND_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${kindCount(f.value)})` }))}
+          options={KIND_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.value ? f.label : 'المهمة: الكل'} (${kindCount(f.value)})` }))}
           value={kind || 'all'}
           onChange={pick(setKind)}
         />
         <CustomDropdown
-          options={NATURE_FILTERS.map(f => ({ value: f.value || 'all', label: f.label }))}
+          options={NATURE_FILTERS.map(f => ({ value: f.value || 'all', label: f.value ? f.label : 'التنفيذ: الكل' }))}
           value={nature || 'all'}
           onChange={pick(setNature)}
         />
@@ -96,7 +97,7 @@ export const MyHome: React.FC = () => {
             {archive.length > 0 && (
               <section className="tsk-sec archive">
                 <h3 className="tsk-sec-head">
-                  <span className="tsk-sec-icon"><Archive size={16} /></span>الأرشيف<b>{archive.length}</b>
+                  <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
                 </h3>
                 <div className="table-pagination-wrapper">
                   <TaskTable tasks={archiveShown} onOpen={c.openTask} mine menu={menu} />

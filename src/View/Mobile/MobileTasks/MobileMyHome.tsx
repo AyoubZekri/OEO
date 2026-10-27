@@ -58,7 +58,7 @@ export const MobileMyHome: React.FC<{
             {archive.length > 0 && (
               <section className="tsk-sec archive">
                 <h3 className="tsk-sec-head">
-                  <span className="tsk-sec-icon"><Archive size={16} /></span>الأرشيف<b>{archive.length}</b>
+                  <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
                 </h3>
                 <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} mine menu={menu(t)} />)}</div>
                 {archive.length > archiveShown.length && (

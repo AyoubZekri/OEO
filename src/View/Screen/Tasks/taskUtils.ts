@@ -17,6 +17,8 @@ export interface Task {
   id: number;
   title: string;
   details: string | null;
+  /** A voice note's recording (its link), when it was kept */
+  audio_url?: string | null;
   kind: TaskKind;
   nature: TaskNature;
   status: TaskStatus;
@@ -131,6 +133,12 @@ export const isOpen = (t: Pick<Task, 'status'>) => t.status === 'new' || t.statu
 /** The task's colour and label: late first, then its status */
 export const statusView = (t: Pick<Task, 'status' | 'overdue'>) => (t.overdue && isOpen(t) ? OVERDUE_META : STATUS_META[t.status]);
 
+/** The status to show: none for a new task (still on time) — only done, cancelled, or late (on its own) */
+export const shownStatus = (t: Pick<Task, 'status' | 'overdue'>) => (t.status === 'new' && !(t.overdue && isOpen(t)) ? null : statusView(t));
+
+/** The statuses the management sets: done or cancelled («late» comes on its own, «new» when it is given) */
+export const SET_STATUSES: TaskStatus[] = ['done', 'cancelled'];
+
 const plural = (n: number, one: string, two: string, few: string, many: string) =>
   n === 1 ? one : n === 2 ? two : n <= 10 ? `${n} ${few}` : `${n} ${many}`;
 
@@ -223,13 +231,13 @@ export const STATUS_FILTERS: { value: string; label: string; test: (t: Task) => 
 ];
 
 /**
- * The home page's status filter: all, new, in progress, done, cancelled, then «late». «On hold» (no longer given)
- * only while some task still has it.
+ * The home page's status filter: all, done, cancelled, then «late». «New» is not shown; «in progress» and «on hold»
+ * (no longer given) only while some task still has them.
  */
 export const presentStatusFilters = (tasks: Task[], picked = '') => [
   STATUS_FILTERS[0],
   ...STATUSES
-    .filter(st => st !== 'on_hold' || st === picked || tasks.some(t => t.status === st))
+    .filter(st => SET_STATUSES.includes(st) || (st !== 'new' && (st === picked || tasks.some(t => t.status === st))))
     .map(st => STATUS_FILTERS.find(f => f.value === st)!),
   STATUS_FILTERS.find(f => f.value === 'overdue')!,
 ];

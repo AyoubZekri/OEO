@@ -63,9 +63,9 @@ body.dark-mode .m-appbar {
   height: 40px;
   flex-shrink: 0;
   border-radius: 12px;
-  border: 1px solid var(--m-appbar-border);
-  background: var(--m-appbar-soft);
-  color: var(--m-appbar-text);
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;

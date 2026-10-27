@@ -299,3 +299,7 @@ body.dark-mode .tsk-hcard.kind-normal { --k: #64748b; --k-bg: var(--tk-card); --
 .tsk-acard-line.sched { color: var(--a); font-weight: 800; }
 .tsk-acard-side { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; justify-content: space-between; gap: 8px; }
 .tsk-acard.compact .tsk-acard-state { padding: 2px 8px; font-size: 0.68rem; }
+
+/* A new task shows no status: its ⋮ stays at the far side */
+.tsk-hcard-top .tsk-menu-cell { margin-inline-start: auto; }
+.tsk-hcard-top .tsk-hcard-status + .tsk-menu-cell { margin-inline-start: 0; }

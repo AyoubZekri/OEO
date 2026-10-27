@@ -48,9 +48,10 @@ export const MobileTaskFilters: React.FC<{
         {value.query && <button type="button" onClick={() => set({ query: '' })} aria-label="مسح البحث"><X size={15} /></button>}
       </label>
       <div className="tk-mfilters tsk-mfilters3">
-        {sheet('الحالة', Filter, value.status, statuses.map(f => ({ value: f.value, label: f.label, hint: String(statusCount(f.value)) })), v => set({ status: v }))}
-        {sheet('النوع', Layers, value.kind, KIND_FILTERS.map(f => ({ ...f, hint: String(kindCount(f.value)) })), v => set({ kind: v }))}
-        {sheet('الطبيعة', Shapes, value.nature, NATURE_FILTERS, v => set({ nature: v }))}
+        {/* The home page's words: its status «الإنجاز», its kind «المهمة», its nature «التنفيذ» */}
+        {sheet('الإنجاز', Filter, value.status, statuses.map(f => ({ value: f.value, label: f.label, hint: String(statusCount(f.value)) })), v => set({ status: v }))}
+        {sheet('المهمة', Layers, value.kind, KIND_FILTERS.map(f => ({ ...f, hint: String(kindCount(f.value)) })), v => set({ kind: v }))}
+        {sheet('التنفيذ', Shapes, value.nature, NATURE_FILTERS, v => set({ nature: v }))}
       </div>
     </div>
   );

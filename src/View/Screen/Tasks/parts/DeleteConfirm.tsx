@@ -8,7 +8,7 @@ import { Trash2, Loader2, AlertTriangle } from 'lucide-react';
  */
 export const DeleteConfirm: React.FC<{
   title: string;
-  name: string;
+  name?: string;
   note: string;
   onConfirm: () => Promise<void> | void;
   onClose: () => void;
@@ -35,7 +35,7 @@ export const DeleteConfirm: React.FC<{
       <div className="tsk-del" role="alertdialog" aria-modal="true" aria-label={title} onMouseDown={e => e.stopPropagation()}>
         <span className="tsk-del-icon" aria-hidden="true"><Trash2 size={28} /></span>
         <h3>{title}</h3>
-        <p className="tsk-del-name">«{name}»</p>
+        {name && <p className="tsk-del-name">«{name}»</p>}
         <p className="tsk-del-note"><AlertTriangle size={14} />{note}</p>
         <div className="tsk-del-actions">
           <button type="button" className="tsk-del-btn cancel" onClick={onClose} disabled={busy}>إلغاء</button>

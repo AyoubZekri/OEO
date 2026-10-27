@@ -1,11 +1,12 @@
 import React from 'react';
-import { MessageCircle, AlertTriangle, CalendarClock } from 'lucide-react';
+import { MessageCircle, AlertTriangle, CalendarClock, Check } from 'lucide-react';
 import { ActionsMenu, type ActionsMenuItem } from '../../../widget/ActionsMenu';
 import {
   dateText, isOpen, KIND_META, NATURE_META, showSoon, sourceMeta, type Task,
 } from '../taskUtils';
 import { initials } from '../../../shared/dates';
 import { KindBadge, StatusBadge } from './TaskCard';
+import type { TaskSelection } from './useTaskSelection';
 import '../../Members/Members.css';
 
 /**
@@ -19,7 +20,9 @@ export const TaskTable: React.FC<{
   menu: (t: Task) => ActionsMenuItem[];
   /** The home page: each row in its kind's colour (urgent red, appointment orange, voice note pale blue, normal white) */
   tint?: boolean;
-}> = ({ tasks, onOpen, mine, menu, tint }) => (
+  /** Deleting several: hold a row to select it, then click the others */
+  select?: TaskSelection;
+}> = ({ tasks, onOpen, mine, menu, tint, select }) => (
   <div className="members-table-wrapper">
     <table className="custom-table tk-table">
       <thead>
@@ -37,10 +40,18 @@ export const TaskTable: React.FC<{
         {tasks.map(t => {
           const open = () => onOpen(t);
           const late = t.overdue && isOpen(t);
+          const picked = select?.picked(t);
           return (
-            <tr key={t.id} className={`tk-row ${isOpen(t) ? '' : 'done'} ${tint ? `tsk-tint-${t.kind}` : ''}`} tabIndex={0} onClick={open} onKeyDown={e => { if (e.key === 'Enter') open(); }}>
+            <tr
+              key={t.id}
+              className={`tk-row ${isOpen(t) ? '' : 'done'} ${tint ? `tsk-tint-${t.kind}` : ''} ${select?.enabled ? 'tsk-selectable' : ''} ${picked ? 'tsk-picked' : ''}`}
+              tabIndex={0}
+              {...(select ? select.rowProps(t, open) : { onClick: open })}
+              onKeyDown={e => { if (e.key === 'Enter') open(); }}
+            >
               <td data-label="المهمة" className="tk-title-cell">
                 <strong>
+                  {picked && <span className="tsk-pick" aria-label="محددة"><Check size={12} strokeWidth={3} /></span>}
                   {tint && t.kind === 'urgent' && isOpen(t) && <span className="tsk-live" aria-hidden="true" />}
                   {t.title}
                   {t.unread > 0 && <span className="tsk-unread" title="رسائل جديدة"><MessageCircle size={12} />{t.unread}</span>}

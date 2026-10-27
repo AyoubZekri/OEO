@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Mic, Square, RotateCcw } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
+import { fromBase64, VoiceNote } from './voiceNote';
 import { SpeechRecognition as NativeSpeech } from '@capacitor-community/speech-recognition';
 
 /* The browser's speech recognition (Chrome, Edge, Safari): not in TypeScript's DOM types */
@@ -46,6 +47,9 @@ const best = (r: RecognitionResult) => {
 /** In the Android app (Capacitor): the phone's own speech recognition (its WebView has none) */
 const NATIVE = Capacitor.isNativePlatform();
 
+/** The voice recorded along with its words: in the computer's browser (the Android app has its own, see voiceNote.ts) */
+const RECORDS_ALONG = !NATIVE;
+
 const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
 /**
@@ -55,7 +59,17 @@ const clock = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${S
  * adds to it, and it can be cleared to record it again. autoStart: it listens as soon as it opens. What is still being
  * heard when it closes is kept. In the Android app it is the phone's own recognition (NATIVE), phrase by phrase too.
  */
-export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void; autoStart?: boolean }> = ({ value, onChange, autoStart }) => {
+export const VoiceInput: React.FC<{
+  value: string;
+  onChange: (v: string) => void;
+  autoStart?: boolean;
+  /** The recording itself too (the voice, not only its words): what was said so far, each time it pauses or closes */
+  onAudio?: (audio: Blob | null) => void;
+  /** It stopped listening (stopped, or nothing more to hear) */
+  onDone?: () => void;
+  /** Like Google's voice window: it stops by itself once something was said and the speaker paused */
+  once?: boolean;
+}> = ({ value, onChange, autoStart, onAudio, onDone, once }) => {
   const Ctor = recognitionCtor();
   const supported = NATIVE || Boolean(Ctor);
   const [listening, setListening] = useState(false);
@@ -69,10 +83,54 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
   // How sure the engine was in each (sum of confidences, phrases heard)
   const scores = useRef<Record<Dialect, { sum: number; n: number }>>({ 'ar-DZ': { sum: 0, n: 0 }, 'ar-SA': { sum: 0, n: 0 } });
   // The latest text and what is still being heard (kept when it closes mid-sentence)
-  const latest = useRef({ value, interim: '', onChange });
+  const latest = useRef({ value, interim: '', onChange, onAudio, onDone, once });
   useLayoutEffect(() => {
-    latest.current = { value, interim, onChange };
+    latest.current = { value, interim, onChange, onAudio, onDone, once };
   });
+
+  // The voice itself, recorded while it listens (paused between, one file for all of it)
+  const recorder = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<Blob[]>([]);
+  const record = async () => {
+    const r = recorder.current;
+    if (r?.state === 'paused') return r.resume();
+    if (r || !RECORDS_ALONG || !latest.current.onAudio || typeof MediaRecorder === 'undefined' || !navigator.mediaDevices?.getUserMedia) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      // Stopped meanwhile
+      if (!wanted.current) return stream.getTracks().forEach(t => t.stop());
+      const type = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg'].find(x => MediaRecorder.isTypeSupported(x));
+      const m = new MediaRecorder(stream, type ? { mimeType: type } : undefined);
+      m.ondataavailable = e => {
+        if (!e.data.size) return;
+        chunks.current.push(e.data);
+        latest.current.onAudio?.(new Blob(chunks.current, { type: m.mimeType }));
+      };
+      m.onstop = () => stream.getTracks().forEach(t => t.stop());
+      m.start();
+      recorder.current = m;
+    } catch {
+      // No recording (no microphone for it): the words only
+    }
+  };
+  const pauseRecord = () => {
+    const r = recorder.current;
+    if (r?.state !== 'recording') return;
+    r.requestData();
+    r.pause();
+  };
+  // Cleared: recorded again from nothing
+  const dropRecord = () => {
+    const r = recorder.current;
+    recorder.current = null;
+    chunks.current = [];
+    if (r && r.state !== 'inactive') {
+      r.ondataavailable = null;
+      r.stop();
+    }
+    if (usingTogether.current) VoiceNote.clear().catch(() => undefined);
+    latest.current.onAudio?.(null);
+  };
 
   // The next phrase starts from here (listen itself, once it is made)
   const next = useRef<() => void>(() => undefined);
@@ -110,6 +168,8 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     };
     r.onend = () => {
       setInterim('');
+      // Said, then a pause: done (once)
+      if (latest.current.once && latest.current.value.trim()) wanted.current = false;
       if (wanted.current) next.current();
       else setListening(false);
     };
@@ -138,6 +198,42 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     latest.current.value = joined;
     save(joined);
   };
+  // The app's own voice note (written and recorded at once), when the phone has it and the recording is wanted
+  const together = useRef<boolean | null>(null);
+  const usingTogether = useRef(false);
+  const finishTogether = () => {
+    VoiceNote.stop()
+      .then(r => { if (r.audio) latest.current.onAudio?.(fromBase64(r.audio, r.mime)); })
+      .catch(() => undefined)
+      // Its last words come with «end»; if they do not, it has stopped all the same
+      .finally(() => window.setTimeout(() => { if (!wanted.current) setListening(false); }, 1500));
+  };
+  const startTogether = async () => {
+    await VoiceNote.removeAllListeners();
+    await VoiceNote.addListener('partial', d => {
+      phrase.current = (d.text || '').trim();
+      setInterim(phrase.current);
+    });
+    await VoiceNote.addListener('final', d => {
+      phrase.current = (d.text || '').trim();
+      commit();
+    });
+    await VoiceNote.addListener('end', () => {
+      commit();
+      // Ended on its own (older phones: Google's voice window hears one phrase): its recording is taken
+      if (wanted.current) {
+        wanted.current = false;
+        finishTogether();
+      } else setListening(false);
+    });
+    await VoiceNote.addListener('error', () => {
+      wanted.current = false;
+      finishTogether();
+    });
+    usingTogether.current = true;
+    await VoiceNote.start({ language: 'ar-DZ' });
+  };
+
   const nativePhrase = () => {
     NativeSpeech.start({ language: 'ar-DZ', partialResults: true, popup: false, maxResults: 3 }).catch(() => {
       wanted.current = false;
@@ -146,6 +242,10 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
   };
   const startNative = async () => {
     try {
+      if (latest.current.onAudio && together.current === null) {
+        together.current = await VoiceNote.available().then(r => r.available).catch(() => false);
+      }
+      if (latest.current.onAudio && together.current) return await startTogether();
       let perm = await NativeSpeech.checkPermissions();
       if (perm.speechRecognition !== 'granted') perm = await NativeSpeech.requestPermissions();
       if (perm.speechRecognition !== 'granted') throw new Error('no microphone');
@@ -180,7 +280,8 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
 
   const stop = () => {
     wanted.current = false;
-    if (NATIVE) NativeSpeech.stop().catch(() => setListening(false));
+    if (NATIVE && usingTogether.current) finishTogether();
+    else if (NATIVE) NativeSpeech.stop().catch(() => setListening(false));
     else rec.current?.stop();
   };
 
@@ -190,6 +291,21 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }, [value, listening]);
+
+  // The voice recorded while it listens, paused when it stops (then it is done)
+  const wasListening = useRef(false);
+  useEffect(() => {
+    if (listening) record();
+    else pauseRecord();
+    if (wasListening.current && !listening) latest.current.onDone?.();
+    wasListening.current = listening;
+  }, [listening]);
+
+  // Closed: the recording ends (its last part given)
+  useEffect(() => () => {
+    const r = recorder.current;
+    if (r && r.state !== 'inactive') r.stop();
+  }, []);
 
   // The time it has been listening
   useEffect(() => {
@@ -203,6 +319,14 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
     if (autoStart) start();
     return () => {
       wanted.current = false;
+      if (NATIVE && usingTogether.current) {
+        // What is still being heard is kept, then the recording given
+        VoiceNote.removeAllListeners().catch(() => undefined);
+        if (phrase.current) latest.current.onChange([latest.current.value, phrase.current].filter(Boolean).join(' '));
+        phrase.current = '';
+        finishTogether();
+        return;
+      }
       if (NATIVE) {
         NativeSpeech.removeAllListeners().catch(() => undefined);
         NativeSpeech.stop().catch(() => undefined);
@@ -244,7 +368,7 @@ export const VoiceInput: React.FC<{ value: string; onChange: (v: string) => void
           <textarea ref={field} className="tsk-rec-text" value={value} rows={1} onChange={e => onChange(e.target.value)} aria-label="نص التنبيه" />
         )}
         {value && !listening && (
-          <button type="button" className="tsk-rec-clear" onClick={() => { onChange(''); setInterim(''); }} aria-label="إعادة التسجيل" title="إعادة التسجيل">
+          <button type="button" className="tsk-rec-clear" onClick={() => { onChange(''); setInterim(''); dropRecord(); }} aria-label="إعادة التسجيل" title="إعادة التسجيل">
             <RotateCcw size={16} />
           </button>
         )}

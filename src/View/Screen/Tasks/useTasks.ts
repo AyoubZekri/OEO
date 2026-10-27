@@ -51,7 +51,19 @@ export interface TaskPayload {
   repeat_day?: number | null;
   alert_offset?: number;
   due_offset?: number;
+  /** A voice note's recording (sent with it as a file) */
+  audio?: Blob | null;
 }
+
+/** With a recording: sent as a form (the file and the fields); otherwise as JSON */
+const body = ({ audio, ...data }: TaskPayload) => {
+  if (!audio) return data;
+  const form = new FormData();
+  Object.entries(data).forEach(([k, v]) => { if (v !== null && v !== undefined) form.append(k, String(v)); });
+  const ext = audio.type.includes('wav') ? 'wav' : audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
+  form.append('audio', audio, `voice.${ext}`);
+  return form;
+};
 
 /**
  * Management: the tasks (home page), the appointments (their own page), or the appointments' tasks still to come
@@ -96,7 +108,8 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
   /** Saved: the lists are reloaded (an appointment may have created its first task) */
   const save = async (data: TaskPayload) => {
     try {
-      await client.post(data.id ? '/tasks/update' : '/tasks/create', data);
+      const sent = body(data);
+      await client.post(data.id ? '/tasks/update' : '/tasks/create', sent, sent instanceof FormData ? { headers: { 'Content-Type': 'multipart/form-data' } } : undefined);
     } catch (e) {
       throw new Error(errorText(e, 'تعذر حفظ المهمة'), { cause: e });
     }
@@ -142,6 +155,16 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
     }
   };
 
+  /** Several tasks at once (the home page's selection) */
+  const removeMany = async (ids: number[]) => {
+    try {
+      await client.post('/tasks/delete-many', { ids });
+      setTasks(list => list.filter(x => !ids.includes(x.id)));
+    } catch (e) {
+      window.alert(errorText(e, 'تعذر الحذف'));
+    }
+  };
+
   return {
     tasks, templates, users, loading, error, reload: load,
     // The home page's actions (tasks.*), or the appointments page's (appointments.*)
@@ -150,7 +173,7 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
     canAppointments: (action: string) => can('appointments', action),
     form, openForm, closeForm: () => setForm(null), save,
     opened: details.opened, openTask: details.open, closeTask: details.close,
-    replace, setStatus, toggleTemplate, remove,
+    replace, setStatus, toggleTemplate, remove, removeMany,
   };
 };
 export type TasksAdmin = ReturnType<typeof useTasksAdmin>;

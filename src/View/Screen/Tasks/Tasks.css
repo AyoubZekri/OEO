@@ -1010,3 +1010,137 @@ body.dark-mode .tsk-ucards .tsk-hcard.kind-scheduled { --k-bg: var(--tk-card); -
 .tsk-ucards .tsk-hcard-top .tsk-menu-cell { margin-inline-start: auto; }
 .tsk-hcard-meta .tsk-ucard-alert b { color: #ea580c; }
 .tsk-ucards { margin-bottom: 80px; }
+
+/* Deleting several: hold a task to select it, then tap the others */
+.tsk-selectable { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.tk-row.tsk-picked > td { background: var(--accent-bg) !important; }
+.tk-row.tsk-picked > td:first-child { box-shadow: inset -3px 0 0 var(--accent); }
+.tsk-hcard.tsk-picked,
+.tsk-mrow.tsk-picked { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-bg); }
+.tsk-mrow.tsk-picked .tsk-mrow-icon { background: var(--accent); color: #fff; }
+.tsk-pick {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  vertical-align: middle;
+}
+
+.tsk-selbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: 0 18px 40px -16px rgba(15, 23, 42, 0.45);
+  direction: rtl;
+  animation: tsk-selbar-in 0.18s ease-out;
+}
+.tsk-selbar.mobile {
+  left: 12px;
+  right: 12px;
+  transform: none;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+}
+@keyframes tsk-selbar-in { from { opacity: 0; translate: 0 12px; } }
+.tsk-selbar button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+.tsk-selbar-x { width: 40px; padding: 0 !important; justify-content: center; background: var(--accent-bg); color: var(--text-secondary, #64748b); }
+.tsk-selbar-count { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--text-primary, inherit); white-space: nowrap; }
+.tsk-selbar-count b {
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 99px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.82rem;
+}
+.tsk-selbar-all { margin-inline-start: auto; background: var(--accent-bg); color: var(--accent); }
+.tsk-selbar-del { background: #ef4444; color: #fff; box-shadow: 0 8px 18px -10px rgba(239, 68, 68, 0.8); }
+.tsk-selbar-del:disabled { opacity: 0.5; cursor: default; }
+.tsk-selbar.mobile .tsk-selbar-all { padding: 0 10px; }
+
+/* The selection bar on phones: always inside the screen, whatever its width */
+.tsk-selbar { box-sizing: border-box; max-width: calc(100vw - 24px); }
+.tsk-selbar > * { flex-shrink: 0; }
+.tsk-selbar.mobile {
+  gap: 6px;
+  padding: 6px;
+  border-radius: 16px;
+}
+.tsk-selbar.mobile .tsk-selbar-count { flex: 1 1 auto; min-width: 0; overflow: hidden; }
+.tsk-selbar.mobile .tsk-selbar-count > span { overflow: hidden; text-overflow: ellipsis; }
+.tsk-selbar.mobile .tsk-selbar-all { margin-inline-start: 0; }
+.tsk-selbar.mobile button { height: 38px; padding: 0 10px; font-size: 0.82rem; gap: 5px; min-width: 0; }
+.tsk-selbar.mobile .tsk-selbar-x { width: 38px; }
+/* Narrow phones: «تحديد الكل» as its icon, then «محددة» goes too (the number stays) */
+@media (max-width: 380px) {
+  .tsk-selbar.mobile .tsk-selbar-all { width: 38px; padding: 0; justify-content: center; }
+  .tsk-selbar.mobile .tsk-selbar-all > span { display: none; }
+}
+@media (max-width: 300px) {
+  .tsk-selbar.mobile .tsk-selbar-count > span { display: none; }
+}
+
+/* A voice note's recording: a round play button, its bars filling as it plays, its time (form and details) */
+.tsk-player {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 2px;
+  padding: 8px 10px 8px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+}
+.tsk-player-btn {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  box-shadow: 0 8px 18px -10px rgba(234, 88, 12, 0.9);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.tsk-player-btn:active { transform: scale(0.92); }
+.tsk-player.playing .tsk-player-btn { box-shadow: 0 0 0 5px rgba(249, 115, 22, 0.18), 0 8px 18px -10px rgba(234, 88, 12, 0.9); }
+.tsk-player-bars { flex: 1; min-width: 0; height: 32px; display: flex; align-items: center; gap: 2px; cursor: pointer; }
+.tsk-player-bars span { flex: 1; min-width: 2px; border-radius: 2px; background: color-mix(in srgb, var(--accent) 30%, transparent); transition: background 0.15s ease; }
+.tsk-player-bars span.on { background: var(--accent); }
+.tsk-player-time { flex-shrink: 0; min-width: 38px; font-size: 0.85rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+.tsk-player audio { display: none; }

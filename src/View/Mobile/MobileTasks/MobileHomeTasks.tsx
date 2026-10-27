@@ -4,6 +4,9 @@ import { MobileAppBar } from '../widgets/MobileAppBar';
 import { PageLoader } from '../../shared/PageLoader';
 import { useNow, type TasksAdmin } from '../../Screen/Tasks/useTasks';
 import { useTaskActions } from '../../Screen/Tasks/parts/useTaskActions';
+import { VOICE_NOTES } from '../../Screen/Tasks/parts/voiceNote';
+import { TaskSelectionBar } from '../../Screen/Tasks/parts/TaskSelection';
+import { useTaskSelection } from '../../Screen/Tasks/parts/useTaskSelection';
 import { filterTasks, homeTasks, onHome, presentStatusFilters } from '../../Screen/Tasks/taskUtils';
 import { MobileHomeTaskCard, MobileTaskRow } from './MobileTaskRow';
 import { MobileTaskFilters, type TaskFilterState } from './MobileTaskFilters';
@@ -29,6 +32,8 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
   const shown = onHome(c.tasks, now);
   const { live, archive } = homeTasks(filterTasks(shown, filters.status, filters.query, filters.nature, filters.kind), now);
   const archiveShown = archive.slice(0, archiveShownCount);
+  // Hold a card to select it, then tap the others: deleted together
+  const select = useTaskSelection(c.can('delete'));
 
   return (
     <div className="tk-mpage tk-scope">
@@ -49,16 +54,16 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
                 <span className="tsk-sec-icon"><ClipboardList size={16} /></span>المهام<b>{live.length}</b>
               </h3>
               {live.length
-                ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} />)}</div>
+                ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} />)}</div>
                 : <div className="tk-state"><Inbox size={30} /><p>{filters.query || filters.status || filters.kind || filters.nature ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
             </section>
 
             {archive.length > 0 && (
               <section className="tsk-sec archive">
                 <h3 className="tsk-sec-head">
-                  <span className="tsk-sec-icon"><Archive size={16} /></span>الأرشيف<b>{archive.length}</b>
+                  <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
                 </h3>
-                <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} />)}</div>
+                <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} />)}</div>
                 {archive.length > archiveShown.length && (
                   <button type="button" className="tk-more" onClick={() => setArchiveShownCount(n => n + ARCHIVE_PAGE)}>عرض المزيد ({archive.length - archiveShown.length})</button>
                 )}
@@ -67,12 +72,14 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
           </div>
         )}
 
-      {c.can('voice') && (
+      <TaskSelectionBar s={select} tasks={[...live, ...archiveShown]} mobile onDelete={c.removeMany} />
+
+      {!select.active && c.can('voice') && VOICE_NOTES && (
         <button type="button" className={`tk-fab ${c.can('add') || c.canAppointments('add') ? 'tsk-fab-voice' : ''}`} onClick={() => c.openForm({ voice: true })} aria-label="تنبيه صوتي">
           <Mic size={22} strokeWidth={2.5} />
         </button>
       )}
-      {(c.can('add') || c.canAppointments('add')) && (
+      {!select.active && (c.can('add') || c.canAppointments('add')) && (
         <button type="button" className="tk-fab" onClick={() => c.openForm()} aria-label="مهمة جديدة">
           <Plus size={22} strokeWidth={2.5} />
         </button>

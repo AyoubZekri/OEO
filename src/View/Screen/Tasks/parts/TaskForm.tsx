@@ -150,7 +150,7 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
           {!mobile && <button type="button" className="btn-cancel tk-dlg-btn" onClick={c.closeForm}>إلغاء</button>}
           <button type="button" className={`tk-btn primary ${mobile ? 'block' : 'tk-dlg-btn'}`} onClick={save} disabled={saving}>
             {saving ? <Loader2 size={17} className="tk-spin" /> : <Save size={17} />}
-            {editing ? 'حفظ التعديلات' : scheduled ? 'حفظ الموعد' : 'إسناد المهمة'}
+            {editing ? 'حفظ التعديلات' : scheduled ? 'حفظ الموعد' : 'تأكيد'}
           </button>
         </>
       )}

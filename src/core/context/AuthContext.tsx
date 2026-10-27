@@ -3,6 +3,7 @@ import { UserModel } from '../../View/Screen/UserManagement/Users/user_model';
 import {type AppPermissions, RoleModel, NO_ROLE_PERMISSIONS, emptyPermissions } from '../../View/Screen/UserManagement/Roles/role_model';
 import { Crud } from '../class/Crud';
 import { Applink } from '../../LinkApi';
+import { forgetPushToken } from '../functions/usePushNotifications';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -184,6 +185,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    forgetPushToken(localStorage.getItem('token'));
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('role');

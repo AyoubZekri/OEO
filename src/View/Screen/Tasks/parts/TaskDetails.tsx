@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ClipboardList, MessagesSquare, Send, Loader2, AlertCircle, CheckCircle2, UserRound, CalendarPlus, CalendarClock,
-  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock, ExternalLink,
+  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock, ExternalLink, Mic,
 } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
+import { VoicePlayer } from './VoicePlayer';
 import { initials, parseDate } from '../../../shared/dates';
 import { useTaskChat } from '../useTasks';
 import {
-  dateText, dueText, EVENT_LINK, eventLink, isOpen, NATURE_META, sourceMeta, STATUS_META, STATUSES, statusView, type Task, type TaskStatus,
+  dateText, dueText, EVENT_LINK, eventLink, isOpen, NATURE_META, SET_STATUSES, shownStatus, sourceMeta, STATUS_META, STATUSES, type Task, type TaskStatus,
 } from '../taskUtils';
 
 /**
@@ -21,7 +22,8 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
   task: t, mobile, onClose, withEvent,
 }) => {
   const navigate = useNavigate();
-  const s = statusView(t);
+  // Its status: none for a new one (on time)
+  const s = shownStatus(t);
   const src = sourceMeta(t);
   const nature = NATURE_META[t.nature];
   const late = t.overdue && isOpen(t);
@@ -49,7 +51,7 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
         <section className={`tsk-d-hero kind-${t.kind} ${live ? 'live' : ''}`}>
           <div className="tsk-d-hero-top">
             <span className="tsk-d-pill">{live && <span className="tsk-live" aria-hidden="true" />}<src.icon size={13} />{src.label}</span>
-            <span className={`tsk-d-pill status tone-${s.tone}`}><s.icon size={13} />{s.label}</span>
+            {s && <span className={`tsk-d-pill status tone-${s.tone}`}><s.icon size={13} />{s.label}</span>}
           </div>
           <h2>{t.title}</h2>
           <div className="tsk-d-hero-foot">
@@ -100,6 +102,13 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
           </ol>
         </section>
 
+        {t.audio_url && (
+          <section className="tsk-d-card">
+            <h4><Mic size={15} />التسجيل</h4>
+            <VoicePlayer src={t.audio_url} />
+          </section>
+        )}
+
         {t.details && (
           <section className="tsk-d-card">
             <h4><FileText size={15} />التفاصيل</h4>
@@ -111,7 +120,7 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
   );
 };
 
-/** The management changes a task's status (⋮ menu): pick it and save, no reason asked. «On hold» is not offered */
+/** The management changes a task's status (⋮ menu): done or cancelled, no reason asked («late» comes on its own) */
 export const TaskStatusDialog: React.FC<{ task: Task; mobile: boolean; onSave: (s: TaskStatus, note: string) => Promise<void>; onClose: () => void }> = ({ task, mobile, onSave, onClose }) => {
   const [picked, setPicked] = useState<TaskStatus | null>(null);
   const [busy, setBusy] = useState(false);
@@ -150,7 +159,8 @@ export const TaskStatusDialog: React.FC<{ task: Task; mobile: boolean; onSave: (
       )}
     >
       <div className="tsk-status-list">
-        {STATUSES.filter(st => st !== 'on_hold' || task.status === 'on_hold').map(st => {
+        {/* Only done or cancelled (and its current one, when it is another but «new») */}
+        {STATUSES.filter(st => SET_STATUSES.includes(st) || (st === task.status && st !== 'new')).map(st => {
           const meta = STATUS_META[st];
           const current = task.status === st;
           return (
