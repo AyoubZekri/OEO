@@ -53,7 +53,7 @@ export const MyAppointments: React.FC = () => {
 
   const overlays = (
     <>
-      {c.opened && <TaskDetails task={c.opened} mobile={isMobile} onClose={c.closeTask} />}
+      {c.opened && <TaskDetails task={c.opened} mobile={isMobile} onClose={c.closeTask} onChat={() => setChatId(c.opened!.id)} />}
       {chatTask && <TaskChatDialog task={chatTask} mobile={isMobile} onTask={c.replace} onClose={() => setChatId(null)} />}
     </>
   );

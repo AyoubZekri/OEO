@@ -1,4 +1,5 @@
 import React from 'react';
+import { confirmDeleteMeeting } from './confirmDeleteMeeting';
 import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, FolderOpen, ClipboardCheck, FileWarning } from 'lucide-react';
@@ -141,7 +142,7 @@ export const Meetings: React.FC = () => {
                     </button>
                   )}
                   {can('meetings', 'delete') && (
-                    <button onClick={() => handleDelete(meeting.id)} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
+                    <button onClick={() => { if (confirmDeleteMeeting(meeting)) handleDelete(meeting.id); }} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
                       <Trash2 size={16} />
                     </button>
                   )}

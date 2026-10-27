@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { confirmDeleteMeeting } from '../../Screen/Meetings/confirmDeleteMeeting';
 import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Eye, ClipboardCheck, Pencil, Trash2, MapPin, Clock, Briefcase, Calendar } from 'lucide-react';
@@ -54,7 +55,7 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
   const details = detailsId ? meetings.find(m => String(m.id) === detailsId) : undefined;
 
   const remove = (m: Meeting) => {
-    if (window.confirm(`هل أنت متأكد من حذف اجتماع "${m.topic}"؟`)) c.handleDelete(m.id);
+    if (confirmDeleteMeeting(m)) c.handleDelete(m.id);
   };
 
   const menuItems = (m: Meeting): MobileRowMenuItem[] => [

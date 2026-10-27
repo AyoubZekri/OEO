@@ -7,6 +7,7 @@ import { PageLoader } from '../../shared/PageLoader';
 import { useTravelsController } from './useTravelsController';
 import { TravelCard } from './parts/TravelCard';
 import { TravelOverlays } from './parts/TravelOverlays';
+import { travelMenu } from './parts/travelMenu';
 import { filterTravels, sortTravels, statusOf, STATUS_FILTERS } from './travelUtils';
 import '../../shared/kit.css';
 import './Travels.css';
@@ -48,7 +49,7 @@ export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) 
           <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : personal ? 'لست ضمن أي تنقل حالياً' : 'لا توجد تنقلات بعد'}</p></div>
         ) : (
           <div className="tk-grid">
-            {visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} />)}
+            {visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} menu={travelMenu(t, c)} />)}
           </div>
         )}
 

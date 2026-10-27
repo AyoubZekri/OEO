@@ -23,7 +23,7 @@ const ARCHIVE_PAGE = 10;
 // archive's own list under it, and the two floating buttons (voice note, new task)
 export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
   const [archiveShownCount, setArchiveShownCount] = useState(ARCHIVE_PAGE);
-  const { menu, overlays } = useTaskActions(c, true);
+  const { menu, overlays, chat } = useTaskActions(c, true);
 
   const [filters, setFilters] = useState<TaskFilterState>({ query: '', status: '', kind: '', nature: '' });
 
@@ -54,7 +54,7 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
                 <span className="tsk-sec-icon"><ClipboardList size={16} /></span>المهام<b>{live.length}</b>
               </h3>
               {live.length
-                ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} />)}</div>
+                ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} onChat={chat} />)}</div>
                 : <div className="tk-state"><Inbox size={30} /><p>{filters.query || filters.status || filters.kind || filters.nature ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
             </section>
 
@@ -63,7 +63,7 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
                 <h3 className="tsk-sec-head">
                   <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
                 </h3>
-                <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} />)}</div>
+                <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} onChat={chat} />)}</div>
                 {archive.length > archiveShown.length && (
                   <button type="button" className="tk-more" onClick={() => setArchiveShownCount(n => n + ARCHIVE_PAGE)}>عرض المزيد ({archive.length - archiveShown.length})</button>
                 )}

@@ -6,6 +6,7 @@ import { PageLoader } from '../../shared/PageLoader';
 import type { TravelsController } from '../../Screen/Travels/useTravelsController';
 import { TravelOverlays } from '../../Screen/Travels/parts/TravelOverlays';
 import { TravelCard } from '../../Screen/Travels/parts/TravelCard';
+import { travelMenu } from '../../Screen/Travels/parts/travelMenu';
 import { countdownText, filterTravels, sortTravels, statusOf, STATUS_FILTERS } from '../../Screen/Travels/travelUtils';
 import '../../shared/kit.css';
 import '../../Screen/Travels/Travels.css';
@@ -79,7 +80,7 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
         ) : visible.length === 0 ? (
           <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : c.personal ? 'لست ضمن أي تنقل حالياً' : 'لا توجد تنقلات بعد'}</p></div>
         ) : (
-          <div className="tk-list">{visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} compact />)}</div>
+          <div className="tk-list">{visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} compact menu={travelMenu(t, c)} />)}</div>
         )}
 
       {c.can('add') && (

@@ -247,7 +247,15 @@ body.dark-mode .tsk-hcard.kind-normal { --k: #64748b; --k-bg: var(--tk-card); --
 .tsk-hcard-meta em { font-style: normal; opacity: 0.85; }
 .tsk-hcard-meta em::before { content: '· '; }
 .tsk-hcard-meta .late, .tsk-hcard-meta .late b { color: #ef4444; }
-.tsk-hcard-unread { color: #f97316; }
+.tsk-hcard-unread {
+  color: #fff !important;
+  background: #f97316;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-weight: 900;
+  animation: tsk-new-pulse 1.6s ease-in-out infinite;
+}
+.tsk-hcard-unread svg { color: #fff !important; }
 @media (prefers-reduced-motion: reduce) { .tsk-hcard.live { animation: none; } }
 
 /* An appointment on phones: compact, like the other pages' tickets — a tile, the title and three lines, state and ⋮ */

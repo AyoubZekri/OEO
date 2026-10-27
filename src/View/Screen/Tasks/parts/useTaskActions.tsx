@@ -31,7 +31,7 @@ export const useTaskActions = (c: TasksAdmin, mobile: boolean) => {
 
   const overlays = (
     <>
-      {c.opened && <TaskDetails task={c.opened} mobile={mobile} onClose={c.closeTask} withEvent />}
+      {c.opened && <TaskDetails task={c.opened} mobile={mobile} onClose={c.closeTask} withEvent onChat={c.can('chat') ? () => setChatId(c.opened!.id) : undefined} />}
       {chatTask && <TaskChatDialog task={chatTask} mobile={mobile} onTask={c.replace} onClose={() => setChatId(null)} />}
       {statusTask && (
         <TaskStatusDialog
@@ -56,5 +56,8 @@ export const useTaskActions = (c: TasksAdmin, mobile: boolean) => {
     </>
   );
 
-  return { menu, overlays };
+  // The conversation, opened from its own button on a card / row
+  const chat = c.can('chat') ? (t: Task) => setChatId(t.id) : undefined;
+
+  return { menu, overlays, chat };
 };

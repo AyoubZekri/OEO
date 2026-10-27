@@ -21,6 +21,8 @@ export const useTravelsController = ({ personal = false }: { personal?: boolean 
   const [detailsId, setDetailsId] = useUrlDetails('travel');
   const details = detailsId ? travels.find(t => String(t.id) === detailsId) || null : null;
   const [form, setForm] = useState<{ travel: Travel | null } | null>(null);
+  // The trip whose deletion is being confirmed (from its ⋮ menu or its details)
+  const [toDelete, setToDelete] = useState<Travel | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -79,6 +81,7 @@ export const useTravelsController = ({ personal = false }: { personal?: boolean 
     personal, can, travels,loading, error, reload: load, options,
     details, openTravel: (t: Travel) => setDetailsId(t.id), closeTravel: () => setDetailsId(null),
     form, openForm, closeForm, save, remove,
+    toDelete, askDelete: setToDelete, cancelDelete: () => setToDelete(null),
   };
 };
 

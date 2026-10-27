@@ -22,6 +22,8 @@ export type MeetingPoint = string | SentMeetingPoint;
 
 export interface Meeting {
   id: string;
+  /** Its decisions (deleted with it) */
+  decisions_count?: number;
   topic: string;
   date: string;
   time: string;

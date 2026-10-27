@@ -34,7 +34,7 @@ export const HomeTasks: React.FC = () => {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
   const [nature, setNature] = useState('');
-  const { menu, overlays } = useTaskActions(c, isMobile);
+  const { menu, overlays, chat } = useTaskActions(c, isMobile);
   // Hold a row to select it, then click the others: deleted together
   const select = useTaskSelection(c.can('delete'));
 
@@ -63,7 +63,7 @@ export const HomeTasks: React.FC = () => {
             <span className="tsk-sec-icon"><ClipboardList size={16} /></span>المهام<b>{live.length}</b>
           </h3>
           {live.length
-            ? <div className="table-pagination-wrapper"><TaskTable tasks={live} onOpen={c.openTask} menu={menu} tint select={select} /></div>
+            ? <div className="table-pagination-wrapper"><TaskTable tasks={live} onOpen={c.openTask} menu={menu} tint select={select} onChat={chat} /></div>
             : <div className="tk-state"><Inbox size={30} /><p>{filtered ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
         </section>
 
@@ -73,7 +73,7 @@ export const HomeTasks: React.FC = () => {
               <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
             </h3>
             <div className="table-pagination-wrapper">
-              <TaskTable tasks={archiveShown} onOpen={c.openTask} menu={menu} select={select} />
+              <TaskTable tasks={archiveShown} onOpen={c.openTask} menu={menu} select={select} onChat={chat} />
               {archive.length > ARCHIVE_PAGE && (
                 <Pagination totalItems={archive.length} itemsPerPage={ARCHIVE_PAGE} currentPage={archivePage} onPageChange={setArchivePage} onItemsPerPageChange={() => undefined} />
               )}

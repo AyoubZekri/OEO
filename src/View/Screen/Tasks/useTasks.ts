@@ -1,8 +1,43 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useLayoutEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import client from '../../../core/api/client';
+import { DATA_CHANGED } from '../../../core/api/dataChanged';
 import { useCan } from '../../../core/functions/useCan';
+import { useAuth } from '../../../core/context/AuthContext';
 import { errorText, type Task, type TaskMessage, type TaskStatus, type TaskTemplate, type TaskUser } from './taskUtils';
+
+/** The lists check the server's «has anything changed?» number (a file) this often while looked at */
+const LIST_CHECK_MS = 3000;
+
+/**
+ * A task list stays current without reloading the page: it reloads when a notification comes or something was saved
+ * (DATA_CHANGED), and when the server's change number (/alerts/version: a file, no database) moved.
+ */
+const useLiveList = (load: () => Promise<void>) => {
+  useEffect(() => {
+    let version: string | null = null;
+    const look = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const v = String((await client.get('/alerts/version')).data?.version ?? '');
+        if (version !== null && v !== version) await load();
+        version = v;
+      } catch {
+        /* looked at again on the next tick */
+      }
+    };
+    look();
+    const timer = window.setInterval(look, LIST_CHECK_MS);
+    const now = () => { load(); };
+    window.addEventListener(DATA_CHANGED, now);
+    document.addEventListener('visibilitychange', look);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener(DATA_CHANGED, now);
+      document.removeEventListener('visibilitychange', look);
+    };
+  }, [load]);
+};
 
 const listOf = <T,>(data: unknown): T[] => {
   const d = (data as { data?: unknown })?.data ?? data;
@@ -97,6 +132,8 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- first load of the tasks
     load();
   }, [load]);
+  // New messages, statuses, tasks: the list follows them
+  useLiveList(load);
 
   const details = useOpenedTask(tasks, !loading);
 
@@ -200,6 +237,7 @@ export const useMyTasks = () => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- first load of my tasks
     load();
   }, [load]);
+  useLiveList(load);
 
   const details = useOpenedTask(tasks, !loading);
   const replace = (t: Task) => setTasks(list => list.map(x => (x.id === t.id ? t : x)));
@@ -216,39 +254,124 @@ export const useMyTasks = () => {
   return { tasks, loading, error, reload: load, opened: details.opened, openTask: details.open, closeTask: details.close, replace };
 };
 
-/** A task's conversation: loaded when opened (it marks it read), refreshed every 15 seconds, and a message sent */
+/** An open chat checks its number this often (seconds: 2 while looked at, 15 in the background) */
+const CHAT_TICK_MS = 2000;
+const CHAT_IDLE_MS = 15000;
+/** A server without /tasks/chat-version: the new messages fetched this often instead */
+const CHAT_FALLBACK_MS = 5000;
+
+/**
+ * An open task's conversation, live like a messaging app without weighing on the server: every 2 seconds it asks
+ * for the chat's number (a file, no login, no database — /tasks/chat-version) and fetches only the new messages
+ * when it moved; on the phone a Firebase notification (DATA_CHANGED) makes it look at once. A message sent shows at
+ * once (a clock), then ✓ once saved, ✓✓ once the other side read it (seenTs); one that failed can be sent again.
+ */
 export const useTaskChat = (taskId: number, onTask: (t: Task) => void) => {
   const [messages, setMessages] = useState<TaskMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  // When the other side last read the conversation
+  const [seenTs, setSeenTs] = useState<number | null>(null);
+  const version = useRef<number | null>(null);
+  const lastFetch = useRef(0);
+  const lastId = useRef(0);
+  const onTaskRef = useRef(onTask);
+  useLayoutEffect(() => { onTaskRef.current = onTask; });
+  const me = useAuth().user?.id || '';
 
-  const load = useCallback(async () => {
+  /** The messages after the last one here (all of them the first time) */
+  const fetchNew = useCallback(async () => {
     try {
-      const res = await client.get('/tasks/messages', { params: { id: taskId } });
-      setMessages(listOf<TaskMessage>(res.data));
-      if (res.data?.task) onTask(res.data.task as Task);
+      const res = await client.get('/tasks/messages', { params: { id: taskId, ...(lastId.current ? { after: lastId.current } : {}) } });
+      const fresh = listOf<TaskMessage>(res.data);
+      if (fresh.length) {
+        lastId.current = Math.max(lastId.current, ...fresh.map(m => m.id));
+        setMessages(list => [...list.filter(m => m.id < 0 || !fresh.some(f => f.id === m.id)), ...fresh]
+          // Mine still on their way stay at the end
+          .sort((a, b) => Number(a.id < 0) - Number(b.id < 0) || a.id - b.id));
+      }
+      if (typeof res.data?.version === 'number') version.current = res.data.version;
+      setSeenTs(res.data?.seen_ts ?? null);
+      if (res.data?.task) onTaskRef.current(res.data.task as Task);
     } catch {
       /* the conversation stays as it was */
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- onTask changes on every render
   }, [taskId]);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- the conversation of the opened task
-    load();
-    const timer = window.setInterval(load, 15000);
-    return () => window.clearInterval(timer);
-  }, [load]);
+  /** Has it moved? (one number) — then what is new */
+  const check = useCallback(async () => {
+    try {
+      // me: I have it open (no notification for it meanwhile)
+      const v = (await client.get('/tasks/chat-version', { params: { id: taskId, ...(me ? { me } : {}) } })).data?.version ?? null;
+      if (v !== null && v !== version.current) await fetchNew();
+    } catch (e) {
+      // A server without the chat's number yet: the new messages themselves, every few seconds
+      const old = (e as { response?: { status?: number } })?.response?.status === 404;
+      if (old && Date.now() - lastFetch.current >= CHAT_FALLBACK_MS) {
+        lastFetch.current = Date.now();
+        await fetchNew();
+      }
+    }
+  }, [taskId, fetchNew, me]);
 
-  const send = async (body: string) => {
+  useEffect(() => {
+    lastId.current = 0;
+    version.current = null;
+    fetchNew();
+    let timer = 0;
+    let stopped = false;
+    const loop = () => {
+      timer = window.setTimeout(async () => {
+        if (document.visibilityState === 'visible') await check();
+        if (!stopped) loop();
+      }, document.visibilityState === 'visible' ? CHAT_TICK_MS : CHAT_IDLE_MS);
+    };
+    loop();
+    // Closed, or the app in the background: its messages are notified to me again at once
+    const leave = () => {
+      if (me) client.get('/tasks/chat-version', { params: { id: taskId, me, leave: 1 } }).catch(() => undefined);
+    };
+    // A notification came (the phone), the page came back: look now (gone to the background: leave)
+    const now = () => { check(); };
+    const onVisibility = () => { if (document.visibilityState === 'visible') check(); else leave(); };
+    window.addEventListener(DATA_CHANGED, now);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      stopped = true;
+      window.clearTimeout(timer);
+      window.removeEventListener(DATA_CHANGED, now);
+      document.removeEventListener('visibilitychange', onVisibility);
+      leave();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- me and taskId are fixed while the chat is open
+  }, [fetchNew, check]);
+
+  const deliver = async (tempId: number, body: string) => {
     try {
       const res = await client.post('/tasks/messages/send', { id: taskId, body });
-      setMessages(list => [...list, res.data.data as TaskMessage]);
-    } catch (e) {
-      throw new Error(errorText(e, 'تعذر إرسال الرسالة'), { cause: e });
+      const saved = res.data.data as TaskMessage;
+      lastId.current = Math.max(lastId.current, saved.id);
+      setMessages(list => [...list.filter(m => m.id !== tempId && m.id !== saved.id), saved].sort((a, b) => Number(a.id < 0) - Number(b.id < 0) || a.id - b.id));
+    } catch {
+      setMessages(list => list.map(m => (m.id === tempId ? { ...m, pending: false, failed: true } : m)));
     }
   };
 
-  return { messages, loading, send, reload: load };
+  /** Shown at once, saved in the background */
+  const send = (body: string) => {
+    const tempId = -Date.now();
+    setMessages(list => [...list, {
+      id: tempId, body, status: null, by: null, mine: true, from_assignee: false, at: new Date().toISOString(), ts: Date.now(), pending: true,
+    }]);
+    deliver(tempId, body);
+  };
+
+  /** A message that did not go: again */
+  const retry = (m: TaskMessage) => {
+    setMessages(list => list.map(x => (x.id === m.id ? { ...x, pending: true, failed: false } : x)));
+    deliver(m.id, m.body || '');
+  };
+
+  return { messages, loading, send, retry, seenTs, reload: fetchNew };
 };

@@ -6,6 +6,7 @@ import client from '../../../core/api/client';
 import { DATA_CHANGED } from '../../../core/api/dataChanged';
 import { useSpace } from '../../../core/context/space';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
+import { Capacitor } from '@capacitor/core';
 import { Approutes } from '../../../core/constant/routes';
 import { createAlertsBatch } from './alertsBatch';
 import { MobileSheet } from '../../Mobile/widgets/MobileSheet';
@@ -152,6 +153,8 @@ const DISMISSED_KEY = 'taskAlertsDismissed';
 const ANNOUNCED_KEY = 'taskAlertsAnnounced';
 /** Phones: how long a new alert stays at the top before it goes */
 const TOAST_MS = 4500;
+/** The Android app: its new alerts come as Firebase notifications (no toast) */
+const IN_APP = Capacitor.isNativePlatform();
 
 const readDismissed = (): string[] => {
   try {
@@ -489,7 +492,8 @@ export const TaskAlerts: React.FC = () => {
   useEffect(() => { alertsBell.setCount(isMobile ? alerts.length : 0); }, [isMobile, alerts.length]);
 
   useEffect(() => {
-    if (!isMobile || toast || bell.open) return;
+    // The Android app: a new alert comes as a Firebase notification on the phone, not dropped in here
+    if (!isMobile || IN_APP || toast || bell.open) return;
     const fresh = alerts.filter(a => !announced.includes(a.key));
     if (fresh.length === 0) return;
     // Only the keys of alerts that still exist are kept, so the list does not grow forever

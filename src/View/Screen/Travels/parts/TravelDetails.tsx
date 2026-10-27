@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   MapPin, Bus, BedDouble, Trophy, Clock, FileText, Pencil, Trash2, Navigation, UtensilsCrossed, MessagesSquare, Flag,
   Home, PlaneLanding, Shirt, Briefcase, Layers, CalendarRange, Crown, CalendarClock,
@@ -36,7 +36,6 @@ const PeopleTags: React.FC<{ people: TravelPerson[]; showType?: boolean }> = ({ 
 
 /** A trip: ticket head (date, destination, route), four counters, then the schedule and the delegation next to the trip facts */
 export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mobile: boolean }> = ({ c, travel: t, mobile }) => {
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const status = statusOf(t);
   const meta = STATUS_META[status];
   const schedule = SCHEDULE.filter(s => t[s.key]);
@@ -45,7 +44,7 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
   const footer = (
     <div className="tk-actions">
       {c.can('edit') && <button type="button" className="tk-btn ghost" onClick={() => c.openForm(t)}><Pencil size={16} />تعديل</button>}
-      {c.can('delete') && <button type="button" className="tk-btn ghost danger-text" onClick={() => setConfirmDelete(true)}><Trash2 size={16} />حذف</button>}
+      {c.can('delete') && <button type="button" className="tk-btn ghost danger-text" onClick={() => c.askDelete(t)}><Trash2 size={16} />حذف</button>}
       {!mobile && <button type="button" className="btn-cancel tk-dlg-btn tk-actions-side" onClick={c.closeTravel}>إغلاق</button>}
     </div>
   );
@@ -164,24 +163,6 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
         </div>
       </div>
 
-      {confirmDelete && (
-        <SidePanel
-          mobile={mobile}
-          sheet
-          size="sm"
-          layer={2}
-          title="حذف التنقل"
-          onClose={() => setConfirmDelete(false)}
-          footer={(
-            <>
-              <button type="button" className="tk-btn ghost" onClick={() => setConfirmDelete(false)}>إلغاء</button>
-              <button type="button" className="tk-btn danger" onClick={() => { setConfirmDelete(false); c.remove(t); }}><Trash2 size={17} />حذف</button>
-            </>
-          )}
-        >
-          <p className="tk-text">يُحذف التنقل إلى «{t.destination}» نهائياً مع برنامجه.</p>
-        </SidePanel>
-      )}
     </SidePanel>
   );
 };

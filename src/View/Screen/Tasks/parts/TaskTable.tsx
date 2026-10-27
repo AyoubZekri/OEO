@@ -5,7 +5,7 @@ import {
   dateText, isOpen, KIND_META, NATURE_META, showSoon, sourceMeta, type Task,
 } from '../taskUtils';
 import { initials } from '../../../shared/dates';
-import { KindBadge, StatusBadge } from './TaskCard';
+import { KindBadge, StatusBadge, TaskChatButton } from './TaskCard';
 import type { TaskSelection } from './useTaskSelection';
 import '../../Members/Members.css';
 
@@ -22,7 +22,9 @@ export const TaskTable: React.FC<{
   tint?: boolean;
   /** Deleting several: hold a row to select it, then click the others */
   select?: TaskSelection;
-}> = ({ tasks, onOpen, mine, menu, tint, select }) => (
+  /** Its conversation: a button of its own on the row (with its new messages) */
+  onChat?: (t: Task) => void;
+}> = ({ tasks, onOpen, mine, menu, tint, select, onChat }) => (
   <div className="members-table-wrapper">
     <table className="custom-table tk-table">
       <thead>
@@ -54,7 +56,7 @@ export const TaskTable: React.FC<{
                   {picked && <span className="tsk-pick" aria-label="محددة"><Check size={12} strokeWidth={3} /></span>}
                   {tint && t.kind === 'urgent' && isOpen(t) && <span className="tsk-live" aria-hidden="true" />}
                   {t.title}
-                  {t.unread > 0 && <span className="tsk-unread" title="رسائل جديدة"><MessageCircle size={12} />{t.unread}</span>}
+                  {!onChat && t.unread > 0 && <span className="tsk-unread" title="رسائل جديدة"><MessageCircle size={12} />{t.unread}</span>}
                   {mine && !t.seen && <span className="tsk-dot-new" title="جديدة" />}
                 </strong>
                 {t.event_label && <small>{t.event_label}</small>}
@@ -66,8 +68,9 @@ export const TaskTable: React.FC<{
               <td data-label="الحالة"><StatusBadge task={t} /></td>
               <td data-label="إجراءات" className="actions-cell" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
                 <span className="tsk-menu-cell">
+                  {onChat && <TaskChatButton task={t} onChat={onChat} />}
                   <ActionsMenu label="إجراءات المهمة" items={menu(t)} />
-                  {t.unread > 0 && <i className="tsk-menu-dot" title="رسائل جديدة" />}
+                  {!onChat && t.unread > 0 && <i className="tsk-menu-dot" title="رسائل جديدة" />}
                 </span>
               </td>
             </tr>

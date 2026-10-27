@@ -39,12 +39,14 @@ export const MyHome: React.FC = () => {
 
   const overlays = (
     <>
-      {c.opened && <TaskDetails task={c.opened} mobile={isMobile} onClose={c.closeTask} />}
+      {c.opened && <TaskDetails task={c.opened} mobile={isMobile} onClose={c.closeTask} onChat={() => setChatId(c.opened!.id)} />}
       {chatTask && <TaskChatDialog task={chatTask} mobile={isMobile} onTask={c.replace} onClose={() => setChatId(null)} />}
     </>
   );
 
-  if (isMobile) return <MobileMyHome c={c} now={now} menu={menu} overlays={overlays} />;
+  const chat = (t: Task) => setChatId(t.id);
+
+  if (isMobile) return <MobileMyHome c={c} now={now} menu={menu} overlays={overlays} onChat={chat} />;
 
   // Only what the home page shows (an appointment's task from its alert time on), counted and filtered
   const shown = onHome(c.tasks, now);
@@ -90,7 +92,7 @@ export const MyHome: React.FC = () => {
                 <span className="tsk-sec-icon"><ClipboardList size={16} /></span>مهامي<b>{live.length}</b>
               </h3>
               {live.length
-                ? <div className="table-pagination-wrapper"><TaskTable tasks={live} onOpen={c.openTask} mine menu={menu} tint /></div>
+                ? <div className="table-pagination-wrapper"><TaskTable tasks={live} onOpen={c.openTask} mine menu={menu} tint onChat={chat} /></div>
                 : <div className="tk-state"><Inbox size={30} /><p>{filtered ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
             </section>
 
@@ -100,7 +102,7 @@ export const MyHome: React.FC = () => {
                   <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
                 </h3>
                 <div className="table-pagination-wrapper">
-                  <TaskTable tasks={archiveShown} onOpen={c.openTask} mine menu={menu} />
+                  <TaskTable tasks={archiveShown} onOpen={c.openTask} mine menu={menu} onChat={chat} />
                   {archive.length > ARCHIVE_PAGE && (
                     <Pagination totalItems={archive.length} itemsPerPage={ARCHIVE_PAGE} currentPage={archivePage} onPageChange={setArchivePage} onItemsPerPageChange={() => undefined} />
                   )}

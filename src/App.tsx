@@ -54,6 +54,7 @@ import { MyAppointments } from './View/Screen/Tasks/MyAppointments';
 import { TaskAlerts } from './View/widget/TaskAlerts/TaskAlertStack';
 import { useIsMobile } from './core/functions/useIsMobile';
 import { usePushNotifications } from './core/functions/usePushNotifications';
+import { useBackButton } from './core/functions/useBackButton';
 import './App.css';
 import { DocViewerHost } from './View/widget/DocViewer';
 
@@ -77,8 +78,9 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
   const isMobile = useIsMobile();
   const { space } = useSpace();
-  // The Android app: this phone's notifications
+  // The Android app: this phone's notifications, and its back button (back a step, never closing the app)
   usePushNotifications();
+  useBackButton();
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100%', backgroundColor: 'var(--bg)', overflow: 'hidden' }}>

@@ -20,7 +20,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Notifications (Firebase): the bell in the app's orange, in the «التنبيهات» channel -->
+        <!-- Notifications (Firebase): the club's shield (res/drawable-*/ic_stat_notify.png) in the app's orange, in the «التنبيهات» channel -->
         <meta-data android:name="com.google.firebase.messaging.default_notification_icon" android:resource="@drawable/ic_stat_notify" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_color" android:resource="@color/notify_orange" />
         <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="alerts" />

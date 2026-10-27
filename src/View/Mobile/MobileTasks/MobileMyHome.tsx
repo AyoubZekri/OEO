@@ -23,7 +23,9 @@ export const MobileMyHome: React.FC<{
   now: number;
   menu: (t: Task) => MobileRowMenuItem[];
   overlays: React.ReactNode;
-}> = ({ c, now, menu, overlays }) => {
+  /** The conversation, from its own button on each card */
+  onChat: (t: Task) => void;
+}> = ({ c, now, menu, overlays, onChat }) => {
   const [archiveShownCount, setArchiveShownCount] = useState(ARCHIVE_PAGE);
   const [filters, setFilters] = useState<TaskFilterState>({ query: '', status: '', kind: '', nature: '' });
 
@@ -51,7 +53,7 @@ export const MobileMyHome: React.FC<{
                 <span className="tsk-sec-icon"><ClipboardList size={16} /></span>مهامي<b>{live.length}</b>
               </h3>
               {live.length
-                ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} mine />)}</div>
+                ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} mine onChat={onChat} />)}</div>
                 : <div className="tk-state"><Inbox size={30} /><p>{filtered ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
             </section>
 
@@ -60,7 +62,7 @@ export const MobileMyHome: React.FC<{
                 <h3 className="tsk-sec-head">
                   <span className="tsk-sec-icon"><Archive size={16} /></span>المنجزة والملغاة<b>{archive.length}</b>
                 </h3>
-                <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} mine menu={menu(t)} />)}</div>
+                <div className="tsk-mlist">{archiveShown.map(t => <MobileTaskRow key={t.id} task={t} onOpen={c.openTask} mine menu={menu(t)} onChat={onChat} />)}</div>
                 {archive.length > archiveShown.length && (
                   <button type="button" className="tk-more" onClick={() => setArchiveShownCount(n => n + ARCHIVE_PAGE)}>عرض المزيد ({archive.length - archiveShown.length})</button>
                 )}

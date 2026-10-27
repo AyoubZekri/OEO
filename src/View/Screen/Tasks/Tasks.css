@@ -1144,3 +1144,260 @@ body.dark-mode .tsk-ucards .tsk-hcard.kind-scheduled { --k-bg: var(--tk-card); -
 .tsk-player-bars span.on { background: var(--accent); }
 .tsk-player-time { flex-shrink: 0; min-width: 38px; font-size: 0.85rem; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
 .tsk-player audio { display: none; }
+
+/* The task's conversation in its details: a box of its own; new messages make it glow, with how many */
+.tsk-d-chat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--tk-border);
+  border-radius: 18px;
+  background: var(--tk-card);
+  color: var(--tk-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+}
+.tsk-d-chat:hover { border-color: rgba(249, 115, 22, 0.45); }
+.tsk-d-chat:active { transform: scale(0.99); }
+.tsk-d-chat-icon {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+.tsk-d-chat-icon i {
+  position: absolute;
+  top: -3px;
+  inset-inline-end: -3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 2px solid var(--tk-card, #fff);
+}
+.tsk-d-chat-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tsk-d-chat-text strong { font-size: 0.95rem; font-weight: 800; }
+.tsk-d-chat-text small { color: var(--tk-muted); font-size: 0.8rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tsk-d-chat-go { flex-shrink: 0; color: var(--tk-muted); }
+.tsk-d-chat-new {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #f97316;
+  color: #fff;
+  font-size: 0.74rem;
+  font-weight: 900;
+  animation: tsk-new-pulse 1.6s ease-in-out infinite;
+}
+.tsk-d-chat.has-new {
+  border-color: #f97316;
+  background: color-mix(in srgb, #f97316 6%, var(--tk-card));
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.12);
+}
+.tsk-d-chat.has-new .tsk-d-chat-text small { color: var(--tk-text); font-weight: 700; }
+
+/* A new message, on the cards, rows and ⋮: it pulses so it is seen */
+@keyframes tsk-new-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.55); }
+  50% { box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
+}
+.tk-scope .tsk-unread, .tsk-menu-dot { animation: tsk-new-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tsk-d-chat-new, .tk-scope .tsk-unread, .tsk-menu-dot { animation: none; }
+}
+
+/* A task's conversation button, beside its ⋮ (cards, rows, table): a soft orange bubble; with new messages a warm
+   gradient, a ring that keeps spreading out, and their number in a white tag */
+.tsk-menu-cell { align-items: center; gap: 8px; }
+.tsk-chat-btn {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(145deg, rgba(251, 146, 60, 0.16), rgba(249, 115, 22, 0.08));
+  color: #ea580c;
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.22);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+.tsk-chat-btn svg { position: relative; z-index: 1; }
+.tsk-chat-btn:hover {
+  background: linear-gradient(145deg, rgba(251, 146, 60, 0.26), rgba(249, 115, 22, 0.14));
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.4), 0 6px 14px -8px rgba(234, 88, 12, 0.6);
+}
+.tsk-chat-btn:active { transform: scale(0.9); }
+.tsk-chat-btn:focus-visible { outline: 2px solid #f97316; outline-offset: 2px; }
+
+.tsk-chat-btn.has-new {
+  background: linear-gradient(135deg, #fb923c, #f97316 55%, #ea580c);
+  color: #fff;
+  box-shadow: 0 8px 18px -8px rgba(234, 88, 12, 0.85);
+}
+/* The ring: spreads out from the bubble and fades, again and again */
+.tsk-chat-btn.has-new::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid #f97316;
+  animation: tsk-chat-ring 1.8s ease-out infinite;
+}
+@keyframes tsk-chat-ring {
+  0% { transform: scale(1); opacity: 0.75; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+/* The bubble breathes a little */
+.tsk-chat-btn.has-new svg { animation: tsk-chat-wiggle 1.8s ease-in-out infinite; }
+@keyframes tsk-chat-wiggle {
+  0%, 70%, 100% { transform: rotate(0); }
+  78% { transform: rotate(-12deg); }
+  86% { transform: rotate(10deg); }
+  94% { transform: rotate(-4deg); }
+}
+.tsk-chat-btn b {
+  position: absolute;
+  z-index: 2;
+  top: -7px;
+  inset-inline-end: -7px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 99px;
+  background: #fff;
+  color: #ea580c;
+  box-shadow: 0 0 0 2px #f97316, 0 3px 8px -2px rgba(15, 23, 42, 0.35);
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 19px;
+  text-align: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tsk-chat-btn.has-new::before, .tsk-chat-btn.has-new svg { animation: none; }
+}
+
+/* A message's ticks (mine): a clock on its way, ✓ saved, ✓✓ read (orange); not sent: a red mark to send again */
+.tsk-bubble small { display: inline-flex; align-items: center; gap: 4px; }
+.tsk-tick { opacity: 0.75; flex-shrink: 0; }
+.tsk-tick.read { opacity: 1; color: #f97316; }
+.tsk-msg.mine .tsk-tick.read { color: #fff7ed; filter: drop-shadow(0 0 1px rgba(234, 88, 12, 0.9)); }
+.tsk-msg-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 6px;
+  border: none;
+  border-radius: 99px;
+  background: #ef4444;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* ── The messages like WhatsApp: bubbles with a tail on a run's first one, the time and ticks at the end of the
+   message's last line, the day in a floating label ── */
+.tsk-chat { gap: 2px; padding: 8px 4px 4px; }
+.tsk-msg { max-width: 85%; gap: 0; }
+.tsk-msg.first { margin-top: 8px; }
+/* No pictures, as in a chat of two */
+.tsk-msg-avatar { display: none; }
+
+.tsk-bubble {
+  position: relative;
+  padding: 6px 9px 7px;
+  border: none;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+.tsk-msg.mine .tsk-bubble {
+  background: #ffe7d4;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+/* The tail: on a run's first message, at the top corner on the writer's side */
+.tsk-msg.first .tsk-bubble { border-start-start-radius: 0; border-end-start-radius: 9px; }
+.tsk-msg.mine.first .tsk-bubble { border-start-start-radius: 9px; border-start-end-radius: 0; border-end-end-radius: 9px; }
+.tsk-msg.first .tsk-bubble::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  inset-inline-start: -8px;
+  width: 8px;
+  height: 13px;
+  background: inherit;
+  clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+[dir='rtl'] .tsk-msg.first .tsk-bubble::before { clip-path: polygon(0 0, 100% 0, 0 100%); }
+.tsk-msg.mine.first .tsk-bubble::before { inset-inline-start: auto; inset-inline-end: -8px; clip-path: polygon(0 0, 100% 0, 0 100%); }
+[dir='rtl'] .tsk-msg.mine.first .tsk-bubble::before { clip-path: polygon(0 0, 100% 0, 100% 100%); }
+
+/* The writer's name (the others), in colour */
+.tsk-bubble b { color: #c2410c; font-size: 0.8rem; margin-bottom: 1px; }
+.tsk-bubble p, .tsk-msg.mine .tsk-bubble p { color: #111b21; font-size: 0.93rem; line-height: 1.5; }
+/* The time and ticks: small, in the bubble's bottom corner */
+.tsk-bubble small, .tsk-msg.mine .tsk-bubble small {
+  align-self: flex-end;
+  margin-top: -2px;
+  color: #667781;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+.tsk-tick { opacity: 1; color: #8696a0; }
+.tsk-tick.read, .tsk-msg.mine .tsk-tick.read { color: #53bdeb; filter: none; }
+
+/* The day: a floating label in the middle */
+.tsk-chat-day { margin: 12px 0 8px; }
+.tsk-chat-day span {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 8px;
+  background: #fff;
+  color: #54656f;
+  font-size: 0.74rem;
+  font-weight: 700;
+  box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13);
+}
+.tsk-chat-empty > span { background: #fff; box-shadow: 0 1px 0.5px rgba(11, 20, 26, 0.13); }
+
+/* Dark: WhatsApp's night colours */
+body.dark-mode .tsk-bubble { background: #202c33; }
+body.dark-mode .tsk-msg.mine .tsk-bubble { background: #7c2d12; }
+body.dark-mode .tsk-bubble p, body.dark-mode .tsk-msg.mine .tsk-bubble p { color: #e9edef; }
+body.dark-mode .tsk-bubble small { color: #8696a0; }
+body.dark-mode .tsk-chat-day span, body.dark-mode .tsk-chat-empty > span { background: #182229; color: #8696a0; }
+
+/* On the page's own background: the others' bubbles light grey, the day label too */
+.tsk-bubble { background: var(--tk-field, #f1f5f9); }
+.tsk-chat-day span, .tsk-chat-empty > span { background: var(--tk-field, #f1f5f9); }
+
+/* The time and ticks at the end of the message's last line (WhatsApp): the bubble holds the text, a little room is
+   left at its end, and the time sits in the bubble's bottom corner — on the same line, or under a full one */
+.tsk-bubble { display: block; padding: 6px 9px 6px; }
+.tsk-bubble b { margin-bottom: 2px; }
+.tsk-bubble p { display: block; }
+.tsk-msg-pad { display: inline-block; width: 46px; height: 1px; }
+.tsk-msg.mine .tsk-msg-pad { width: 66px; }
+.tsk-bubble small, .tsk-msg.mine .tsk-bubble small {
+  position: absolute;
+  bottom: 4px;
+  right: 8px;
+  margin: 0;
+  line-height: 1;
+}
+/* The time reads left to right inside: placed by the page's side, where the text ends (the left in Arabic) */
+[dir='rtl'] .tsk-bubble small, [dir='rtl'] .tsk-msg.mine .tsk-bubble small { right: auto; left: 8px; }

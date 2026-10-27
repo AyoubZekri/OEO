@@ -72,6 +72,11 @@ export interface TaskMessage {
   mine: boolean;
   from_assignee: boolean;
   at: string | null;
+  /** When it was written, in milliseconds (its ✓✓ once the other side read after it) */
+  ts?: number | null;
+  /** Mine, still on its way (shown at once, a clock), or not sent (to send again) */
+  pending?: boolean;
+  failed?: boolean;
 }
 
 export const STATUS_META: Record<TaskStatus, { label: string; tone: string; icon: LucideIcon }> = {

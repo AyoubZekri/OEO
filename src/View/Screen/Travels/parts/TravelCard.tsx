@@ -1,6 +1,8 @@
 import React from 'react';
 import { Bus, Users, Briefcase, Trophy, Layers, MapPin, ChevronLeft } from 'lucide-react';
 import { initials } from '../../../shared/dates';
+import { ActionsMenu, type ActionsMenuItem } from '../../../widget/ActionsMenu';
+import { MobileRowMenu } from '../../../Mobile/widgets/MobileRowMenu';
 import { countdownText, dateTile, durationText, MY_ROLE_LABEL, shortDate, STATUS_META, statusOf, timeOf, type Travel } from '../travelUtils';
 
 /** Calendar tile of the departure day */
@@ -42,8 +44,10 @@ export const RouteLine: React.FC<{ travel: Travel; big?: boolean }> = ({ travel:
 /**
  * One trip, as a ticket: date tile, destination, route line, then the delegation in short.
  * `compact` (phones): only the date, the destination, the reason and the category.
+ * `menu`: its ⋮ (details, edit, delete) — the management's page; my trips open with a tap only.
  */
-export const TravelCard: React.FC<{ travel: Travel; onOpen: (t: Travel) => void; compact?: boolean }> = ({ travel: t, onOpen, compact }) => {
+export const TravelCard: React.FC<{ travel: Travel; onOpen: (t: Travel) => void; compact?: boolean; menu?: ActionsMenuItem[] }> = ({ travel: t, onOpen, compact, menu }) => {
+  const actions = menu && menu.length > 1 ? menu : null;
   const status = statusOf(t);
   const meta = STATUS_META[status];
   const players = t.players.length || t.players_count || 0;
@@ -59,7 +63,9 @@ export const TravelCard: React.FC<{ travel: Travel; onOpen: (t: Travel) => void;
           <span className="tv-compact-team"><Layers size={13} />{t.team_name || 'بدون فئة'}</span>
           {t.my_role && <span className="tk-badge soft tone-orange tv-my-role">{MY_ROLE_LABEL[t.my_role]}</span>}
         </div>
-        <ChevronLeft size={18} className="tv-compact-go" aria-hidden="true" />
+        {actions
+          ? <span className="tv-menu" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}><MobileRowMenu items={actions} label="إجراءات التنقل" /></span>
+          : <ChevronLeft size={18} className="tv-compact-go" aria-hidden="true" />}
       </article>
     );
   }
@@ -79,6 +85,11 @@ export const TravelCard: React.FC<{ travel: Travel; onOpen: (t: Travel) => void;
             <p>{t.match ? <><Trophy size={13} />{t.match.title}</> : t.travel_reason}</p>
           )}
         </div>
+        {actions && (
+          <span className="tv-menu" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+            <ActionsMenu items={actions} label="إجراءات التنقل" />
+          </span>
+        )}
       </div>
 
       <RouteLine travel={t} />

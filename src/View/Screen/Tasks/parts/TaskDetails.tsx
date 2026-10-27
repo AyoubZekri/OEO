@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ClipboardList, MessagesSquare, Send, Loader2, AlertCircle, CheckCircle2, UserRound, CalendarPlus, CalendarClock,
-  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock, ExternalLink, Mic,
+  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock, ExternalLink, Mic, ChevronLeft, Check, CheckCheck, RotateCcw,
 } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { VoicePlayer } from './VoicePlayer';
@@ -17,9 +17,10 @@ import {
  * orange, voice note blue, normal white) with its kind, title, status and nature; the deadline and what is left (only
  * when it has one); who does it and who gave it; its other dates on a timeline; then its details.
  * withEvent (management): an appointment's task opens its event («عرض المباراة»…).
+ * onChat: its conversation in a box of its own (the last message; new ones glow and say how many), opened from it.
  */
-export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () => void; withEvent?: boolean }> = ({
-  task: t, mobile, onClose, withEvent,
+export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () => void; withEvent?: boolean; onChat?: () => void }> = ({
+  task: t, mobile, onClose, withEvent, onChat,
 }) => {
   const navigate = useNavigate();
   // Its status: none for a new one (on time)
@@ -33,6 +34,9 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
     { label: 'المكلّف', name: t.assignee?.name || '—' },
     { label: 'أسندها', name: t.created_by || 'النظام' },
   ];
+  // The conversation's last word: a message, or a status change
+  const last = t.last_message;
+  const lastText = last ? (last.body || (last.status ? `تحولت الحالة إلى «${STATUS_META[last.status].label}»` : '')) : '';
   const timeline: { icon: typeof UserRound; label: string; value: string; tone: string }[] = [
     { icon: CalendarPlus, label: 'تاريخ الإسناد', value: dateText(t.created_at), tone: 'slate' },
     ...(t.alert_at ? [{ icon: BellRing, label: 'التنبيه', value: dateText(t.alert_at), tone: 'orange' }] : []),
@@ -88,6 +92,19 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
             </div>
           ))}
         </section>
+
+        {onChat && (
+          <button type="button" className={`tsk-d-chat ${t.unread > 0 ? 'has-new' : ''}`} onClick={onChat}>
+            <span className="tsk-d-chat-icon"><MessagesSquare size={20} />{t.unread > 0 && <i aria-hidden="true" />}</span>
+            <span className="tsk-d-chat-text">
+              <strong>المحادثة</strong>
+              <small>{lastText ? `${last?.by ? `${last.by}: ` : ''}${lastText}` : 'لا توجد رسائل بعد · ابدأ المحادثة'}</small>
+            </span>
+            {t.unread > 0
+              ? <b className="tsk-d-chat-new">{t.unread === 1 ? 'رسالة جديدة' : `${t.unread} جديدة`}</b>
+              : <ChevronLeft size={18} className="tsk-d-chat-go" />}
+          </button>
+        )}
 
         <section className="tsk-d-card">
           <h4><CalendarClock size={15} />التواريخ</h4>
@@ -200,12 +217,10 @@ const timeText = (d: Date | null) => (d ? `${pad(d.getHours())}:${pad(d.getMinut
  * (one name and avatar for a run of messages) — and the message box.
  */
 export const TaskChatDialog: React.FC<{ task: Task; mobile: boolean; onTask: (t: Task) => void; onClose: () => void }> = ({ task, mobile, onTask, onClose }) => {
-  const { messages, loading, send } = useTaskChat(task.id, onTask);
+  const { messages, loading, send, retry, seenTs } = useTaskChat(task.id, onTask);
   // Only the messages: the status changes are not shown here
   const talk = messages.filter(m => !m.status);
   const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
   const end = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -223,18 +238,12 @@ export const TaskChatDialog: React.FC<{ task: Task; mobile: boolean; onTask: (t:
     el.style.overflowY = full > 140 ? 'auto' : 'hidden';
   }, [text]);
 
-  const submit = async () => {
-    if (!text.trim() || busy) return;
-    setBusy(true);
-    setError('');
-    try {
-      await send(text.trim());
-      setText('');
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
+  // Sent at once (it shows with a clock, then its ticks): the box is free for the next one
+  const submit = () => {
+    if (!text.trim()) return;
+    send(text.trim());
+    setText('');
+    box.current?.focus();
   };
 
   return (
@@ -255,8 +264,8 @@ export const TaskChatDialog: React.FC<{ task: Task; mobile: boolean; onTask: (t:
             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
             placeholder="اكتب رسالة..."
           />
-          <button type="button" className="tsk-chat-send" onClick={submit} disabled={busy || !text.trim()} aria-label="إرسال">
-            {busy ? <Loader2 size={18} className="tk-spin" /> : <Send size={18} />}
+          <button type="button" className="tsk-chat-send" onClick={submit} disabled={!text.trim()} aria-label="إرسال">
+            <Send size={18} />
           </button>
         </div>
       )}
@@ -284,8 +293,17 @@ export const TaskChatDialog: React.FC<{ task: Task; mobile: boolean; onTask: (t:
                 {!m.mine && (first ? <span className="tsk-msg-avatar" aria-hidden="true">{initials(m.by)}</span> : <span className="tsk-msg-avatar ghost" aria-hidden="true" />)}
                 <div className="tsk-bubble">
                   {!m.mine && first && <b>{m.by}{m.from_assignee && <em>المكلّف</em>}</b>}
-                  <p>{m.body}</p>
-                  <small>{timeText(at)}</small>
+                  {/* Room at the end of its last line: the time and ticks sit there, as in WhatsApp */}
+                  <p>{m.body}<span className="tsk-msg-pad" aria-hidden="true" /></p>
+                  <small>
+                    {timeText(at)}
+                    {/* Mine: a clock on its way, ✓ saved, ✓✓ read by the other side; not sent: tap to send again */}
+                    {m.mine && (m.failed
+                      ? <button type="button" className="tsk-msg-retry" onClick={() => retry(m)} aria-label="إعادة الإرسال"><AlertCircle size={13} /><RotateCcw size={12} /></button>
+                      : m.pending ? <Clock size={12} className="tsk-tick" aria-label="جاري الإرسال" />
+                        : seenTs !== null && (m.ts ?? 0) <= seenTs ? <CheckCheck size={14} className="tsk-tick read" aria-label="قُرئت" />
+                          : <Check size={14} className="tsk-tick" aria-label="أُرسلت" />)}
+                  </small>
                 </div>
               </div>
             </React.Fragment>
@@ -293,7 +311,6 @@ export const TaskChatDialog: React.FC<{ task: Task; mobile: boolean; onTask: (t:
         })}
         <div ref={end} />
       </div>
-      {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
     </SidePanel>
   );
 };
