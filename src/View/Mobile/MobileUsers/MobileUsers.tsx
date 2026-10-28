@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import defaultAvatar from '../../../assets/AVETER.png';
 import { useTranslation } from 'react-i18next';
 import { Plus, Eye, Pencil, Trash2, UserCog, Search, X, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -20,6 +21,11 @@ interface MobileUsersProps {
 }
 
 // Phone version of the users page: search and user cards with their role; details and form on their own pages
+/** A photo that does not load: the app's default picture (as on the members page) */
+const onPhotoError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  if (!e.currentTarget.src.endsWith(defaultAvatar)) e.currentTarget.src = defaultAvatar;
+};
+
 export const MobileUsers: React.FC<MobileUsersProps> = ({ c, roles, can }) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
@@ -84,7 +90,7 @@ export const MobileUsers: React.FC<MobileUsersProps> = ({ c, roles, can }) => {
                 onKeyDown={e => { if (e.key === 'Enter') open(); }}
               >
                 <div className="mus-card-top">
-                  <span className="mus-avatar">{userInitials(u.name)}</span>
+                  <span className={`mus-avatar ${u.photo ? 'has-photo' : ''}`}>{u.photo ? <img src={u.photo} alt="" onError={onPhotoError} loading="lazy" /> : userInitials(u.name)}</span>
                   <span className="mus-card-text">
                     <strong>{u.name}</strong>
                     <small dir="ltr"><Mail size={11} /> {u.email}</small>

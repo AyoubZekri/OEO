@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import defaultAvatar from '../../../assets/AVETER.png';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Mail, Shield, ShieldCheck, ShieldAlert, ChevronLeft } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
@@ -17,6 +18,11 @@ interface MobileUserDetailsProps {
 }
 
 // One user (phone): account, role and the sections this role opens
+/** A photo that does not load: the app's default picture (as on the members page) */
+const onPhotoError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  if (!e.currentTarget.src.endsWith(defaultAvatar)) e.currentTarget.src = defaultAvatar;
+};
+
 export const MobileUserDetails: React.FC<MobileUserDetailsProps> = ({ user, role, canEdit, onEdit, onClose }) => {
   const { t } = useTranslation();
   const [showRole, setShowRole] = useState(false);
@@ -31,7 +37,7 @@ export const MobileUserDetails: React.FC<MobileUserDetailsProps> = ({ user, role
     >
       <section className="mus-hero">
         <div className="mus-person">
-          <span className="mus-avatar big">{userInitials(user.name)}</span>
+          <span className={`mus-avatar big ${user.photo ? 'has-photo' : ''}`}>{user.photo ? <img src={user.photo} alt="" onError={onPhotoError} /> : userInitials(user.name)}</span>
           <div>
             <strong>{user.name}</strong>
             <small dir="ltr"><Mail size={12} /> {user.email}</small>

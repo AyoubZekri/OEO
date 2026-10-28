@@ -193,3 +193,17 @@
 
 /* Search right next to the add button */
 .users-search { flex: 0 1 320px; }
+
+/* The linked member's photo, as on the members page: a rounded square with a white border */
+.user-avatar.has-photo {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 2px solid #ffffff;
+  background: var(--bg, #f1f5f9);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.user-avatar.has-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+body.dark-mode .user-avatar.has-photo { border-color: #1e293b; }

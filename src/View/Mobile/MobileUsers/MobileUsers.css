@@ -744,3 +744,25 @@ body.dark-mode .mus-access span { color: #34d399; }
   height: 1px;
   background: color-mix(in srgb, var(--ms-accent) 25%, var(--ms-border));
 }
+
+/* The linked member's photo, as on the members page: in an orange gradient ring */
+.mus-avatar.has-photo {
+  width: 52px;
+  height: 52px;
+  padding: 2px;
+  box-sizing: border-box;
+  border-radius: 16px;
+  background: conic-gradient(from 200deg, #f97316, #fbbf24, #f97316 60%, rgba(249, 115, 22, 0.15));
+}
+.mus-avatar.big.has-photo { width: 64px; height: 64px; border-radius: 20px; }
+.mus-avatar.has-photo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid var(--bg, #fff);
+  box-sizing: border-box;
+  background: var(--bg, #f1f5f9);
+}
+.mus-avatar.big.has-photo img { border-radius: 18px; }

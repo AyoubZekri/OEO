@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import defaultAvatar from '../../../../assets/AVETER.png';
 import { useTranslation } from 'react-i18next';
 import { Plus, Edit2, Trash2 } from 'lucide-react';
 import { useUsersController } from './UsersController';
@@ -11,6 +12,11 @@ import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { MobileUsers } from '../../../Mobile/MobileUsers/MobileUsers';
 import './Users.css';
 import { TopbarSearch } from '../../../widget/TopbarSearch';
+
+/** A photo that does not load: the app's default picture (as on the members page) */
+const onPhotoError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  if (!e.currentTarget.src.endsWith(defaultAvatar)) e.currentTarget.src = defaultAvatar;
+};
 
 export const Users: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
@@ -91,8 +97,9 @@ export const Users: React.FC = () => {
               <tr key={user.id}>
                 <td data-label={t('users.user_col', 'المستخدم')} className="avatar-cell">
                   <div className="user-name">
-                    <div className="user-avatar">
-                      {user.name.substring(0, 2).toUpperCase()}
+                    {/* The linked member's photo, else the name's first letters */}
+                    <div className={`user-avatar ${user.photo ? 'has-photo' : ''}`}>
+                      {user.photo ? <img src={user.photo} alt="" onError={onPhotoError} loading="lazy" /> : user.name.substring(0, 2).toUpperCase()}
                     </div>
                     <span>{user.name}</span>
                   </div>
