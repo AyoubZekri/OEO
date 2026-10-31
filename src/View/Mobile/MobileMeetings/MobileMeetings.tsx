@@ -10,10 +10,11 @@ import { useUrlDetails } from '../widgets/useUrlDetails';
 import type { useMeetingsController } from '../../Screen/Meetings/MeetingsController';
 import type { Meeting } from '../../Screen/Meetings/meeting_model';
 import { dayLabel, daysFromToday, countdownText, useNow } from '../MobileTrainingSessions/sessionUtils';
-import { meetingStart, dayOfMeeting, shortTime, attendanceOf } from './meetingUtils';
+import { meetingStart, dayOfMeeting, shortTime } from './meetingUtils';
 import { MobileMeetingDetails } from './MobileMeetingDetails';
 import { MobileMeetingForm } from './MobileMeetingForm';
 import './MobileMeetings.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileMeetingsProps {
   c: ReturnType<typeof useMeetingsController>;
@@ -40,8 +41,6 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
   const list = period === 'upcoming' ? upcoming : past;
   const next = upcoming.find(m => (meetingStart(m)?.getTime() ?? 0) >= now.getTime() - 2 * 3600000);
 
-  const rates = meetings.map(attendanceOf).filter(Boolean).map(a => a!.rate);
-  const avg = rates.length ? Math.round(rates.reduce((a, b) => a + b, 0) / rates.length) : null;
 
   // Meetings of the same day under one heading
   const groups: { day: string; items: Meeting[] }[] = [];
@@ -54,8 +53,8 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
 
   const details = detailsId ? meetings.find(m => String(m.id) === detailsId) : undefined;
 
-  const remove = (m: Meeting) => {
-    if (confirmDeleteMeeting(m)) c.handleDelete(m.id);
+  const remove = async (m: Meeting) => {
+    if (await confirmDeleteMeeting(m)) c.handleDelete(m.id);
   };
 
   const menuItems = (m: Meeting): MobileRowMenuItem[] => [
@@ -90,11 +89,6 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
             ) : (
               <p className="mmg-hero-empty"><Briefcase size={22} /> لا يوجد اجتماع قادم</p>
             )}
-            <div className="mmg-stats">
-              <div><strong>{upcoming.length}</strong><small>قادمة</small></div>
-              <div><strong>{past.length}</strong><small>سابقة</small></div>
-              <div><strong>{avg !== null ? `${avg}%` : '—'}</strong><small>معدل الحضور</small></div>
-            </div>
           </section>
 
           <div className="mmg-tabs" role="tablist">
@@ -107,11 +101,7 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
           </div>
 
           {list.length === 0 ? (
-            <div className="mmg-empty">
-              <span className="mmg-empty-icon"><Briefcase size={36} /></span>
-              <strong>{period === 'upcoming' ? 'لا توجد اجتماعات قادمة' : 'لا توجد اجتماعات سابقة'}</strong>
-              {period === 'upcoming' && canAdd && <p>أضف اجتماعاً جديداً بالزر +</p>}
-            </div>
+            <StateIcon icon={Briefcase} />
           ) : (
             <div className="mmg-list">
               {groups.map(g => (

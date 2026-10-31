@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import type { Match } from './match_model';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 /** personal: the matches of my category only (personal space), read only */
 export const useMatchesController = ({ personal = false }: { personal?: boolean } = {}) => {
@@ -17,8 +18,6 @@ export const useMatchesController = ({ personal = false }: { personal?: boolean 
   // View callups list state
   const [isViewCallupsDialogOpen, setIsViewCallupsDialogOpen] = useState(false);
   const [selectedMatchForViewCallups, setSelectedMatchForViewCallups] = useState<Match | null>(null);
-  const [isAdministrativeReportDialogOpen, setIsAdministrativeReportDialogOpen] = useState(false);
-  const [selectedMatchForAdministrativeReport, setSelectedMatchForAdministrativeReport] = useState<Match | null>(null);
 
   // View administrative report state
   const [isViewAdministrativeReportDialogOpen, setIsViewAdministrativeReportDialogOpen] = useState(false);
@@ -99,7 +98,7 @@ export const useMatchesController = ({ personal = false }: { personal?: boolean 
   }, []);
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذه المباراة؟')) return;
+    if (!(await confirmDelete('حذف المباراة؟'))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(Applink.deleteMatch, { id }, {
@@ -144,16 +143,6 @@ export const useMatchesController = ({ personal = false }: { personal?: boolean 
   const closeViewCallupsDialog = () => {
     setIsViewCallupsDialogOpen(false);
     setSelectedMatchForViewCallups(null);
-  };
-
-  const openAdministrativeReportDialog = (match: Match) => {
-    setSelectedMatchForAdministrativeReport(match);
-    setIsAdministrativeReportDialogOpen(true);
-  };
-
-  const closeAdministrativeReportDialog = () => {
-    setIsAdministrativeReportDialogOpen(false);
-    setSelectedMatchForAdministrativeReport(null);
   };
 
   const openViewAdministrativeReportDialog = (match: Match) => {
@@ -215,10 +204,6 @@ export const useMatchesController = ({ personal = false }: { personal?: boolean 
     closeCallupsDialog,
     openViewCallupsDialog,
     closeViewCallupsDialog,
-    isAdministrativeReportDialogOpen,
-    selectedMatchForAdministrativeReport,
-    openAdministrativeReportDialog,
-    closeAdministrativeReportDialog,
     isViewAdministrativeReportDialogOpen,
     selectedMatchForViewAdministrativeReport,
     openViewAdministrativeReportDialog,

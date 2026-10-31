@@ -7,6 +7,7 @@ import { ImprovementProgramData, type ImprovementProgramRecord } from '../../Scr
 import type { EvaluationRecord } from '../../Screen/Members/Evaluation/evaluation_data';
 import type { MemberModel } from '../../Screen/Members/member_model';
 import './MobileEvaluations.css';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 interface MobileImprovementProgramProps {
   player: MemberModel;
@@ -89,7 +90,7 @@ export const MobileImprovementProgram: React.FC<MobileImprovementProgramProps> =
 
   const handleDelete = async () => {
     if (!program?.id) return;
-    if (!window.confirm('هل أنت متأكد من حذف هذا البرنامج؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+    if (!(await confirmDelete('حذف البرنامج؟'))) return;
     setSaving(true);
     try {
       if (await dataService.deleteProgram(program.id)) onClose();

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { X, Star, AlertTriangle, Activity, ChevronDown, Check } from 'lucide-react';
 import type { Match } from './match_model';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 interface MatchPlayerStatsDialogProps {
   isOpen: boolean;
@@ -94,11 +95,31 @@ const CustomDropdown: React.FC<CustomDropdownProps> = ({ value, options, onChang
   );
 };
 
+type StatsErrors = { yellow?: string; red?: string; rating?: string };
+
+/** A card needs its minute; a minute and the rating stay in range */
+const statsErrors = (st: { yellow_cards: number; yellow_card_minute: string; red_cards: number; red_card_minute: string; rating: number | '' }): StatsErrors => {
+  const minute = (v: string) => (!v ? 'حدد الدقيقة' : Number(v) < 1 || Number(v) > 130 ? 'دقيقة غير صحيحة' : undefined);
+  return {
+    yellow: st.yellow_cards >= 1 ? minute(st.yellow_card_minute) : undefined,
+    red: st.red_cards > 0 ? minute(st.red_card_minute) : undefined,
+    rating: st.rating !== '' && (Number(st.rating) < 0 || Number(st.rating) > 10) ? 'التقييم من 0 إلى 10' : undefined,
+  };
+};
+const hasErrors = (e: StatsErrors) => Boolean(e.yellow || e.red || e.rating);
+
+// The message under a field
+const FieldError: React.FC<{ text?: string }> = ({ text }) => (text
+  ? <span style={{ display: 'block', marginTop: '6px', color: '#ef4444', fontSize: '0.8rem', fontWeight: 700 }}>{text}</span>
+  : null);
+
 // ─── Main Dialog ──────────────────────────────────────────────────────────────
 export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ isOpen, onClose, matchData }) => {
   const [calledUpPlayers, setCalledUpPlayers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingStats, setIsSavingStats] = useState(false);
+  // The fields left wrong: a red edge and their message under them
+  const [showErrors, setShowErrors] = useState(false);
   const [playerStats, setPlayerStats] = useState<Record<number, {
     yellow_cards: number;
     yellow_card_minute: string;
@@ -110,6 +131,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
   }>>({});
 
   useEffect(() => {
+    setShowErrors(false);
     if (isOpen && matchData) fetchCalledUpPlayers();
     else setCalledUpPlayers([]);
   }, [isOpen, matchData]);
@@ -170,6 +192,13 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matchData) return;
+    setShowErrors(true);
+    const wrong = Object.entries(playerStats).find(([, st]) => hasErrors(statsErrors(st)));
+    if (wrong) {
+      showSnackbar('خطأ', 'أكمل الحقول المطلوبة', '#ef4444');
+      document.getElementById(`stats-player-${wrong[0]}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     setIsSavingStats(true);
     try {
       const token = localStorage.getItem('token');
@@ -191,9 +220,8 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
       );
 
       if (res.data.status === 'success') onClose();
-    } catch (error: any) {
-      const serverMsg = error.response?.data?.message || error.message || '';
-      alert(`حدث خطأ أثناء حفظ الإحصائيات\n${serverMsg}`);
+    } catch (error) {
+      console.error('Error saving player stats:', error);
     } finally {
       setIsSavingStats(false);
     }
@@ -227,34 +255,32 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
       }} onClick={e => e.stopPropagation()}>
 
         {/* ── Header ── */}
-        <div className="dialog-app-bar" style={{ borderRadius: '24px 24px 0 0' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div className="icon-container" style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '12px' }}>
-                <Activity size={24} color="#f97316" />
-              </div>
-              <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>
-                إحصائيات وتقييم اللاعبين
-              </h2>
+        <div style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+          padding: '18px 24px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: 'rgba(249,115,22,0.1)', padding: '8px', borderRadius: '12px', display: 'flex' }}>
+              <Activity size={22} color="#f97316" />
             </div>
-            <p className="hide-on-mobile" style={{ margin: '8px 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '0.95rem' }}>
-              {matchData?.match_title ? `مباراة: ${matchData.match_title}` : 'تسجيل التقييمات والبطاقات'}
-            </p>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-h)' }}>
+              إحصائيات وتقييم اللاعبين
+            </h2>
           </div>
-          <button type="button" onClick={onClose} style={{
-            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
+          <button type="button" onClick={onClose} aria-label="إغلاق" style={{
+            background: 'transparent', border: '1px solid var(--border)', color: 'var(--text-h)',
             width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
           }}
-            onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-            onMouseOut={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseOver={e => e.currentTarget.style.background = 'var(--bg)'}
+            onMouseOut={e => e.currentTarget.style.background = 'transparent'}
           >
             <X size={20} />
           </button>
         </div>
 
         {/* ── Body ── */}
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
+        <form onSubmit={handleSave} noValidate style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
           <div style={{ padding: '24px 32px', overflowY: 'auto', flexGrow: 1, background: 'var(--bg)' }}>
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>
@@ -263,7 +289,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
             ) : calledUpPlayers.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                 <AlertTriangle size={36} opacity={0.4} />
-                <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>لم يتم العثور على لاعبين.</span>
+                <span style={{ fontSize: '1.1rem', fontWeight: 600 }}>لم يُستدعَ أي لاعب</span>
               </div>
             ) : (
               <div className="callup-player-grid">
@@ -271,9 +297,10 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                   const pid = player.player_id || player.individual_id || player.id;
                   const stats = playerStats[pid] || { yellow_cards: 0, yellow_card_minute: '', yellow_card_2_minute: '', red_cards: 0, red_card_minute: '', red_card_type: '', rating: '' };
                   const playerNumber = player.playerDetails?.shirt_number || player.playerDetails?.Shirt_number || '-';
+                  const err: StatsErrors = showErrors ? statsErrors(stats) : {};
 
                   return (
-                    <div key={pid} style={{
+                    <div key={pid} id={`stats-player-${pid}`} style={{
                       borderRadius: '16px',
                       border: '1px solid var(--border)',
                       background: 'var(--card-bg)',
@@ -302,7 +329,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                         <div style={{ flexGrow: 1, minWidth: 0 }}>
                           <div style={{
                             fontWeight: 700, fontSize: '1rem', color: 'var(--text-h)',
-                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
+                            lineHeight: 1.4, overflowWrap: 'anywhere'
                           }}>
                             {player.playerDetails.first_name} {player.playerDetails.last_name}
                           </div>
@@ -311,7 +338,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                         {/* Rating */}
                         <div style={{
                           display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0,
-                          background: 'var(--card-bg)', border: '1px solid var(--border)',
+                          background: 'var(--card-bg)', border: `1px solid ${err.rating ? '#ef4444' : 'var(--border)'}`,
                           borderRadius: '10px', padding: '6px 12px',
                         }}>
                           <Star size={14} color="#f97316" fill="#f97316" />
@@ -329,6 +356,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>/10</span>
                         </div>
                       </div>
+                      {err.rating && <div style={{ padding: '0 16px' }}><FieldError text={err.rating} /></div>}
 
                       {/* Card Body */}
                       <div style={{ padding: '14px 16px', display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--card-bg)', borderRadius: '0 0 16px 16px' }}>
@@ -364,7 +392,8 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                                 onChange={e => upd(pid, 'yellow_card_minute', e.target.value)}
                                 style={{
                                   width: '80px', padding: '7px 10px', borderRadius: '8px',
-                                  border: '1px solid #eab308', background: 'var(--card-bg)',
+                                  border: `1px solid ${err.yellow ? '#ef4444' : '#eab308'}`, background: 'var(--card-bg)',
+                                  boxShadow: err.yellow ? '0 0 0 2px rgba(239,68,68,0.35)' : 'none',
                                   color: 'var(--text-h)', fontSize: '0.85rem', textAlign: 'center',
                                   outline: 'none', fontWeight: 600,
                                 }}
@@ -372,6 +401,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                             )}
                           </div>
                         </div>
+                        <FieldError text={err.yellow} />
 
                         {/* Divider */}
                         <div style={{ height: '1px', background: 'var(--border)' }} />
@@ -423,11 +453,13 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
                                   border: '1px solid var(--danger, #ef4444)', background: 'var(--card-bg)',
                                   color: 'var(--text-h)', fontSize: '0.85rem', textAlign: 'center',
                                   outline: 'none', fontWeight: 600,
+                                  boxShadow: err.red ? '0 0 0 2px rgba(239,68,68,0.35)' : 'none',
                                 }}
                               />
                             )}
                           </div>
                         </div>
+                        <FieldError text={err.red} />
 
                       </div>
                     </div>
@@ -460,7 +492,7 @@ export const MatchPlayerStatsDialog: React.FC<MatchPlayerStatsDialogProps> = ({ 
               onMouseOver={e => { if (!isSavingStats) e.currentTarget.style.background = '#ea580c'; }}
               onMouseOut={e => { if (!isSavingStats) e.currentTarget.style.background = '#f97316'; }}
             >
-              {isSavingStats ? 'جاري الحفظ...' : 'حفظ الإحصائيات'}
+              {isSavingStats ? 'جاري الحفظ...' : 'تأكيد'}
             </button>
           </div>
         </form>

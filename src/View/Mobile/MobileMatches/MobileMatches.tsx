@@ -7,7 +7,7 @@ import { useUrlDetails } from '../widgets/useUrlDetails';
 import type { Match } from '../../Screen/Matches/match_model';
 import { type MatchActions, CLUB_NAME, CLUB_LOGO } from './matchActions';
 import {
-  matchState, matchDate, resultOf, opponentName, opponentLogo,
+  matchState, matchDate, opponentName, opponentLogo,
   opponentShort, dayText, countdown,
 } from './matchUtils';
 import { MobileMatchDetails } from './MobileMatchDetails';
@@ -15,6 +15,7 @@ import { MatchCard } from './MatchCard';
 import { useMatchNow } from './useMatchNow';
 import { TeamBadge } from './TeamBadge';
 import './MobileMatches.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileMatchesProps {
   matches: Match[];
@@ -51,10 +52,6 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
     .filter(({ m }) => !q || opponentName(m).toLowerCase().includes(q) || (m.competition || '').toLowerCase().includes(q));
 
   const featured = upcoming.find(x => x.state === 'live') || upcoming.find(x => x.state === 'upcoming');
-  const results = matches.map(resultOf);
-  const wins = results.filter(r => r === 'win').length;
-  const draws = results.filter(r => r === 'draw').length;
-  const losses = results.filter(r => r === 'loss').length;
 
   const details = detailsId !== null ? withState.find(x => String(x.m.id) === detailsId) : undefined;
 
@@ -98,17 +95,11 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
               <p className="mmt-hero-empty"><Calendar size={22} /> لا توجد مباراة قادمة مبرمجة</p>
             )}
 
-            <div className="mmt-stats">
-              <div><strong>{wins + draws + losses}</strong><small>لُعبت</small></div>
-              <div className="win"><strong>{wins}</strong><small>فوز</small></div>
-              <div className="draw"><strong>{draws}</strong><small>تعادل</small></div>
-              <div className="loss"><strong>{losses}</strong><small>خسارة</small></div>
-            </div>
           </section>
 
           <label className="mmt-search">
             <Search size={17} />
-            <input type="search" placeholder="ابحث بالفريق المنافس أو المنافسة..." value={query} onChange={e => setQuery(e.target.value)} />
+            <input type="search" placeholder="ابحث باسم الخصم" value={query} onChange={e => setQuery(e.target.value)} />
           </label>
 
           <div className="mmt-tabs" role="tablist">
@@ -121,11 +112,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
           </div>
 
           {list.length === 0 ? (
-            <div className="mmt-empty">
-              <span className="mmt-empty-icon"><Trophy size={36} /></span>
-              <strong>{q ? 'لا توجد نتائج للبحث' : tab === 'upcoming' ? 'لا توجد مباريات قادمة' : 'لا توجد مباريات منتهية'}</strong>
-              {!q && tab === 'upcoming' && <p>{personal ? 'ستظهر هنا مباريات فئتك عند برمجتها.' : 'أضف مباراة جديدة بالزر +'}</p>}
-            </div>
+            <StateIcon icon={Trophy} />
           ) : (
             <div className="mmt-list">
               {list.map(({ m, state }) => (

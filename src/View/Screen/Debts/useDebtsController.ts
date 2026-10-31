@@ -5,6 +5,7 @@ import { useCan } from '../../../core/functions/useCan';
 import { showSnackbar } from '../../../core/functions/Snacpar';
 import { useUrlDetails } from '../../Mobile/widgets/useUrlDetails';
 import { apiError, debtApiFor, type Debt, type DebtFund, type DebtKind } from './debtUtils';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- form bodies are plain JSON */
 
@@ -114,11 +115,8 @@ export const useDebtsController = ({ kind, onChange, autoLoad = true, openAfterS
 
   const debts = allDebts.filter(d => d.kind === kind);
 
-  const confirmRemove = (d: Debt) => {
-    const text = d.kind === 'loan'
-      ? `هل أنت متأكد من حذف دين «${d.creditor}» من سجل الديون؟ تبقى أرصدة الصناديق وعملياتها كما هي.`
-      : `هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`;
-    if (window.confirm(text)) remove(d);
+  const confirmRemove = async (d: Debt) => {
+    if (await confirmDelete(d.kind === 'loan' ? 'حذف الدين؟' : 'حذف الشراء بالدين؟', d.creditor)) remove(d);
   };
 
   /** A debt's actions, shown on its card (icons on desktop, the ⋮ menu on phones), not in its details */

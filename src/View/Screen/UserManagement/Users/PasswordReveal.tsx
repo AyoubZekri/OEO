@@ -67,7 +67,7 @@ export const PasswordReveal: React.FC<{ userId: string }> = ({ userId }) => {
       <span className="pw-label"><KeyRound size={14} />كلمة المرور الحالية</span>
       <div className="pw-box">
         <span className={`pw-value ${unknown ? 'unknown' : ''}`} dir={unknown ? 'rtl' : 'ltr'}>
-          {unknown ? 'غير معروفة (حُددت قبل حفظ كلمات المرور)' : shown && password ? password : '••••••••'}
+          {unknown ? 'غير معروفة' : shown && password ? password : '••••••••'}
         </span>
         {!unknown && (
           <button type="button" onClick={reveal} disabled={busy} title={shown ? 'إخفاء' : 'إظهار'} aria-label={shown ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>

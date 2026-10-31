@@ -9,6 +9,7 @@ import { CorrespondenceDialog } from './CorrespondenceDialog';
 import './Correspondences.css';
 import '../Members/Members.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { StateIcon } from '../../widget/StateIcon';
 
 const StatusDropdown = ({ value, onChange, disabled }: { value: string, onChange: (val: string) => void, disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -173,9 +174,7 @@ export const Correspondences: React.FC = () => {
             </div>
           ))}
           {controller.correspondences.length === 0 && (
-            <div className="no-data-message">
-              لا توجد مراسلات مطابقة للبحث
-            </div>
+            <StateIcon />
           )}
         </div>
       </div>

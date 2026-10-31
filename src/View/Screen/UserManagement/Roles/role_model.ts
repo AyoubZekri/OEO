@@ -186,6 +186,14 @@ export interface FeedbackPermissions {
   delete: boolean;
 }
 
+/** General goals: a goal per member and season */
+export interface GoalsPermissions {
+  view: boolean;
+  add: boolean;
+  edit: boolean;
+  delete: boolean;
+}
+
 /** Tasks: follow them (and talk with the member), give new ones and appointments, change their status / edit, delete */
 /** The home page: the tasks given to the members */
 export interface TasksPermissions {
@@ -223,6 +231,7 @@ export interface AppPermissions {
   decisions: DecisionsPermissions;
   correspondences: CorrespondencesPermissions;
   feedback: FeedbackPermissions;
+  goals: GoalsPermissions;
   tasks: TasksPermissions;
   appointments: AppointmentsPermissions;
   contracts: ContractsPermissions;
@@ -256,6 +265,7 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
   decisions: ['add', 'edit', 'delete', 'progress'],
   correspondences: ['add', 'changeStatus', 'delete'],
   feedback: ['reply', 'delete'],
+  goals: ['add', 'edit', 'delete'],
   tasks: ['add', 'voice', 'edit', 'changeStatus', 'chat', 'delete'],
   appointments: ['viewUpcoming', 'add', 'edit', 'toggle', 'delete'],
   contracts: ['add', 'edit', 'delete', 'print', 'renew'],
@@ -273,7 +283,7 @@ export const PERMISSION_DOMAINS: { key: string; label: string; modules: Permissi
   { key: 'general', label: 'عام', modules: ['tasks', 'dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'trainingSessions', 'matches', 'medical', 'travels'] },
-  { key: 'admin', label: 'الإدارة', modules: ['appointments', 'meetings', 'decisions', 'feedback'] },
+  { key: 'admin', label: 'الإدارة', modules: ['appointments', 'meetings', 'decisions', 'feedback', 'goals'] },
   { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },

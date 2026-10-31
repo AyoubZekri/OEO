@@ -60,6 +60,9 @@ export const MobileHomeTaskCard: React.FC<{ task: Task; onOpen: (t: Task) => voi
   const urgent = t.kind === 'urgent' && isOpen(t);
   const open = () => onOpen(t);
   const picked = select?.picked(t);
+  // Who: who gave it (mine), or who does it — nothing when no one is given it yet
+  const who = mine ? `من طرف ${t.created_by || 'النظام'}` : t.assignee?.name;
+  const newMessages = !onChat && t.unread > 0;
   return (
     <article
       className={`tsk-hcard kind-${t.kind} ${urgent ? 'live' : ''} ${select?.enabled ? 'tsk-selectable' : ''} ${picked ? 'tsk-picked' : ''}`}
@@ -87,12 +90,14 @@ export const MobileHomeTaskCard: React.FC<{ task: Task; onOpen: (t: Task) => voi
       {t.kind !== 'scheduled' && t.event_label && <p className="tsk-hcard-event">{t.event_label}</p>}
       {t.kind !== 'scheduled' && t.details && <p className="tsk-hcard-details">{t.details}</p>}
 
-      <footer className="tsk-hcard-meta">
-        {/* Mine (personal space): who gave it; otherwise who does it */}
-        <span><UserRound size={13} />{mine ? `من طرف ${t.created_by || 'النظام'}` : t.assignee?.name || '—'}</span>
-        {/* The deadline: in the details only */}
-        {!onChat && t.unread > 0 && <span className="tsk-hcard-unread"><MessageCircle size={13} />{t.unread} جديدة</span>}
-      </footer>
+      {(who || newMessages) && (
+        <footer className="tsk-hcard-meta">
+          {/* Mine (personal space): who gave it; otherwise who does it */}
+          {who && <span><UserRound size={13} />{who}</span>}
+          {/* The deadline: in the details only */}
+          {newMessages && <span className="tsk-hcard-unread"><MessageCircle size={13} />{t.unread} جديدة</span>}
+        </footer>
+      )}
     </article>
   );
 };

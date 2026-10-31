@@ -35,6 +35,8 @@ export const cardFooter = (
     return { kind: 'info', tone: 'muted', text: 'بدون تبرير' };
   }
 
+  // My own request or justification, seen among the others': another manager decides it
+  if (a.mine && status === 'pending') return { kind: 'info', tone: 'blue', text: `${leave ? 'طلبك' : 'تبريرك'} · ينتظر قرار مسؤول آخر` };
   if (opts.canJustify) return status === 'pending' ? { kind: 'decide' } : { kind: 'justify' };
   return status === 'pending'
     ? { kind: 'info', tone: 'blue', text: 'بانتظار القرار' }

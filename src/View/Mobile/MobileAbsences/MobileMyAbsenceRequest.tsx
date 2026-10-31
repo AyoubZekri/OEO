@@ -3,7 +3,8 @@ import { Send, Loader2, Calendar, Briefcase, AlertCircle, MessageSquareText, Pap
 import { MobileScreen } from '../widgets/MobileScreen';
 import { categoryIcon } from '../../Screen/Absence/absenceUtils';
 import { errorText, type MyAbsenceRequest } from '../../Screen/Personal/useMyAbsences';
-import { REQUEST_KINDS, ANNOUNCE_EVENTS, MAX_DOC, todayIso, requestError } from '../../Screen/Personal/absenceRequestForm';
+import { REQUEST_KINDS, ANNOUNCE_EVENTS, MAX_DOC, todayIso, requestError, requestErrorField, type RequestField } from '../../Screen/Personal/absenceRequestForm';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileAbsences.css';
 
@@ -19,20 +20,25 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
   const [delay, setDelay] = useState('');
   const [reason, setReason] = useState('');
   const [doc, setDoc] = useState<File | null>(null);
-  const [error, setError] = useState('');
+  // A field left wrong: its message under it (the event, a choice: a snackbar)
+  const [error, setError] = useState<{ field: RequestField; text: string } | null>(null);
+  const errorOf = (field: RequestField) => (error?.field === field ? error.text : '');
   const [saving, setSaving] = useState(false);
   const announce = kind !== 'leave';
   const current = REQUEST_KINDS.find(k => k.value === kind) || REQUEST_KINDS[0];
 
   const pick = (file: File | null) => {
-    if (file && file.size > MAX_DOC) return setError('حجم الوثيقة أكبر من 5 ميغا');
+    if (file && file.size > MAX_DOC) return showSnackbar('خطأ', 'حجم الوثيقة أكبر من 5 ميغا', '#ef4444');
     setDoc(file);
-    setError('');
+    setError(null);
   };
 
   const send = async () => {
     const problem = requestError({ kind, from, to, event, other, reason, doc });
-    if (problem) return setError(problem);
+    const field = problem ? requestErrorField(problem) : null;
+    setError(field ? { field, text: problem } : null);
+    if (problem && !field) showSnackbar('خطأ', problem, '#ef4444');
+    if (problem) return;
     setSaving(true);
     try {
       await onSubmit({
@@ -45,7 +51,7 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
         document: doc,
       });
     } catch (err) {
-      setError(errorText(err, 'تعذر إرسال الطلب'));
+      showSnackbar('خطأ', errorText(err, 'تعذر إرسال الطلب'), '#ef4444');
     } finally {
       setSaving(false);
     }
@@ -57,16 +63,14 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
       onBack={onClose}
       footer={(
         <button type="button" className="me-btn primary" onClick={send} disabled={saving}>
-          {saving ? <Loader2 size={18} className="mab-spin" /> : <Send size={18} />} إرسال
+          {saving ? <Loader2 size={18} className="mab-spin" /> : <Send size={18} />} تأكيد
         </button>
       )}
     >
-      {error && <p className="mab-banner"><AlertCircle size={16} /> {error}</p>}
-
       <section className="me-card">
         <div className="mab-modes n3">
           {REQUEST_KINDS.map(k => (
-            <button key={k.value} type="button" className={`tone-${k.tone} ${kind === k.value ? 'on' : ''}`} onClick={() => { setKind(k.value); setError(''); }}>
+            <button key={k.value} type="button" className={`tone-${k.tone} ${kind === k.value ? 'on' : ''}`} onClick={() => { setKind(k.value); setError(null); }}>
               <span><k.icon size={20} /></span>
               {k.short}
             </button>
@@ -79,7 +83,7 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
           <h3 className="me-section-title"><span><Briefcase size={16} /></span>{kind === 'late' ? 'ستتأخر عن' : 'ستغيب عن'}</h3>
           <div className="mab-cats">
             {ANNOUNCE_EVENTS.map(value => (
-              <button key={value} type="button" className={event === value ? 'on' : ''} onClick={() => { setEvent(value); setError(''); }}>
+              <button key={value} type="button" className={event === value ? 'on' : ''} onClick={() => setEvent(value)}>
                 {React.createElement(categoryIcon(value), { size: 16 })} {value}
               </button>
             ))}
@@ -87,7 +91,8 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
           {event === 'أخرى' && (
             <label className="me-field">
               <span className="me-label"><PenLine size={14} /> ما هو الحدث</span>
-              <input className="me-input" value={other} onChange={e => { setOther(e.target.value); setError(''); }} placeholder="مثال: حصة تصوير، موعد إداري..." />
+              <input className={`me-input ${errorOf('other') ? 'is-missing' : ''}`} value={other} onChange={e => { setOther(e.target.value); setError(null); }} />
+              {errorOf('other') && <p className="mab-error"><AlertCircle size={14} /> {errorOf('other')}</p>}
             </label>
           )}
         </section>
@@ -96,24 +101,26 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Calendar size={14} /> {kind === 'leave' ? 'من' : 'التاريخ'}</span>
-          <input className="me-input" type="date" dir="ltr" value={from} min={todayIso()} onChange={e => { setFrom(e.target.value); setError(''); }} />
+          <input className={`me-input ${errorOf('from') ? 'is-missing' : ''}`} type="date" dir="ltr" value={from} min={todayIso()} onChange={e => { setFrom(e.target.value); setError(null); }} />
+          {errorOf('from') && <p className="mab-error"><AlertCircle size={14} /> {errorOf('from')}</p>}
         </label>
         {kind === 'leave' && (
           <label className="me-field">
-            <span className="me-label"><Calendar size={14} /> إلى (اختياري)</span>
-            <input className="me-input" type="date" dir="ltr" value={to} min={from || todayIso()} onChange={e => { setTo(e.target.value); setError(''); }} />
+            <span className="me-label"><Calendar size={14} /> إلى</span>
+            <input className={`me-input ${errorOf('to') ? 'is-missing' : ''}`} type="date" dir="ltr" value={to} min={from || todayIso()} onChange={e => { setTo(e.target.value); setError(null); }} />
+            {errorOf('to') && <p className="mab-error"><AlertCircle size={14} /> {errorOf('to')}</p>}
           </label>
         )}
         {kind === 'late' && (
           <label className="me-field">
-            <span className="me-label"><Clock size={14} /> مدة التأخر المتوقعة (اختياري)</span>
-            <input className="me-input" value={delay} onChange={e => setDelay(e.target.value)} placeholder="مثال: 30 دقيقة" />
+            <span className="me-label"><Clock size={14} /> مدة التأخر</span>
+            <input className="me-input" value={delay} onChange={e => setDelay(e.target.value)} />
           </label>
         )}
       </section>
 
       <section className="me-card">
-        <h3 className="me-section-title"><span><MessageSquareText size={16} /></span>السبب: نص أو وثيقة أو الاثنان</h3>
+        <h3 className="me-section-title"><span><MessageSquareText size={16} /></span>السبب</h3>
         {doc ? (
           <div className="mab-file">
             <Paperclip size={16} /> <b>{doc.name}</b>
@@ -121,18 +128,17 @@ export const MobileMyAbsenceRequest: React.FC<{ onSubmit: (data: MyAbsenceReques
           </div>
         ) : (
           <label className="mab-file pick">
-            <Paperclip size={16} /> أرفق وثيقة (PDF أو صورة)
+            <Paperclip size={16} /> إرفاق وثيقة
             <input type="file" accept="application/pdf,image/*" onChange={e => pick(e.target.files?.[0] ?? null)} hidden />
           </label>
         )}
         <textarea
-          className="mab-textarea"
+          className={`mab-textarea ${errorOf('reason') ? 'is-missing' : ''}`}
           value={reason}
-          onChange={e => { setReason(e.target.value); setError(''); }}
-          placeholder={kind === 'leave' ? 'سبب طلب العطلة (سفر، ظرف عائلي...)' : kind === 'late' ? 'سبب التأخر (امتحان، موعد طبي...)' : 'سبب الغياب (امتحان، موعد طبي...)'}
+          onChange={e => { setReason(e.target.value); setError(null); }}
           rows={4}
         />
-        <p className="mab-note">يصل إلى الإدارة، ويبقى قيد الدراسة حتى يتم قبوله أو رفضه.</p>
+        {errorOf('reason') && <p className="mab-error"><AlertCircle size={14} /> {errorOf('reason')}</p>}
       </section>
     </MobileScreen>
   );

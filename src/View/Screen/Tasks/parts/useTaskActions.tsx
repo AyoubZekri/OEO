@@ -6,7 +6,7 @@ import { TaskForm } from './TaskForm';
 import { VoiceTaskForm } from './VoiceTaskForm';
 import { TaskChatDialog, TaskDetails, TaskStatusDialog } from './TaskDetails';
 import { taskMenu } from './taskMenu';
-import { DeleteConfirm } from './DeleteConfirm';
+import { DeleteConfirm } from '../../../shared/DeleteConfirm';
 
 /**
  * A task's ⋮ menu and what it opens (computer and phone pages alike): the details, its event's page, the conversation,
@@ -48,7 +48,6 @@ export const useTaskActions = (c: TasksAdmin, mobile: boolean) => {
         <DeleteConfirm
           title="حذف المهمة؟"
           name={toDelete.title}
-          note="تُحذف المهمة ومحادثتها نهائياً، ولا يمكن التراجع."
           onConfirm={() => c.remove(toDelete.id, false)}
           onClose={() => setToDelete(null)}
         />

@@ -60,13 +60,15 @@ const STATUS_OPTIONS = [
 
 type IconType = React.ComponentType<{ size?: number }>;
 
-const Field: React.FC<{ label: string; icon: IconType; required?: boolean; children: React.ReactNode }> = ({ label, icon: Icon, required, children }) => (
+/** A field; error: a required one left empty, its message right under it */
+const Field: React.FC<{ label: string; icon: IconType; required?: boolean; error?: string; children: React.ReactNode }> = ({ label, icon: Icon, required, error, children }) => (
   <label className="mf-field">
     <span className="mf-label">{label}{required && <em> *</em>}</span>
-    <span className="mf-control">
+    <span className={`mf-control ${error ? 'is-missing' : ''}`}>
       <Icon size={18} />
       {children}
     </span>
+    {error && <small className="member-field-error">{error}</small>}
   </label>
 );
 
@@ -173,11 +175,11 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
 
         <Section title="المعلومات الأساسية" icon={User}>
           <div className="mf-row">
-            <Field label="الاسم" icon={User} required>
-              <input type="text" name="first_name" required value={formData.first_name || ''} onChange={handleFormDataChange} />
+            <Field label="الاسم" icon={User} required error={controller.missing.first_name ? 'اكتب الاسم' : undefined}>
+              <input type="text" name="first_name" value={formData.first_name || ''} onChange={handleFormDataChange} />
             </Field>
-            <Field label="اللقب" icon={User} required>
-              <input type="text" name="last_name" required value={formData.last_name || ''} onChange={handleFormDataChange} />
+            <Field label="اللقب" icon={User} required error={controller.missing.last_name ? 'اكتب اللقب' : undefined}>
+              <input type="text" name="last_name" value={formData.last_name || ''} onChange={handleFormDataChange} />
             </Field>
           </div>
           <Field label="رقم الهوية الوطنية" icon={IdCard}>

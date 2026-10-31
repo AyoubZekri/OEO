@@ -1,0 +1,157 @@
+/* General goals */
+
+/* Desktop form: no scroll — the dialog as tall as its fields, the assignee's list opening over its edge */
+.tk-dialog:has(.gl-form),
+.tk-dialog:has(.gl-form) .dialog-body { overflow: visible; max-height: none; }
+/* Nothing clips now, so the header and footer take the dialog's own rounded corners */
+.tk-dialog:has(.gl-form) .dialog-header { border-radius: 20px 20px 0 0; }
+.tk-dialog:has(.gl-form) .dialog-footer { border-radius: 0 0 20px 20px; }
+
+/* The goal: one line at first, growing with its text */
+.tk-scope textarea.tk-input.gl-goal-input {
+  min-height: 48px;
+  padding: 12px 14px;
+  overflow: hidden;
+  resize: none;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.7;
+  border-radius: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.tk-scope textarea.tk-input.gl-goal-input:focus { box-shadow: 0 0 0 4px color-mix(in srgb, var(--tk-accent) 14%, transparent); border-color: var(--tk-accent) !important; }
+.gl-goal-field .tk-label svg { color: var(--tk-accent); }
+
+/* The season: ‹ 2026 - 2027 › */
+.gl-season-pick {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-field);
+}
+.gl-season-pick b {
+  flex: 1;
+  color: var(--tk-accent);
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+.gl-season-pick button {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--tk-accent) 12%, transparent);
+  color: var(--tk-accent);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.gl-season-pick button:hover { background: var(--tk-accent); color: #fff; }
+
+/* The goals as cards: three or more across on a computer, one under the other on a phone; the app's one colour */
+.gl-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+.tk-mpage .gl-cards { grid-template-columns: 1fr; gap: 12px; padding-bottom: 96px; }
+
+.gl-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--tk-border);
+  background: var(--tk-card);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+.gl-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--tk-accent) 35%, var(--tk-border));
+  box-shadow: 0 14px 30px -18px rgba(15, 23, 42, 0.3);
+}
+
+.gl-card-top { display: flex; align-items: center; gap: 10px; }
+.gl-card-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--tk-accent) 12%, transparent);
+  color: var(--tk-accent);
+}
+.gl-card-menu { margin-inline-start: auto; }
+
+.gl-season {
+  display: inline-block;
+  padding: 5px 11px;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--tk-accent) 10%, transparent);
+  color: var(--tk-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.gl-card-goal {
+  flex: 1;
+  margin: 0;
+  color: var(--tk-text);
+  font-size: 1.02rem;
+  font-weight: 800;
+  line-height: 1.7;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+.gl-card-who {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--tk-border);
+}
+.gl-card-who i {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--tk-accent);
+  color: #fff;
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 800;
+}
+.gl-card-who b { min-width: 0; color: var(--tk-text); font-size: 0.9rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.gl-hero-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+/* A required field left empty: a red edge, and its message right under it */
+.tk-scope .gl-missing.tk-field textarea.tk-input,
+.tk-scope .gl-missing textarea.tk-input.gl-goal-input:focus,
+.gl-missing .modern-form-group > div:first-of-type,
+.gl-missing .ms-trigger { border-color: #ef4444 !important; }
+.gl-field-error {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  color: #ef4444;
+  font-size: 0.78rem;
+  font-weight: 700;
+}

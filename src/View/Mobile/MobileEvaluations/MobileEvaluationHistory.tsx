@@ -13,6 +13,7 @@ import type { MemberModel } from '../../Screen/Members/member_model';
 import './MobileEvaluations.css';
 import './MobileEvaluationHistory.css';
 import { periodLabel } from '../../Screen/Members/Evaluation/evaluation_data';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileEvaluationHistoryProps {
   player: MemberModel;
@@ -99,11 +100,7 @@ export const MobileEvaluationHistory: React.FC<MobileEvaluationHistoryProps> = (
         </section>
 
         {evaluations.length === 0 ? (
-          <div className="me-empty">
-            <ClipboardList size={44} />
-            <strong>لا توجد تقييمات سابقة</strong>
-            <p>هذا اللاعب لم يحصل على أي تقييم مسجل حتى الآن.</p>
-          </div>
+          <StateIcon icon={ClipboardList} />
         ) : (
           evaluations.map(ev => {
             const grade = gradeOf(ev.totalScore || 0);

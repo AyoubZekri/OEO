@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, MapPin, Search, X, Filter, ChevronDown, Inbox, RefreshCw, CalendarClock, Navigation, CheckCircle2 } from 'lucide-react';
+import { Plus, MapPin, Search, X, Filter, ChevronDown, RefreshCw } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileSelect } from '../widgets/MobileSelect';
 import { PageLoader } from '../../shared/PageLoader';
@@ -7,9 +7,10 @@ import type { TravelsController } from '../../Screen/Travels/useTravelsControlle
 import { TravelOverlays } from '../../Screen/Travels/parts/TravelOverlays';
 import { TravelCard } from '../../Screen/Travels/parts/TravelCard';
 import { travelMenu } from '../../Screen/Travels/parts/travelMenu';
-import { countdownText, filterTravels, sortTravels, statusOf, STATUS_FILTERS } from '../../Screen/Travels/travelUtils';
+import { filterTravels, sortTravels, statusOf, STATUS_FILTERS } from '../../Screen/Travels/travelUtils';
 import '../../shared/kit.css';
 import '../../Screen/Travels/Travels.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 // Phone version of the travels page: the next trip in the hero, search, the status filter in a bottom sheet, the cards
 export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
@@ -30,29 +31,16 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
         <div className="tk-hero-top">
           <span className="tk-hero-icon"><MapPin size={26} /></span>
           <div>
-            <small>{next ? (statusOf(next) === 'ongoing' ? 'التنقل الجاري' : `التنقل القادم · ${countdownText(next)}`) : 'لا يوجد تنقل قادم'}</small>
+            <small>{next ? (statusOf(next) === 'ongoing' ? 'التنقل الجاري' : 'التنقل القادم') : 'لا يوجد تنقل قادم'}</small>
             <strong className="tv-hero-dest">{next ? next.destination : '—'}</strong>
           </div>
-        </div>
-        <div className="tk-hero-tiles tv-hero-tiles">
-          {[
-            { label: 'القادمة', v: upcoming.length, icon: CalendarClock, tone: 'blue' },
-            { label: 'الجارية', v: ongoing.length, icon: Navigation, tone: 'orange' },
-            { label: 'المنتهية', v: count('done'), icon: CheckCircle2, tone: 'green' },
-          ].map(t => (
-            <div key={t.label} className={`tone-${t.tone}`}>
-              <t.icon size={14} />
-              <strong>{t.v}</strong>
-              <small>{t.label}</small>
-            </div>
-          ))}
         </div>
       </section>
 
       <div className="tk-toolbar">
         <label className="tk-search">
           <Search size={17} />
-          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالوجهة أو المباراة..." />
+          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالوجهة أو المباراة" />
           {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
         </label>
         <MobileSelect
@@ -74,11 +62,11 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
       {c.loading && !c.travels.length ? <PageLoader mobile text="جاري تحميل التنقلات..." />
         : c.error ? (
           <div className="tk-state">
-            <MapPin size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : c.personal ? 'لست ضمن أي تنقل حالياً' : 'لا توجد تنقلات بعد'}</p></div>
+          <StateIcon icon={MapPin} />
         ) : (
           <div className="tk-list">{visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} compact menu={travelMenu(t, c)} />)}</div>
         )}

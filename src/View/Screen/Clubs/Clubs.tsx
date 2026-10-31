@@ -9,6 +9,7 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileClubs } from '../../Mobile/MobileClubs/MobileClubs';
 import './Clubs.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const Clubs: React.FC = () => {
   const { t } = useTranslation();
@@ -39,8 +40,8 @@ export const Clubs: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا النادي؟')) {
+  const handleDelete = async (id: string) => {
+    if (await confirmDelete('حذف النادي؟')) {
       deleteClub(id);
     }
   };

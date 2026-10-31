@@ -559,3 +559,6 @@ body.dark-mode .sc-status-menu-item.active {
   outline: 2px solid #f97316;
   outline-offset: 2px;
 }
+
+/* The session's form: a required field left empty — a red edge (its message under it) */
+.modern-dialog-body .form-group input.is-missing { border-color: #ef4444 !important; }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, User, Calendar, Clock, FileText, AlertCircle } from 'lucide-react';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { CustomDropdown } from '../../widget/CustomDropdown';
@@ -44,9 +45,12 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [customEventCategory, setCustomEventCategory] = useState('');
   const [memberReasons, setMemberReasons] = useState<{ [key: string]: string }>({});
+  // The fields to type left empty: their message under them (the members, a choice: a snackbar)
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setShowErrors(false);
       fetchPlayers();
       if (defaultPlayerId) {
         setFormData(prev => ({ ...prev, player_ids: [defaultPlayerId.toString()] }));
@@ -88,14 +92,9 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.player_ids.length === 0) {
-      alert('الرجاء اختيار الأعضاء');
-      return;
-    }
-    if (!formData.event_date) {
-      alert('الرجاء اختيار التاريخ');
-      return;
-    }
+    setShowErrors(true);
+    if (formData.player_ids.length === 0) return showSnackbar('خطأ', isMultiMode ? 'اختر الأعضاء' : 'اختر العضو', '#ef4444');
+    if (!formData.event_date || (formData.event_category === 'أخرى' && !customEventCategory.trim())) return;
 
     setIsSubmitting(true);
     try {
@@ -139,7 +138,6 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
           <span className="ab-dialog-icon"><current.icon size={22} /></span>
           <div className="ab-dialog-title">
             <h2>{title}</h2>
-            <p>{isMultiMode ? 'اختر كل الأعضاء المعنيين دفعة واحدة' : 'سجل الحالة ثم يمكن تبريرها لاحقاً'}</p>
           </div>
           <button type="button" className="ab-close" onClick={onClose} aria-label="إغلاق"><X size={20} /></button>
         </header>
@@ -157,23 +155,22 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
 
           {/* Who */}
           <div className="ab-field">
-            <span><User size={15} /> {isMultiMode ? 'الأعضاء *' : 'العضو *'}</span>
+            <span><User size={15} /> {isMultiMode ? 'الأعضاء' : 'العضو'}</span>
             {isMultiMode ? (
               <CustomMultiSelect
                 values={formData.player_ids}
                 onChange={(vals) => setFormData({ ...formData, player_ids: vals })}
                 options={players.map(p => ({ value: p.id.toString(), label: memberLabel(p) }))}
-                placeholder="-- اختر الأعضاء --"
+                placeholder=""
               />
             ) : (
               <CustomDropdown<string>
                 value={formData.player_ids[0] || ''}
                 onChange={(val) => setFormData({ ...formData, player_ids: [val] })}
                 options={players.map(p => ({ value: p.id.toString(), label: memberLabel(p) }))}
-                placeholder="-- اختر العضو --"
+                placeholder=""
               />
             )}
-            {isMultiMode && formData.player_ids.length > 0 && <small className="ab-hint">{formData.player_ids.length} عضو محدد</small>}
           </div>
 
           {/* Event */}
@@ -189,21 +186,22 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
           </div>
           {formData.event_category === 'أخرى' && (
             <label className="ab-field">
-              <span>تحديد الفعالية *</span>
-              <input type="text" value={customEventCategory} onChange={(e) => setCustomEventCategory(e.target.value)} placeholder="أدخل نوع الفعالية" required />
+              <span>تحديد الفعالية</span>
+              <input type="text" className={showErrors && !customEventCategory.trim() ? 'is-missing' : ''} value={customEventCategory} onChange={(e) => setCustomEventCategory(e.target.value)} />
+              {showErrors && !customEventCategory.trim() && <p className="ab-field-error"><AlertCircle size={13} /> اكتب نوع الفعالية</p>}
             </label>
           )}
           {formData.event_category === 'اجتماع' && meetings.length > 0 && (
             <div className="ab-field">
-              <span>الاجتماع (اختياري)</span>
+              <span>الاجتماع</span>
               <CustomDropdown<string>
                 value={formData.meeting_id}
                 onChange={(val) => setFormData({ ...formData, meeting_id: val })}
                 options={[
-                  { value: '', label: '-- اختر الاجتماع --' },
+                  { value: '', label: 'بدون تحديد' },
                   ...meetings.map(m => ({ value: m.id, label: `${m.topic} (${m.date})` }))
                 ]}
-                placeholder="-- اختر الاجتماع --"
+                placeholder="بدون تحديد"
               />
             </div>
           )}
@@ -211,32 +209,27 @@ export const AddAbsenceDialog: React.FC<AddAbsenceDialogProps> = ({ isOpen, onCl
           {/* When */}
           <div className={`ab-row ${(recordMode === 'request' || recordMode === 'late') ? 'two' : ''}`}>
             <label className="ab-field">
-              <span><Calendar size={15} /> التاريخ *</span>
-              <input type="date" dir="ltr" value={formData.event_date} onChange={(e) => setFormData({ ...formData, event_date: e.target.value })} required />
+              <span><Calendar size={15} /> التاريخ</span>
+              <input type="date" dir="ltr" className={showErrors && !formData.event_date ? 'is-missing' : ''} value={formData.event_date} onChange={(e) => setFormData({ ...formData, event_date: e.target.value })} />
+              {showErrors && !formData.event_date && <p className="ab-field-error"><AlertCircle size={13} /> حدد التاريخ</p>}
             </label>
             {(recordMode === 'request' || recordMode === 'late') && (
               <label className="ab-field">
-                <span><Clock size={15} /> {recordMode === 'late' ? 'مدة التأخر (اختياري)' : 'المدة (اختياري)'}</span>
+                <span><Clock size={15} /> {recordMode === 'late' ? 'مدة التأخر' : 'المدة'}</span>
                 <input
                   type="text"
                   value={formData.duration}
                   onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
-                  placeholder={recordMode === 'late' ? 'مثال: 15 دقيقة' : 'مثال: يومان، ساعتان'}
                 />
               </label>
             )}
           </div>
-          <p className="ab-hint"><AlertCircle size={13} /> يمكن تقديم التبرير لاحقاً من بطاقة الحالة.</p>
         </div>
 
         <footer className="ab-dialog-foot">
           <button type="button" className="ab-btn" onClick={onClose} disabled={isSubmitting}>إلغاء</button>
           <button type="submit" className="ab-btn primary" disabled={isSubmitting}>
-            {isSubmitting ? 'جاري الحفظ...' :
-              recordMode === 'request' ? 'إرسال الطلب' :
-                recordMode === 'late' ? 'تسجيل التأخر' :
-                  recordMode === 'leave' ? 'تسجيل المغادرة' :
-                    'حفظ الغياب'}
+            {isSubmitting ? 'جاري الحفظ...' : 'تأكيد'}
           </button>
         </footer>
       </form>

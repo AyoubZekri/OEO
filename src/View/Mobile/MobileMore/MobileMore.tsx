@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, Bus, Landmark, ArrowLeftRight as SwitchIcon, UserRound, LayoutDashboard, CalendarX2, LogOut, MessageSquare, ClipboardList, PieChart } from 'lucide-react';
-import { SPACE_LABELS } from '../../../core/context/space';
+  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, Bus, Landmark, CalendarX2, LogOut, MessageSquare, ClipboardList, PieChart, Target } from 'lucide-react';
 import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Approutes } from '../../../core/constant/routes';
 import type { useSaidparController } from '../../Screen/Saidpar/SaidparController';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import './MobileMore.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileMoreProps {
   controller: ReturnType<typeof useSaidparController>;
@@ -29,9 +29,9 @@ const IN_PERSONAL_NAV = new Set<string>(['/', Approutes.MyTrainingSessions, Appr
 
 const GROUPS: { title: string; names: string[] }[] = [
   { title: 'فضائي الشخصي', names: ['MyTrainingSessions', 'MyTasks', 'MyMatches', 'MyTravels', 'MyAbsences', 'MyMeetings', 'MyMedical', 'MyDisciplinary', 'MyFeedback'] },
-  { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MedicalRecords', 'Disciplinary'] },
+  { title: 'الرياضي', names: ['Teams', 'Matches', 'Travels', 'TrainingSessions', 'AbsenceRequests', 'MyAbsencesPage', 'MedicalRecords', 'MyMedicalPage', 'Disciplinary', 'MyDisciplinaryPage'] },
   { title: 'المالية', names: ['Finance', 'Contracts', 'Payments', 'Funds', 'Debts', 'Reports'] },
-  { title: 'الإدارة', names: ['Tasks', 'Feedback', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
+  { title: 'الإدارة', names: ['Tasks', 'Feedback', 'Goals', 'Meetings', 'Decisions', 'Equipment', 'EquipmentOperations', 'Users', 'Roles'] },
 ];
 
 // Icon and colour of each page tile
@@ -52,15 +52,21 @@ const PAGE_STYLE: Record<string, { icon: IconType; color: string }> = {
   MyTrainingSessions: { icon: Calendar, color: '#0ea5e9' },
   MyMatches: { icon: Trophy, color: '#f97316' },
   MyAbsences: { icon: CalendarX2, color: '#ef4444' },
+  // «غياباتي» in the management space
+  MyAbsencesPage: { icon: CalendarX2, color: '#ef4444' },
   MyMeetings: { icon: Briefcase, color: '#0ea5e9' },
   MyTravels: { icon: Bus, color: '#0ea5e9' },
   MyMedical: { icon: Stethoscope, color: '#ef4444' },
   MyDisciplinary: { icon: Scale, color: '#8b5cf6' },
+  // «إجراءاتي» and «تقاريري الطبية» in the management space
+  MyMedicalPage: { icon: Stethoscope, color: '#ef4444' },
+  MyDisciplinaryPage: { icon: Scale, color: '#8b5cf6' },
   MyFeedback: { icon: MessageSquare, color: '#14b8a6' },
   MyTasks: { icon: ClipboardList, color: '#f97316' },
   Finance: { icon: PieChart, color: '#10b981' },
   Tasks: { icon: ClipboardList, color: '#f97316' },
   Feedback: { icon: MessageSquare, color: '#14b8a6' },
+  Goals: { icon: Target, color: '#8b5cf6' },
   Meetings: { icon: Briefcase, color: '#0ea5e9' },
   Decisions: { icon: Gavel, color: '#8b5cf6' },
   Equipment: { icon: Package, color: '#f59e0b' },
@@ -126,28 +132,13 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
         </button>
       </section>
 
-      {controller.canManage && (
-        <button
-          type="button"
-          className="mo-space-switch"
-          onClick={() => controller.switchSpace(controller.space === 'personal' ? 'management' : 'personal')}
-        >
-          {controller.space === 'personal' ? <LayoutDashboard size={19} /> : <UserRound size={19} />}
-          <span>التبديل إلى {controller.space === 'personal' ? SPACE_LABELS.management : SPACE_LABELS.personal}</span>
-          <SwitchIcon size={17} />
-        </button>
-      )}
-
       <label className="mo-search">
         <Search size={17} />
         <input type="search" placeholder="ابحث عن صفحة..." value={query} onChange={e => setQuery(e.target.value)} />
       </label>
 
       {grouped.length === 0 ? (
-        <div className="mo-empty">
-          <LayoutGrid size={40} />
-          <p>{pages.length === 0 ? 'لا توجد صفحات في فضائك الشخصي بعد' : 'لا توجد صفحة بهذا الاسم'}</p>
-        </div>
+        <StateIcon icon={LayoutGrid} />
       ) : grouped.map(group => (
         <section key={group.title} className="mo-group">
           <h2>{group.title}</h2>

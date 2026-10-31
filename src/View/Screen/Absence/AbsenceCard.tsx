@@ -41,7 +41,7 @@ export const AbsenceCard: React.FC<AbsenceCardProps> = ({ absence: a, hideMember
   const infoIcon = footer.kind === 'info' ? React.createElement(footer.expired ? TimerOff : INFO_ICONS[footer.tone], { size: 15 }) : null;
 
   return (
-    <article id={`absence-card-${a.id}`} className={`abx tone-${type.tone} st-${status} ${focused ? 'focused' : ''}`}>
+    <article id={`absence-card-${a.id}`} className={`abx tone-${type.tone} st-${status} ${focused ? 'focused' : ''} ${a.mine && !personal ? 'mine' : ''}`}>
       <header className="abx-head">
         <span className="abx-kind"><type.icon size={20} /></span>
         <div className="abx-title">
@@ -82,13 +82,12 @@ export const AbsenceCard: React.FC<AbsenceCardProps> = ({ absence: a, hideMember
           </span>
         )}
         {a.duration && <span><Clock size={13} /> {a.duration}</span>}
-        {!a.event_category && !a.duration && !a.attachment_url && <span className="none">لا توجد تفاصيل إضافية</span>}
       </div>
 
       <div className={`abx-note ${a.reason ? '' : 'empty'}`}>
         <MessageSquareText size={15} />
         <p title={a.reason || undefined}>
-          {a.reason || (a.attachment_url ? (leave ? 'السبب في الوثيقة المرفقة' : 'التبرير في الوثيقة المرفقة') : leave ? 'بدون سبب مكتوب' : 'لم يُكتب تبرير')}
+          {a.reason || '—'}
         </p>
       </div>
 

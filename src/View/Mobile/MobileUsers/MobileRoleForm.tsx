@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Loader2, ShieldCheck, ShieldAlert, Type, AlertCircle, Info } from 'lucide-react';
+import { Save, Loader2, ShieldCheck, ShieldAlert, Type, AlertCircle } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { RoleModel, defaultPermissions } from '../../Screen/UserManagement/Roles/role_model';
 import type { AppPermissions } from '../../Screen/UserManagement/Roles/role_model';
@@ -66,14 +66,14 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mus-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : t('roles_permissions.save_role')}
+          {saving ? 'جاري الحفظ...' : role ? t('roles_permissions.save_role') : 'تأكيد'}
         </button>
       )}
     >
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Type size={14} /> {t('roles_permissions.role_name')}</span>
-          <input className="me-input" type="text" value={name} onChange={e => { setName(e.target.value); setError(null); }} placeholder="مثال: أمين المال" />
+          <input className={`me-input ${error ? 'is-missing' : ''}`} type="text" value={name} onChange={e => { setName(e.target.value); setError(null); }} />
         </label>
         {error && <p className="mus-form-error"><AlertCircle size={14} /> {error}</p>}
 
@@ -83,18 +83,14 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
             <button type="button" className={`full ${isFull ? 'on' : ''}`} onClick={() => setAccessLevel('full')}>
               <ShieldCheck size={22} />
               <strong>{t('roles_permissions.full_access')}</strong>
-              <small>كل الأقسام وكل الإجراءات</small>
             </button>
             <button type="button" className={`partial ${!isFull ? 'on' : ''}`} onClick={() => setAccessLevel('partial')}>
               <ShieldAlert size={22} />
               <strong>{t('roles_permissions.partial_access')}</strong>
-              <small>تختار الأقسام والإجراءات</small>
             </button>
           </div>
         </div>
       </section>
-
-      {isFull && <p className="mus-note"><Info size={15} /> الصلاحيات الكاملة تفعّل كل الأقسام. اختر "صلاحيات جزئية" لتحديدها بنفسك.</p>}
 
       <div className={`mus-modules ${isFull ? 'locked' : ''}`}>
         {DOMAINS.map(d => (

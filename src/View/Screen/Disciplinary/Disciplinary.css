@@ -1157,7 +1157,8 @@ body.dark-mode .epic-form-section {
   font-weight: 800;
 }
 
-.dc-member-name { color: var(--text-h, var(--text)); font-size: 0.86rem; font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+/* The member's whole name (it wraps, never cut) */
+.dc-member-name { color: var(--text-h, var(--text)); font-size: 0.86rem; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
 
 .dc-deadline {
   flex-shrink: 0;
@@ -1191,3 +1192,10 @@ body.dark-mode .epic-form-section {
 /* A date and its time of day, side by side */
 .dd-date-time { display: grid; grid-template-columns: 1.6fr 1fr; gap: 12px; }
 @media (max-width: 600px) { .dd-date-time { grid-template-columns: 1fr; } }
+
+/* The action's form: a required field left empty — a red edge, and its message right under it */
+.modern-form-input.is-missing { border-color: #ef4444 !important; }
+.dd-field-error { display: flex; align-items: center; gap: 5px; margin-top: 6px; color: #ef4444; font-size: 0.78rem; font-weight: 700; }
+
+/* The member's photo on the card */
+img.dc-avatar { object-fit: cover; padding: 0; }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import type { PlayerMedicalRecord } from './medical_model';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 /** The diagnosis stays with the medical staff: what the member sees instead */
 export const CONFIDENTIAL_DIAGNOSIS = 'سري: متاح لدى الطاقم الطبي فقط';
@@ -119,7 +120,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا الملف الطبي؟')) return;
+    if (!(await confirmDelete('حذف الملف الطبي؟'))) return;
     try {
       const token = localStorage.getItem('token');
       await axios.post(Applink.deleteMedicalRecord(id), {}, {
@@ -133,7 +134,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
   };
 
   const handleDeleteInitialExam = async (record: PlayerMedicalRecord) => {
-    if (!window.confirm('هل أنت متأكد من حذف الفحص الأولي؟ سيتم التراجع عن الحالة إلى مفتوح/مصاب.')) return;
+    if (!(await confirmDelete('حذف الفحص الأولي؟'))) return;
     try {
       const token = localStorage.getItem('token');
       const payload: any = { ...record };
@@ -156,7 +157,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
   };
 
   const handleDeleteFinalDecision = async (record: PlayerMedicalRecord) => {
-    if (!window.confirm('هل أنت متأكد من حذف القرار النهائي؟ سيتم التراجع عن الحالة إلى بانتظار الفحص النهائي.')) return;
+    if (!(await confirmDelete('حذف القرار النهائي؟'))) return;
     try {
       const token = localStorage.getItem('token');
       const payload: any = { ...record };
@@ -181,7 +182,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
   };
 
   const handleDeleteTreatmentPhase = async (record: PlayerMedicalRecord) => {
-    if (!window.confirm('هل أنت متأكد من حذف تفاصيل مرحلة العلاج؟ سيتم التراجع عن الحالة إلى بانتظار قرار العودة.')) return;
+    if (!(await confirmDelete('حذف مرحلة العلاج؟'))) return;
     try {
       const token = localStorage.getItem('token');
       const payload: any = { ...record };

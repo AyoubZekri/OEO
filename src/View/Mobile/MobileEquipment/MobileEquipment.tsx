@@ -11,6 +11,7 @@ import { arCount } from '../MobileTeams/teamRoster';
 import { MobileEquipmentDetails, MobileEquipmentMovements } from './MobileEquipmentDetails';
 import { MobileEquipmentForm } from './MobileEquipmentForm';
 import './MobileEquipment.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileEquipmentProps {
   c: ReturnType<typeof useEquipmentController>;
@@ -66,11 +67,7 @@ export const MobileEquipment: React.FC<MobileEquipmentProps> = ({ c, can }) => {
       {c.isLoading && !c.equipments.length ? (
         <MobileLoader text="جاري تحضير العتاد..." />
       ) : list.length === 0 ? (
-        <div className="meq-empty">
-          <span className="meq-empty-icon"><Package size={36} /></span>
-          <strong>{query ? 'لا يوجد عتاد بهذا الاسم' : 'لا يوجد عتاد مسجل'}</strong>
-          {!query && can.add && <p>أضف عتاداً جديداً بالزر +</p>}
-        </div>
+        <StateIcon icon={Package} />
       ) : (
         <div className="meq-grid">
           {list.map(e => {

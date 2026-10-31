@@ -1123,3 +1123,33 @@
 .abr .tone-amber { --ab-t: #f59e0b; }
 .abr .tone-orange { --ab-t: #f97316; }
 .abr .tone-violet { --ab-t: #8b5cf6; }
+
+/* My own record among the others' (management): dimmed while it waits for another manager's decision */
+.abx.mine.st-pending { opacity: 0.7; }
+
+/* The page's title (no figures) */
+.ab-hero-main strong.title { font-size: 1.5rem; }
+
+/* A required field left empty: a red edge and its message under it */
+.ab-overlay .ab-field input.is-missing,
+.ab-overlay .ab-field textarea.is-missing { border-color: #ef4444; }
+.ab-field-error { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.8rem; font-weight: 700; color: #ef4444; }
+
+/* Day mode: the title block and the dialogs' heads are white (dark only in night mode) */
+body:not(.dark-mode) .ab-hero {
+  background: var(--card-bg);
+  color: var(--text-h);
+  border-color: var(--border);
+}
+body:not(.dark-mode) .ab-hero-main small { color: #ea580c; }
+body:not(.dark-mode) .ab-tile { background: var(--bg); border-color: var(--border); }
+body:not(.dark-mode) .ab-tile span { color: var(--ab-t); background: color-mix(in srgb, var(--ab-t) 12%, transparent); }
+body:not(.dark-mode) .ab-dialog-head {
+  background: var(--card-bg);
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+}
+body:not(.dark-mode) .ab-dialog-title h2 { color: var(--text-h); }
+body:not(.dark-mode) .ab-dialog-title p { color: var(--text-muted); }
+body:not(.dark-mode) .ab-close { border-color: var(--border); background: transparent; color: var(--text-h); }
+body:not(.dark-mode) .ab-avatar.light { box-shadow: 0 0 0 3px var(--border); }

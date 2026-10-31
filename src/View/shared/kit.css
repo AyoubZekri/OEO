@@ -2098,3 +2098,19 @@ body.dark-mode .tk-overlay.tk-desk .tk-scope {
   font-size: 0.8rem;
 }
 .tkd-rules .tk-rule-list li.on { border-color: rgba(16, 185, 129, 0.35); background: rgba(16, 185, 129, 0.08); }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .tk-hero {
+  color: #0f172a;
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+body:not(.dark-mode) .tk-hero-top small { color: #ea580c; }
+body:not(.dark-mode) .tk-hero-tiles div { background: #f8fafc; border-color: #e2e8f0; }
+body:not(.dark-mode) .tk-hero-tiles svg,
+body:not(.dark-mode) .tk-hero-tiles strong { color: var(--tk-t); }
+
+/* A required field left wrong: a red edge (its message under it) */
+.tk-scope .tk-input.is-missing { border-color: #ef4444 !important; }
+.tk-scope .tk-field-error { display: flex; align-items: center; gap: 5px; margin-top: 6px; color: #ef4444; font-size: 0.78rem; font-weight: 700; }

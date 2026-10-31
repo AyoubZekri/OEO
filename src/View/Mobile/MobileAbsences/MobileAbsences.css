@@ -893,3 +893,20 @@ body.dark-mode .mab-page {
 .mab-file.pick { color: var(--text-muted); }
 .mab-file b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mab-file button { border: none; background: none; color: #dc2626; display: inline-flex; }
+
+/* A required field left empty: a red edge (its message under it) */
+.me-input.is-missing,
+.mab-page .mab-textarea.is-missing,
+.mab-textarea.is-missing { border-color: #ef4444 !important; }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .mab-hero {
+  background: var(--ms-card);
+  color: var(--ms-text);
+  border-color: var(--ms-border);
+  box-shadow: none;
+}
+body:not(.dark-mode) .mab-hero-top small { color: #ea580c; }
+body:not(.dark-mode) .mab-tiles div { background: var(--ms-field); border-color: var(--ms-border); }
+body:not(.dark-mode) .mab-tiles svg,
+body:not(.dark-mode) .mab-tiles strong { color: var(--mab-t); }

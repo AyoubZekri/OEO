@@ -164,7 +164,6 @@ export const TaskStatusDialog: React.FC<{ task: Task; mobile: boolean; onSave: (
       layer={2}
       icon={ArrowLeftRight}
       title="تغيير الحالة"
-      subtitle={task.title}
       onClose={onClose}
       footer={(
         <>

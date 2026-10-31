@@ -9,6 +9,7 @@ import { TYPE_LABELS, POSITION_LABELS } from '../MobileMembers/memberLabels';
 import { LINES, isPlayer, fullName, memberPhoto, playersText, staffText } from './teamRoster';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileTeamDetails.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileTeamDetailsProps {
   team: TeamModel;
@@ -128,12 +129,9 @@ export const MobileTeamDetails: React.FC<MobileTeamDetailsProps> = ({ team, rost
           )}
 
           {tabList.length === 0 ? (
-            <div className="mtd-empty">
-              {tab === 'players' ? <Users size={36} /> : <ShieldCheck size={36} />}
-              <p>{tab === 'players' ? 'لا يوجد لاعبون في هذه الفئة' : 'لا يوجد طاقم في هذه الفئة'}</p>
-            </div>
+            <StateIcon icon={Users} />
           ) : shown.length === 0 ? (
-            <div className="mtd-empty"><Search size={32} /><p>لا توجد نتائج</p></div>
+            <StateIcon icon={Search} />
           ) : shown.map(group => (
             <section key={group.key} className="mtd-group">
               <h3>{group.title} <span>{group.members.length}</span></h3>

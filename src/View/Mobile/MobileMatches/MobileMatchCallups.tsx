@@ -6,12 +6,13 @@ import { Applink } from '../../../LinkApi';
 import type { Match } from '../../Screen/Matches/match_model';
 import { useMatchCallups } from '../../Screen/Matches/useMatchCallups';
 import { POSITION_LABELS } from '../MobileMembers/memberLabels';
-import { LINES, playersText } from '../MobileTeams/teamRoster';
+import { LINES } from '../MobileTeams/teamRoster';
 import { CLUB_LOGO } from './matchActions';
 import { matchDate, opponentName, opponentLogo, opponentShort, timeText, dayText } from './matchUtils';
 import { TeamBadge } from './TeamBadge';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileMatchCallups.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 type Filter = 'all' | 'called' | 'free' | 'injured';
 
@@ -80,20 +81,12 @@ export const MobileMatchCallups: React.FC<{ match: Match; onClose: () => void }>
           <TeamBadge logo={opponentLogo(match)} short={opponentShort(match)} />
         </div>
 
-        <div className="mmc-count">
-          <div className="mmc-count-num">
-            <strong>{calledCount}</strong>
-            <small>مستدعى من {available} متاح</small>
-          </div>
-          <div className="mmc-count-bar"><div style={{ width: `${available ? (calledCount / available) * 100 : 0}%` }} /></div>
-          {injured > 0 && <p><Stethoscope size={13} /> {playersText(injured)} {injured === 1 ? 'مصاب غير متاح' : 'مصابين غير متاحين'}</p>}
-        </div>
       </section>
 
       <div className="mmc-toolbar">
         <label className="mmc-search">
           <Search size={17} />
-          <input type="search" placeholder="ابحث بالاسم أو رقم القميص..." value={c.searchQuery} onChange={e => c.setSearchQuery(e.target.value)} />
+          <input type="search" placeholder="ابحث بالاسم" value={c.searchQuery} onChange={e => c.setSearchQuery(e.target.value)} />
         </label>
         <button
           type="button"
@@ -116,10 +109,7 @@ export const MobileMatchCallups: React.FC<{ match: Match; onClose: () => void }>
       {c.isLoading ? (
         <MobileLoader text="جاري تحميل قائمة اللاعبين..." />
       ) : groups.length === 0 ? (
-        <div className="mmc-empty">
-          <Users size={40} />
-          <p>لم يتم العثور على لاعبين</p>
-        </div>
+        <StateIcon icon={Users} />
       ) : groups.map(g => (
         <section key={g.key} className="mmc-group">
           <h3>
@@ -162,7 +152,7 @@ export const MobileMatchCallups: React.FC<{ match: Match; onClose: () => void }>
                       <input
                         className="mmc-note"
                         type="text"
-                        placeholder="ملاحظة (اختياري)..."
+                        placeholder="ملاحظة"
                         value={c.selectedPlayers[p.id].notes}
                         onChange={e => c.handleNoteChange(p.id, e.target.value)}
                       />

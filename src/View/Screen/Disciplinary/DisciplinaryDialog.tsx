@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from './disciplinary_data';
-import { X, Save, AlertTriangle, User, Calendar, FileText, ArrowRight, Clock } from 'lucide-react';
+import { X, Save, AlertTriangle, AlertCircle, User, Calendar, FileText, ArrowRight, Clock } from 'lucide-react';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MemberSelect } from '../../widget/MemberSelect';
 import { MemberModel } from '../Members/member_model';
@@ -41,7 +42,11 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
     admin_notes: ''
   });
 
+  // A field to type left empty: its message under it (the member, a choice: a snackbar)
+  const [missing, setMissing] = useState<{ date?: boolean; reason?: boolean }>({});
+
   useEffect(() => {
+    setMissing({});
     if (editingItem) {
       setFormData(editingItem);
     } else {
@@ -60,7 +65,10 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.memberId || !formData.reason) return;
+    const empty = { date: !formData.incidentDate, reason: !String(formData.reason || '').trim() };
+    setMissing(empty);
+    if (!formData.memberId) return showSnackbar('خطأ', 'اختر العضو المعني', '#ef4444');
+    if (empty.date || empty.reason) return;
     onSave(formData as DisciplinaryModel);
   };
 
@@ -96,7 +104,7 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               members={members}
               value={chosenMember ? `${chosenMember.first_name} ${chosenMember.last_name}`.trim() : formData.memberId ? formData.memberName || '' : ''}
               onChange={(name, member) => setFormData(prev => ({ ...prev, memberId: member ? String(member.id) : '', memberName: member ? name : '' }))}
-              placeholder="اختر العضو المعني..."
+              placeholder=""
             />
           </div>
 
@@ -106,10 +114,10 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               value={formData.actionType as any}
               onChange={(val) => setFormData({ ...formData, actionType: val as any })}
               options={[
-                { value: 'طلب توضيح', label: 'طلب توضيح', icon: <AlertTriangle size={16} /> },
-                { value: 'استدعاء جلسة', label: 'استدعاء جلسة', icon: <AlertTriangle size={16} /> },
+                { value: 'طلب توضيح', label: 'طلب توضيح' },
+                { value: 'استدعاء جلسة', label: 'استدعاء جلسة' },
               ]}
-              placeholder="اختر النوع..."
+              placeholder=""
             />
           </div>
 
@@ -121,10 +129,10 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               <input
                 type="date"
                 value={(formData.incidentDate || '').split(/[ T]/)[0]}
-                onChange={(e) => setFormData({ ...formData, incidentDate: e.target.value })}
-                className="modern-form-input"
-                required
+                onChange={(e) => { setFormData({ ...formData, incidentDate: e.target.value }); setMissing(m => ({ ...m, date: false })); }}
+                className={`modern-form-input ${missing.date ? 'is-missing' : ''}`}
               />
+              {missing.date && <small className="dd-field-error"><AlertCircle size={13} />حدد تاريخ الحدث</small>}
             </div>
             <div className="modern-form-group">
               <label><Clock size={16} /> الساعة</label>
@@ -144,7 +152,6 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               type="text"
               value={formData.incidentLocation || ''}
               onChange={e => setFormData({ ...formData, incidentLocation: e.target.value })}
-              placeholder="أين حدثت المخالفة؟"
               className="modern-form-input"
             />
           </div>
@@ -155,7 +162,6 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               type="text"
               value={formData.violatedRule || ''}
               onChange={e => setFormData({ ...formData, violatedRule: e.target.value })}
-              placeholder="أذكر المادة المخالفة"
               className="modern-form-input"
             />
           </div>
@@ -166,12 +172,11 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
             </label>
             <textarea
               value={formData.reason || ''}
-              onChange={e => setFormData({ ...formData, reason: e.target.value })}
-              className="modern-form-input modern-form-textarea"
+              onChange={e => { setFormData({ ...formData, reason: e.target.value }); setMissing(m => ({ ...m, reason: false })); }}
+              className={`modern-form-input modern-form-textarea ${missing.reason ? 'is-missing' : ''}`}
               rows={3}
-              placeholder="وصف محايد وتفصيلي..."
-              required
             />
+            {missing.reason && <small className="dd-field-error"><AlertCircle size={13} />اكتب وصف الواقعة</small>}
           </div>
 
           <div className="modern-form-group">
@@ -182,18 +187,17 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
               members={members}
               values={formData.presentPeople ? formData.presentPeople.split(/[,،\n]/).map(p => p.trim()).filter(Boolean) : []}
               onChange={vals => setFormData(prev => ({ ...prev, presentPeople: vals.join('، ') }))}
-              placeholder="اختر الأعضاء الحاضرين..."
+              placeholder=""
             />
           </div>
             
           <div className="modern-form-group">
-            <label>المرفقات (إن وجدت)</label>
+            <label>المرفقات</label>
             <input
               type="text"
               value={formData.attachments || ''}
               onChange={e => setFormData({ ...formData, attachments: e.target.value })}
               className="modern-form-input"
-              placeholder="رابط أو مسار الأدلة"
             />
           </div>
 
@@ -230,7 +234,6 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
                     type="text"
                     value={formData.hearingLocation || ''}
                     onChange={e => setFormData({ ...formData, hearingLocation: e.target.value })}
-                    placeholder="أين ستعقد الجلسة؟"
                     className="modern-form-input"
                   />
                 </div>
@@ -244,7 +247,7 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
                     members={members}
                     value={formData.hearingOfficer || ''}
                     onChange={name => setFormData(prev => ({ ...prev, hearingOfficer: name }))}
-                    placeholder="من يدير جلسة الاستماع؟"
+                    placeholder=""
                   />
                 </div>
               )}
@@ -260,7 +263,7 @@ export const DisciplinaryDialog: React.FC<DisciplinaryDialogProps> = ({
           </button>
           <button type="submit" className="modern-btn-primary" onClick={handleSubmit} disabled={isSubmitting} style={{ opacity: isSubmitting ? 0.7 : 1 }}>
             <Save size={18} />
-            {isSubmitting ? 'جاري الحفظ...' : (editingItem ? 'حفظ التعديلات' : 'إضافة الإجراء')}
+            {isSubmitting ? 'جاري الحفظ...' : (editingItem ? 'حفظ التعديلات' : 'تأكيد')}
           </button>
         </div>
       </div>

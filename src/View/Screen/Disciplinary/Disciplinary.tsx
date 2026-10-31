@@ -21,6 +21,7 @@ import { printDocsFor, type PrintType } from './Printable/printDocs';
 import { UploadSignedDocumentDialog } from './Dialogs/UploadSignedDocumentDialog';
 import { ViewSignedDocumentDialog } from './Dialogs/ViewSignedDocumentDialog';
 import { MobileDisciplinary } from '../../Mobile/MobileDisciplinary/MobileDisciplinary';
+import defaultAvatar from '../../../assets/AVETER.png';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 
 
@@ -168,7 +169,11 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
     const d = new Date(value);
     return isNaN(d.getTime()) ? value : new Intl.DateTimeFormat('ar-DZ', { day: 'numeric', month: 'long', year: 'numeric' }).format(d);
   };
-  const initialsOf = (name?: string) => (name || '؟').trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('');
+  /** The member's photo on the card (the app's default one when there is none) */
+  const photoOf = (c: DisciplinaryModel) => {
+    const member = controller.members.find(m => String(m.id) === String(c.memberId));
+    return member?.photo && !member.photo.includes('ui-avatars.com') ? member.photo : defaultAvatar;
+  };
   /** The deadline / hearing date has passed on an action still open */
   const deadlineLate = (c: DisciplinaryModel) => {
     if (!c.deadlineOrHearingDate || !['مفتوح', 'متأخر'].includes(c.status)) return false;
@@ -322,7 +327,7 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
 
               <footer className="dc-foot">
                 <span className="dc-member">
-                  <span className="dc-avatar">{initialsOf(c.memberName)}</span>
+                  <img className="dc-avatar" src={photoOf(c)} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
                   <span className="dc-member-name">{c.memberName}</span>
                 </span>
                 {c.deadlineOrHearingDate && (
@@ -337,7 +342,6 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
                <Scale size={48} style={{ opacity: 0.2, margin: '0 auto 16px', display: 'block' }} />
                <h3>لا توجد إجراءات تأديبية</h3>
-               <p>لم يتم العثور على أي إجراءات تأديبية تطابق بحثك.</p>
              </div>
           )}
           </div>

@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import {
   Save, Loader2, MessageSquare, Calendar, AlertTriangle, UserPlus, UserRound, ChevronLeft, Check, Search,
-  MapPin, BookOpen, FileText, Paperclip, Plus, X, Info, AlertCircle, Clock, Users,
+  MapPin, BookOpen, FileText, Paperclip, Plus, X, AlertCircle, Clock, Users,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import { MobileSheet } from '../widgets/MobileSheet';
 import { TYPE_LABELS } from '../MobileMembers/memberLabels';
 import type { MemberModel } from '../../Screen/Members/member_model';
@@ -48,42 +49,16 @@ const isoDay = (offset = 0) => {
 
 const dayOnly = (value?: string) => (value || '').split(/[T ]/)[0];
 
-// "السبت 26 سبتمبر 2026"
-const longDate = (value?: string) => {
-  const date = new Date(`${value}T00:00:00`);
-  return !value || isNaN(date.getTime())
-    ? ''
-    : new Intl.DateTimeFormat('ar-DZ', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
-};
-
-// "الخميس · بعد 3 أيام"
-const describeDay = (value?: string) => {
-  if (!value) return null;
-  const date = new Date(`${value}T00:00:00`);
-  if (isNaN(date.getTime())) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const days = Math.round((date.getTime() - today.getTime()) / 86400000);
-  const n = Math.abs(days);
-  const count = n === 2 ? 'يومين' : n <= 10 ? `${n} أيام` : `${n} يوماً`;
-  const relative = days === 0 ? 'اليوم' : days === 1 ? 'غداً' : days === -1 ? 'أمس' : days > 0 ? `بعد ${count}` : `منذ ${count}`;
-  const weekday = new Intl.DateTimeFormat('ar-DZ', { weekday: 'long' }).format(date);
-  return { text: `${weekday} · ${relative}`, past: days < 0 };
-};
 
 const Step: React.FC<{
-  n: number;
   title: string;
-  tag?: 'required' | 'optional';
   error?: boolean;
   sectionRef?: React.Ref<HTMLElement>;
   children: React.ReactNode;
-}> = ({ n, title, tag, error, sectionRef, children }) => (
+}> = ({ title, error, sectionRef, children }) => (
   <section ref={sectionRef} className={`mdf-step ${error ? 'has-error' : ''}`}>
     <div className="mdf-step-head">
-      <span className="mdf-step-num">{n}</span>
       <h3>{title}</h3>
-      {tag && <em className={tag}>{tag === 'required' ? 'مطلوب' : 'اختياري'}</em>}
     </div>
     {children}
   </section>
@@ -195,22 +170,17 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
   const choices = TYPE_CHOICES.some(c => c.value === type)
     ? TYPE_CHOICES
     : [...TYPE_CHOICES, { value: type, icon: AlertTriangle, hint: 'نوع قديم، لم يعد متاحاً عند إضافة إجراء جديد.' }];
-  const current = choices.find(c => c.value === type)!;
-  const CurrentIcon = current.icon;
   const hasDeadline = type === 'طلب توضيح' || type === 'استدعاء جلسة';
 
   const member = members.find(m => String(m.id) === String(form.memberId));
   const people = splitPeople(form.presentPeople);
   const officer = members.find(m => fullName(m) === form.hearingOfficer);
-  const incidentDay = describeDay(form.incidentDate);
-  const deadlineDay = describeDay(form.deadlineOrHearingDate);
 
   const errors = {
     member: !form.memberId,
     date: !form.incidentDate,
     reason: !form.reason?.trim(),
   };
-  const done = [errors.member, errors.date, errors.reason].filter(e => !e).length;
 
   const togglePerson = (m: MemberModel) => {
     const name = fullName(m);
@@ -221,6 +191,8 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
   const submit = () => {
     if (errors.member || errors.date || errors.reason) {
       setShowErrors(true);
+      // The member, a choice: a snackbar (the fields to type: their message under them)
+      if (errors.member) showSnackbar('خطأ', 'اختر العضو المعني', '#ef4444');
       (errors.member ? memberRef : incidentRef).current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
@@ -248,8 +220,6 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
     </div>
   );
 
-  // Steps are numbered in order; the deadline step exists only for some types
-  const peopleStep = hasDeadline ? 5 : 4;
 
   return (
     <MobileScreen
@@ -259,40 +229,12 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
       footer={(
         <button type="button" className="me-btn primary" onClick={submit} disabled={isSubmitting}>
           {isSubmitting ? <Loader2 size={18} className="mdf-spin" /> : <Save size={18} />}
-          {isSubmitting ? 'جاري الحفظ...' : item ? 'حفظ التعديلات' : 'إضافة الإجراء'}
+          {isSubmitting ? 'جاري الحفظ...' : item ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
-      {/* Live preview of the action being written */}
-      <section className="mdf-hero">
-        <div className="mdf-hero-top">
-          <span key={type} className="mdf-hero-icon"><CurrentIcon size={26} /></span>
-          <div className="mdf-hero-title">
-            <small>{item ? 'تعديل إجراء تأديبي' : 'إجراء تأديبي جديد'}</small>
-            <strong>{type}</strong>
-          </div>
-          <div
-            className={`mdf-ring ${done === 3 ? 'complete' : ''}`}
-            style={{ '--mdf-p': (done / 3) * 100 } as React.CSSProperties}
-            title="الحقول المطلوبة"
-          >
-            <span>{done === 3 ? <Check size={18} strokeWidth={3} /> : `${done}/3`}</span>
-          </div>
-        </div>
-
-        <div className="mdf-hero-member">
-          {member
-            ? <img src={photoOf(member)} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
-            : <span className="mdf-hero-avatar"><UserRound size={22} /></span>}
-          <div>
-            <strong>{member ? fullName(member) : form.memberName || 'لم يُختر العضو بعد'}</strong>
-            <span><Calendar size={12} /> {longDate(form.incidentDate) || 'بدون تاريخ'}</span>
-          </div>
-        </div>
-      </section>
-
       {/* Type */}
-      <Step n={1} title="نوع الإجراء">
+      <Step title="نوع الإجراء">
         <div className={`mdf-types ${choices.length > 3 ? 'four' : ''}`}>
           {choices.map(c => (
             <button
@@ -307,26 +249,24 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
             </button>
           ))}
         </div>
-        <p className="mdf-type-hint"><Info size={15} /> {current.hint}</p>
       </Step>
 
       {/* Member */}
-      <Step n={2} title="العضو المعني" tag="required" error={showErrors && errors.member} sectionRef={memberRef}>
+      <Step title="العضو المعني" error={showErrors && errors.member} sectionRef={memberRef}>
         <button type="button" className={`mdf-member ${member ? '' : 'empty'}`} onClick={() => setPicker('member')}>
           {member
             ? <img src={photoOf(member)} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
             : <span className="mdf-member-icon"><UserPlus size={22} /></span>}
           <span className="mdf-member-text">
             <strong>{member ? fullName(member) : form.memberName || 'اختر العضو'}</strong>
-            <small>{member ? memberHint(member) || 'اضغط للتغيير' : 'اضغط للبحث في قائمة الأعضاء'}</small>
+            {member && memberHint(member) && <small>{memberHint(member)}</small>}
           </span>
           <ChevronLeft size={20} />
         </button>
-        {showErrors && errors.member && <FieldError text="اختر العضو المعني بالإجراء" />}
       </Step>
 
       {/* Incident */}
-      <Step n={3} title="تفاصيل الواقعة" tag="required" error={showErrors && (errors.date || errors.reason)} sectionRef={incidentRef}>
+      <Step title="تفاصيل الواقعة" error={showErrors && (errors.date || errors.reason)} sectionRef={incidentRef}>
         <label className="me-field">
           <span className="me-label"><Calendar size={14} /> تاريخ الحدث</span>
           <input
@@ -340,7 +280,6 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
         </label>
         <div className="mdf-date-row">
           {dateChips('incidentDate', [{ label: 'اليوم', days: 0 }, { label: 'أمس', days: -1 }])}
-          {incidentDay && <span className="mdf-day"><Clock size={12} /> {incidentDay.text}</span>}
         </div>
         {showErrors && errors.date && <FieldError text="حدد تاريخ الحدث" />}
 
@@ -356,14 +295,13 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
             rows={4}
             value={form.reason || ''}
             onChange={e => set('reason', e.target.value)}
-            placeholder="صف ما حدث بدقة وحياد: ماذا حدث، متى وكيف..."
           />
         </label>
         {showErrors && errors.reason && <FieldError text="اكتب وصف الواقعة" />}
 
         <label className="me-field">
           <span className="me-label"><MapPin size={14} /> مكان الواقعة</span>
-          <input className="me-input" type="text" value={form.incidentLocation || ''} onChange={e => set('incidentLocation', e.target.value)} placeholder="أين حدثت المخالفة؟" />
+          <input className="me-input" type="text" value={form.incidentLocation || ''} onChange={e => set('incidentLocation', e.target.value)} />
         </label>
 
         <label className="me-field">
@@ -374,7 +312,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
 
       {/* Deadline / hearing */}
       {hasDeadline && (
-        <Step n={4} title={type === 'طلب توضيح' ? 'أجل الرد' : 'جلسة الاستماع'} tag="optional">
+        <Step title={type === 'طلب توضيح' ? 'أجل الرد' : 'جلسة الاستماع'}>
           <label className="me-field">
             <span className="me-label"><Clock size={14} /> {type === 'طلب توضيح' ? 'آخر أجل للرد' : 'موعد الجلسة'}</span>
             <input
@@ -387,7 +325,6 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
           </label>
           <div className="mdf-date-row">
             {dateChips('deadlineOrHearingDate', [{ label: 'بعد يومين', days: 2 }, { label: 'بعد 3 أيام', days: 3 }, { label: 'بعد أسبوع', days: 7 }])}
-            {deadlineDay && <span className={`mdf-day ${deadlineDay.past ? 'past' : ''}`}><Clock size={12} /> {deadlineDay.text}</span>}
           </div>
 
           {type === 'استدعاء جلسة' && (
@@ -400,7 +337,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
           {type === 'استدعاء جلسة' && (
             <label className="me-field">
               <span className="me-label"><MapPin size={14} /> مكان الجلسة</span>
-              <input className="me-input" type="text" value={form.hearingLocation || ''} onChange={e => set('hearingLocation', e.target.value)} placeholder="أين ستعقد الجلسة؟" />
+              <input className="me-input" type="text" value={form.hearingLocation || ''} onChange={e => set('hearingLocation', e.target.value)} />
             </label>
           )}
 
@@ -413,7 +350,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
                   : <span className="mdf-member-icon">{form.hearingOfficer ? <UserRound size={22} /> : <UserPlus size={22} />}</span>}
                 <span className="mdf-member-text">
                   <strong>{form.hearingOfficer || 'اختر مسؤول الجلسة'}</strong>
-                  <small>{officer ? memberHint(officer) || 'اضغط للتغيير' : form.hearingOfficer ? 'اضغط للتغيير' : 'من يدير جلسة الاستماع؟'}</small>
+                  {officer && memberHint(officer) && <small>{memberHint(officer)}</small>}
                 </span>
                 <ChevronLeft size={20} />
               </button>
@@ -423,7 +360,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
       )}
 
       {/* People and attachments */}
-      <Step n={peopleStep} title="الحاضرون والمرفقات" tag="optional">
+      <Step title="الحاضرون والمرفقات">
         <div className="me-field">
           <span className="me-label"><Users size={14} /> الأشخاص الحاضرون وقت الواقعة</span>
           <div className="mdf-people">
@@ -453,7 +390,7 @@ export const MobileDisciplinaryForm: React.FC<MobileDisciplinaryFormProps> = ({
 
         <label className="me-field">
           <span className="me-label"><Paperclip size={14} /> المرفقات</span>
-          <input className="me-input" type="text" dir="auto" value={form.attachments || ''} onChange={e => set('attachments', e.target.value)} placeholder="رابط أو مسار الأدلة (إن وجدت)" />
+          <input className="me-input" type="text" dir="auto" value={form.attachments || ''} onChange={e => set('attachments', e.target.value)} />
         </label>
       </Step>
 

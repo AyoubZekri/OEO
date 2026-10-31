@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Plus, UserX, Clock, LogOut, Plane, Hourglass, ShieldCheck, FileWarning } from 'lucide-react';
+import { Plus, FileWarning } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { AbsenceCard } from '../Absence/AbsenceCard';
+import { CustomDropdown } from '../../widget/CustomDropdown';
 import { JustificationDialog } from '../Absence/JustificationDialog';
 import { ABSENCE_TYPES, kindOf, byDateDesc } from '../Absence/absenceUtils';
 import { MobileMyAbsences } from '../../Mobile/MobileAbsences/MobileMyAbsences';
@@ -10,6 +11,7 @@ import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import { useMyAbsences } from './useMyAbsences';
 import { MyAbsenceRequestDialog } from './MyAbsenceRequestDialog';
 import '../Absence/Absence.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 const noop = () => undefined;
 
@@ -33,16 +35,7 @@ export const MyAbsences: React.FC = () => {
 
   if (isMobile) return <MobileMyAbsences c={c} now={now} />;
 
-  const s = c.stats;
   const list = c.records.filter(a => !type || kindOf(a) === type).slice().sort(byDateDesc);
-  const tiles = [
-    { key: 'absent', label: 'غياب', value: s.absent, icon: UserX, tone: 'red' },
-    { key: 'late', label: 'تأخر', value: s.late, icon: Clock, tone: 'amber' },
-    { key: 'leave', label: 'مغادرة', value: s.leave, icon: LogOut, tone: 'orange' },
-    { key: 'request', label: 'طلبات عطلة', value: s.request, icon: Plane, tone: 'violet' },
-    { key: 'pending', label: 'قيد الدراسة', value: s.pending, icon: Hourglass, tone: 'blue' },
-    { key: 'justified', label: 'مبررة', value: s.justified, icon: ShieldCheck, tone: 'green' },
-  ];
 
   return (
     <div className="ab-page">
@@ -50,8 +43,7 @@ export const MyAbsences: React.FC = () => {
         <div className="ab-hero-main">
           <span className="ab-hero-icon"><FileWarning size={30} /></span>
           <div>
-            <small>غيابات وتبريرات</small>
-            <strong>{s.total} <span>سجل</span></strong>
+            <strong className="title">غياباتي</strong>
           </div>
           <div className="ab-hero-actions">
             <button type="button" className="ab-add" onClick={c.openRequest}>
@@ -59,35 +51,18 @@ export const MyAbsences: React.FC = () => {
             </button>
           </div>
         </div>
-        <div className="ab-tiles">
-          {tiles.map(t => (
-            <div key={t.key} className={`ab-tile tone-${t.tone}`}>
-              <span><t.icon size={18} /></span>
-              <strong>{t.value}</strong>
-              <small>{t.label}</small>
-            </div>
-          ))}
-        </div>
       </section>
 
       {c.records.length > 0 && (
         <div className="ab-toolbar">
-          <div className="ab-chips">
-            <button type="button" className={!type ? 'on' : ''} onClick={() => setType('')}>الكل</button>
-            {ABSENCE_TYPES.map(t => (
-              <button key={t.value} type="button" className={`tone-${t.tone} ${type === t.value ? 'on' : ''}`} onClick={() => setType(t.value)}>
-                <t.icon size={14} /> {t.label}
-              </button>
-            ))}
+          <div className="ab-select">
+            <CustomDropdown value={type} onChange={val => setType(val)} options={[{ value: '', label: 'كل الأنواع' }, ...ABSENCE_TYPES.map(t => ({ value: t.value, label: t.label }))]} />
           </div>
         </div>
       )}
 
       {list.length === 0 ? (
-        <div className="ab-empty">
-          <span>{c.records.length ? <FileWarning size={34} /> : <ShieldCheck size={34} />}</span>
-          <strong>{c.isLoading ? 'جاري تحميل سجلك...' : c.records.length ? 'لا توجد سجلات من هذا النوع' : 'لا توجد غيابات مسجلة عليك'}</strong>
-        </div>
+        c.isLoading ? null : <StateIcon icon={FileWarning} />
       ) : (
         <div className="ab-grid">
           {list.map(a => (

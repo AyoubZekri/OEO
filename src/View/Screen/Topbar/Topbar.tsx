@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Sun, Moon, LayoutDashboard, UserRound, ArrowLeftRight, Power } from 'lucide-react';
+import { Menu, Sun, Moon, Home, Power } from 'lucide-react';
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../Personal/Personal.css';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,6 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
-  const other = controller.space === 'personal' ? 'management' : 'personal';
 
   // Escape closes the account menu
   useEffect(() => {
@@ -75,8 +74,19 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
           <div id={TOPBAR_SLOT_ID} className="topbar-slot" />
         </div>
 
-        {/* End (left): theme, then the account */}
+        {/* End (left): home, theme, then the account */}
         <div className="topbar-actions">
+          {controller.homeItem && (
+            <button
+              type="button"
+              className={`topbar-icon-btn ${controller.activeItem === controller.homeItem.name ? 'active' : ''}`}
+              onClick={() => controller.handleItemClick(controller.homeItem.name, controller.homeItem.route)}
+              aria-label="الرئيسية"
+              title="الرئيسية"
+            >
+              <Home size={22} />
+            </button>
+          )}
           <button className="topbar-icon-btn" onClick={controller.toggleTheme} aria-label="Toggle Theme" title={controller.isDarkMode ? 'الوضع الفاتح' : 'الوضع الداكن'}>
             {controller.isDarkMode ? <Moon size={22} /> : <Sun size={22} />}
           </button>
@@ -103,17 +113,6 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
                       <strong>{user?.name || t('topbar.user_name')}</strong>
                       <small>{roleName} · {spaceLabel}</small>
                     </span>
-                  </div>
-                  <div className="tb-menu-list">
-                    {controller.canManage ? (
-                      <button type="button" role="menuitem" onClick={run(() => controller.switchSpace(other))}>
-                        {other === 'management' ? <LayoutDashboard size={20} /> : <UserRound size={20} />}
-                        <span>التبديل إلى {SPACE_LABELS[other]}</span>
-                        <ArrowLeftRight size={15} className="tb-menu-go" />
-                      </button>
-                    ) : (
-                      <small className="tb-menu-none">حسابك يعمل في فضائك الشخصي فقط</small>
-                    )}
                   </div>
                   <div className="tb-menu-list">
                     <button type="button" role="menuitem" className="danger" onClick={run(controller.handleLogout)}>

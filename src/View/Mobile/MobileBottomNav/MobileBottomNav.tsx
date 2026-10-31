@@ -17,9 +17,9 @@ const NAV_ITEMS: { to: string; label: string; icon: LucideIcon; end?: boolean; m
   { to: Approutes.More, label: 'المزيد', icon: LayoutGrid },
 ];
 
-/** The personal space's bar */
+/** The personal space's bar (the personal space is only for who has no management one) */
 const PERSONAL_ITEMS: typeof NAV_ITEMS = [
-  { to: '/', label: 'الرئيسية', icon: House, end: true },
+  NAV_ITEMS[0],
   { to: Approutes.MyTrainingSessions, label: 'تدريبات', icon: Dumbbell },
   { to: Approutes.MyMatches, label: 'مباريات', icon: Trophy },
   { to: Approutes.MyAbsences, label: 'غيابات', icon: CalendarX2 },
@@ -30,9 +30,9 @@ export const MobileBottomNav: React.FC = () => {
   const can = useCan();
   const { permissions } = useAuth();
   const off = (m?: PermissionModule) => Boolean(m) && (permissions[m!] as unknown as { view?: boolean } | undefined)?.view === false;
-  const { space } = useSpace();
-  // Personal space: my home page, my training sessions, matches, absences, and "More"
-  const items = space === 'personal' ? PERSONAL_ITEMS : NAV_ITEMS;
+  const { space, isPlayer } = useSpace();
+  // Personal space: my home page (not for a player), training sessions, matches, absences, and "More"
+  const items = space !== 'personal' ? NAV_ITEMS : isPlayer ? PERSONAL_ITEMS.slice(1) : PERSONAL_ITEMS;
   return (
     <nav className="mobile-bottom-nav" dir="rtl">
       {items.filter(item => (!item.module || can(item.module)) && !off(item.optional)).map(({ to, label, icon: Icon, end }) => (

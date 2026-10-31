@@ -12,6 +12,7 @@ import { MobileTeamDetails } from './MobileTeamDetails';
 import { MobileTeamForm } from './MobileTeamForm';
 import { teamKindLabel } from '../../Screen/Teams/team_model';
 import './MobileTeams.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileTeamsProps {
   controller: ReturnType<typeof useTeamsController>;
@@ -71,9 +72,7 @@ export const MobileTeams: React.FC<MobileTeamsProps> = ({ controller, can }) => 
         <MobileLoader text="جاري تحميل الفئات..." />
       ) : teams.length === 0 ? (
         <div className="mt-empty">
-          <span className="mt-empty-icon"><Shirt size={40} /></span>
-          <strong>لا توجد فئات بعد</strong>
-          <p>أنشئ فئات النادي (الفريق الأول، U21، U19...) ثم وزّع الأعضاء عليها.</p>
+          <StateIcon icon={Shirt} />
           {can.add && (
             <button type="button" className="mt-empty-btn" onClick={controller.openAddDialog}>
               <Plus size={18} /> إضافة أول فئة

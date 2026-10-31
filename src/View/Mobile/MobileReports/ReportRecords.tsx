@@ -4,15 +4,12 @@ import { List, SearchX, Calendar, Trash2, ChevronDown, ArrowLeft } from 'lucide-
 import type { useReportsController } from '../../Screen/Reports/ReportsController';
 import { moneyText } from '../MobileContracts/contractUtils';
 import { txFund, txTo, txAmount } from '../MobileFunds/fundUtils';
+import { StateIcon } from '../../widget/StateIcon';
 
 const PAGE = 20;
 
 const Empty: React.FC = () => (
-  <div className="mrp-empty">
-    <span><SearchX size={32} /></span>
-    <strong>لا توجد بيانات متاحة لهذا التقرير</strong>
-    <p>غيّر الفترة أو التصفية.</p>
-  </div>
+  <StateIcon icon={SearchX} />
 );
 
 // Records of the active report as cards, shown 20 at a time

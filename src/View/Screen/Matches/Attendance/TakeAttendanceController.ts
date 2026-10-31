@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import { Applink } from '../../../../LinkApi';
+import { showSnackbar } from '../../../../core/functions/Snacpar';
 
 export interface PlayerAttendance {
   id: number;
@@ -124,7 +125,7 @@ export const useTakeAttendanceController = () => {
   const handleSave = async () => {
     const unrecorded = attendanceList.filter(p => !p.status);
     if (unrecorded.length > 0) {
-      alert(`يرجى تحديد حالة جميع اللاعبين. متبقي ${unrecorded.length} لاعب.`);
+      showSnackbar('خطأ', `حدد حالة كل اللاعبين (بقي ${unrecorded.length})`, '#ef4444');
       return;
     }
 
@@ -142,10 +143,10 @@ export const useTakeAttendanceController = () => {
         },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
-      alert('تم حفظ كشف الحضور بنجاح!');
+      showSnackbar('تم الحفظ', 'تم حفظ الحضور', '#10b981');
       navigate(-1);
     } catch (err) {
-      alert('حدث خطأ أثناء حفظ الكشف.');
+      showSnackbar('خطأ', 'تعذر حفظ الحضور', '#ef4444');
     } finally {
       setIsSaving(false);
     }

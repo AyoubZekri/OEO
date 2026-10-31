@@ -10,6 +10,7 @@ import { MobileTrainingSessions } from '../../Mobile/MobileTrainingSessions/Mobi
 import { MyAttendanceBadge } from '../../Mobile/MobileTrainingSessions/MyAttendanceBadge';
 import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import './TrainingSessions.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 const STATUS_OPTIONS = [
   { value: 'مجدولة',  label: 'مجدولة' },
@@ -283,10 +284,7 @@ const TrainingSessions: React.FC<{ personal?: boolean }> = ({ personal = false }
           })}
 
           {controller.sessions.length === 0 && (
-            <div className="sc-empty">
-              <Calendar size={40} strokeWidth={1} />
-              <p>{personal ? 'لا توجد حصص تدريبية لفئتك.' : 'لا توجد حصص تدريبية مبرمجة لهذه الفئة.'}</p>
-            </div>
+            <StateIcon icon={Calendar} />
           )}
         </div>
       )}

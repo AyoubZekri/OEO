@@ -18,11 +18,15 @@ import './MobileTasks.css';
 export const MobileAppointments: React.FC<{ c: TasksAdmin; tabs?: React.ReactNode }> = ({ c, tabs }) => {
   const [filters, setFilters] = useState<AppointmentFilter>(NO_APPOINTMENT_FILTER);
   const [toDelete, setToDelete] = useState<TaskTemplate | null>(null);
+  const [viewingId, setViewingId] = useState<number | null>(null);
 
   const visible = filterAppointments(c.templates, filters);
   const edit = c.can('edit') ? (t: TaskTemplate) => c.openForm({ template: t }) : undefined;
   const toggle = c.can('toggle') ? c.toggleTemplate : undefined;
   const remove = c.can('delete') ? setToDelete : undefined;
+  // Its details: the current one from the list (a change made meanwhile shows)
+  const viewing = c.templates.find(t => t.id === viewingId) ?? null;
+  const view = (t: TaskTemplate) => setViewingId(t.id);
   const count = (key: keyof AppointmentFilter, value: string) => filterAppointments(c.templates, { ...filters, [key]: value }).length;
 
   return (
@@ -67,7 +71,7 @@ export const MobileAppointments: React.FC<{ c: TasksAdmin; tabs?: React.ReactNod
         ) : visible.length === 0 ? (
           <div className="tk-state"><Inbox size={30} /><p>{c.templates.length ? 'لا توجد مواعيد بهذه التصفية' : 'لا توجد مواعيد بعد'}</p></div>
         ) : (
-          <div className="tk-list">{visible.map(t => <AppointmentCard key={t.id} t={t} mobile onEdit={edit} onToggle={toggle} onDelete={remove} />)}</div>
+          <div className="tk-list">{visible.map(t => <AppointmentCard key={t.id} t={t} onView={view} onEdit={edit} onToggle={toggle} onDelete={remove} />)}</div>
         )}
 
       {c.can('add') && (
@@ -76,7 +80,7 @@ export const MobileAppointments: React.FC<{ c: TasksAdmin; tabs?: React.ReactNod
         </button>
       )}
 
-      <TemplateOverlays c={c} mobile toDelete={toDelete} onDeleteClose={() => setToDelete(null)} />
+      <TemplateOverlays c={c} mobile viewing={viewing} onViewClose={() => setViewingId(null)} toDelete={toDelete} onDeleteClose={() => setToDelete(null)} />
     </div>
   );
 };

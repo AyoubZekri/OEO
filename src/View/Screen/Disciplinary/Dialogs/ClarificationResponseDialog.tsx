@@ -86,7 +86,6 @@ export const ClarificationResponseDialog: React.FC<ClarificationResponseDialogPr
                   onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
                   className="modern-form-input modern-form-textarea"
                   rows={6}
-                  placeholder="اكتب ردك وتوضيحاتك هنا..."
                   autoFocus
                 />
               ) : (

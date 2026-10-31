@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   MapPin, Bus, BedDouble, Trophy, Clock, FileText, Pencil, Trash2, Navigation, UtensilsCrossed, MessagesSquare, Flag,
-  Home, PlaneLanding, Shirt, Briefcase, Layers, CalendarRange, Crown, CalendarClock,
+  Home, PlaneLanding, Shirt, Briefcase, Layers, CalendarRange, Crown,
 } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { dateText, initials } from '../../../shared/dates';
@@ -91,7 +91,7 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
           <div className="tk-view-main">
             <section className="tk-card-box">
               <h3><Clock size={16} />البرنامج الزمني</h3>
-              {schedule.length === 0 ? <p className="tk-muted">لم يُحدد البرنامج بعد</p> : (
+              {schedule.length === 0 ? <p className="tk-muted">—</p> : (
                 <ol className="tv-schedule">
                   {schedule.map(s => {
                     const Icon = SCHEDULE_ICONS[s.key as string] || Clock;
@@ -110,13 +110,13 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
             <section className="tk-card-box">
               <h3><Shirt size={16} />اللاعبون <b>{players}</b></h3>
               {t.players.length ? <PeopleTags people={t.players} />
-                : <p className="tk-muted">{t.players_count ? `${t.players_count} لاعب (لم تُحدد الأسماء)` : 'لم يُحدد اللاعبون'}</p>}
+                : <p className="tk-muted">{t.players_count ? `${t.players_count} لاعب` : '—'}</p>}
             </section>
 
             <section className="tk-card-box">
               <h3><Briefcase size={16} />الطاقم المرافق <b>{t.staff.length}</b></h3>
               {t.staff.length ? <PeopleTags people={t.staff} showType />
-                : t.staff_details ? <p className="tk-text">{t.staff_details}</p> : <p className="tk-muted">لم يُحدد الطاقم</p>}
+                : t.staff_details ? <p className="tk-text">{t.staff_details}</p> : <p className="tk-muted">—</p>}
             </section>
           </div>
 
@@ -128,7 +128,7 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
                   <span className="tk-avatar">{initials(t.head_of_delegation_name)}</span>
                   <span><strong>{t.head_of_delegation_name}</strong></span>
                 </div>
-              ) : <p className="tk-muted">لم يُحدد</p>}
+              ) : <p className="tk-muted">—</p>}
             </section>
 
             <section className="tk-card-box">
@@ -158,7 +158,6 @@ export const TravelDetails: React.FC<{ c: TravelsController; travel: Travel; mob
               </section>
             )}
 
-            {t.created_at && <p className="tk-muted"><CalendarClock size={13} />أضيف في {dateText(t.created_at)}</p>}
           </aside>
         </div>
       </div>

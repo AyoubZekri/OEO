@@ -6,8 +6,8 @@ import { PageLoader } from '../../shared/PageLoader';
 import { MobileAppBar } from '../../Mobile/widgets/MobileAppBar';
 import { useTasksAdmin } from './useTasks';
 import { useTaskActions } from './parts/useTaskActions';
-import { UpcomingTable } from './parts/TaskTable';
-import { UpcomingTaskCard } from './parts/UpcomingTaskCard';
+import { TaskTable } from './parts/TaskTable';
+import { MobileHomeTaskCard } from '../../Mobile/MobileTasks/MobileTaskRow';
 import { filterUpcoming, NO_UPCOMING_FILTER, type UpcomingFilters } from './taskUtils';
 import { UpcomingFilterBar } from './parts/UpcomingFilterBar';
 import '../../shared/kit.css';
@@ -20,13 +20,14 @@ import '../../Mobile/MobileTasks/MobileTasks.css';
 /**
  * The appointments page's other side, like the appointments: the appointments' tasks already created but not on the
  * home page yet (their alert still to come), the soonest first. The search and the filters (kind, nature, status, given
- * or not) on top, then a table (computer) or cards (phones). Each opens its details, its ⋮ as on the home page.
+ * or not) on top, then the home page's table (computer) or cards (phones), with its conversation button: in white,
+ * each with its type's icon. Each opens its details, its ⋮ as on the home page.
  */
 export const UpcomingTasks: React.FC<{ tabs: React.ReactNode }> = ({ tabs }) => {
   const c = useTasksAdmin('upcoming');
   const isMobile = useIsMobile();
   const [filters, setFilters] = useState<UpcomingFilters>(NO_UPCOMING_FILTER);
-  const { menu, overlays } = useTaskActions(c, isMobile);
+  const { menu, overlays, chat } = useTaskActions(c, isMobile);
   const visible = filterUpcoming(c.tasks, filters);
 
   const list = c.loading && !c.tasks.length ? <PageLoader mobile={isMobile} text="جاري تحميل المهام القادمة..." />
@@ -38,9 +39,9 @@ export const UpcomingTasks: React.FC<{ tabs: React.ReactNode }> = ({ tabs }) => 
     ) : visible.length === 0 ? (
       <div className="tk-state"><Inbox size={30} /><p>{c.tasks.length ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام قادمة: كل مهام المواعيد ظاهرة في الرئيسية'}</p></div>
     ) : isMobile ? (
-      <div className="tsk-hcards tsk-ucards">{visible.map(t => <UpcomingTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} />)}</div>
+      <div className="tsk-hcards tsk-ucards">{visible.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} onChat={chat} />)}</div>
     ) : (
-      <div className="table-pagination-wrapper"><UpcomingTable tasks={visible} onOpen={c.openTask} menu={menu} /></div>
+      <div className="table-pagination-wrapper"><TaskTable tasks={visible} onOpen={c.openTask} menu={menu} onChat={chat} upcoming /></div>
     );
 
   if (isMobile) {

@@ -76,7 +76,7 @@ export const MeetingAgenda: React.FC<MeetingAgendaProps> = ({ items, canAdd, can
             value={text}
             onChange={e => { setText(e.target.value); setError(''); }}
             onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
-            placeholder="أرسل نقطة للنقاش في الاجتماع..."
+            placeholder="نقطة جديدة"
             maxLength={500}
           />
           <button type="button" onClick={add} disabled={saving}>
@@ -84,7 +84,7 @@ export const MeetingAgenda: React.FC<MeetingAgendaProps> = ({ items, canAdd, can
           </button>
         </div>
       ) : (
-        <p className="mag-closed"><Lock size={13} /> بدأ الاجتماع: لم يعد إرسال النقاط ممكناً</p>
+        <p className="mag-closed"><Lock size={13} /> بدأ الاجتماع</p>
       )}
       {error && <p className="mag-error">{error}</p>}
     </section>

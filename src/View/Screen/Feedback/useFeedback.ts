@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import client from '../../../core/api/client';
 import { errorText, type Feedback, type FeedbackType } from './feedbackUtils';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 /** ?feedback=ID (from an alert): the card is brought into view once the list is there */
 export const useFocusedFeedback = (ready: boolean) => {
@@ -62,7 +63,7 @@ export const useMyFeedback = () => {
   };
 
   const remove = async (f: Feedback) => {
-    if (!window.confirm(`حذف «${f.subject}»؟`)) return;
+    if (!(await confirmDelete('حذف الرأي؟', f.subject))) return;
     try {
       await client.post('/feedback/mine/delete', { id: f.id });
       setItems(list => list.filter(x => x.id !== f.id));
@@ -74,12 +75,16 @@ export const useMyFeedback = () => {
   return { items, isLoading, formOpen, openForm: () => setFormOpen(true), closeForm: () => setFormOpen(false), send, remove };
 };
 
-/** Management: every opinion, opening one (no longer new), replying (and rating a suggestion), deleting */
+/**
+ * Management: every opinion, opening one (no longer new), replying (and rating a suggestion), deleting; and sending
+ * my own from the same page
+ */
 export const useFeedbackAdmin = () => {
   const [items, setItems] = useState<Feedback[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [replying, setReplying] = useState<Feedback | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -124,7 +129,7 @@ export const useFeedbackAdmin = () => {
   };
 
   const remove = async (f: Feedback) => {
-    if (!window.confirm(`حذف «${f.subject}» نهائياً؟`)) return;
+    if (!(await confirmDelete('حذف الرأي؟', f.subject))) return;
     try {
       await client.post('/feedback/delete', { id: f.id });
       setItems(list => list.filter(x => x.id !== f.id));
@@ -133,5 +138,20 @@ export const useFeedbackAdmin = () => {
     }
   };
 
-  return { items, isLoading, error, reload: load, markRead, replying, openReply, closeReply: () => setReplying(null), reply, remove };
+  /** My own opinion, sent like a member's; the list reloads to show it among the others. An error, or null once sent */
+  const send = async (data: { type: FeedbackType; subject: string; body: string }): Promise<string | null> => {
+    try {
+      await client.post('/feedback/mine/create', data);
+      setFormOpen(false);
+      load();
+      return null;
+    } catch (e) {
+      return errorText(e, 'تعذر إرسال الرأي');
+    }
+  };
+
+  return {
+    items, isLoading, error, reload: load, markRead, replying, openReply, closeReply: () => setReplying(null), reply, remove,
+    formOpen, openForm: () => setFormOpen(true), closeForm: () => setFormOpen(false), send,
+  };
 };

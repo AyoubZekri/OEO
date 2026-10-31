@@ -43,7 +43,7 @@ export const MemberMultiPicker: React.FC<MemberMultiPickerProps> = ({ label, ico
       {people.length > 6 && (
         <label className="tk-search tv-multi-search">
           <Search size={15} />
-          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالاسم..." />
+          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالاسم" />
           {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={14} /></button>}
         </label>
       )}

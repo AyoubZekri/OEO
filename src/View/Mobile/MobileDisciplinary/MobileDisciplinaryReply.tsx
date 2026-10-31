@@ -117,30 +117,24 @@ export const MobileDisciplinaryReplyForm: React.FC<{
           <h3 className="me-section-title"><span><Calendar size={16} /></span>سير الجلسة</h3>
           <div className="me-field">
             <span className="me-label">مسؤول الجلسة</span>
-            <div className="me-input hr-session-officer">{item.hearingOfficer || 'لم يُعيَّن عند إنشاء الجلسة'}</div>
+            <div className="me-input hr-session-officer">{item.hearingOfficer || '—'}</div>
           </div>
           <label className="me-field">
             <span className="me-label">توقيت اختتام الجلسة</span>
             <input className="me-input" type="time" dir="ltr" value={form.hearingEndTime || ''} onChange={e => set('hearingEndTime', e.target.value)} />
           </label>
-          <p className="me-hint">{item.hearingEndTime ? 'اختُتمت الجلسة: محضرها متاح للطباعة' : 'بعد تحديد توقيت الاختتام والحفظ، يصبح محضر الجلسة متاحاً للطباعة'}</p>
         </section>
       )}
 
       {!replyReadOnly && (
       <section className="me-card">
         <h3 className="me-section-title"><span><MessageSquare size={16} /></span>{isMember ? 'ردي وتوضيحاتي' : playerLabel(item.actionType)}</h3>
-        {replyReadOnly ? (
-          <p className={`me-text ${form.player_statements ? '' : 'empty'}`}>{form.player_statements || 'لم يرد العضو بعد على الطلب'}</p>
-        ) : (
-          <textarea
-            className="me-textarea"
-            rows={5}
-            value={form.player_statements}
-            onChange={e => set('player_statements', e.target.value)}
-            placeholder={isMember ? 'اكتب ردك وتوضيحاتك هنا...' : 'أدخل رد وتبريرات العضو هنا...'}
-          />
-        )}
+        <textarea
+          className="me-textarea"
+          rows={5}
+          value={form.player_statements}
+          onChange={e => set('player_statements', e.target.value)}
+        />
       </section>
       )}
 

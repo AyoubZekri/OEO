@@ -71,7 +71,7 @@ export const Users: React.FC = () => {
   return (
     <div className="users-container" style={{ fontFamily: 'var(--sans)' }}>
       <div className="users-header" style={{ justifyContent: 'flex-end', gap: '12px' }}>
-        <TopbarSearch value={query} onChange={v => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث عن مستخدم..." />
+        <TopbarSearch value={query} onChange={v => { setQuery(v); setCurrentPage(1); }} placeholder="ابحث عن مستخدم" />
         {hasAccess(permissions.usersAndRoles.addUsers) && (
           <button className="add-user-btn" onClick={openAddDialog}>
             <Plus size={20} />
@@ -113,8 +113,8 @@ export const Users: React.FC = () => {
                 <td data-label={t('users.actions_col', 'إجراءات')} className="actions-cell">
                   <div className="user-actions">
                     {hasAccess(permissions.usersAndRoles.editUsers) && (
-                      <button 
-                        className="btn-icon edit" 
+                      <button
+                        className="btn-icon edit"
                         onClick={() => openEditDialog(user)}
                         title={t('users.edit_user')}
                       >
@@ -122,8 +122,8 @@ export const Users: React.FC = () => {
                       </button>
                     )}
                     {hasAccess(permissions.usersAndRoles.deleteUsers) && (
-                      <button 
-                        className="btn-icon delete" 
+                      <button
+                        className="btn-icon delete"
                         onClick={() => handleDeleteUser(user.id)}
                         title={t('users.delete_user')}
                       >
@@ -144,12 +144,12 @@ export const Users: React.FC = () => {
           </tbody>
         </table>
         </div>
-        <Pagination 
-          totalItems={visibleUsers.length} 
-          itemsPerPage={itemsPerPage} 
-          currentPage={currentPage} 
-          onPageChange={setCurrentPage} 
-          onItemsPerPageChange={setItemsPerPage} 
+        <Pagination
+          totalItems={visibleUsers.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       </div>
 

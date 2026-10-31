@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { compressDocumentImage } from '../../../../core/functions/compressDocumentImage';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
-import { X, Upload, FileText, ArrowRight, Save, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, ArrowRight, Save, Image as ImageIcon } from 'lucide-react';
 import '../Disciplinary.css';
 
 interface UploadSignedDocumentDialogProps {
@@ -83,9 +83,6 @@ export const UploadSignedDocumentDialog: React.FC<UploadSignedDocumentDialogProp
         <form onSubmit={handleSubmit} className="modern-dialog-body" style={{ padding: '24px' }}>
           
           <div className="modern-form-group">
-            <label style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-              <FileText size={18} /> اختر الوثيقة (صورة أو PDF)
-            </label>
             <div 
               style={{
                 border: '2px dashed var(--border-color)',

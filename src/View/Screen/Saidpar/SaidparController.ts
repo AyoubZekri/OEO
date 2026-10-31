@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Bus, Landmark, Trophy, CalendarX2, MessageSquare, ClipboardList, PieChart, CalendarClock } from 'lucide-react';
+import { Home, Users, Banknote, Wallet, FileText, Scale, Package, Calendar, FileWarning, Stethoscope, Briefcase, Bus, Landmark, Trophy, CalendarX2, MessageSquare, ClipboardList, PieChart, CalendarClock, Target } from 'lucide-react';
 import { Approutes } from '../../../core/constant/routes';
 import { useAuth } from '../../../core/context/AuthContext';
-import { useSpace, type AppSpace } from '../../../core/context/space';
+import { useSpace } from '../../../core/context/space';
+import { useIsMobile } from '../../../core/functions/useIsMobile';
 
 export interface SubMenuItem {
   name: string;
@@ -44,6 +45,7 @@ export const useSaidparController = (onLogout?: () => void) => {
 
   const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({});
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
 
   const toggleDropdown = (dropdownName: string) => {
@@ -90,15 +92,8 @@ export const useSaidparController = (onLogout?: () => void) => {
   };
 
   const { permissions, isFullAccess } = useAuth();
-  const { space, setSpace, canManage } = useSpace();
-
-  /** Go to the other space, on its home page */
-  const switchSpace = (next: AppSpace) => {
-    setSpace(next);
-    setActiveItem('Home');
-    setIsMobileOpen(false);
-    navigate('/');
-  };
+  // One space per account (the personal one only for who has no role in the management one)
+  const { space, canManage, isPlayer } = useSpace();
 
   const hasAccess = (check: boolean) => isFullAccess || check;
 
@@ -107,15 +102,19 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
       title: '',
       items: [
-        { name: 'MyHome', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
-        { name: 'MyTasks', icon: CalendarClock, isDropdown: false, label: 'مواعيد', route: Approutes.MyTasks },
+        // Only for who has no role in the management space (whose own records are there). A player: no home page nor
+        // appointments; someone who is not a player: no medical reports
+        ...(isPlayer ? [] : [
+          { name: 'MyHome', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
+          { name: 'MyTasks', icon: CalendarClock, isDropdown: false, label: 'مواعيد', route: Approutes.MyTasks },
+        ]),
         { name: 'MyTrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.MyTrainingSessions },
         { name: 'MyMatches', icon: Trophy, isDropdown: false, label: 'مباريات', route: Approutes.MyMatches },
         { name: 'MyAbsences', icon: CalendarX2, isDropdown: false, label: 'غيابات', route: Approutes.MyAbsences },
         { name: 'MyMeetings', icon: Briefcase, isDropdown: false, label: 'اجتماعات', route: Approutes.MyMeetings },
         { name: 'MyTravels', icon: Bus, isDropdown: false, label: 'تنقلات', route: Approutes.MyTravels },
-        { name: 'MyMedical', icon: Stethoscope, isDropdown: false, label: 'تقارير طبية', route: Approutes.MyMedical },
-        { name: 'MyDisciplinary', icon: Scale,isDropdown: false, label: 'إجراءات تأديبية', route: Approutes.MyDisciplinary },
+        ...(isPlayer ? [{ name: 'MyMedical', icon: Stethoscope, isDropdown: false, label: 'تقارير طبية', route: Approutes.MyMedical }] : []),
+        { name: 'MyDisciplinary', icon: Scale, isDropdown: false, label: 'إجراءات تأديبية', route: Approutes.MyDisciplinary },
         { name: 'MyFeedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.MyFeedback },
       ],
     },
@@ -125,21 +124,11 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
      title: "",
       items: [
-        // Home: the tasks whose time came; the appointments page; the finance (the former home page)
-        ...(hasAccess(permissions.tasks?.view ?? false) ? [{
-          name: 'Home',
-          icon: Home,
-          isDropdown: false,
-          label: 'sidebar.home',
-          route: '/',
-        }] : []),
-        ...(hasAccess(permissions.appointments?.view ?? false) ? [{
-          name: 'Tasks',
-          icon: CalendarClock,
-          isDropdown: false,
-          label: 'المواعيد',
-          route: Approutes.Tasks,
-        }] : []),
+        // Home, for everyone: the tasks whose time came (all of them with the tasks permission, mine only without);
+        // the appointments page; the finance (the former home page)
+        { name: 'Home', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
+        // The appointments, for everyone too: all of them with the appointments permission, mine only without
+        { name: 'Tasks', icon: CalendarClock, isDropdown: false, label: 'المواعيد', route: Approutes.Tasks },
         ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
           name: 'Finance',
           icon: PieChart,
@@ -155,81 +144,85 @@ export const useSaidparController = (onLogout?: () => void) => {
           route: Approutes.Members,
         }] : []),
 
-        ...(hasAccess(permissions.disciplinary.view) ? [{
-          name: 'Disciplinary',
+        // The disciplinary actions, like the equipment: the actions page (with its permission), and «إجراءاتي» for
+        // everyone (the personal space's page, as it is)
+        {
+          name: 'DisciplinaryGroup',
           icon: Scale,
-          isDropdown: false,
+          isDropdown: true,
           label: 'الإجراءات التأديبية',
-          route: Approutes.Disciplinary,
-        }] : []),
-        ...(hasAccess(permissions.teams.view) ? [{
+          subItems: [
+            ...(hasAccess(permissions.disciplinary.view) ? [{ name: 'Disciplinary', label: 'الإجراءات التأديبية', route: Approutes.Disciplinary }] : []),
+            { name: 'MyDisciplinaryPage', label: 'إجراءاتي', route: Approutes.MyDisciplinary },
+          ],
+        },
+        // The teams: on a computer, from the members page's button; the phone's «المزيد» keeps them
+        ...(isMobile && hasAccess(permissions.teams.view) ? [{
           name: 'Teams',
           icon: Users,
           isDropdown: false,
           label: 'فئات الفرق',
           route: Approutes.Teams,
         }] : []),
-        ...(hasAccess(permissions.trainingSessions.view) ? [{
-          name: 'TrainingSessions',
-          icon: Calendar,
-          isDropdown: false,
-          label: 'حصص التدريب',
-          route: Approutes.TrainingSessions,
-        }] : []),
-        ...(hasAccess(permissions.absences.view) ? [{
-          name: 'AbsenceRequests',
+        // The training sessions, for everyone too: all of them with their permission, mine only without
+        { name: 'TrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.TrainingSessions },
+        // The absences, like the equipment: the absences page (with its permission: the others', the decisions), and
+        // «غياباتي» for everyone (the personal space's page, as it is)
+        {
+          name: 'AbsencesGroup',
           icon: FileWarning,
-          isDropdown: false,
-          label: 'sidebar.absence_requests',
-          route: Approutes.AbsenceRequests,
-        }] : []),
-        ...(hasAccess(permissions.matches.view) ? [{
-          name: 'Matches',
-          icon: Calendar,
-          isDropdown: false,
-          label: 'المباريات',
-          route: Approutes.Matches,
-        }] : []),
-        ...((hasAccess(permissions.meetings.view) || hasAccess(permissions.decisions.view)) ? [{
+          isDropdown: true,
+          label: 'الغيابات',
+          subItems: [
+            ...(hasAccess(permissions.absences.view) ? [{ name: 'AbsenceRequests', label: 'الغيابات', route: Approutes.AbsenceRequests }] : []),
+            { name: 'MyAbsencesPage', label: 'غياباتي', route: Approutes.MyAbsences },
+          ],
+        },
+        // The matches, for everyone too: all of them with their permission, mine only without
+        { name: 'Matches', icon: Calendar, isDropdown: false, label: 'المباريات', route: Approutes.Matches },
+        // The meetings, for everyone too (all of them with their permission, mine only without); the decisions, by theirs
+        {
           name: 'MeetingsGroup',
           icon: Briefcase,
           isDropdown: true,
           label: 'إدارة الاجتماعات',
           subItems: [
-            ...(hasAccess(permissions.meetings.view) ? [{
+            {
               name: 'Meetings',
               label: 'الاجتماعات',
               route: Approutes.Meetings,
-            }] : []),
+            },
             ...(hasAccess(permissions.decisions.view) ? [{
               name: 'Decisions',
               label: 'القرارات',
               route: Approutes.Decisions,
             }] : []),
           ]
-        }] : []),
-        
-        ...(hasAccess(permissions.travels?.view ?? false) ? [{
-          name: 'Travels',
-          icon: Bus,
+        },
+
+        // The trips, for everyone too: all of them with their permission, mine only without
+        { name: 'Travels', icon: Bus, isDropdown: false, label: 'التنقلات', route: Approutes.Travels },
+        // The opinions, one page for everyone: everyone's with their permission (mine sent from it), mine only without
+        { name: 'Feedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.Feedback },
+        ...(hasAccess(permissions.goals?.view ?? false) ? [{
+          name: 'Goals',
+          icon: Target,
           isDropdown: false,
-          label: 'التنقلات',
-          route: Approutes.Travels,
+          label: 'الأهداف العامة',
+          route: Approutes.Goals,
         }] : []),
-        ...(hasAccess(permissions.feedback?.view ?? false) ? [{
-          name: 'Feedback',
-          icon: MessageSquare,
-          isDropdown: false,
-          label: 'آراء الأعضاء',
-          route: Approutes.Feedback,
-        }] : []),
-        ...(hasAccess(permissions.medical.view) ? [{
-          name: 'MedicalRecords',
+        // The medical reports, like the equipment: the medical page (with its permission), and «تقاريري الطبية» for
+        // everyone (the personal space's page, as it is)
+        {
+          name: 'MedicalGroup',
           icon: Stethoscope,
-          isDropdown: false,
-          label: 'التقرير الطبي',
-          route: Approutes.MedicalRecords,
-        }] : []),
+          isDropdown: true,
+          label: 'التقارير الطبية',
+          subItems: [
+            ...(hasAccess(permissions.medical.view) ? [{ name: 'MedicalRecords', label: 'التقرير الطبي', route: Approutes.MedicalRecords }] : []),
+            { name: 'MyMedicalPage', label: 'تقاريري الطبية', route: Approutes.MyMedical },
+          ],
+        },
         ...(hasAccess(permissions.contracts.view) ? [{
           name: 'Contracts',
           icon: FileText,
@@ -315,6 +308,9 @@ export const useSaidparController = (onLogout?: () => void) => {
     .find(item => item.route === pathname);
   const currentItem = routed?.name ?? activeItem;
 
+  // The home page, when this space's menu has it (its permission): the top bar's home button too
+  const homeItem = menuSections.flatMap(section => section.items).find(item => item.route === '/');
+
   const handleLogout = () => {
     if (onLogout) onLogout();
   };
@@ -329,9 +325,9 @@ export const useSaidparController = (onLogout?: () => void) => {
     toggleSidebar,
     handleItemClick,
     menuSections,
+    homeItem,
     space,
     canManage,
-    switchSpace,
     openDropdowns,
     toggleDropdown,
     isMobileOpen,

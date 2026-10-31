@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { type DisciplinaryModel } from '../disciplinary_data';
-import { X, Save, MessageSquare, AlertTriangle, ArrowRight, UserCheck, Clock, Printer } from 'lucide-react';
+import { X, Save, MessageSquare, AlertTriangle, ArrowRight, UserCheck, Clock } from 'lucide-react';
 import { DecisionFields } from './DecisionFields';
 import '../Disciplinary.css';
 
@@ -91,12 +91,6 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
                   />
                 </div>
               </div>
-              <p className="hr-session-hint">
-                <Printer size={14} />
-                {editingItem.hearingEndTime
-                  ? 'اختُتمت الجلسة: محضرها متاح للطباعة من زر الطباعة'
-                  : 'بعد تحديد توقيت الاختتام والحفظ، يصبح محضر الجلسة متاحاً للطباعة'}
-              </p>
             </div>
           )}
 
@@ -115,7 +109,6 @@ export const HearingResponseDialog: React.FC<HearingResponseDialogProps> = ({
                 onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
                 className="modern-form-input modern-form-textarea"
                 rows={4}
-                placeholder="أدخل أقوال وتبريرات العضو..."
               />
             </div>
           </div>

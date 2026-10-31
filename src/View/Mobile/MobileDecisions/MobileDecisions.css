@@ -972,3 +972,16 @@ body.dark-mode .mdc-page {
 @keyframes mdc-spin {
   to { transform: rotate(360deg); }
 }
+
+/* The decision's text left empty: a red edge (its message under it) */
+.me-textarea.is-missing { border-color: #ef4444 !important; }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .mdc-hero {
+  color: #0f172a;
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+body:not(.dark-mode) .mdc-hero-text small { color: #ea580c; }
+body:not(.dark-mode) .mdc-ring span { background: #ffffff; color: #0f172a; }

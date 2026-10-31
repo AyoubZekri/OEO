@@ -20,6 +20,7 @@ export class Approutes {
   static readonly Tasks = "/tasks";
   static readonly Finance = "/finance";
   static readonly Feedback = "/feedback";
+  static readonly Goals = "/goals";
   static readonly Reports = "/reports";
   static readonly Teams = "/teams";
   static readonly Equipment = "/equipment";

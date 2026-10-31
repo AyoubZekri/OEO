@@ -33,15 +33,15 @@ export const RejectionView: React.FC<{ absence: AbsenceRecord; onClose: () => vo
 
       <section className="abr-reason">
         <h4><XCircle size={16} /> سبب الرفض</h4>
-        <p>{a.decision_note?.trim() || 'لم يُكتب سبب للرفض'}</p>
+        <p>{a.decision_note?.trim() || '—'}</p>
         {when && <small><CalendarCheck size={13} /> {when}</small>}
       </section>
 
       <section className="abr-sent">
         <h4><MessageSquareText size={15} /> {request ? 'السبب المرسل' : 'التبرير المرسل'}</h4>
-        <p>{a.reason?.trim() || 'بدون نص'}</p>
+        <p>{a.reason?.trim() || '—'}</p>
         {a.attachment_url && (
-          <button type="button" className="rjv-doc" onClick={() => openDocument(a.attachment_url, 'الوثيقة المرفقة')}><Paperclip size={14} /> فتح الوثيقة المرفقة</button>
+          <button type="button" className="rjv-doc" onClick={() => openDocument(a.attachment_url, 'الوثيقة المرفقة')}><Paperclip size={14} /> الوثيقة</button>
         )}
       </section>
     </div>
@@ -62,7 +62,6 @@ export const RejectionView: React.FC<{ absence: AbsenceRecord; onClose: () => vo
           <span className="ab-dialog-icon"><XCircle size={22} /></span>
           <div className="ab-dialog-title">
             <h2>{request ? 'رفض الطلب' : 'رفض التبرير'}</h2>
-            <p>القرار نهائي</p>
           </div>
           <button type="button" className="ab-close" onClick={onClose} aria-label="إغلاق"><X size={20} /></button>
         </header>

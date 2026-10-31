@@ -5,6 +5,7 @@ import type { EquipmentModel } from '../../Screen/Equipment/equipment_model';
 import { shortDate, initials } from './equipmentUtils';
 import { arCount } from '../MobileTeams/teamRoster';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- holders and movements come untyped from the API */
 
@@ -89,10 +90,7 @@ export const MobileEquipmentMovements: React.FC<{ equipment: EquipmentModel; onC
         </div>
       </section>
       {movements.length === 0 ? (
-        <div className="meq-empty">
-          <span className="meq-empty-icon"><History size={34} /></span>
-          <strong>لا توجد حركات مسجلة لهذا العتاد حتى الآن</strong>
-        </div>
+        <StateIcon icon={History} />
       ) : (
         <ol className="meq-timeline">
           {movements.map((mov: any) => {

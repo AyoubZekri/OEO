@@ -6,6 +6,7 @@ import client from '../api/client';
 import { DATA_CHANGED } from '../api/dataChanged';
 import { useAuth } from '../context/AuthContext';
 import { useSpace } from '../context/space';
+import { managementLink } from '../context/spaceLinks';
 
 // The notifications' channel (the server sends to it): heard, at the top of the screen, on the lock screen
 const CHANNEL = 'alerts';
@@ -34,16 +35,20 @@ const sendToken = (token: string) => {
 export const usePushNotifications = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { space, setSpace } = useSpace();
+  const { space, setSpace, canManage } = useSpace();
   const account = user?.id || '';
   // The tap's way to its place, always the current one (the listener is added once per account)
   const goRef = useRef<(data: Record<string, string> | undefined) => void>(() => undefined);
   useEffect(() => {
     goRef.current = data => {
-      // Its place: the page it names (in its space), or a task on the home page
-      if (data?.space && data.space !== space && (data.space === 'personal' || data.space === 'management')) setSpace(data.space);
+      // Its place: the page it names (in its space), or a task on the home page — the management's, where every
+      // user's own tasks are (the personal space has one only for who has no management space)
       const id = Number(data?.task_id) || null;
-      navigate(data?.link || (id ? `/?task=${id}` : '/'));
+      // A personal page now in the management space (my matches, absences…): there, for who may open it
+      const moved = canManage && data?.link && data.space === 'personal' ? managementLink(data.link) : null;
+      const wanted = moved || (!data?.link && id && canManage) ? 'management' : !data?.link && id ? 'personal' : data?.space;
+      if (wanted && wanted !== space && (wanted === 'personal' || wanted === 'management')) setSpace(wanted);
+      navigate(moved || data?.link || (id ? `/?task=${id}` : '/'));
     };
   });
 

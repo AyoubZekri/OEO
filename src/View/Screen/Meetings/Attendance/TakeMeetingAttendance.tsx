@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import {
   ArrowRight, Save, Check, X, Clock, FileWarning,
-  Users, MapPin, Calendar, CheckCircle2, Search,
-  ClipboardCheck, AlertTriangle
+  Users, Search,
+  ClipboardCheck
 } from 'lucide-react';
 import { useTakeMeetingAttendanceController } from './TakeMeetingAttendanceController';
 import type { MeetingAttendeeFull } from './TakeMeetingAttendanceController';
 import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { MobileTakeAttendance } from '../../../Mobile/MobileTrainingSessions/MobileTakeAttendance';
 import '../../Matches/Attendance/TakeAttendance.css';
+import { StateIcon } from '../../../widget/StateIcon';
 
 const STATUS_BUTTONS: {
   key: MeetingAttendeeFull['status'];
@@ -43,21 +44,13 @@ export const TakeMeetingAttendance: React.FC = () => {
     a.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const progressPct = c.stats.total > 0
-    ? Math.round(((c.stats.present + c.stats.late) / c.stats.total) * 100)
-    : 0;
-
-  const circleRadius = 35;
-  const circleCircumference = 2 * Math.PI * circleRadius;
-  const circleOffset = circleCircumference - (progressPct / 100) * circleCircumference;
-
   /* ── Loading ── */
   if (c.isLoading) {
     return (
       <div className="ta-container">
         <div className="ta-loading">
           <div className="ta-spinner" />
-          <p>جاري تحميل بيانات الاجتماع...</p>
+          <p>جاري التحميل...</p>
         </div>
       </div>
     );
@@ -68,8 +61,7 @@ export const TakeMeetingAttendance: React.FC = () => {
     return (
       <div className="ta-container">
         <div className="ta-error-box">
-          <AlertTriangle size={40} />
-          <p>{c.error}</p>
+          <StateIcon failed />
           <button type="button" className="ta-back-btn" onClick={c.handleBack}>
             <ArrowRight size={18} /> رجوع
           </button>
@@ -95,15 +87,7 @@ export const TakeMeetingAttendance: React.FC = () => {
             <ClipboardCheck size={22} />
           </div>
           <div>
-            <h1 className="ta-title">كشف حضور الاجتماع</h1>
-            {c.meetingInfo && (
-              <div className="ta-match-meta">
-                <span><ClipboardCheck size={13} /> {c.meetingInfo.topic}</span>
-                <span><Calendar size={13} /> {c.meetingInfo.date}</span>
-                <span><Clock size={13} /> {c.meetingInfo.time}</span>
-                <span><MapPin size={13} /> {c.meetingInfo.location}</span>
-              </div>
-            )}
+            <h1 className="ta-title">{c.meetingInfo?.topic || 'الحضور'}</h1>
           </div>
         </div>
 
@@ -118,55 +102,6 @@ export const TakeMeetingAttendance: React.FC = () => {
         </button>
       </div>
 
-      {/* ═══ STATS ROW ═══ */}
-      <div className="ta-stats-row">
-        <div className="ta-stat-card ta-stat-total">
-          <span className="ta-stat-num">{c.stats.total}</span>
-          <span className="ta-stat-lbl">إجمالي الأعضاء</span>
-        </div>
-        <div className="ta-stat-card ta-stat-present">
-          <CheckCircle2 size={18} />
-          <span className="ta-stat-num">{c.stats.present}</span>
-          <span className="ta-stat-lbl">حاضر</span>
-        </div>
-        <div className="ta-stat-card ta-stat-late">
-          <Clock size={18} />
-          <span className="ta-stat-num">{c.stats.late}</span>
-          <span className="ta-stat-lbl">متأخر</span>
-        </div>
-        <div className="ta-stat-card ta-stat-excused">
-          <FileWarning size={18} />
-          <span className="ta-stat-num">{c.stats.excused}</span>
-          <span className="ta-stat-lbl">غائب مبرر</span>
-        </div>
-        <div className="ta-stat-card ta-stat-absent">
-          <X size={18} />
-          <span className="ta-stat-num">{c.stats.absent}</span>
-          <span className="ta-stat-lbl">غائب غير مبرر</span>
-        </div>
-
-        {/* Progress */}
-        <div className="ta-progress-card">
-          <div className="ta-circular-wrap">
-            <svg className="ta-circular-svg" viewBox="0 0 100 100">
-              <circle className="ta-circular-bg" cx="50" cy="50" r={circleRadius} />
-              <circle
-                className="ta-circular-fill"
-                cx="50" cy="50" r={circleRadius}
-                style={{
-                  strokeDasharray: circleCircumference,
-                  strokeDashoffset: circleOffset
-                }}
-              />
-            </svg>
-            <div className="ta-circular-text">
-              <strong>{progressPct}%</strong>
-              <span>نسبة الحضور</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* ═══ TOOLBAR: Search + Mark All ═══ */}
       <div className="ta-toolbar">
         <div className="ta-search-wrap">
@@ -174,7 +109,7 @@ export const TakeMeetingAttendance: React.FC = () => {
           <input
             type="text"
             className="ta-search"
-            placeholder="بحث باسم العضو..."
+            placeholder="ابحث باسم العضو"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -197,12 +132,9 @@ export const TakeMeetingAttendance: React.FC = () => {
       {/* ═══ MEMBERS GRID ═══ */}
       <div className="ta-players-grid">
         {filtered.length === 0 ? (
-          <div className="ta-empty">
-            <Users size={48} strokeWidth={1} />
-            <p>لا يوجد أعضاء مطابقون للبحث أو لم يتم إضافة أعضاء لهذا الاجتماع.</p>
-          </div>
+          <StateIcon icon={Users} />
         ) : (
-          filtered.map((attendee, idx) => (
+          filtered.map(attendee => (
             <div
               key={attendee.id}
               className={`ta-player-card ${attendee.status ? `ta-card-${STATUS_BUTTONS.find(s => s.key === attendee.status)?.cls ?? ''}` : ''}`}
@@ -212,11 +144,6 @@ export const TakeMeetingAttendance: React.FC = () => {
                 <span style={{ fontSize: '1.2rem', fontWeight: 700 }}>
                   {attendee.name.charAt(0)}
                 </span>
-                {attendee.status && (
-                  <div className={`ta-status-badge ta-badge-${STATUS_BUTTONS.find(s => s.key === attendee.status)?.cls}`}>
-                    {STATUS_BUTTONS.find(s => s.key === attendee.status)?.icon}
-                  </div>
-                )}
               </div>
 
               {/* Name */}
@@ -247,7 +174,7 @@ export const TakeMeetingAttendance: React.FC = () => {
               <input
                 type="text"
                 className="ta-note-input"
-                placeholder="ملاحظة أو سبب الغياب..."
+                placeholder="ملاحظة..."
                 value={attendee.note}
                 onChange={e => c.handleNoteChange(attendee.id, e.target.value)}
               />

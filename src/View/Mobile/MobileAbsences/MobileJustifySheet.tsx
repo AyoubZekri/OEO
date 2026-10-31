@@ -3,6 +3,7 @@ import { Send, AlertCircle, Paperclip, Trash2 } from 'lucide-react';
 import { MobileSheet } from '../widgets/MobileSheet';
 import type { AbsenceRecord } from '../../Screen/Absence/AbsenceRequestsController';
 import { typeMeta, dateOf } from '../../Screen/Absence/absenceUtils';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import '../MobileEvaluations/MobileEvaluations.css';
 
 interface MobileJustifySheetProps {
@@ -23,10 +24,7 @@ export const MobileJustifySheet: React.FC<MobileJustifySheetProps> = ({ absence,
   const type = absence ? typeMeta(absence.absence_type) : null;
 
   const pick = (file: File | null) => {
-    if (file && file.size > MAX_DOC) {
-      setError('حجم الوثيقة أكبر من 5 ميغا');
-      return;
-    }
+    if (file && file.size > MAX_DOC) return showSnackbar('خطأ', 'حجم الوثيقة أكبر من 5 ميغا', '#ef4444');
     setDoc(file);
     setError('');
   };
@@ -67,19 +65,18 @@ export const MobileJustifySheet: React.FC<MobileJustifySheetProps> = ({ absence,
           </div>
         ) : (
           <label className="mab-file pick">
-            <Paperclip size={16} /> أرفق وثيقة (PDF أو صورة)
+            <Paperclip size={16} /> إرفاق وثيقة
             <input type="file" accept="application/pdf,image/*" onChange={e => pick(e.target.files?.[0] ?? null)} hidden />
           </label>
         ))}
         <textarea
-          className="mab-textarea"
+          className={`mab-textarea ${error ? 'is-missing' : ''}`}
           value={text}
           onChange={e => { setText(e.target.value); setError(''); }}
-          placeholder="اكتب سبب الغياب بوضوح (مرض، ظرف عائلي، دراسة...)"
+          placeholder="التبرير"
           rows={5}
         />
         {error && <p className="mab-error"><AlertCircle size={14} /> {error}</p>}
-        <p className="mab-note">يبقى التبرير قيد الدراسة حتى يتم قبوله أو رفضه.</p>
       </div>
     </MobileSheet>
   );

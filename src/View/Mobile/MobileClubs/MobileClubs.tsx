@@ -9,6 +9,8 @@ import type { Club } from '../../Screen/Clubs/club_model';
 import { MobileClubForm } from './MobileClubForm';
 import { clubInitial } from './clubUtils';
 import './MobileClubs.css';
+import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
 
 // 1 → "نادٍ واحد", 2 → "ناديان", 3–10 → "3 أندية", 11+ → "11 نادياً"
 const clubsText = (n: number) =>
@@ -32,8 +34,8 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
     : clubs;
   const withLogo = clubs.filter(c => c.logo).length;
 
-  const remove = (club: Club) => {
-    if (window.confirm(`هل أنت متأكد من حذف نادي ${club.name}؟`)) controller.deleteClub(club.id);
+  const remove = async (club: Club) => {
+    if (await confirmDelete('حذف النادي؟', club.name)) controller.deleteClub(club.id);
   };
 
   const menuItems = (club: Club): MobileRowMenuItem[] => [
@@ -49,9 +51,7 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
         <MobileLoader text="جاري تحميل الأندية..." />
       ) : clubs.length === 0 ? (
         <div className="mcl-empty">
-          <span className="mcl-empty-icon"><Shield size={40} /></span>
-          <strong>لا توجد أندية مضافة</strong>
-          <p>أضف الأندية الأخرى بشعارها ورمزها لتظهر في صفحات النادي.</p>
+          <StateIcon icon={Shield} />
           <button type="button" className="mcl-empty-btn" onClick={() => setEditing(null)}>
             <Plus size={18} /> إضافة أول نادي
           </button>
@@ -79,10 +79,7 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
           </label>
 
           {visible.length === 0 ? (
-            <div className="mcl-empty small">
-              <Search size={34} />
-              <p>لا توجد نتائج للبحث</p>
-            </div>
+            <StateIcon icon={Search} />
           ) : (
             <div className="mcl-grid">
               {visible.map(club => (

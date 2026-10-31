@@ -8,8 +8,8 @@ import { Applink } from '../../../LinkApi';
 import { AddMatchDialog } from './AddMatchDialog';
 import { MatchCallupsDialog } from './MatchCallupsDialog';
 import { ViewMatchCallupsDialog } from './ViewMatchCallupsDialog';
-import { AdministrativeReportDialog } from './AdministrativeReportDialog';
 import { ViewAdministrativeReportDialog } from './ViewAdministrativeReportDialog';
+import { MatchReportImageDialog } from './parts/MatchReportImage';
 import { SetMatchResultDialog } from './SetMatchResultDialog';
 import { MatchTimelineDialog } from './MatchTimelineDialog';
 import { MatchPlayerStatsDialog } from './MatchPlayerStatsDialog';
@@ -20,7 +20,7 @@ import { MobileMatches } from '../../Mobile/MobileMatches/MobileMatches';
 import { MobileMatchCallups } from '../../Mobile/MobileMatches/MobileMatchCallups';
 import { MobileMatchLineup } from '../../Mobile/MobileMatches/MobileMatchLineup';
 import { MobileMatchForm } from '../../Mobile/MobileMatches/MobileMatchForm';
-import { MobileMatchReport, MobileMatchReportForm } from '../../Mobile/MobileMatches/MobileMatchReport';
+import { MobileMatchReport } from '../../Mobile/MobileMatches/MobileMatchReport';
 import { MobileMatchResult } from '../../Mobile/MobileMatches/MobileMatchResult';
 import { MobileMatchTimeline } from '../../Mobile/MobileMatches/MobileMatchTimeline';
 import { MobileMatchPlayerStats } from '../../Mobile/MobileMatches/MobileMatchPlayerStats';
@@ -32,6 +32,7 @@ import { matchState } from '../../Mobile/MobileMatches/matchUtils';
 import '../Members/Members.css';
 import './Matches.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { StateIcon } from '../../widget/StateIcon';
 
 /** personal: the personal space's page (the matches of my category, read only, with my call-up and attendance) */
 export const Matches = ({ personal = false }: { personal?: boolean }) => {
@@ -56,10 +57,6 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
     closeViewCallupsDialog,
     selectedMatchForViewCallups,
     openViewCallupsDialog,
-    isAdministrativeReportDialogOpen,
-    selectedMatchForAdministrativeReport,
-    openAdministrativeReportDialog,
-    closeAdministrativeReportDialog,
     isViewAdministrativeReportDialogOpen,
     selectedMatchForViewAdministrativeReport,
     openViewAdministrativeReportDialog,
@@ -88,15 +85,17 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
   const details = !isMobile && detailsId ? matches.find(m => String(m.id) === detailsId) : undefined;
   // Bumped when the phone report form closes, so the report page shown under it reloads
   const [reportVersion, setReportVersion] = useState(0);
+  // «رفع صورة التقرير»: the match whose report picture is being uploaded
+  const [imageFor, setImageFor] = useState<Match | null>(null);
 
   const filteredMatches = matches.filter(match => {
     const searchLower = searchQuery.toLowerCase();
     const opponent = match.opponent?.toLowerCase() || '';
     const opponentClubName1 = match.opponentClub?.name?.toLowerCase() || '';
     const opponentClubName2 = match.opponent_club?.name?.toLowerCase() || '';
-    
-    return opponent.includes(searchLower) || 
-           opponentClubName1.includes(searchLower) || 
+
+    return opponent.includes(searchLower) ||
+           opponentClubName1.includes(searchLower) ||
            opponentClubName2.includes(searchLower);
   });
 
@@ -110,17 +109,16 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
         team_id: match.team_id || match.team?.id,
         match_status: newStatus
       };
-      
+
       const res = await axios.post(Applink.updateMatch, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (res.data.status === 'success') {
         fetchMatches();
       }
     } catch (error) {
       console.error('Error updating match status:', error);
-      alert('حدث خطأ أثناء تحديث حالة المباراة');
     }
   };
 
@@ -144,7 +142,6 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
       }
     } catch (error) {
       console.error('Error rescheduling match:', error);
-      alert('حدث خطأ أثناء إعادة جدولة المباراة');
     }
   };
 
@@ -157,7 +154,7 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
     lineup: openViewCallupsDialog,
     attendance: m => navigate(`/matches/${m.id}/attendance`),
     result: openResultDialog,
-    report: openAdministrativeReportDialog,
+    reportImage: setImageFor,
     viewReport: openViewAdministrativeReportDialog,
     playerStats: openPlayerStatsDialog,
     timeline: openTimelineDialog,
@@ -168,6 +165,16 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
   // Shared by the desktop page and the phone page
   const dialogs = (
     <>
+        {imageFor && (
+          <MatchReportImageDialog
+            match={imageFor}
+            mobile={isMobile}
+            onClose={() => {
+              setImageFor(null);
+              setReportVersion(v => v + 1); // an open report page shows the new picture
+            }}
+          />
+        )}
         {isMobile ? (
           isDialogOpen && (
             <MobileMatchForm key={editingMatch?.id ?? 'new'} match={editingMatch} onSave={fetchMatches} onClose={closeDialog} />
@@ -215,20 +222,11 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
 
         {isMobile ? (
           <>
-            {isAdministrativeReportDialogOpen && selectedMatchForAdministrativeReport && (
-              <MobileMatchReportForm
-                match={selectedMatchForAdministrativeReport}
-                onClose={() => {
-                  closeAdministrativeReportDialog();
-                  setReportVersion(v => v + 1); // the report page underneath reloads the saved report
-                }}
-              />
-            )}
             {isViewAdministrativeReportDialogOpen && selectedMatchForViewAdministrativeReport && (
               <MobileMatchReport
                 key={reportVersion}
                 match={selectedMatchForViewAdministrativeReport}
-                onEdit={() => openAdministrativeReportDialog(selectedMatchForViewAdministrativeReport)}
+                onEdit={() => setImageFor(selectedMatchForViewAdministrativeReport)}
                 onClose={closeViewAdministrativeReportDialog}
               />
             )}
@@ -251,12 +249,6 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
           </>
         ) : (
           <>
-            <AdministrativeReportDialog
-              isOpen={isAdministrativeReportDialogOpen}
-              onClose={closeAdministrativeReportDialog}
-              matchData={selectedMatchForAdministrativeReport}
-            />
-
             <ViewAdministrativeReportDialog
               isOpen={isViewAdministrativeReportDialogOpen}
               onClose={closeViewAdministrativeReportDialog}
@@ -276,9 +268,9 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
             />
 
             {selectedMatchForTimeline && (
-              <MatchTimelineDialog 
-                match={selectedMatchForTimeline} 
-                onClose={closeTimelineDialog} 
+              <MatchTimelineDialog
+                match={selectedMatchForTimeline}
+                onClose={closeTimelineDialog}
               />
             )}
 
@@ -313,7 +305,7 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
       <div className="members-header">
 
         <div className="members-actions">
-          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder="البحث بالفريق المنافس..." />
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder="ابحث باسم الخصم" />
           {can('matches', 'add') && (
             <button className="btn-primary" onClick={openAddDialog}>
               <Plus size={20} /> إضافة مباراة
@@ -356,11 +348,7 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
             />
           ))}
         {filteredMatches.length === 0 && (
-          <div className="no-matches">
-            <Calendar size={48} style={{ color: 'var(--border)', marginBottom: '8px' }} />
-            <h3>لا توجد مباريات</h3>
-            <p>{matches.length === 0 ? (personal ? 'لا توجد مباريات لفئتك.' : 'انقر على "إضافة مباراة" لإدراج مباراة جديدة في السجل.') : 'لا توجد نتائج للبحث، جرب اسم فريق مختلف.'}</p>
-          </div>
+          <StateIcon icon={Calendar} />
         )}
       </div>
       )}

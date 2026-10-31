@@ -1,9 +1,9 @@
 import React from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Briefcase, Calendar, Clock, MapPin, Users, ClipboardCheck, Pencil, Timer } from 'lucide-react';
+import { Briefcase, Calendar, Clock, MapPin, Users, ClipboardCheck, Pencil } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { Meeting } from '../../Screen/Meetings/meeting_model';
-import { longDate, countdownText } from '../MobileTrainingSessions/sessionUtils';
+import { longDate } from '../MobileTrainingSessions/sessionUtils';
 import { meetingStart, dayOfMeeting, shortTime, attendanceOf, statusOf, invitedText, agendaOf } from './meetingUtils';
 import { MeetingAgenda } from '../../Screen/Meetings/MeetingAgenda';
 import { meetingPointsApi } from '../../Screen/Meetings/meetingPointsApi';
@@ -51,7 +51,6 @@ export const MobileMeetingDetails: React.FC<MobileMeetingDetailsProps> = ({ meet
           <div><Clock size={15} /><span dir="ltr">{shortTime(meeting.time)}</span></div>
           {meeting.location && <div><MapPin size={15} /><span>{meeting.location}</span></div>}
         </div>
-        {upcoming && <p className="mmg-hero-note"><Timer size={14} /> يبدأ {countdownText(start!, now)}</p>}
       </section>
 
       {/* Agenda: the organisers' points and the proposed ones, with who added each */}

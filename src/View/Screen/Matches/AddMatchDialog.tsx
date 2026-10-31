@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
-import { X, User, Tag } from 'lucide-react';
+import { X } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 
@@ -26,14 +26,17 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     match_status: 'upcoming',
     opponent_club_id: ''
   });
-  
+
   const [individuals, setIndividuals] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // The fields to type left empty: their message under them
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setShowErrors(false);
       if (matchData) {
         setFormData({
           competition: matchData.competition || '',
@@ -73,8 +76,8 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
       ]);
       if (indRes.data.status === 'success') {
         const allowedRoles = ['مدرب', 'مساعد مدرب', 'مدرب حراس', 'موظف', 'إداري', 'طبيب'];
-        const filtered = indRes.data.data.filter((ind: any) => 
-            ind.role?.name && allowedRoles.includes(ind.role.name.strip())
+        const filtered = indRes.data.data.filter((ind: any) =>
+            ind.role?.name && allowedRoles.includes(String(ind.role.name).trim())
         );
         const validIndividuals = filtered.length > 0 ? filtered : indRes.data.data;
         setIndividuals(validIndividuals);
@@ -96,8 +99,19 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
     }
   };
 
+  const errors = {
+    competition: !formData.competition.trim() ? 'اكتب اسم المنافسة' : null,
+    opponent: !formData.opponent.trim() ? 'اكتب اسم الفريق الخصم' : null,
+    location: !formData.location.trim() ? 'اكتب مكان المباراة' : null,
+    match_date: !formData.match_date ? 'حدد تاريخ المباراة' : null,
+  };
+  const error = (field: keyof typeof errors) => (showErrors ? errors[field] : null);
+  const missingClass = (field: keyof typeof errors) => (error(field) ? 'is-missing' : '');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    if (Object.values(errors).some(Boolean)) return;
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
@@ -105,7 +119,7 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
       // The opponent is the name typed (no club chosen from a list any more)
       const typed = { ...formData, opponent: formData.opponent.trim(), opponent_club_id: '' };
       const payload = matchData ? { ...typed, id: matchData.id } : typed;
-      
+
       const res = await axios.post(url, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -115,8 +129,6 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
       }
     } catch (error: any) {
       console.error('Error saving match:', error);
-      const serverMsg = error.response?.data?.message || error.response?.data?.error || error.message || '';
-      alert(`حدث خطأ أثناء الحفظ\n${serverMsg}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -131,42 +143,45 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           <h2>{matchData ? 'تعديل المباراة' : 'إضافة مباراة جديدة'}</h2>
           <button type="button" className="close-btn" onClick={onClose}><X size={20} /></button>
         </div>
-        <form onSubmit={handleSubmit} className="task-form">
+        <form onSubmit={handleSubmit} className="task-form" noValidate>
           <div className="responsive-grid-2">
             <CustomInput
               label="المنافسة"
               type="text"
               value={formData.competition}
               onChange={e => setFormData({...formData, competition: e.target.value})}
-              required
+              className={missingClass('competition')}
+              error={error('competition')}
             />
             <CustomInput
               label="الفريق الخصم"
               type="text"
               value={formData.opponent}
               onChange={e => setFormData({ ...formData, opponent: e.target.value })}
-              placeholder="اكتب اسم الفريق الخصم"
-              required
+              className={missingClass('opponent')}
+              error={error('opponent')}
             />
           </div>
 
           <div style={{ marginBottom: '16px' }}>
             <CustomInput
-              label="المكان / الملعب"
+              label="الملعب"
               type="text"
               value={formData.location}
               onChange={e => setFormData({...formData, location: e.target.value})}
-              required
+              className={missingClass('location')}
+              error={error('location')}
             />
           </div>
 
           <div className="responsive-grid-2">
             <CustomInput
-              label="تاريخ وتوقيت المباراة"
+              label="تاريخ المباراة"
               type="datetime-local"
               value={formData.match_date}
               onChange={e => setFormData({...formData, match_date: e.target.value})}
-              required
+              className={missingClass('match_date')}
+              error={error('match_date')}
             />
             <CustomInput
               label="موعد التجمع"
@@ -188,36 +203,36 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
           <div className="responsive-grid-2">
             <div style={{ marginBottom: '16px' }}>
             <CustomDropdown<string>
-              label={<><Tag size={16} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> الفئة / الفريق</>}
+              label="الفئة"
               value={formData.team_id}
               onChange={(val) => setFormData({ ...formData, team_id: val })}
               options={teams.map(t => ({
                 value: t.id.toString(),
                 label: t.name
               }))}
-              placeholder="اختر الفئة"
+              placeholder=""
             />
           </div>
 
           <CustomDropdown<string>
-              label={<><User size={16} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> المدرب / الإداري</>}
+              label="المدرب"
               value={formData.coach_id}
               onChange={(val) => setFormData({ ...formData, coach_id: val })}
               options={individuals.map(ind => ({
                 value: ind.id.toString(),
                 label: `${ind.first_name} ${ind.last_name} ${ind.role ? `(${ind.role.name})` : ''}`
               }))}
-              placeholder="اختر المدرب/الموظف"
+              placeholder=""
             />
             <CustomDropdown<string>
-              label={<><User size={16} style={{ display: 'inline', verticalAlign: 'text-bottom' }} /> المسؤول الإداري</>}
+              label="المسؤول الإداري"
               value={formData.admin_id}
               onChange={(val) => setFormData({ ...formData, admin_id: val })}
               options={users.map(u => ({
                 value: u.id.toString(),
                 label: u.name
               }))}
-              placeholder="اختر المسؤول"
+              placeholder=""
             />
           </div>
 
@@ -229,7 +244,7 @@ export const AddMatchDialog: React.FC<AddMatchDialogProps> = ({ isOpen, onClose,
               إلغاء
             </button>
             <button type="submit" className="mc-btn mc-btn-primary" disabled={isSubmitting} style={{ padding: '10px 32px', minWidth: '120px' }}>
-              {isSubmitting ? 'حفظ...' : 'حفظ'}
+              {isSubmitting ? 'جاري الحفظ...' : matchData ? 'حفظ التعديلات' : 'تأكيد'}
             </button>
           </div>
         </form>

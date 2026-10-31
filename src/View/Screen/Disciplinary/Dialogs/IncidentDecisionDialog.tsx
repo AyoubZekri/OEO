@@ -89,7 +89,6 @@ export const IncidentDecisionDialog: React.FC<IncidentDecisionDialogProps> = ({
                 onChange={e => setFormData({ ...formData, player_statements: e.target.value })}
                 className="modern-form-input modern-form-textarea"
                 rows={3}
-                placeholder="أدخل أقوال وتبريرات العضو هنا..."
               />
             </div>
           </div>

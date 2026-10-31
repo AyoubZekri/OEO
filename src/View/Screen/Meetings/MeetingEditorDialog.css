@@ -369,3 +369,7 @@ body.dark-mode .med-input input::-webkit-calendar-picker-indicator {
   filter: invert(0.85);
   cursor: pointer;
 }
+
+/* A required field left empty: a red edge and its message under it */
+.med-input.is-missing { border-color: #ef4444 !important; }
+.med-error { display: flex; align-items: center; gap: 5px; margin-top: 4px; color: #ef4444; font-size: 0.78rem; font-weight: 700; }

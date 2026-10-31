@@ -3,6 +3,7 @@ import { RolesData } from './roles_data';
 import { Crud } from '../../../../core/class/Crud';
 
 import { RoleModel } from './role_model';
+import { confirmDelete } from '../../../shared/confirmDelete';
 
 export const useRolesController = () => {
   const [roles, setRoles] = useState<RoleModel[]>([]);
@@ -82,7 +83,7 @@ export const useRolesController = () => {
   };
 
   const handleDeleteRole = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الدور؟')) {
+    if (await confirmDelete('حذف الدور؟')) {
       setIsLoading(true);
       const response = await rolesData.deleteRole(id);
       if (response && !response.error) {

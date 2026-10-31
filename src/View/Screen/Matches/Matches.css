@@ -786,3 +786,6 @@ body.dark-mode .mc-attendance-segbar {
   outline: 2px solid #f97316;
   outline-offset: 2px;
 }
+
+/* The match's form: a required field left empty — a red edge (its message under it) */
+.task-form .form-group input.is-missing { border-color: #ef4444 !important; }

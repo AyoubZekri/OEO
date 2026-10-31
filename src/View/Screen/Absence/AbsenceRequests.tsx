@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Users, UserX, Clock, LogOut, Plane, Hourglass, ShieldCheck, FileWarning, History, ClipboardList, Inbox } from 'lucide-react';
+import { Plus, Users, FileWarning, History, ClipboardList, Inbox } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { useAbsenceRequestsController } from './AbsenceRequestsController';
@@ -15,6 +15,7 @@ import {
 import { MobileAbsences } from '../../Mobile/MobileAbsences/MobileAbsences';
 import './Absence.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- members come untyped from the API */
 
@@ -32,7 +33,6 @@ export const AbsenceRequests: React.FC = () => {
 
   if (isMobile) return <MobileAbsences c={controller} />;
 
-  const s = controller.stats;
   const q = query.trim().toLowerCase();
   const pending = controller.absences.filter(a => statusOf(a) === 'pending').sort(byDateDesc);
 
@@ -49,37 +49,22 @@ export const AbsenceRequests: React.FC = () => {
 
   const cardProps = { onJustify: controller.openJustificationDialog, onDecide: controller.decide, onDelete: controller.handleDelete };
 
-  const tiles = [
-    { key: 'absent', label: 'غياب', value: s.absent, icon: UserX, tone: 'red' },
-    { key: 'late', label: 'تأخر', value: s.late, icon: Clock, tone: 'amber' },
-    { key: 'leave', label: 'مغادرة', value: s.leave, icon: LogOut, tone: 'orange' },
-    { key: 'request', label: 'طلبات عطلة', value: s.request, icon: Plane, tone: 'violet' },
-    { key: 'pending', label: 'قيد الدراسة', value: s.pending, icon: Hourglass, tone: 'blue' },
-    { key: 'justified', label: 'مبررة', value: s.justified, icon: ShieldCheck, tone: 'green' },
-  ];
-
   const tabs = [
     { value: 'members', label: 'الأعضاء', icon: Users, count: controller.members.length },
     { value: 'requests', label: 'الطلبات', icon: Inbox, count: pending.length, alert: pending.length > 0 },
     { value: 'registry', label: 'السجل العام', icon: ClipboardList, count: controller.absences.length },
   ] as const;
 
-  const empty = (text: string) => (
-    <div className="ab-empty">
-      <span><FileWarning size={34} /></span>
-      <strong>{text}</strong>
-    </div>
-  );
+  const empty = (icon: typeof FileWarning) => <StateIcon icon={icon} />;
 
   return (
     <div className="ab-page">
-      {/* Summary */}
+      {/* Title and the add button */}
       <section className="ab-hero">
         <div className="ab-hero-main">
           <span className="ab-hero-icon"><FileWarning size={30} /></span>
           <div>
-            <small>الغيابات والتبريرات</small>
-            <strong>{s.total} <span>سجل</span></strong>
+            <strong className="title">الغيابات والتبريرات</strong>
           </div>
           {can('absences', 'add') && (
             <div className="ab-hero-actions">
@@ -88,15 +73,6 @@ export const AbsenceRequests: React.FC = () => {
               </button>
             </div>
           )}
-        </div>
-        <div className="ab-tiles">
-          {tiles.map(t => (
-            <div key={t.key} className={`ab-tile tone-${t.tone}`}>
-              <span><t.icon size={18} /></span>
-              <strong>{t.value}</strong>
-              <small>{t.label}</small>
-            </div>
-          ))}
         </div>
       </section>
 
@@ -120,26 +96,22 @@ export const AbsenceRequests: React.FC = () => {
       {/* Toolbar */}
       {controller.activeTab !== 'requests' && (
         <div className="ab-toolbar">
-          <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث باسم العضو..." />
-
-          {controller.activeTab === 'members' ? (
-            <div className="ab-chips">
-              {([['', 'الكل'], ['players', 'اللاعبون'], ['staff', 'الطاقم والإداريون']] as const).map(([v, l]) => (
-                <button key={v || 'all'} type="button" className={role === v ? 'on' : ''} onClick={() => setRole(v)}>{l}</button>
-              ))}
-            </div>
-          ) : (
-            <div className="ab-chips">
-              <button type="button" className={!type ? 'on' : ''} onClick={() => setType('')}>الكل</button>
-              {ABSENCE_TYPES.map(t => (
-                <button key={t.value} type="button" className={`tone-${t.tone} ${type === t.value ? 'on' : ''}`} onClick={() => setType(t.value)}>
-                  <t.icon size={14} /> {t.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث باسم العضو" />
 
           <div className="ab-selects">
+            {controller.activeTab === 'members' ? (
+              <div className="ab-select">
+                <CustomDropdown
+                  value={role}
+                  onChange={val => setRole(val as typeof role)}
+                  options={[{ value: '', label: 'كل الأعضاء' }, { value: 'players', label: 'اللاعبون' }, { value: 'staff', label: 'الطاقم والإداريون' }]}
+                />
+              </div>
+            ) : (
+              <div className="ab-select">
+                <CustomDropdown value={type} onChange={val => setType(val)} options={[{ value: '', label: 'كل الأنواع' }, ...ABSENCE_TYPES.map(t => ({ value: t.value, label: t.label }))]} />
+              </div>
+            )}
             <div className="ab-select">
               <CustomDropdown
                 value={controller.filterTeamId}
@@ -171,7 +143,7 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Members */}
       {controller.activeTab === 'members' && (
-        members.length === 0 ? empty(controller.members.length ? 'لا يوجد أعضاء بهذا البحث' : 'جاري تحميل الأعضاء...') : (
+        members.length === 0 ? empty(Users) : (
           <>
             <div className="ab-members">
               {members.slice(0, limit).map((m: any) => {
@@ -190,15 +162,6 @@ export const AbsenceRequests: React.FC = () => {
                       <span className="tone-amber"><b>{c.late}</b> تأخر</span>
                       <span className="tone-orange"><b>{c.leave}</b> مغادرة</span>
                     </div>
-                    {c.pending > 0 ? (
-                      <p className="ab-flag blue"><Hourglass size={13} /> {c.pending} تبرير قيد الدراسة</p>
-                    ) : c.unjustified > 0 ? (
-                      <p className="ab-flag red"><UserX size={13} /> {c.unjustified} غياب بدون تبرير</p>
-                    ) : c.total === 0 ? (
-                      <p className="ab-flag green"><ShieldCheck size={13} /> لا توجد غيابات</p>
-                    ) : (
-                      <p className="ab-flag green"><ShieldCheck size={13} /> لا يوجد غياب بدون تبرير</p>
-                    )}
                     <div className="ab-member-actions">
                       {can('absences', 'add') && (
                         <button type="button" className="ab-btn soft" onClick={() => controller.openAddAbsenceDialog(m.id)}>
@@ -222,7 +185,7 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Pending justifications */}
       {controller.activeTab === 'requests' && (
-        pending.length === 0 ? empty('لا توجد طلبات معلقة حالياً'): (
+        pending.length === 0 ? empty(Inbox): (
           <div className="ab-grid">
             {pending.map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}
           </div>
@@ -231,8 +194,8 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Registry */}
       {controller.activeTab === 'registry' && (
-        controller.isLoading && !controller.absences.length ? empty('جاري تحميل السجل...') :
-          registry.length === 0 ? empty('لا توجد سجلات بهذه التصفية') : (
+        controller.isLoading && !controller.absences.length ? empty(ClipboardList) :
+          registry.length === 0 ? empty(ClipboardList) : (
             <>
               <div className="ab-grid">
                 {registry.slice(0, limit).map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { X, Send, Clock, Calendar, FileText, AlertCircle, MessageSquareText, Paperclip, Trash2, PenLine } from 'lucide-react';
 import { categoryIcon } from '../Absence/absenceUtils';
 import { errorText, type MyAbsenceRequest } from './useMyAbsences';
-import { REQUEST_KINDS, ANNOUNCE_EVENTS, MAX_DOC, todayIso, requestError } from './absenceRequestForm';
+import { REQUEST_KINDS, ANNOUNCE_EVENTS, MAX_DOC, todayIso, requestError, requestErrorField, type RequestField } from './absenceRequestForm';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import '../Absence/Absence.css';
 
 type Kind = MyAbsenceRequest['kind'];
@@ -21,21 +22,26 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
   const [delay, setDelay] = useState('');
   const [reason, setReason] = useState('');
   const [doc, setDoc] = useState<File | null>(null);
-  const [error, setError] = useState('');
+  // A field left wrong: its message under it (the event, a choice: a snackbar)
+  const [error, setError] = useState<{ field: RequestField; text: string } | null>(null);
+  const errorOf = (field: RequestField) => (error?.field === field ? error.text : '');
   const [saving, setSaving] = useState(false);
   const current = REQUEST_KINDS.find(k => k.value === kind) || REQUEST_KINDS[0];
   const announce = kind !== 'leave';
 
   const pick = (file: File | null) => {
-    if (file && file.size > MAX_DOC) return setError('حجم الوثيقة أكبر من 5 ميغا');
+    if (file && file.size > MAX_DOC) return showSnackbar('خطأ', 'حجم الوثيقة أكبر من 5 ميغا', '#ef4444');
     setDoc(file);
-    setError('');
+    setError(null);
   };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     const problem = requestError({ kind, from, to, event, other, reason, doc });
-    if (problem) return setError(problem);
+    const field = problem ? requestErrorField(problem) : null;
+    setError(field ? { field, text: problem } : null);
+    if (problem && !field) showSnackbar('خطأ', problem, '#ef4444');
+    if (problem) return;
     setSaving(true);
     try {
       await onSubmit({
@@ -48,7 +54,7 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
         document: doc,
       });
     } catch (err) {
-      setError(errorText(err, 'تعذر إرسال الطلب'));
+      showSnackbar('خطأ', errorText(err, 'تعذر إرسال الطلب'), '#ef4444');
     } finally {
       setSaving(false);
     }
@@ -61,7 +67,6 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
           <span className="ab-dialog-icon"><current.icon size={22} /></span>
           <div className="ab-dialog-title">
             <h2>{current.label}</h2>
-            <p>يصل إلى الإدارة، ويبقى قيد الدراسة حتى يتم قبوله أو رفضه</p>
           </div>
           <button type="button" className="ab-close" onClick={onClose} aria-label="إغلاق"><X size={20} /></button>
         </header>
@@ -69,7 +74,7 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
         <div className="ab-dialog-body">
           <div className="ab-modes n3">
             {REQUEST_KINDS.map(k => (
-              <button key={k.value} type="button" className={`tone-${k.tone} ${kind === k.value ? 'on' : ''}`} onClick={() => { setKind(k.value); setError(''); }}>
+              <button key={k.value} type="button" className={`tone-${k.tone} ${kind === k.value ? 'on' : ''}`} onClick={() => { setKind(k.value); setError(null); }}>
                 <span><k.icon size={20} /></span>
                 {k.short}
               </button>
@@ -78,10 +83,10 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
 
           {announce && (
             <div className="ab-field">
-              <span><FileText size={15} /> {kind === 'late' ? 'ستتأخر عن *' : 'ستغيب عن *'}</span>
+              <span><FileText size={15} /> {kind === 'late' ? 'ستتأخر عن' : 'ستغيب عن'}</span>
               <div className="ab-cats">
                 {ANNOUNCE_EVENTS.map(value => (
-                  <button key={value} type="button" className={event === value ? 'on' : ''} onClick={() => { setEvent(value); setError(''); }}>
+                  <button key={value} type="button" className={event === value ? 'on' : ''} onClick={() => setEvent(value)}>
                     {React.createElement(categoryIcon(value), { size: 16 })} {value}
                   </button>
                 ))}
@@ -90,32 +95,35 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
           )}
           {announce && event === 'أخرى' && (
             <label className="ab-field">
-              <span><PenLine size={15} /> ما هو الحدث *</span>
-              <input type="text" value={other} onChange={e => { setOther(e.target.value); setError(''); }} placeholder="مثال: حصة تصوير، موعد إداري..." />
+              <span><PenLine size={15} /> ما هو الحدث</span>
+              <input type="text" className={errorOf('other') ? 'is-missing' : ''} value={other} onChange={e => { setOther(e.target.value); setError(null); }} />
+              {errorOf('other') && <p className="ab-field-error"><AlertCircle size={13} /> {errorOf('other')}</p>}
             </label>
           )}
 
           <div className={`ab-row ${kind !== 'absence' ? 'two' : ''}`}>
             <label className="ab-field">
-              <span><Calendar size={15} /> {kind === 'leave' ? 'من *' : 'التاريخ *'}</span>
-              <input type="date" dir="ltr" value={from} min={todayIso()} onChange={e => { setFrom(e.target.value); setError(''); }} />
+              <span><Calendar size={15} /> {kind === 'leave' ? 'من' : 'التاريخ'}</span>
+              <input type="date" dir="ltr" className={errorOf('from') ? 'is-missing' : ''} value={from} min={todayIso()} onChange={e => { setFrom(e.target.value); setError(null); }} />
+              {errorOf('from') && <p className="ab-field-error"><AlertCircle size={13} /> {errorOf('from')}</p>}
             </label>
             {kind === 'leave' && (
               <label className="ab-field">
-                <span><Calendar size={15} /> إلى (اختياري)</span>
-                <input type="date" dir="ltr" value={to} min={from || todayIso()} onChange={e => { setTo(e.target.value); setError(''); }} />
+                <span><Calendar size={15} /> إلى</span>
+                <input type="date" dir="ltr" className={errorOf('to') ? 'is-missing' : ''} value={to} min={from || todayIso()} onChange={e => { setTo(e.target.value); setError(null); }} />
+                {errorOf('to') && <p className="ab-field-error"><AlertCircle size={13} /> {errorOf('to')}</p>}
               </label>
             )}
             {kind === 'late' && (
               <label className="ab-field">
-                <span><Clock size={15} /> مدة التأخر المتوقعة (اختياري)</span>
-                <input type="text" value={delay} onChange={e => setDelay(e.target.value)} placeholder="مثال: 30 دقيقة" />
+                <span><Clock size={15} /> مدة التأخر</span>
+                <input type="text" value={delay} onChange={e => setDelay(e.target.value)} />
               </label>
             )}
           </div>
 
           <div className="ab-field">
-            <span><Paperclip size={15} /> وثيقة (اختيارية مع السبب)</span>
+            <span><Paperclip size={15} /> الوثيقة</span>
             {doc ? (
               <div className="ab-file">
                 <Paperclip size={16} /> <b>{doc.name}</b>
@@ -123,28 +131,28 @@ export const MyAbsenceRequestDialog: React.FC<{ onSubmit: (data: MyAbsenceReques
               </div>
             ) : (
               <label className="ab-file pick">
-                <Paperclip size={16} /> اختر ملف PDF أو صورة (تذكرة سفر، استدعاء...)
+                <Paperclip size={16} /> إرفاق وثيقة
                 <input type="file" accept="application/pdf,image/*" onChange={e => pick(e.target.files?.[0] ?? null)} hidden />
               </label>
             )}
           </div>
 
           <label className="ab-field">
-            <span><MessageSquareText size={15} /> السبب {doc ? '(اختياري مع الوثيقة)' : '*'}</span>
+            <span><MessageSquareText size={15} /> السبب</span>
             <textarea
+              className={errorOf('reason') ? 'is-missing' : ''}
               value={reason}
-              onChange={e => { setReason(e.target.value); setError(''); }}
-              placeholder={kind === 'leave' ? 'سبب طلب العطلة (سفر، ظرف عائلي...)' : kind === 'late' ? 'سبب التأخر (امتحان، موعد طبي...)' : 'سبب الغياب (امتحان، موعد طبي...)'}
+              onChange={e => { setReason(e.target.value); setError(null); }}
               rows={3}
             />
+            {errorOf('reason') && <p className="ab-field-error"><AlertCircle size={13} /> {errorOf('reason')}</p>}
           </label>
-          {error && <p className="ab-error"><AlertCircle size={14} /> {error}</p>}
         </div>
 
         <footer className="ab-dialog-foot">
           <button type="button" className="ab-btn" onClick={onClose} disabled={saving}>إلغاء</button>
           <button type="submit" className="ab-btn primary" disabled={saving}>
-            <Send size={16} /> {saving ? 'جاري الإرسال...' : 'إرسال'}
+            <Send size={16} /> {saving ? 'جاري الإرسال...' : 'تأكيد'}
           </button>
         </footer>
       </form>

@@ -3,7 +3,6 @@ import { Calendar, Check, FileText, Gavel, NotebookPen, PenLine } from 'lucide-r
 import type { DisciplinaryModel } from '../disciplinary_data';
 import { DECISION_KINDS, DECISION_LOOK, decisionKindOf, decisionPatch, type DecisionKind } from '../decision';
 import { DECISION_ICONS } from './decisionIcons';
-import { DecisionHero } from './DecisionView';
 import './DecisionDesign.css';
 
 type DecisionValues = Pick<DisciplinaryModel, 'admin_notes' | 'decision_outcome' | 'decision_reasons' | 'effective_date'>;
@@ -11,7 +10,7 @@ type DecisionValues = Pick<DisciplinaryModel, 'admin_notes' | 'decision_outcome'
 /**
  * The administration's decision, editable (desktop dialogs and phone form):
  * its notes, then an optional disciplinary sanction (warning, formal warning or another measure written out),
- * its reasons and the date it applies from, with a preview of the verdict.
+ * its reasons and the date it applies from.
  */
 export const DecisionFields: React.FC<{
   value: DecisionValues;
@@ -40,7 +39,6 @@ export const DecisionFields: React.FC<{
           rows={3}
           value={value.admin_notes || ''}
           onChange={e => onChange({ admin_notes: e.target.value })}
-          placeholder="ما الذي خلصت إليه الإدارة؟"
         />
       </label>
 
@@ -79,7 +77,6 @@ export const DecisionFields: React.FC<{
                 className={input}
                 value={value.decision_outcome || ''}
                 onChange={e => onChange({ decision_outcome: e.target.value })}
-                placeholder="اذكر الإجراء (مثال: توقيف عن مباراتين)"
                 autoFocus={variant === 'desktop'}
               />
             </label>
@@ -92,7 +89,6 @@ export const DecisionFields: React.FC<{
                 rows={3}
                 value={value.decision_reasons || ''}
                 onChange={e => onChange({ decision_reasons: e.target.value })}
-                placeholder="لماذا اتُّخذ هذا القرار؟"
               />
             </label>
             <label className="df-field">
@@ -107,10 +103,6 @@ export const DecisionFields: React.FC<{
             </label>
           </div>
 
-          <div className="df-preview">
-            <span className="df-preview-label">معاينة القرار</span>
-            <DecisionHero value={value} kind={kind} compact />
-          </div>
         </div>
       )}
     </div>

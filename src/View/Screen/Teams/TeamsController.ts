@@ -3,6 +3,7 @@ import { TeamsData } from './teams_data';
 import { Crud } from '../../../core/class/Crud';
 
 import { TeamModel } from './team_model';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const useTeamsController = () => {
   const [teams, setTeams] = useState<TeamModel[]>([]);
@@ -71,7 +72,7 @@ export const useTeamsController = () => {
   };
 
   const handleDeleteTeam = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الفريق؟')) {
+    if (await confirmDelete('حذف الفريق؟')) {
       setIsLoading(true);
       const response = await teamsData.deleteTeam(id);
       if (response && !response.error) {

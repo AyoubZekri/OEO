@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Calendar, Clock, MapPin, Users, Trophy, Flag, CalendarClock, Ban, RotateCcw, Radio, Timer } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Trophy, Flag, CalendarClock, Ban, RotateCcw, Radio, UserCheck, UserX, ClipboardCheck } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { Match } from '../../Screen/Matches/match_model';
 import { type MatchActions, matchActionItems, MATCH_ACTION_PERMISSION, CLUB_NAME, CLUB_LOGO } from './matchActions';
 import {
   type MatchState, matchDate, hasScore, resultOf, RESULT_LABEL, STATE_LABEL, opponentName, opponentLogo, opponentShort,
-  timeText, longDateText, countdown,
+  timeText, longDateText,
 } from './matchUtils';
 import { TeamBadge } from './TeamBadge';
 import { MyMatchParticipation } from './MyMatchParticipation';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileMatchDetails.css';
+// The attendance card is the training session's one
+import '../MobileTrainingSessions/MobileSessionDetails.css';
 
 interface MobileMatchDetailsProps {
   match: Match;
@@ -30,7 +32,7 @@ const gatheringTime = (value?: string) => {
 };
 
 // Full details of one match (phone): score board, facts, status changes and every action
-export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, state, now, actions, onClose, personal = false }) => {
+export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, state, actions, onClose, personal = false }) => {
   const allowedTo = useCan();
   const can: typeof allowedTo = (...args) => !personal && allowedTo(...args);
   const [rescheduling, setRescheduling] = useState(false);
@@ -39,6 +41,7 @@ export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, s
   const result = resultOf(match);
   const stats = match.attendance_stats;
   const rate = stats && stats.total > 0 ? Math.round((stats.present / stats.total) * 100) : null;
+  const other = stats ? Math.max(0, stats.total - stats.present - stats.absent) : 0;
   const allowed = (action: string) => can('matches', action);
   const items = matchActionItems(match, state, actions, allowed).filter(i => i.key !== 'edit' && i.key !== 'delete');
 
@@ -89,7 +92,6 @@ export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, s
             <strong>{opponentName(match)}</strong>
           </span>
         </div>
-        {state === 'upcoming' && date && <p className="mmd-countdown"><Timer size={14} /> تنطلق {countdown(date, now)}</p>}
       </section>
 
       {/* Status */}
@@ -146,15 +148,26 @@ export const MobileMatchDetails: React.FC<MobileMatchDetailsProps> = ({ match, s
         {personal ? (
           <MyMatchParticipation match={match} state={state} />
         ) : stats && stats.total > 0 ? (
-          <div className="mmd-att">
-            <div className="mmd-att-bar"><div style={{ width: `${rate}%` }} /></div>
-            <div className="mmd-att-nums">
-              <span><strong>{stats.present}</strong>/{stats.total} حاضرون</span>
-              <span>{rate}%</span>
-              {stats.absent > 0 && <span className="absent">{stats.absent} غائب</span>}
+          <div className="msd-att">
+            <div className="msd-ring" style={{ '--msd-p': rate ?? 0 } as React.CSSProperties}>
+              <span><strong>{rate}%</strong><small>حضور</small></span>
+            </div>
+            <div className="msd-att-list">
+              <div className="present"><UserCheck size={16} /> حاضرون <strong>{stats.present}</strong></div>
+              <div className="absent"><UserX size={16} /> غائبون <strong>{stats.absent}</strong></div>
+              {other > 0 && <div><Users size={16} /> لم يُسجلوا <strong>{other}</strong></div>}
+              <div className="total">المجموع <strong>{stats.total}</strong></div>
             </div>
           </div>
-        ) : <p className="me-text empty">لم يُسجل الحضور بعد</p>}
+        ) : (
+          <div className="msd-att-empty">
+            <ClipboardCheck size={30} />
+            <p>لم يُسجل الحضور لهذه المباراة بعد</p>
+            {allowed('attendance') && (
+              <button type="button" onClick={() => actions.attendance(match)}>تسجيل الحضور الآن</button>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Actions */}

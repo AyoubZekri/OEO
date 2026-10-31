@@ -31,3 +31,13 @@ export const requestError = (r: { kind: Kind; from: string; to: string; event: s
   return '';
 };
 
+/** Where a problem shows: the event (a choice) in a snackbar, the others under their field */
+export type RequestField = 'other' | 'from' | 'to' | 'reason';
+export const requestErrorField = (problem: string): RequestField | null => (
+  problem === 'اكتب ما هو الحدث' ? 'other'
+    : problem === 'حدد التاريخ' ? 'from'
+      : problem === 'تاريخ النهاية قبل تاريخ البداية' ? 'to'
+        : problem === 'اكتب السبب أو أرفق وثيقة' ? 'reason'
+          : null
+);
+

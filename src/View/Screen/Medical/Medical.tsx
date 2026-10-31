@@ -13,6 +13,7 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileMedical } from '../../Mobile/MobileMedical/MobileMedical';
 import { initialDone, finalDone, recovered, stageOf, toneOf, personName, personPhoto, daysSince, daysText } from '../../Mobile/MobileMedical/medicalUtils';
 import './Medical.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /** personal: the personal space's page (my medical files, read only: wrapped in ReadOnlyContext by MyMedical) */
 export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
@@ -106,10 +107,7 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
           <p className="loading-text">جاري تحميل السجلات الطبية...</p>
         </div>
       ) : records.length === 0 ? (
-        <div className="no-data" style={{ padding: '80px', textAlign: 'center', background: 'var(--card-bg)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
-          <HeartPulse size={48} color="var(--border)" style={{ marginBottom: '16px' }} />
-          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>{personal ? 'لا توجد ملفات طبية خاصة بك' : 'لا توجد سجلات طبية حالياً'}</p>
-        </div>
+        <StateIcon icon={HeartPulse} />
       ) : (
         <div className="mc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px', padding: '0 0 24px 0' }}>
           {filteredRecords.map((record) => {

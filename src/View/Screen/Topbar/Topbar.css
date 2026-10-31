@@ -351,3 +351,6 @@ body.dark-mode .profile-avatar { background: rgba(249, 115, 22, 0.18); color: #f
   max-width: none; height: 46px; padding: 0 14px; box-sizing: border-box;
   border: 1px solid var(--border); border-radius: 14px; background: var(--card-bg);
 }
+
+/* The home button beside the theme's: orange while on the home page */
+.topbar-icon-btn.active { background: rgba(249, 115, 22, 0.1); color: #f97316; }

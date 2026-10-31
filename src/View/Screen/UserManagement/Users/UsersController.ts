@@ -3,6 +3,7 @@ import { UsersData } from './users_data';
 import { Crud } from '../../../../core/class/Crud';
 
 import { UserModel } from './user_model';
+import { confirmDelete } from '../../../shared/confirmDelete';
 
 export const useUsersController = () => {
   const [users, setUsers] = useState<UserModel[]>([]);
@@ -71,7 +72,7 @@ export const useUsersController = () => {
   };
 
   const handleDeleteUser = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
+    if (await confirmDelete('حذف المستخدم؟')) {
       setIsLoading(true);
       const response = await usersData.deleteUser(id);
       if (response && !response.error) {

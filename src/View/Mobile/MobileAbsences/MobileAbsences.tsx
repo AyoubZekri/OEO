@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Plus, Users, UserX, Clock, LogOut, Plane, Hourglass, ShieldCheck, Search, X, FileWarning, Inbox, ClipboardList, ChevronDown,
+  Plus, Users, Search, X, Inbox, ClipboardList, ChevronDown,
   Filter, Layers, CalendarRange,
 } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -17,19 +17,19 @@ import { MobileAbsenceForm } from './MobileAbsenceForm';
 import { MobileJustifySheet } from './MobileJustifySheet';
 import { MobileRejectSheet } from './MobileRejectSheet';
 import './MobileAbsences.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- members come untyped from the API */
 
 const PAGE = 20;
 
-// Phone version of the absences page: counters, members with their counters, pending justifications and the full registry
+// Phone version of the absences page: members with their counters, pending justifications and the full registry
 export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsController> }> = ({ c }) => {
   const can = useCan();
   const [query, setQuery] = useState('');
   const [type, setType] = useState('');
   const [limit, setLimit] = useState(PAGE);
 
-  const s = c.stats;
   const q = query.trim().toLowerCase();
   const pending = c.absences.filter(a => statusOf(a) === 'pending').sort(byDateDesc);
   const members = c.members
@@ -47,7 +47,6 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
     onDelete: c.handleDelete,
   };
   const member = c.selectedMemberId !== null ? c.members.find((m: any) => String(m.id) === String(c.selectedMemberId)) : undefined;
-  const team = c.teams.find((t: any) => String(t.id) === String(c.filterTeamId));
 
   const tabs = [
     { value: 'members', label: 'الأعضاء', icon: Users, count: c.members.length },
@@ -76,32 +75,6 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
     <div className="mab-page">
       <MobileAppBar title="الغيابات والتبريرات" />
 
-      <section className="mab-hero">
-        <div className="mab-hero-top">
-          <span className="mab-hero-icon"><FileWarning size={26} /></span>
-          <div>
-            <small>سجلات الغياب</small>
-            <strong>{s.total}</strong>
-          </div>
-        </div>
-        <div className="mab-tiles">
-          {[
-            { k: 'a', label: 'غياب', v: s.absent, icon: UserX, tone: 'red' },
-            { k: 'l', label: 'تأخر', v: s.late, icon: Clock, tone: 'amber' },
-            { k: 'g', label: 'مغادرة', v: s.leave, icon: LogOut, tone: 'orange' },
-            { k: 'r', label: 'عطلة', v: s.request, icon: Plane, tone: 'violet' },
-            { k: 'p', label: 'قيد الدراسة', v: s.pending, icon: Hourglass, tone: 'blue' },
-            { k: 'j', label: 'مبررة', v: s.justified, icon: ShieldCheck, tone: 'green' },
-          ].map(t => (
-            <div key={t.k} className={`tone-${t.tone}`}>
-              <t.icon size={14} />
-              <strong>{t.v}</strong>
-              <small>{t.label}</small>
-            </div>
-          ))}
-        </div>
-      </section>
-
       <div className="mab-tabs" role="tablist">
         {tabs.map(t => (
           <button
@@ -123,7 +96,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
         <>
           <label className="mab-search">
             <Search size={17} />
-            <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العضو..." />
+            <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العضو" />
             {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
           </label>
           <div className="mab-filters">
@@ -136,14 +109,13 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
               </>
             )}
           </div>
-          {team && c.activeTab === 'members' && <p className="mab-note">أعضاء فريق {team.name}</p>}
         </>
       )}
 
       {/* Members */}
       {c.activeTab === 'members' && (
         members.length === 0 ? (
-          c.members.length ? <p className="mab-empty">لا يوجد أعضاء بهذا البحث</p> : <MobileLoader text="جاري تحميل الأعضاء..." />
+          c.members.length ? <StateIcon /> : <MobileLoader text="جاري تحميل الأعضاء..." />
         ) : (
           <div className="mab-list">
             {members.slice(0, limit).map((m: any) => {
@@ -167,13 +139,6 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
                     <span className="tone-red"><b>{cnt.absent}</b> غياب</span>
                     <span className="tone-amber"><b>{cnt.late}</b> تأخر</span>
                     <span className="tone-orange"><b>{cnt.leave}</b> مغادرة</span>
-                    {cnt.pending > 0 ? (
-                      <em className="blue"><Hourglass size={11} /> {cnt.pending} قيد الدراسة</em>
-                    ) : cnt.unjustified > 0 ? (
-                      <em className="red"><UserX size={11} /> {cnt.unjustified} بدون تبرير</em>
-                    ) : (
-                      <em className="green"><ShieldCheck size={11} /> لا غياب بدون تبرير</em>
-                    )}
                   </div>
                 </article>
               );
@@ -186,7 +151,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
       {/* Pending justifications */}
       {c.activeTab === 'requests' && (
         pending.length === 0 ? (
-          <div className="mab-empty big"><Inbox size={34} /><strong>لا توجد طلبات معلقة</strong></div>
+          <StateIcon icon={Inbox} />
         ) : (
           <div className="mab-list">{pending.map(a => <MobileAbsenceCard key={a.id} absence={a} {...cardProps} />)}</div>
         )
@@ -196,7 +161,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
       {c.activeTab === 'registry' && (
         c.isLoading && !c.absences.length ? <MobileLoader text="جاري تحميل السجل..." /> :
           registry.length === 0 ? (
-            <div className="mab-empty big"><ClipboardList size={34} /><strong>لا توجد سجلات بهذه التصفية</strong></div>
+            <StateIcon icon={ClipboardList} />
           ) : (
             <div className="mab-list">
               {registry.slice(0, limit).map(a => <MobileAbsenceCard key={a.id} absence={a} {...cardProps} />)}

@@ -17,6 +17,7 @@ import '../../Mobile/MobileEvaluations/MobileEvaluations.css';
 import '../../Mobile/MobileMeetings/MobileMeetings.css';
 import '../Meetings/MeetingDecisionsList.css';
 import './MyMeetings.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 type Section = 'points' | 'decisions' | 'people';
 
@@ -188,10 +189,7 @@ export const MyMeetings: React.FC = () => {
             </div>
 
             {list.length === 0 ? (
-              <div className="mmg-empty">
-                <span className="mmg-empty-icon"><Briefcase size={36} /></span>
-                <strong>{tab === 'upcoming' ? 'لا توجد اجتماعات قادمة معني بها' : 'لا توجد اجتماعات سابقة'}</strong>
-              </div>
+              <StateIcon icon={Briefcase} />
             ) : (
               <div className="mmg-list">
                 {groups.map(g => (
@@ -246,7 +244,7 @@ export const MyMeetings: React.FC = () => {
 
       {isLoading ? <div className="mmx-empty"><strong>جاري تحميل اجتماعاتك...</strong></div>
         : list.length === 0 ? (
-          <div className="mmx-empty"><CalendarX2 size={34} /><strong>{tab === 'upcoming' ? 'لا توجد اجتماعات قادمة معني بها' : 'لا توجد اجتماعات سابقة'}</strong></div>
+          <StateIcon icon={CalendarX2} />
         ) : (
           <div className="mmx-grid">
             {list.map(m => {

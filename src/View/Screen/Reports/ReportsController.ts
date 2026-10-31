@@ -10,6 +10,7 @@ import { FundsData } from '../Funds/funds_data';
 import type { Fund, FundTransaction } from '../Funds/fund_model';
 import type { ReportCategory, IndividualReportType, ExpenseReportType, ContractReportType } from './report_model';
 import { contractCommitments, expenseSummary, fundSummary, individualSummary, inRange, normDate, presetRange } from './reportMath';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 /** The report and fund operation type the address asks for (?category=…&type=…) */
 const fromAddress = (key: string) => new URLSearchParams(window.location.search).get(key) || '';
@@ -240,7 +241,7 @@ export const useReportsController = () => {
   const getContractCommitments = () => contractCommitments(contracts);
 
   const deleteFundTransaction = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة من السجل؟ يبقى رصيد الصندوق كما هو.')) {
+    if (await confirmDelete('حذف المعاملة؟')) {
       const response = await fundsData.deleteTransaction({ id });
       if (response) {
         setFundTransactions(prev => prev.filter(t => t.id !== id));

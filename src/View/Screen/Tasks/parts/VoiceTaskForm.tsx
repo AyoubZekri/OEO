@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Save, Loader2, AlertCircle, Mic, UserRound, Shapes, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Save, Loader2, Mic, UserRound, Shapes, ArrowLeft, RotateCcw } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { VoicePlayer } from './VoicePlayer';
 import { UserPicker } from '../../../shared/FormBits';
 import { VoiceInput } from './VoiceInput';
 import { recordInWindow, VOICE_NOTES } from './voiceNote';
 import type { TasksAdmin } from '../useTasks';
+import { warn, warnUnlessServer } from './formWarn';
 import { NATURE_META, type Task, type TaskNature } from '../taskUtils';
 
 /** The Android app: the voice note in Google's voice window (the phone shares its microphone with no one) */
@@ -28,7 +29,6 @@ export const VoiceTaskForm: React.FC<{ c: TasksAdmin; task?: Task; mobile: boole
   const [heard, setHeard] = useState(task?.audio_url || '');
   const [assignee, setAssignee] = useState(String(task?.assignee?.id ?? ''));
   const [nature, setNature] = useState<TaskNature | ''>(task?.nature || '');
-  const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
   const spoken = text.trim();
 
@@ -44,7 +44,6 @@ export const VoiceTaskForm: React.FC<{ c: TasksAdmin; task?: Task; mobile: boole
   // The Android app: Google's voice window; what it heard replaces the words and the recording (nothing heard: as it was)
   const capture = async () => {
     setCapturing(true);
-    setError('');
     try {
       const r = await recordInWindow();
       if (r.text) {
@@ -53,7 +52,7 @@ export const VoiceTaskForm: React.FC<{ c: TasksAdmin; task?: Task; mobile: boole
         if (!r.audio) setHeard('');
       } else if (!spoken) c.closeForm();
     } catch {
-      setError('تعذر التسجيل، أعد المحاولة');
+      warn('تعذر التسجيل، أعد المحاولة');
     } finally {
       setCapturing(false);
     }
@@ -69,9 +68,9 @@ export const VoiceTaskForm: React.FC<{ c: TasksAdmin; task?: Task; mobile: boole
   }, []);
 
   const save = async () => {
-    if (!assignee) return setError('اختر المكلّف');
-    if (!nature) return setError('اختر طبيعة التنبيه');
-    setError('');
+    // Choices: their message in a snackbar
+    if (!assignee) return warn('اختر المكلّف');
+    if (!nature) return warn('اختر طبيعة التنبيه');
     setSaving(true);
     try {
       await c.save({
@@ -85,7 +84,7 @@ export const VoiceTaskForm: React.FC<{ c: TasksAdmin; task?: Task; mobile: boole
         audio,
       });
     } catch (e) {
-      setError((e as Error).message);
+      warnUnlessServer(e);
     } finally {
       setSaving(false);
     }
@@ -155,19 +154,18 @@ export const VoiceTaskForm: React.FC<{ c: TasksAdmin; task?: Task; mobile: boole
           </button>}
         </div>
 
-        <UserPicker mobile={mobile} label="المكلّف" icon={UserRound} value={assignee} users={c.users} onChange={v => { setAssignee(v); setError(''); }} placeholder="اختر العضو" />
+        <UserPicker mobile={mobile} label="المكلّف" icon={UserRound} value={assignee} users={c.users} onChange={setAssignee} placeholder="—" />
 
         <div className="tk-field">
           <span className="tk-label"><Shapes size={14} />طبيعة التنبيه</span>
           <div className="tk-seg three tsk-nature">
             {(Object.keys(NATURE_META) as TaskNature[]).map(n => {
               const meta = NATURE_META[n];
-              return <button key={n} type="button" className={nature === n ? 'on' : ''} onClick={() => { setNature(n); setError(''); }}><meta.icon size={15} />{meta.label}</button>;
+              return <button key={n} type="button" className={nature === n ? 'on' : ''} onClick={() => setNature(n)}><meta.icon size={15} />{meta.label}</button>;
             })}
           </div>
         </div>
 
-        {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
     </SidePanel>
   );

@@ -3,7 +3,9 @@ import { useSearchParams } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
 import { useTranslation } from 'react-i18next';
 import { useMembersController } from './MembersController';
-import { Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, LogOut, UploadCloud, TrendingUp, FileSpreadsheet } from 'lucide-react';
+import { AlertCircle, Eye, X, Plus, UserPlus, CheckCircle2, Edit2, Trash2, Camera, RefreshCw, LogOut, UploadCloud, TrendingUp, FileSpreadsheet, Shirt } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Approutes } from '../../../core/constant/routes';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { EvaluationDialog } from './Evaluation/EvaluationDialog';
 import { BulkEvaluationDialog } from './Evaluation/BulkEvaluationDialog';
@@ -35,6 +37,7 @@ export const Members: React.FC = () => {
   const { t } = useTranslation();
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
+  const navigate = useNavigate();
   const controller = useMembersController();
   const isMobile = useIsMobile();
 
@@ -166,7 +169,7 @@ export const Members: React.FC = () => {
     // A clearance card still open: the member is leaving
     const card = memberId != null ? controller.leavingOf(memberId) : undefined;
     if (card && status === 'active') {
-      return <span className="badge badge-amber" title={`${card.signed} من ${card.total} أقسام وقّعت`}>في طور المغادرة</span>;
+      return <span className="badge badge-amber">في طور المغادرة</span>;
     }
     if (status === 'active') return <span className="badge badge-green">{t('members.active', 'نشط')}</span>;
     if (status === 'suspended') return <span className="badge badge-red">{t('members.suspended', 'موقوف')}</span>;
@@ -232,6 +235,13 @@ export const Members: React.FC = () => {
             onChange={(val) => setFilterTeamId(val)}
             placeholder={t('members.all_teams', 'جميع الفئات (الفرق)')}
           />
+          {/* Computer: the teams' page is reached from here (no longer in its sidebar) */}
+          {hasAccess(permissions.teams.view) && (
+            <button type="button" className="members-teams-btn" onClick={() => navigate(Approutes.Teams)}>
+              <Shirt size={18} />
+              فئات الفرق
+            </button>
+          )}
           {hasAccess(permissions.members.evaluate) && (
             <button className="import-excel-btn" onClick={() => setBulkOpen(true)}>
               <FileSpreadsheet size={18} />
@@ -453,11 +463,13 @@ export const Members: React.FC = () => {
                   <div className="form-grid" style={{ width: '100%' }}>
                     <div className="form-group">
                       <label>{t('members.form_firstname', 'الاسم')} <span className="text-red-500">*</span></label>
-                      <input type="text" name="first_name" required value={formData.first_name} onChange={handleFormDataChange} className="form-control" />
+                      <input type="text" name="first_name" value={formData.first_name} onChange={handleFormDataChange} className={`form-control ${controller.missing.first_name ? 'is-missing' : ''}`} />
+                      {controller.missing.first_name && <small className="member-field-error"><AlertCircle size={13} />اكتب الاسم</small>}
                     </div>
                     <div className="form-group">
                       <label>{t('members.form_lastname', 'اللقب')} <span className="text-red-500">*</span></label>
-                      <input type="text" name="last_name" required value={formData.last_name} onChange={handleFormDataChange} className="form-control" />
+                      <input type="text" name="last_name" value={formData.last_name} onChange={handleFormDataChange} className={`form-control ${controller.missing.last_name ? 'is-missing' : ''}`} />
+                      {controller.missing.last_name && <small className="member-field-error"><AlertCircle size={13} />اكتب اللقب</small>}
                     </div>
                     <div className="form-group">
                       <label>{t('members.form_id_number', 'رقم الهوية الوطنية')}</label>

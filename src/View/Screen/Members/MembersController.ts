@@ -11,6 +11,8 @@ import type { EvaluationRecord } from './Evaluation/evaluation_data';
 import { Applink } from '../../../LinkApi';
 import axios from 'axios';
 import type { ClearanceSummary } from './clearance';
+import { confirmDelete } from '../../shared/confirmDelete';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 export const useMembersController = () => {
   const [members, setMembers] = useState<MemberModel[]>([]);
@@ -166,18 +168,26 @@ export const useMembersController = () => {
     setIsAddMemberOpen(true);
   };
 
+  // The member form's required fields to type (name, surname) left empty: their message under them
+  const [missing, setMissing] = useState<Record<string, boolean>>({});
+
   const closeAddMemberDialog = () => {
     setIsAddMemberOpen(false);
     setMemberToEdit(null);
+    setMissing({});
   };
 
   const handleFormDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
+    if (missing[name]) setMissing(m => ({ ...m, [name]: false }));
   };
 
   const handleSaveMember = async (e: React.FormEvent) => {
     e.preventDefault();
+    const empty = { first_name: !String(formData.first_name || '').trim(), last_name: !String(formData.last_name || '').trim() };
+    setMissing(empty);
+    if (empty.first_name || empty.last_name) return;
     setIsLoading(true);
     
     // Convert empty strings to null where appropriate
@@ -205,7 +215,7 @@ export const useMembersController = () => {
         fetchMembers();
         closeAddMemberDialog();
       } else {
-        alert(response?.serverMessage || 'حدث خطأ أثناء التعديل');
+        showSnackbar('خطأ', response?.serverMessage || 'حدث خطأ أثناء التعديل', '#ef4444');
       }
     } else {
       const response = await membersData.saveMemberFormData(Applink.createIndividual, fd);
@@ -213,14 +223,14 @@ export const useMembersController = () => {
         fetchMembers();
         closeAddMemberDialog();
       } else {
-        alert(response?.serverMessage || 'حدث خطأ أثناء الإضافة');
+        showSnackbar('خطأ', response?.serverMessage || 'حدث خطأ أثناء الإضافة', '#ef4444');
       }
     }
     setIsLoading(false);
   };
 
   const handleDeleteMember = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا العضو؟')) {
+    if (await confirmDelete('حذف العضو؟')) {
       setIsLoading(true);
       const response = await membersData.deleteMember(id);
       if (response && !response.error) {
@@ -387,7 +397,7 @@ export const useMembersController = () => {
   };
 
   const deleteEvaluation = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من رغبتك في حذف هذا التقييم بشكل نهائي؟')) {
+    if (await confirmDelete('حذف التقييم؟')) {
       try {
         await evalsData.deleteEvaluation(id);
         setEvaluations(prev => prev.filter(e => e.id !== id));
@@ -424,6 +434,7 @@ export const useMembersController = () => {
     isAddMemberOpen,
     memberToEdit,
     formData,
+    missing,
     setFormData,
     photoFile,
     setPhotoFile,

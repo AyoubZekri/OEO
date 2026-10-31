@@ -1,0 +1,27 @@
+/* An empty page, no internet or a server error: one simple picture in the middle of the page */
+.state-icon {
+  --si-tone: #f97316;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 56px 16px;
+}
+
+.state-icon.is-offline { --si-tone: #64748b; }
+.state-icon.is-server { --si-tone: #ef4444; }
+.state-icon.small { padding: 24px 12px; }
+
+.state-icon-core {
+  width: 96px;
+  height: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: var(--si-tone);
+  background: color-mix(in srgb, var(--si-tone) 10%, transparent);
+}
+
+.state-icon.small .state-icon-core { width: 68px; height: 68px; }

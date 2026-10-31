@@ -3,6 +3,7 @@ import type { TrainingSessionModel } from './TrainingSessionDialog';
 import { TrainingSessionData } from './training_session_data';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
+import { confirmDelete } from '../../shared/confirmDelete';
 /** personal: the sessions of my category only (personal space), read only */
 export const useTrainingSessionsController = ({ personal = false }: { personal?: boolean } = {}) => {
   const [sessions, setSessions] = useState<TrainingSessionModel[]>([]);
@@ -105,7 +106,7 @@ export const useTrainingSessionsController = ({ personal = false }: { personal?:
   };
 
   const handleDeleteSession = async (id?: number) => {
-    if (id && window.confirm('هل أنت متأكد من حذف هذه الحصة التدريبية؟')) {
+    if (id && await confirmDelete('حذف الحصة التدريبية؟')) {
       try {
         await TrainingSessionData.deleteSession(id);
         await fetchSessions();

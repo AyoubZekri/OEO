@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  AlertTriangle, Banknote, CalendarDays, Check, CheckCircle2, CircleAlert, Loader2, Lock, LogOut, Package,
+  AlertTriangle, Banknote, CalendarDays, CheckCircle2, CircleAlert, Loader2, Lock, LogOut, Package,
   PenLine, Printer, ShieldCheck, Stethoscope, Trash2, Trophy, Undo2, UserCheck, X,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
@@ -11,6 +11,7 @@ import { PrintSheet } from '../../widget/PrintSheet';
 import { PrintableClearance } from './PrintableClearance';
 import { DEPARTMENTS, DEPARTURE_REASONS, dayText, isSigned, money, type DepartmentId } from './clearance';
 import type { ClearanceController } from './useClearance';
+import { DeleteConfirm } from '../../shared/DeleteConfirm';
 import './Clearance.css';
 
 const ICONS: Record<DepartmentId, React.ComponentType<{ size?: number }>> = {
@@ -27,22 +28,20 @@ type Confirm =
   | { kind: 'close' }
   | { kind: 'delete' };
 
-/** A small confirmation window, above the card (desktop dialog or phone screen) */
+/** A small confirmation window, above the card (desktop dialog or phone screen): its title, no explanation under it */
 const ConfirmBox: React.FC<{
   title: string;
-  text: React.ReactNode;
   tone?: 'danger' | 'success' | 'amber';
   confirmLabel: string;
   busy: boolean;
   note?: { value: string; onChange: (v: string) => void; required: boolean; placeholder: string };
   onConfirm: () => void;
   onCancel: () => void;
-}> = ({ title, text, tone = 'success', confirmLabel, busy, note, onConfirm, onCancel }) => createPortal(
+}> = ({ title, tone = 'success', confirmLabel, busy, note, onConfirm, onCancel }) => createPortal(
   <div className="clr-confirm-overlay" onClick={onCancel}>
     <div className={`clr-confirm tone-${tone}`} role="alertdialog" aria-modal="true" onClick={e => e.stopPropagation()}>
       <span className="clr-confirm-icon">{tone === 'danger' ? <Trash2 size={24} /> : tone === 'amber' ? <AlertTriangle size={24} /> : <CheckCircle2 size={24} />}</span>
       <h3>{title}</h3>
-      <div className="clr-confirm-text">{text}</div>
       {note && (
         <textarea
           className="clr-input"
@@ -70,8 +69,8 @@ const ConfirmBox: React.FC<{
 );
 
 /**
- * The clearance card's content, the same on desktop (in a dialog) and on the phone (in a screen):
- * the member and where the file stands, the three steps, the departments, the player's acknowledgement.
+ * The clearance card's content, the same on desktop (in a dialog) and on the phone (in a screen): the member and where
+ * the file stands, the departments, the player's acknowledgement — nothing said twice, no counters.
  */
 export const ClearanceBoard: React.FC<{
   player: MemberModel;
@@ -84,7 +83,6 @@ export const ClearanceBoard: React.FC<{
   const closed = Boolean(card?.player_signature);
   const signedCount = DEPARTMENTS.filter(d => isSigned(card, d.id)).length;
   const allSigned = signedCount === DEPARTMENTS.length;
-  const step = !card ? 1 : closed ? 4 : allSigned ? 3 : 2;
 
   const [editing, setEditing] = useState(false);
   const today = new Date().toISOString().slice(0, 10);
@@ -136,7 +134,7 @@ export const ClearanceBoard: React.FC<{
 
   return (
     <div className={`clr ${variant}`}>
-      {/* The member, where the file stands and the three steps: one card */}
+      {/* The member and where the file stands */}
       <section className="clr-head">
         <div className="clr-head-top">
           <img src={photo} alt="" onError={e => { e.currentTarget.src = defaultAvatar; }} />
@@ -149,26 +147,7 @@ export const ClearanceBoard: React.FC<{
               </small>
             )}
         </div>
-        {card && (
-          <div className="clr-progress" aria-label={`${signedCount} من ${DEPARTMENTS.length} أقسام`}>
-            <b>{signedCount}<span>/{DEPARTMENTS.length}</span></b>
-            <small>أقسام وقّعت</small>
-            <div className="clr-bar"><i style={{ width: `${(signedCount / DEPARTMENTS.length) * 100}%` }} /></div>
-          </div>
-        )}
         </div>
-
-        <ol className="clr-steps">
-          {['بداية المغادرة', 'تبرئة ذمة الأقسام', 'إقرار اللاعب وإغلاق الملف'].map((label, i) => {
-            const n = i + 1;
-            return (
-              <li key={label} className={step > n ? 'done' : step === n ? 'current' : ''}>
-                <span>{step > n ? <Check size={14} strokeWidth={3} /> : n}</span>
-                {label}
-              </li>
-            );
-          })}
-        </ol>
       </section>
 
       {cl.error && (
@@ -208,13 +187,11 @@ export const ClearanceBoard: React.FC<{
                 onClick={saveForm}
               >
                 {cl.busy === 'start' && <Loader2 size={16} className="clr-spin" />}
-                {card ? 'حفظ' : 'بدء إجراءات المغادرة'}
+                {card ? 'حفظ' : 'بدء'}
               </button>
             </div>
           </section>
-        ) : (
-          <section className="clr-panel clr-empty"><Lock size={22} /> لم تبدأ إجراءات المغادرة لهذا العضو.</section>
-        )
+        ) : null
       ) : card && (
         <>
           {/* Step 2: the departments, one aligned row each */}
@@ -230,10 +207,7 @@ export const ClearanceBoard: React.FC<{
                 <div key={d.id} className={`clr-dept ${signed ? 'signed' : pending.length ? 'blocked' : 'ready'}`}>
                   <div className="clr-dept-name">
                     <span className="clr-dept-icon"><Icon size={19} /></span>
-                    <div>
-                      <h4>{d.label}</h4>
-                      <small>{d.checks}</small>
-                    </div>
+                    <h4>{d.label}</h4>
                   </div>
 
                   <div className="clr-dept-body">
@@ -251,10 +225,6 @@ export const ClearanceBoard: React.FC<{
                     )}
                   </div>
 
-                  <span className="clr-pill">
-                    {signed ? <><Check size={13} strokeWidth={3} /> برئت الذمة</> : pending.length ? `${pending.length} عالق` : 'جاهز'}
-                  </span>
-
                   <div className="clr-dept-action">
                     {!signed && canSign && (
                       <button type="button" className={`clr-btn ${pending.length ? 'amber' : 'primary'} small`} disabled={cl.busy === d.id} onClick={() => askSign(d.id)}>
@@ -266,7 +236,6 @@ export const ClearanceBoard: React.FC<{
                         <Undo2 size={14} /> إلغاء التوقيع
                       </button>
                     )}
-                    {!signed && !canSign && !closed && <small className="clr-muted">يوقّعه مسؤول القسم</small>}
                   </div>
                 </div>
               );
@@ -277,15 +246,9 @@ export const ClearanceBoard: React.FC<{
           <section className={`clr-panel clr-final ${closed ? 'closed' : allSigned ? 'ready' : 'locked'}`}>
             <div className="clr-final-row">
               <span className="clr-final-icon">{closed ? <CheckCircle2 size={24} /> : allSigned ? <PenLine size={22} /> : <Lock size={20} />}</span>
+              {/* The title takes the row, the button stays at its end */}
               <div>
-                <h3>{closed ? 'أُغلق الملف' : 'إقرار اللاعب وإغلاق الملف'}</h3>
-                <p>
-                  {closed
-                    ? `أقرّ اللاعب بتسوية وضعيته مع جميع الأقسام في ${dayText(card.player_signed_at) || '—'}، وأصبح العضو غير نشط.`
-                    : allSigned
-                      ? `يقرّ اللاعب ${name} بأنه سوّى وضعيته مع جميع أقسام النادي، ويُغلق ملفه ويصبح غير نشط.`
-                      : `يُفتح بعد أن توقّع الأقسام كلها (بقي ${DEPARTMENTS.length - signedCount}).`}
-                </p>
+                <h3>{closed ? `أُغلق الملف · ${dayText(card.player_signed_at) || '—'}` : 'إقرار اللاعب وإغلاق الملف'}</h3>
               </div>
               {!closed && manages && (
                 <button type="button" className="clr-btn primary" disabled={!allSigned || cl.busy === 'close'} onClick={() => setConfirm({ kind: 'close' })}>
@@ -312,9 +275,6 @@ export const ClearanceBoard: React.FC<{
         <ConfirmBox
           title={`تبرئة ذمة ${confirmDept.label}`}
           tone={confirmPending.length ? 'amber' : 'success'}
-          text={confirmPending.length
-            ? <>توجد أمور عالقة في هذا القسم ({confirmPending.length}). اكتب سبب تبرئة الذمة رغمها.</>
-            : <>يوقّع هذا القسم باسمك على أن ذمة {name} بريئة تجاهه.</>}
           note={{ value: note, onChange: setNote, required: confirmPending.length > 0, placeholder: confirmPending.length ? 'السبب (إجباري)' : 'ملاحظة (اختياري)' }}
           confirmLabel="تبرئة الذمة"
           busy={cl.busy === confirm.department}
@@ -326,7 +286,6 @@ export const ClearanceBoard: React.FC<{
         <ConfirmBox
           title="إلغاء التوقيع"
           tone="amber"
-          text={<>يُلغى توقيع {confirmDept.label}، ويعود القسم إلى انتظار تبرئة الذمة.</>}
           confirmLabel="إلغاء التوقيع"
           busy={cl.busy === confirm.department}
           onConfirm={runConfirm}
@@ -336,23 +295,15 @@ export const ClearanceBoard: React.FC<{
       {confirm?.kind === 'close' && (
         <ConfirmBox
           title="إغلاق الملف"
-          text={<>يُسجَّل إقرار اللاعب {name}، ويُغلق ملف المغادرة ويصبح العضو غير نشط.</>}
           confirmLabel="إقرار وإغلاق"
           busy={cl.busy === 'close'}
           onConfirm={runConfirm}
           onCancel={() => setConfirm(null)}
         />
       )}
+      {/* Deleting the card: the app's one delete dialog */}
       {confirm?.kind === 'delete' && (
-        <ConfirmBox
-          title="حذف بطاقة الإخلاء"
-          tone="danger"
-          text={<>تُحذف البطاقة بكل توقيعاتها نهائياً، ويعود {name} عضواً نشطاً.</>}
-          confirmLabel="حذف نهائي"
-          busy={cl.busy === 'delete'}
-          onConfirm={runConfirm}
-          onCancel={() => setConfirm(null)}
-        />
+        <DeleteConfirm title="حذف بطاقة الإخلاء؟" name={name} onConfirm={async () => { await cl.remove(); }} onClose={() => setConfirm(null)} />
       )}
     </div>
   );

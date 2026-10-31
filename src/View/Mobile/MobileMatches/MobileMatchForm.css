@@ -256,3 +256,6 @@
 @keyframes mmf-spin {
   to { transform: rotate(360deg); }
 }
+
+/* A required field left empty: a red edge (its message under it) */
+.me-input.is-missing { border-color: #ef4444 !important; }

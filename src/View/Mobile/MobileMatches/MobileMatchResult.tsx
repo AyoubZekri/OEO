@@ -8,7 +8,7 @@ import { MobileSelect, type MobileSelectOption } from '../widgets/MobileSelect';
 import { Applink } from '../../../LinkApi';
 import type { Match } from '../../Screen/Matches/match_model';
 import { CLUB_NAME } from './matchActions';
-import { authHeaders, errorMessage, loadCalledUp, loadMatchEvents, nameOf } from './matchApi';
+import { authHeaders, loadCalledUp, loadMatchEvents, nameOf } from './matchApi';
 import { opponentName } from './matchUtils';
 import { MatchStrip } from './MatchStrip';
 import '../MobileEvaluations/MobileEvaluations.css';
@@ -123,8 +123,8 @@ export const MobileMatchResult: React.FC<MobileMatchResultProps> = ({ match, onS
         onSave();
         onClose();
       }
-    } catch (error) {
-      alert(`حدث خطأ أثناء الحفظ\n${errorMessage(error)}`);
+    } catch {
+      // The server's message is shown by the shared snackbar
     } finally {
       setSaving(false);
     }
@@ -164,7 +164,7 @@ export const MobileMatchResult: React.FC<MobileMatchResultProps> = ({ match, onS
         </div>
         {status === 'مؤجلة' ? (
           <label className="me-field">
-            <span className="me-label"><CalendarClock size={14} /> التاريخ الجديد (اختياري)</span>
+            <span className="me-label"><CalendarClock size={14} /> التاريخ الجديد</span>
             <input className="me-input" type="datetime-local" dir="ltr" value={newDate} onChange={e => setNewDate(e.target.value)} />
           </label>
         ) : (
@@ -207,7 +207,7 @@ export const MobileMatchResult: React.FC<MobileMatchResultProps> = ({ match, onS
                     </div>
                     {playerPick('المسجل', g.scorer_id, onPitchOptions,
                       v => setGoals(prev => prev.map(x => x.id === g.id ? { ...x, scorer_id: v } : x)), 'اختر المسجل')}
-                    {playerPick('صانع الهدف (اختياري)', g.assist_id, [{ value: '', label: 'بدون تمريرة حاسمة' }, ...onPitchOptions],
+                    {playerPick('صانع الهدف', g.assist_id, [{ value: '', label: 'بدون تمريرة حاسمة' }, ...onPitchOptions],
                       v => setGoals(prev => prev.map(x => x.id === g.id ? { ...x, assist_id: v } : x)), 'بدون تمريرة حاسمة')}
                   </div>
                 ))}
@@ -228,7 +228,7 @@ export const MobileMatchResult: React.FC<MobileMatchResultProps> = ({ match, onS
               </button>
             </div>
             {subs.length === 0 ? (
-              <p className="mp-muted">لم يتم تسجيل أي تبديل</p>
+              <p className="mp-muted">لا توجد تبديلات</p>
             ) : subs.map(s => (
               <div key={s.id} className="mp-sub-row">
                 <div className="mp-goal-head">

@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, TrendingUp, CheckCircle2, AlertTriangle, Target, Activity, Calendar, ShieldCheck, Trophy, Brain, ArrowRight, Trash2 } from 'lucide-react';
 import { periodLabel } from './evaluation_data';
+import { confirmDelete } from '../../../shared/confirmDelete';
 
 interface ViewEvaluationDialogProps {
   player: any;
@@ -73,8 +74,8 @@ export const ViewEvaluationDialog: React.FC<ViewEvaluationDialogProps> = ({ play
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               {onDelete && (
-                <button onClick={() => {
-                  if (window.confirm('هل أنت متأكد من حذف هذا التقييم؟')) {
+                <button onClick={async () => {
+                  if (await confirmDelete('حذف التقييم؟')) {
                     onDelete(evaluation.id);
                     onClose();
                   }

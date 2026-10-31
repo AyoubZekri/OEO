@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, FileText, Send, AlertCircle, Paperclip, Trash2 } from 'lucide-react';
 import type { AbsenceRecord } from './AbsenceRequestsController';
 import { typeMeta, dateOf } from './absenceUtils';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 interface JustificationDialogProps {
   isOpen: boolean;
@@ -31,10 +32,7 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
   };
 
   const pick = (file: File | null) => {
-    if (file && file.size > MAX_DOC) {
-      setError('حجم الوثيقة أكبر من 5 ميغا');
-      return;
-    }
+    if (file && file.size > MAX_DOC) return showSnackbar('خطأ', 'حجم الوثيقة أكبر من 5 ميغا', '#ef4444');
     setDoc(file);
     setError('');
   };
@@ -60,7 +58,6 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
           <span className="ab-dialog-icon"><FileText size={22} /></span>
           <div className="ab-dialog-title">
             <h2>تقديم تبرير</h2>
-            <p>يبقى التبرير قيد الدراسة حتى يتم قبوله أو رفضه</p>
           </div>
           <button type="button" className="ab-close" onClick={close} aria-label="إغلاق"><X size={20} /></button>
         </header>
@@ -78,7 +75,7 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
 
           {withDocument && (
             <div className="ab-field">
-              <span><Paperclip size={15} /> الوثيقة (شهادة طبية، استدعاء...)</span>
+              <span><Paperclip size={15} /> الوثيقة</span>
               {doc ? (
                 <div className="ab-file">
                   <Paperclip size={16} /> <b>{doc.name}</b>
@@ -86,7 +83,7 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
                 </div>
               ) : (
                 <label className="ab-file pick">
-                  <Paperclip size={16} /> اختر ملف PDF أو صورة
+                  <Paperclip size={16} /> إرفاق وثيقة
                   <input type="file" accept="application/pdf,image/*" onChange={e => pick(e.target.files?.[0] ?? null)} hidden />
                 </label>
               )}
@@ -94,16 +91,16 @@ export const JustificationDialog: React.FC<JustificationDialogProps> = ({ isOpen
           )}
 
           <label className="ab-field">
-            <span>{withDocument ? 'نص التبرير (اختياري مع وثيقة)' : 'نص التبرير'}</span>
+            <span>التبرير</span>
             <textarea
+              className={error ? 'is-missing' : ''}
               value={text}
               onChange={e => { setText(e.target.value); setError(''); }}
-              placeholder="اكتب سبب الغياب بوضوح (مرض، ظرف عائلي، دراسة...)"
               rows={5}
               autoFocus
             />
+            {error && <p className="ab-field-error"><AlertCircle size={13} /> {error}</p>}
           </label>
-          {error && <p className="ab-error"><AlertCircle size={14} /> {error}</p>}
         </div>
 
         <footer className="ab-dialog-foot">

@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import { countsOf, statusOf } from './absenceUtils';
 import { errorText } from '../Personal/useMyAbsences';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export interface AbsenceRecord {
   id: number;
@@ -34,6 +35,8 @@ export interface AbsenceRecord {
   decision_note?: string | null;
   /** Who sent the justification: the member, or the administration for them */
   justified_by?: 'member' | 'administration' | null;
+  /** The signed-in user's own record: its decision is another manager's */
+  mine?: boolean;
 }
 
 // The API answers either with the list itself or with { data: [...] }
@@ -150,7 +153,7 @@ export const useAbsenceRequestsController = () => {
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+    if (!(await confirmDelete('حذف السجل؟'))) return;
     try {
       await axios.post(`${Applink.server}/absences/delete`, { id }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }

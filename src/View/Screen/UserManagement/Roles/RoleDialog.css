@@ -548,3 +548,13 @@ body.dark-mode .rd-action.on { color: #34d399; }
   font-weight: 800;
   direction: ltr;
 }
+
+/* Day mode: the header is white (dark only in night mode) */
+body:not(.dark-mode) .rd-header {
+  color: var(--text-h);
+  background: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+body:not(.dark-mode) .rd-header-text h2 { color: var(--text-h); }
+body:not(.dark-mode) .rd-close { border-color: var(--border); background: transparent; color: var(--text-h); }
+body:not(.dark-mode) .rd-close:hover { background: var(--bg); }

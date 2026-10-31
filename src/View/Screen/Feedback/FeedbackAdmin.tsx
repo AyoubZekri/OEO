@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { MessageSquare, Inbox, Sparkles, Hourglass, CheckCircle2, Star, RefreshCw, Search, X, Filter, Layers, ChevronDown } from 'lucide-react';
+import { MessageSquare, Inbox, Sparkles, Hourglass, CheckCircle2, Star, RefreshCw, Search, X, Filter, Layers, ChevronDown, Plus } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { useCan } from '../../../core/functions/useCan';
 import { CustomDropdown } from '../../widget/CustomDropdown';
@@ -9,7 +9,7 @@ import { MobileSelect } from '../../Mobile/widgets/MobileSelect';
 import { PageLoader } from '../../shared/PageLoader';
 import { FEEDBACK_TYPES, STATUS_META, statusOf, type FeedbackStatus, type FeedbackType } from './feedbackUtils';
 import { useFeedbackAdmin, useFocusedFeedback } from './useFeedback';
-import { FeedbackCard, ReplyForm } from './FeedbackParts';
+import { FeedbackCard, FeedbackForm, ReplyForm } from './FeedbackParts';
 import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
@@ -19,7 +19,8 @@ const TYPE_OPTIONS = [{ value: 'all', label: 'كل الأنواع' }, ...FEEDBAC
 const STATUS_OPTIONS = [{ value: 'all', label: 'كل الحالات' }, ...(Object.keys(STATUS_META) as FeedbackStatus[]).map(s => ({ value: s, label: STATUS_META[s].label }))];
 
 /**
- * Management: the members' opinions. Each one is replied to; a suggestion is also rated with stars.
+ * Management: the members' opinions, the one opinions page (for who has its permission; without it, mine only).
+ * Each one is replied to; a suggestion is also rated with stars; «رأي جديد» sends my own from here.
  * Same layout as the other pages: the figures, the filters, then the cards (phone: hero, sheets, list).
  */
 export const FeedbackAdmin: React.FC = () => {
@@ -64,6 +65,7 @@ export const FeedbackAdmin: React.FC = () => {
       <div className="tk-state"><Inbox size={32} /><p>{c.items.length ? 'لا توجد آراء بهذه التصفية' : 'لم يرسل الأعضاء أي رأي بعد'}</p></div>
     ) : <div className={isMobile ? 'tk-list' : 'tk-grid'}>{cards}</div>;
   const reply = c.replying && <ReplyForm feedback={c.replying} onSave={(text, rating) => c.reply(c.replying!, text, rating)} onClose={c.closeReply} />;
+  const form = c.formOpen && <FeedbackForm onSend={c.send} onClose={c.closeForm} />;
 
   if (isMobile) {
     const typeLabel = FEEDBACK_TYPES.find(t => t.value === type)?.label || 'الكل';
@@ -135,7 +137,12 @@ export const FeedbackAdmin: React.FC = () => {
         </div>
 
         {body}
+
+        <button type="button" className="tk-fab" onClick={c.openForm} aria-label="رأي جديد">
+          <Plus size={22} strokeWidth={2.5} />
+        </button>
         {reply}
+        {form}
       </div>
     );
   }
@@ -166,10 +173,12 @@ export const FeedbackAdmin: React.FC = () => {
         <TopbarSearch value={query} onChange={setQuery} placeholder="ابحث بالموضوع أو اسم العضو..." />
         <CustomDropdown options={TYPE_OPTIONS} value={type || 'all'} onChange={v => setType(v === 'all' ? '' : v as FeedbackType)} />
         <CustomDropdown options={STATUS_OPTIONS} value={status || 'all'} onChange={v => setStatus(v === 'all' ? '' : v as FeedbackStatus)} />
+        <button type="button" className="btn-primary" onClick={c.openForm}><Plus size={18} />رأي جديد</button>
       </div>
 
       {body}
       {reply}
+      {form}
     </div>
   );
 };

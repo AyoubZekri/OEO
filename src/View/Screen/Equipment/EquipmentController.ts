@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { EquipmentData } from './equipment_data';
 import { Crud } from '../../../core/class/Crud';
 import { EquipmentModel } from './equipment_model';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const useEquipmentController = () => {
   const [equipments, setEquipments] = useState<EquipmentModel[]>([]);
@@ -71,7 +72,7 @@ export const useEquipmentController = () => {
   };
 
   const handleDeleteEquipment = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا العتاد؟')) {
+    if (await confirmDelete('حذف العتاد؟')) {
       setIsLoading(true);
       const response = await equipmentData.deleteEquipment(id);
       if (response && !response.error) {

@@ -13,16 +13,19 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileDecisions } from '../../Mobile/MobileDecisions/MobileDecisions';
 import type { DecisionDraft } from '../../Mobile/MobileDecisions/MobileDecisionForm';
 import './Decisions.css';
+import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 export const Decisions: React.FC = () => {
   const { t } = useTranslation();
-  const { 
+  const {
     decisions,
     isLoading,
     addDecision,
     updateDecision,
     deleteDecision,
-    updateProgress 
+    updateProgress
   } = useDecisionsController();
 
   const [selectedMeetingId, setSelectedMeetingId] = useState<string>('');
@@ -34,18 +37,23 @@ export const Decisions: React.FC = () => {
   const [formData, setFormData] = useState<any>({ text: '', category: '', deadline: '', assigneeIds: [], checklistItems: [] });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  // The decision's text left empty: its message under it (the assignees, a choice: a snackbar)
+  const [showErrors, setShowErrors] = useState(false);
+  const textMissing = formData.type !== 'checklist' && !String(formData.text || '').trim();
 
-  const filteredDecisions = selectedMeetingId 
+  const filteredDecisions = selectedMeetingId
     ? decisions.filter(d => d.meetingId === selectedMeetingId)
     : decisions;
 
   const openAdd = () => {
+    setShowErrors(false);
     setEditingId(null);
     setFormData({ text: '', category: '', deadline: '', assigneeIds: [], checklistItems: [] });
     setIsModalOpen(true);
   };
 
   const openEdit = (decision: Decision) => {
+    setShowErrors(false);
     setEditingId(decision.id);
     setFormData(decision);
     setIsModalOpen(true);
@@ -54,11 +62,14 @@ export const Decisions: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+    setShowErrors(true);
+    if (textMissing) return;
+    if (!formData.assigneeIds.length) return showSnackbar('خطأ', 'اختر مسؤولاً واحداً على الأقل', '#ef4444');
     setIsSubmitting(true);
-    
+
     try {
       let dataToSubmit = { ...formData };
-      
+
       if (dataToSubmit.type === 'checklist' && !dataToSubmit.text) {
          dataToSubmit.text = dataToSubmit.category || 'قرار مهام متعددة ';
       }
@@ -66,11 +77,11 @@ export const Decisions: React.FC = () => {
       if (editingId) {
         await updateDecision(editingId, dataToSubmit);
       } else {
-        await addDecision({ 
-          ...dataToSubmit, 
-          progress: dataToSubmit.type === 'checklist' ? 0 : (dataToSubmit.progress || 0), 
-          status: 'في الانتظار', 
-          meetingId: dataToSubmit.meetingId || selectedMeetingId || '' 
+        await addDecision({
+          ...dataToSubmit,
+          progress: dataToSubmit.type === 'checklist' ? 0 : (dataToSubmit.progress || 0),
+          status: 'في الانتظار',
+          meetingId: dataToSubmit.meetingId || selectedMeetingId || ''
         } as Omit<Decision, 'id'>);
       }
       setIsModalOpen(false);
@@ -80,7 +91,7 @@ export const Decisions: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if(window.confirm('هل أنت متأكد من حذف هذا القرار؟')) {
+    if (await confirmDelete('حذف القرار؟')) {
       if (deletingId) return;
       setDeletingId(id);
       try {
@@ -95,13 +106,13 @@ export const Decisions: React.FC = () => {
     const decision = decisions.find(d => d.id === decisionId);
     if (!decision) return;
     const newItems = decision.checklistItems?.map(item => item.id === itemId ? { ...item, checked: !item.checked } : item) || [];
-    
+
     let newProgress = decision.progress;
     if (newItems.length > 0) {
        const checkedCount = newItems.filter(i => i.checked).length;
        newProgress = Math.round((checkedCount / newItems.length) * 100);
     }
-    
+
     updateDecision(decisionId, { checklistItems: newItems, progress: newProgress });
   };
   const { meetings } = useMeetingsController();
@@ -156,28 +167,26 @@ export const Decisions: React.FC = () => {
 
   return (
     <div className="visits-tab-container fade-in" style={{ fontFamily: 'var(--sans)' }}>
-      {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-          <div style={{ minWidth: '250px' }}>
-            <CustomDropdown 
-              value={selectedMeetingId} 
-              onChange={(val) => setSelectedMeetingId(val)}
-              options={[
-                { value: "", label: t('admin_docs.all_meetings', 'جميع الاجتماعات') },
-                ...meetings.map(m => ({ value: m.id, label: `${m.topic} - ${m.date}` }))
-              ]}
-            />
-          </div>
-          {can('decisions', 'add') && (
-            <button 
-              className="add-eq-btn"
-              onClick={openAdd}
-            >
-              <Plus size={20} />
-              <span>{t('admin_docs.add_decision', 'إضافة قرار')}</span>
-            </button>
-          )}
+      {/* Header Section: on the right (the page is right to left), the add button then the meeting filter */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
+        {can('decisions', 'add') && (
+          <button
+            className="add-eq-btn"
+            onClick={openAdd}
+          >
+            <Plus size={20} />
+            <span>{t('admin_docs.add_decision', 'إضافة قرار')}</span>
+          </button>
+        )}
+        <div style={{ minWidth: '250px' }}>
+          <CustomDropdown
+            value={selectedMeetingId}
+            onChange={(val) => setSelectedMeetingId(val)}
+            options={[
+              { value: "", label: t('admin_docs.all_meetings', 'جميع الاجتماعات') },
+              ...meetings.map(m => ({ value: m.id, label: `${m.topic} - ${m.date}` }))
+            ]}
+          />
         </div>
       </div>
 
@@ -194,54 +203,23 @@ export const Decisions: React.FC = () => {
             <p className="loading-text">جاري تحميل القرارات...</p>
           </div>
         ) : filteredDecisions.length === 0 ? (
-          <div style={{
-            gridColumn: '1 / -1',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
-            borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
-            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1))',
-              padding: '24px', borderRadius: '50%', marginBottom: '20px',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
-              boxShadow: '0 8px 32px rgba(16, 185, 129, 0.15)'
-            }}>
-              <FolderOpen size={56} color="var(--accent)" style={{ opacity: 0.8 }} />
-            </div>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
-              لا توجد قرارات حالياً
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
-              لم يتم إضافة أي قرارات حتى الآن. يمكنك البدء بإضافة قرار جديد لمتابعته وتعيين المسؤولين عنه.
-            </p>
-            {can('decisions', 'add') && (
-              <button 
-                className="add-eq-btn" 
-                style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem', background: 'linear-gradient(135deg, var(--accent), #10b981)' }}
-                onClick={openAdd}
-              >
-                <Plus size={22} />
-                <span>إضافة قرار جديد</span>
-              </button>
-            )}
-          </div>
+          <StateIcon icon={FolderOpen} />
         ) : (
           filteredDecisions.map(decision => {
             const isCompleted = decision.progress === 100;
           const assigneesCount = decision.assigneeIds?.length || 0;
           const displayAssignees = decision.assigneeIds?.slice(0, 3) || [];
-          
+
           let checklistInfo = null;
           if (decision.type === 'checklist' && decision.checklistItems) {
             const total = decision.checklistItems.length;
             const done = decision.checklistItems.filter(i => i.checked).length;
-            checklistInfo = `${done} / ${total} مهام منجزة`;
+            checklistInfo = `${done} / ${total}`;
           }
-          
+
           return (
-            <div 
-              key={decision.id} 
+            <div
+              key={decision.id}
               className={`decision-card-wow ${isCompleted ? 'completed' : ''}`}
             >
               <div className="decision-card-content">
@@ -266,7 +244,7 @@ export const Decisions: React.FC = () => {
                       {decision.type === 'checklist' ? (decision.category || 'قرار مهام متعددة ') : decision.text}
                     </h3>
                   </div>
-                  
+
                   <div className="decision-actions">
                     {decision.type !== 'checklist' && (
                       <button onClick={() => setReadingDecision(decision)} className="decision-action-btn" title="قراءة">
@@ -279,9 +257,9 @@ export const Decisions: React.FC = () => {
                       </button>
                     )}
                     {can('decisions', 'delete') && (
-                      <button 
-                        onClick={() => handleDelete(decision.id)} 
-                        className="decision-action-btn delete" 
+                      <button
+                        onClick={() => handleDelete(decision.id)}
+                        className="decision-action-btn delete"
                         title="حذف"
                         disabled={deletingId === decision.id}
                         style={{ opacity: deletingId === decision.id ? 0.5 : 1 }}
@@ -316,8 +294,8 @@ export const Decisions: React.FC = () => {
                         <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>بدون مسؤول</span>
                       )}
                     </div>
-                    
-                    <button 
+
+                    <button
                       className="premium-btn-outline"
                       onClick={() => setDetailsDecision(decision)}
                       style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', gap: '6px' }}
@@ -329,23 +307,23 @@ export const Decisions: React.FC = () => {
                   <div className="progress-container">
                     <div className="progress-header">
                       <span className="progress-text">
-                        {checklistInfo ? checklistInfo : (isCompleted ? 'مكتمل' : 'نسبة الإنجاز')}
+                        {checklistInfo}
                       </span>
                       <span className={`progress-percentage ${isCompleted ? 'completed' : ''}`}>
                         {decision.progress}%
                       </span>
                     </div>
-                    
+
                     <div style={{ position: 'relative', height: '10px', display: 'flex', alignItems: 'center' }}>
                       <div className="progress-track" style={{ width: '100%', position: 'absolute' }}>
-                        <div 
-                          className={`progress-fill ${isCompleted ? 'completed' : ''}`} 
-                          style={{ width: `${decision.progress}%` }} 
+                        <div
+                          className={`progress-fill ${isCompleted ? 'completed' : ''}`}
+                          style={{ width: `${decision.progress}%` }}
                         />
                       </div>
-                      
+
                       {decision.type !== 'checklist' && (
-                        <input 
+                        <input
                           type="range" min="0" max="100" step="5"
                           value={decision.progress}
                           onChange={e => updateProgress(decision.id, parseInt(e.target.value))}
@@ -367,7 +345,7 @@ export const Decisions: React.FC = () => {
       {isModalOpen && (
         <div className="wow-modal-overlay">
           <div className="wow-modal">
-            
+
             <div className="wow-modal-header">
               <h3 className="wow-modal-title">
                 <div className="wow-modal-icon-bg">
@@ -379,21 +357,21 @@ export const Decisions: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="wow-modal-body">
               <form id="decision-form" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-                
+
                 {/* Section 1: Basic Info */}
                 <div className="wow-section-card">
                   <h4 className="wow-section-title">المعلومات الأساسية</h4>
-                  
+
                   <div style={{ display: 'grid', gap: '20px' }}>
-                    <CustomDropdown 
-                      label="الاجتماع التابع له"
-                      value={formData.meetingId} 
+                    <CustomDropdown
+                      label="الاجتماع"
+                      value={formData.meetingId}
                       onChange={(val) => setFormData({...formData, meetingId: val})}
                       options={[
-                        { value: "", label: "-- اختر الاجتماع --" },
+                        { value: "", label: "بدون اجتماع" },
                         ...meetings.map(m => ({ value: m.id, label: `${m.topic} - ${m.date}` }))
                       ]}
                     />
@@ -401,19 +379,19 @@ export const Decisions: React.FC = () => {
                     <div>
                       <label style={{ display: 'block', fontSize: '0.95rem', color: 'var(--text-h)', marginBottom: '12px', fontWeight: '700' }}>نوع القرار</label>
                       <div className="wow-toggle-container">
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setFormData({...formData, type: 'normal'})}
                           className={`wow-toggle-btn ${formData.type === 'normal' ? 'active normal' : ''}`}
                         >
                           <Edit2 size={18} /> نص القرار
                         </button>
-                        <button 
+                        <button
                           type="button"
                           onClick={() => setFormData({...formData, type: 'checklist'})}
                           className={`wow-toggle-btn ${formData.type === 'checklist' ? 'active checklist' : ''}`}
                         >
-                          <CheckCircle size={18} /> مهام متعددة 
+                          <CheckCircle size={18} /> مهام متعددة
                         </button>
                       </div>
                     </div>
@@ -421,21 +399,22 @@ export const Decisions: React.FC = () => {
                     {formData.type !== 'checklist' ? (
                       <div>
                         <label style={{ display: 'block', fontSize: '0.9rem', color: 'var(--text-h)', marginBottom: '8px', fontWeight: '700' }}>{t('admin_docs.decision_text', 'نص القرار')}</label>
-                        <textarea 
-                          required
-                          value={formData.text} 
+                        <textarea
+                          value={formData.text}
                           onChange={e => setFormData({...formData, text: e.target.value})}
-                          placeholder="اكتب تفاصيل القرار بشكل واضح ليتم فهمه من قبل المسؤولين..."
                           className="premium-textarea"
-                          style={{ minHeight: '140px' }}
+                          style={{ minHeight: '140px', ...(showErrors && textMissing ? { borderColor: '#ef4444' } : {}) }}
                         />
+                        {showErrors && textMissing && (
+                          <span style={{ display: 'block', marginTop: '6px', color: '#ef4444', fontSize: '0.85rem', fontWeight: 700 }}>اكتب نص القرار</span>
+                        )}
                       </div>
                     ) : (
                       <div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px', alignItems: 'flex-end' }}>
                           <div style={{ flex: '1 1 250px' }}>
-                            <CustomInput 
-                              label="قائمة المهام التنفيذية"
+                            <CustomInput
+                              label="المهام"
                               type="text"
                               value={newItemText}
                               onChange={e => setNewItemText(e.target.value)}
@@ -448,10 +427,9 @@ export const Decisions: React.FC = () => {
                                   }
                                 }
                               }}
-                              placeholder="اكتب مهمة جديدة ثم اضغط الزر للإضافة..."
                             />
                           </div>
-                          <button 
+                          <button
                             type="button"
                             onClick={() => {
                               if (newItemText.trim()) {
@@ -464,7 +442,7 @@ export const Decisions: React.FC = () => {
                             إضافة مهمة
                           </button>
                         </div>
-                        
+
                         {formData.checklistItems && formData.checklistItems.length > 0 ? (
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                             {formData.checklistItems.map((item: any, index: number) => (
@@ -473,8 +451,8 @@ export const Decisions: React.FC = () => {
                                   <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'var(--bg)', color: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.9rem', fontWeight: 'bold', border: '1px solid var(--border)' }}>{index + 1}</div>
                                   <span style={{ fontSize: '0.95rem', color: 'var(--text-h)', fontWeight: '600' }}>{item.text}</span>
                                 </div>
-                                <button 
-                                  type="button" 
+                                <button
+                                  type="button"
                                   onClick={() => setFormData({ ...formData, checklistItems: formData.checklistItems ? formData.checklistItems.filter((i: any) => i.id !== item.id) : [] })}
                                   className="decision-action-btn delete"
                                 >
@@ -483,12 +461,7 @@ export const Decisions: React.FC = () => {
                               </div>
                             ))}
                           </div>
-                        ) : (
-                          <div style={{ textAlign: 'center', padding: '40px', background: 'var(--bg)', borderRadius: '16px', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
-                            <ClipboardList size={40} style={{ opacity: 0.3, marginBottom: '12px' }} />
-                            <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: '500' }}>لا توجد مهام حالياً. أضف مهام لبناء قائمة التشيك ليست.</p>
-                          </div>
-                        )}
+                        ) : null}
                       </div>
                     )}
                   </div>
@@ -509,7 +482,7 @@ export const Decisions: React.FC = () => {
                           const isSelected = formData.assigneeIds.includes(empIdStr);
                           const empName = `${emp.first_name} ${emp.last_name}`;
                           return (
-                            <div 
+                            <div
                               key={emp.id}
                               onClick={() => {
                                 if (isSelected) {
@@ -531,16 +504,13 @@ export const Decisions: React.FC = () => {
                           );
                         })}
                       </div>
-                      {formData.assigneeIds.length === 0 && (
-                        <p style={{ margin: '8px 0 0', fontSize: '0.8rem', color: '#ef4444' }}>* يرجى اختيار مسؤول واحد على الأقل للمتابعة</p>
-                      )}
                     </div>
-                    
+
                     <div>
-                      <CustomInput 
-                        label={`${t('admin_docs.decision_deadline', 'الأجل الزمني')} (اختياري)`}
-                        type="date" 
-                        value={formData.deadline} 
+                      <CustomInput
+                        label={t('admin_docs.decision_deadline', 'الأجل الزمني')}
+                        type="date"
+                        value={formData.deadline}
                         onChange={e => setFormData({...formData, deadline: e.target.value})}
                       />
                     </div>
@@ -552,8 +522,8 @@ export const Decisions: React.FC = () => {
                   <button type="button" onClick={() => setIsModalOpen(false)} className="wow-btn-cancel" disabled={isSubmitting}>
                     {t('admin_docs.cancel', 'إلغاء')}
                   </button>
-                  <button type="submit" disabled={formData.assigneeIds.length === 0 || isSubmitting} className="wow-btn-submit" style={{ opacity: isSubmitting ? 0.7 : 1 }}>
-                    {isSubmitting ? 'جاري الحفظ...' : t('admin_docs.save_decision', 'حفظ القرار')} <CheckCircle size={18} />
+                  <button type="submit" disabled={isSubmitting} className="wow-btn-submit" style={{ opacity: isSubmitting ? 0.7 : 1 }}>
+                    {isSubmitting ? 'جاري الحفظ...' : editingId ? 'حفظ التعديلات' : 'تأكيد'} <CheckCircle size={18} />
                   </button>
                 </div>
               </form>
@@ -602,7 +572,7 @@ export const Decisions: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div className="wow-modal-body">
               {/* Assignees */}
               <div className="wow-section-card">
@@ -624,12 +594,12 @@ export const Decisions: React.FC = () => {
                     ) : null;
                   })}
                   {(!detailsDecision.assigneeIds || detailsDecision.assigneeIds.length === 0) && (
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>لا يوجد مسؤولين محددين.</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>—</span>
                   )}
                 </div>
                 {detailsDecision.deadline && (
                   <div style={{ marginTop: '20px', borderTop: '1px dashed var(--border)', paddingTop: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Clock size={16} color="var(--text-muted)" /> 
+                    <Clock size={16} color="var(--text-muted)" />
                     <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>الأجل الزمني:</span>
                     <span style={{ fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--accent)', background: 'rgba(var(--accent-rgb), 0.1)', padding: '4px 12px', borderRadius: '8px' }}>
                       {detailsDecision.deadline}
@@ -648,13 +618,13 @@ export const Decisions: React.FC = () => {
                     {detailsDecision.checklistItems.map((item: any) => (
                       <label key={item.id} className="task-list-item" style={{ cursor: 'pointer', padding: '16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flex: 1 }}>
-                          <input 
-                            type="checkbox" 
+                          <input
+                            type="checkbox"
                             checked={item.checked}
                             disabled={!can('decisions', 'progress')}
                             onChange={() => {
                               toggleChecklistItem(detailsDecision.id, item.id);
-                              
+
                               const newItems = detailsDecision.checklistItems?.map((i: any) => i.id === item.id ? { ...i, checked: !i.checked } : i);
                               let newProg = detailsDecision.progress;
                               if (newItems && newItems.length > 0) {
@@ -679,7 +649,7 @@ export const Decisions: React.FC = () => {
                 </div>
               )}
             </div>
-            
+
             <div style={{ background: 'var(--card-bg)', padding: '24px 32px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', zIndex: 10 }}>
               <button type="button" onClick={() => setDetailsDecision(null)} className="wow-btn-submit" style={{ flex: 'none', padding: '12px 36px', background: 'var(--accent)', boxShadow: '0 8px 16px -4px rgba(var(--accent-rgb), 0.4)' }}>إغلاق</button>
             </div>

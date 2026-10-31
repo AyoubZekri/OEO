@@ -4,6 +4,7 @@ import { MembersData } from '../Members/members_data';
 import { MemberModel } from '../Members/member_model';
 import { Crud } from '../../../core/class/Crud';
 import { Applink } from '../../../LinkApi';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const useCorrespondencesController = () => {
   const [correspondences, setCorrespondences] = useState<CorrespondenceModel[]>([]);
@@ -87,7 +88,7 @@ export const useCorrespondencesController = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm("هل أنت متأكد من حذف هذه المراسلة؟")) {
+    if (await confirmDelete('حذف المراسلة؟')) {
       try {
         await crud.postDataheaders(`${Applink.correspondences}/delete`, { id });
         await fetchCorrespondences();

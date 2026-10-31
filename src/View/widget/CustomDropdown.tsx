@@ -68,7 +68,7 @@ export const CustomDropdown = <T extends string>({
       >
         {selectedOption?.icon && <span style={{ opacity: 0.9 }}>{selectedOption.icon}</span>}
         <span style={{ fontWeight: selectedOption ? 500 : 400, color: selectedOption ? 'inherit' : '#94a3b8' }}>
-          {selectedOption?.label || placeholder || 'اختر...'}
+          {selectedOption?.label || (placeholder ?? 'اختر...')}
         </span>
         <span style={{ marginLeft: 'auto', fontSize: '0.8rem', color: '#6b7280', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.3s' }}>▼</span>
       </div>

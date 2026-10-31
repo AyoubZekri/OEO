@@ -19,6 +19,7 @@ import type { useDisciplinaryController } from '../../Screen/Disciplinary/Discip
 import type { DisciplinaryModel } from '../../Screen/Disciplinary/disciplinary_data';
 import { canPrintNow, hasDecision, memberCanReply } from '../../Screen/Disciplinary/clarification';
 import './MobileDisciplinary.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileDisciplinaryProps {
   controller: ReturnType<typeof useDisciplinaryController>;
@@ -191,11 +192,7 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
       {controller.isLoading ? (
         <MobileLoader text="جاري تحميل الإجراءات..." />
       ) : list.length === 0 ? (
-        <div className="md-empty">
-          <Scale size={44} />
-          <strong>لا توجد إجراءات تأديبية</strong>
-          <p>لم يتم العثور على أي إجراء يطابق بحثك.</p>
-        </div>
+        <StateIcon icon={Scale} />
       ) : (
         <div className="md-list">
           {list.map(item => {

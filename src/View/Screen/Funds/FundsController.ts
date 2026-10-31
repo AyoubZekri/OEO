@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Crud } from '../../../core/class/Crud';
 import { FundsData } from './funds_data';
 import type { Fund, TransactionType, FundTransaction } from './fund_model';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const useFundsController = () => {
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -71,7 +72,7 @@ export const useFundsController = () => {
   };
 
   const deleteFund = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا الصندوق؟ سيتم حذف جميع معاملاته أيضاً.')) {
+    if (await confirmDelete('حذف الصندوق؟')) {
       const response = await fundsData.deleteFund({ id });
       if (response) {
         setFunds(funds.filter(f => f.id !== id));
@@ -119,7 +120,7 @@ export const useFundsController = () => {
   };
 
   const deleteTransaction = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه المعاملة من السجل؟ يبقى رصيد الصندوق كما هو.')) {
+    if (await confirmDelete('حذف المعاملة؟')) {
       const response = await fundsData.deleteTransaction({ id });
       if (response) {
         setTransactions(transactions.filter(t => t.id !== id));

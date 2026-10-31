@@ -46,7 +46,8 @@ export const MatchCard: React.FC<MatchCardProps> = ({ match: m, state, actions, 
         </span>
         <MobileRowMenu items={[
           { key: 'details', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: onOpen },
-          ...matchActionItems(m, state, actions, allowed),
+          // The match's other actions are in its details: only edit and delete stay here
+          ...matchActionItems(m, state, actions, allowed).filter(i => i.key === 'edit' || i.key === 'delete'),
         ]} label="إجراءات المباراة" />
       </div>
 

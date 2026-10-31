@@ -50,20 +50,20 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const newErrors: {name?: string, email?: string, password?: string, roleId?: string} = {};
-    
+
     const nameErr = validInput(name, 3, 50, 'text');
     if (nameErr) newErrors.name = nameErr;
-    
+
     const emailErr = validInput(email, 5, 100, 'email');
     if (emailErr) newErrors.email = emailErr;
-    
+
     const passErr = validInput(password, 6, 50, 'text', !!userToEdit);
     if (passErr && (!userToEdit || password.length > 0)) newErrors.password = passErr;
-    
+
     setErrors(newErrors);
-    
+
     if (Object.keys(newErrors).length === 0) {
       onSave({
         name,
@@ -87,55 +87,52 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
           <h2>{userToEdit ? t('users.edit_user') : t('users.add_new_user')}</h2>
           <button className="close-btn" onClick={onClose}><X size={20} /></button>
         </div>
-        
-        <form onSubmit={handleSubmit} className="task-form">
+
+        <form onSubmit={handleSubmit} className="task-form" noValidate>
           <div className="form-row">
-            <CustomInput 
-              label={t('users.username') || 'إسم المستخدم'} 
-              required 
-              type="text" 
-              value={name} 
-              onChange={(e) => {setName(e.target.value); setErrors(p => ({...p, name: undefined}));}} 
-              placeholder={t('users.username_placeholder') || 'إسم المستخدم'} 
+            <CustomInput
+              label={t('users.username')}
+              type="text"
+              value={name}
+              onChange={(e) => {setName(e.target.value); setErrors(p => ({...p, name: undefined}));}}
+              className={errors.name ? 'is-missing' : ''}
               error={errors.name}
             />
           </div>
 
-          <CustomInput 
-            label={t('users.email')} 
-            required 
-            type="email" 
-            value={email} 
-            onChange={(e) => {setEmail(e.target.value); setErrors(p => ({...p, email: undefined}));}} 
-            placeholder="example@kaidnews.com" 
+          <CustomInput
+            label={t('users.email')}
+            type="email"
+            value={email}
+            onChange={(e) => {setEmail(e.target.value); setErrors(p => ({...p, email: undefined}));}}
+            className={errors.email ? 'is-missing' : ''}
             error={errors.email}
           />
 
           {userToEdit && can('usersAndRoles', 'editUsers') && <PasswordReveal userId={userToEdit.id} />}
 
-          <CustomInput 
-            label={userToEdit ? 'تغيير كلمة المرور (اتركها فارغة للإبقاء عليها)' : t('users.password')} 
-            required={!userToEdit} 
-            type="password" 
-            value={password} 
-            onChange={(e) => {setPassword(e.target.value); setErrors(p => ({...p, password: undefined}));}} 
-            placeholder="********" 
+          <CustomInput
+            label={userToEdit ? 'كلمة المرور الجديدة' : t('users.password')}
+            type="password"
+            value={password}
+            onChange={(e) => {setPassword(e.target.value); setErrors(p => ({...p, password: undefined}));}}
+            className={errors.password ? 'is-missing' : ''}
             error={errors.password}
           />
 
           <div className="form-row">
             <CustomDropdown<string>
-              label={`${t('users.role')} (اختياري)`}
+              label={t('users.role')}
               value={roleId}
               options={roleOptions}
               onChange={(val) => {setRoleId(val); setErrors(p => ({...p, roleId: undefined}));}}
-              placeholder={t('users.select_role') || 'اختر دوراً'}
+              placeholder=""
               error={errors.roleId}
             />
           </div>
           <div className="form-actions" style={{ marginTop: '24px' }}>
             <button type="button" className="btn-cancel" onClick={onClose}>{t('users.cancel')}</button>
-            <button type="submit" className="btn-submit">{t('users.save_user')}</button>
+            <button type="submit" className="btn-submit">{userToEdit ? t('users.save_user') : 'تأكيد'}</button>
           </div>
         </form>
       </div>

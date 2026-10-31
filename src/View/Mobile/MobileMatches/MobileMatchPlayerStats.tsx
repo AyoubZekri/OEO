@@ -5,9 +5,10 @@ import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { Applink } from '../../../LinkApi';
 import type { Match } from '../../Screen/Matches/match_model';
-import { authHeaders, errorMessage, loadCalledUp, nameOf, numberOf, playerIdOf } from './matchApi';
+import { authHeaders, loadCalledUp, nameOf, numberOf, playerIdOf } from './matchApi';
 import { MatchStrip } from './MatchStrip';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- players come untyped from the API */
 
@@ -98,8 +99,8 @@ export const MobileMatchPlayerStats: React.FC<{ match: Match; onClose: () => voi
       }));
       const res = await axios.post(Applink.saveMatchCallupStats, { match_id: match.id, players: playersData }, { headers: authHeaders() });
       if (res.data.status === 'success') onClose();
-    } catch (error) {
-      alert(`حدث خطأ أثناء حفظ الإحصائيات\n${errorMessage(error)}`);
+    } catch {
+      // The server's message is shown by the shared snackbar
     } finally {
       setSaving(false);
     }
@@ -141,12 +142,12 @@ export const MobileMatchPlayerStats: React.FC<{ match: Match; onClose: () => voi
       {loading ? (
         <MobileLoader text="جاري تحميل اللاعبين..." />
       ) : players.length === 0 ? (
-        <div className="mp-empty"><AlertTriangle size={36} /><p>لم يتم العثور على لاعبين مستدعين لهذه المباراة.</p></div>
+        <StateIcon icon={AlertTriangle} />
       ) : (
         <>
           <label className="mp-search">
             <Search size={17} />
-            <input type="search" placeholder="ابحث بالاسم أو الرقم..." value={query} onChange={e => setQuery(e.target.value)} />
+            <input type="search" placeholder="ابحث بالاسم" value={query} onChange={e => setQuery(e.target.value)} />
           </label>
 
           {shown.map(p => {

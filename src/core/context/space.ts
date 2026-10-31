@@ -12,6 +12,8 @@ export interface SpaceState {
   space: AppSpace;
   /** May the user open the management space: a full-access role, or a page of it to view */
   canManage: boolean;
+  /** The account's member is a player: their personal space has no home page nor appointments (a non-player's has no medical reports) */
+  isPlayer: boolean;
   setSpace: (space: AppSpace) => void;
 }
 

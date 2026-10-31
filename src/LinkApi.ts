@@ -136,10 +136,6 @@ export class Applink {
   static readonly deleteMatchCallup: string = `${Applink.server}/matches/callups/delete`;
   static readonly saveMatchCallupStats: string = `${Applink.server}/matches/callups/stats`;
 
-  //  =============================Administrative Match Reports============================== //
-  static readonly getAdministrativeReport = (matchId: number) => `${Applink.server}/administrative-reports/${matchId}`;
-  static readonly saveAdministrativeReport: string = `${Applink.server}/administrative-reports/save`;
-
   //  =============================Medical Records============================== //
   static readonly medicalRecords = `${Applink.server}/medical-records`;
   static readonly createMedicalRecord = `${Applink.server}/medical-records/create`;

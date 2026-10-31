@@ -16,6 +16,7 @@ import { MeetingEditorDialog } from './MeetingEditorDialog';
 import { meetingPointsApi } from './meetingPointsApi';
 import { meetingStart, agendaOf } from '../../Mobile/MobileMeetings/meetingUtils';
 import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Meetings: React.FC = () => {
   const { t } = useTranslation();
@@ -45,8 +46,8 @@ export const Meetings: React.FC = () => {
 
   return (
     <div className="visits-tab-container fade-in">
-      {/* Header Section */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
+      {/* Header Section: the add button on the right (the page is right to left) */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', gap: '16px', marginBottom: '30px' }}>
         {hasAccess(permissions.meetings.add) && (
           <button className="add-eq-btn" onClick={() => openAdd()}>
             <Plus size={20} />
@@ -69,42 +70,11 @@ export const Meetings: React.FC = () => {
             <p className="loading-text">جاري تحميل الاجتماعات...</p>
           </div>
         ) : meetings.length === 0 ? (
-          <div style={{
-            gridColumn: '1 / -1',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            padding: '80px 20px', background: 'linear-gradient(145deg, var(--card-bg), var(--bg-hover))', 
-            borderRadius: '24px', border: '1px dashed var(--border)', marginTop: '24px',
-            boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
-          }}>
-            <div style={{
-              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1))',
-              padding: '24px', borderRadius: '50%', marginBottom: '20px',
-              border: '1px solid rgba(59, 130, 246, 0.2)',
-              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.15)'
-            }}>
-              <FolderOpen size={56} color="var(--primary)" style={{ opacity: 0.8 }} />
-            </div>
-            <h3 style={{ fontSize: '1.4rem', color: 'var(--text-h)', marginBottom: '10px', fontWeight: '800' }}>
-              لا توجد اجتماعات حالياً
-            </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '1rem', maxWidth: '400px', textAlign: 'center', lineHeight: '1.6' }}>
-              لم يتم جدولة أي اجتماعات حتى الآن. يمكنك إضافة اجتماع جديد للبدء في تنظيم فريقك ومناقشة النقاط الهامة.
-            </p>
-            {hasAccess(permissions.meetings.add) && (
-              <button 
-                className="add-eq-btn" 
-                style={{ marginTop: '24px', padding: '12px 28px', fontSize: '1.05rem' }}
-                onClick={() => openAdd()}
-              >
-                <Plus size={22} />
-                <span>إضافة اجتماع جديد</span>
-              </button>
-            )}
-          </div>
+          <StateIcon icon={FolderOpen} />
         ) : (
           meetings.map(meeting => (
-            <div 
-              key={meeting.id} 
+            <div
+              key={meeting.id}
             className="premium-card fade-in"
             style={{
               position: 'relative',
@@ -119,7 +89,7 @@ export const Meetings: React.FC = () => {
           >
             {/* Top decorative gradient bar */}
             <div style={{ height: '6px', background: 'linear-gradient(90deg, var(--primary), #8b5cf6)' }}></div>
-            
+
             <div style={{ padding: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -142,7 +112,7 @@ export const Meetings: React.FC = () => {
                     </button>
                   )}
                   {can('meetings', 'delete') && (
-                    <button onClick={() => { if (confirmDeleteMeeting(meeting)) handleDelete(meeting.id); }} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
+                    <button onClick={async () => { if (await confirmDeleteMeeting(meeting)) handleDelete(meeting.id); }} className="premium-icon-btn delete" style={{ width: '32px', height: '32px' }} title={t('admin_docs.delete', 'حذف')}>
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -222,7 +192,7 @@ export const Meetings: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            
+
             <div style={{ padding: '24px', overflowY: 'auto' }}>
               {(() => {
                 const meeting = meetings.find(m => m.id === expandedMeetingId)!;
@@ -267,16 +237,16 @@ export const Meetings: React.FC = () => {
                       </h4>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {meeting.attendees.length > 0 ? meeting.attendees.map(a => (
-                          <div key={a.id} className="attendee-item" style={{ 
+                          <div key={a.id} className="attendee-item" style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px',
-                            background: 'var(--bg)', padding: '16px', borderRadius: '16px', 
+                            background: 'var(--bg)', padding: '16px', borderRadius: '16px',
                             border: '1px solid var(--border)',
                             boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
                           }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                              <div style={{ 
-                                width: '52px', height: '52px', borderRadius: '14px', 
-                                background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))', 
+                              <div style={{
+                                width: '52px', height: '52px', borderRadius: '14px',
+                                background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(139,92,246,0.1))',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.4rem',
                                 border: '1px solid rgba(59,130,246,0.2)'
@@ -324,9 +294,9 @@ export const Meetings: React.FC = () => {
           <div className="premium-modal" style={{ maxWidth: '400px' }}>
             <div style={{ padding: '24px' }}>
               <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', color: 'var(--text-h)' }}>{t('admin_docs.absence_reason', 'سبب الغياب')}</h3>
-              <textarea 
-                value={absenceReason} 
-                onChange={e => setAbsenceReason(e.target.value)} 
+              <textarea
+                value={absenceReason}
+                onChange={e => setAbsenceReason(e.target.value)}
                 placeholder={t('admin_docs.absence_reason_placeholder', 'اكتب سبب الغياب...')}
                 rows={3}
                 className="premium-textarea"

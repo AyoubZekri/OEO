@@ -11,13 +11,13 @@ import { type RolePermissions, MODULES, enabledModules } from './roleUtils';
 import { MobileRoleDetails } from './MobileRoleDetails';
 import { MobileRoleForm } from './MobileRoleForm';
 import './MobileUsers.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 // Phone version of the roles page: every role as a card with its enabled sections; details and form on their own pages
 export const MobileRoles: React.FC<{ c: ReturnType<typeof useRolesController>; can: RolePermissions }> = ({ c, can }) => {
   const { t } = useTranslation();
   const [detailsId, setDetailsId] = useUrlDetails('role');
   const details = detailsId ? c.roles.find(r => String(r.id) === detailsId) : undefined;
-  const full = c.roles.filter(r => r.accessLevel === 'full').length;
 
   const menuItems = (r: RoleModel): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض الصلاحيات', icon: Eye, color: '#f97316', onClick: () => setDetailsId(r.id) },
@@ -29,28 +29,10 @@ export const MobileRoles: React.FC<{ c: ReturnType<typeof useRolesController>; c
     <div className="mus-page">
       <MobileAppBar title="الأدوار والصلاحيات" />
 
-      <section className="mus-hero">
-        <div className="mus-hero-top">
-          <span className="mus-hero-icon"><Shield size={26} /></span>
-          <div>
-            <small>{t('roles_permissions.title')}</small>
-            <strong>{c.roles.length}</strong>
-          </div>
-        </div>
-        <div className="mus-stats">
-          <div className="green"><ShieldCheck size={16} /><strong>{full}</strong><small>{t('roles_permissions.full_access')}</small></div>
-          <div className="amber"><ShieldAlert size={16} /><strong>{c.roles.length - full}</strong><small>{t('roles_permissions.partial_access')}</small></div>
-        </div>
-      </section>
-
       {c.isLoading && !c.roles.length ? (
         <MobileLoader text="جاري تحميل الأدوار..." />
       ) : c.roles.length === 0 ? (
-        <div className="mus-empty">
-          <span className="mus-empty-icon"><Shield size={36} /></span>
-          <strong>لا توجد أدوار حالياً</strong>
-          {can.add && <p>أضف دوراً جديداً بالزر +</p>}
-        </div>
+        <StateIcon icon={Shield} />
       ) : (
         <div className="mus-list">
           {c.roles.map(r => {

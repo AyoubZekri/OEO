@@ -21,10 +21,10 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
     match_date: '',
     match_duration: '90'
   });
-  
+
   const [calledUpPlayers, setCalledUpPlayers] = useState<any[]>([]);
   const [isLoadingPlayers, setIsLoadingPlayers] = useState(false);
-  
+
   const [substitutions, setSubstitutions] = useState<any[]>([]);
   const [goals, setGoals] = useState<any[]>([]);
 
@@ -63,7 +63,7 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
           assist_id: g.assist_id?.toString() || '',
           minute: g.minute?.toString() || ''
         }));
-        
+
         if (mappedGoals.length > 0) {
           setGoals(mappedGoals);
         }
@@ -110,14 +110,14 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-      
+
       const [playersRes, callupsRes] = await Promise.all([
         axios.get(Applink.individuals, { headers }).catch(() => null),
         axios.get(Applink.matchCallups(matchData.id), { headers }).catch(() => null)
       ]);
 
-      const allInds = (playersRes && (playersRes.data?.status === 'success' || Array.isArray(playersRes.data))) 
-          ? (Array.isArray(playersRes.data) ? playersRes.data : playersRes.data.data) 
+      const allInds = (playersRes && (playersRes.data?.status === 'success' || Array.isArray(playersRes.data)))
+          ? (Array.isArray(playersRes.data) ? playersRes.data : playersRes.data.data)
           : [];
 
       if (callupsRes && callupsRes.data?.status === 'success') {
@@ -161,11 +161,11 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!matchData) return;
-    
+
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem('token');
-      const payload = { 
+      const payload = {
         ...matchData,
         coach_id: matchData.coach_id?.id ? matchData.coach_id.id : matchData.coach_id,
         admin_id: matchData.admin_id?.id ? matchData.admin_id.id : matchData.admin_id,
@@ -178,19 +178,17 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
         substitutions: substitutions,
         goals: goals
       };
-      
+
       const res = await axios.post(Applink.updateMatch, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (res.data.status === 'success') {
         onSave();
         onClose();
       }
     } catch (error: any) {
       console.error('Error saving match result:', error);
-      const serverMsg = error.response?.data?.message || error.response?.data?.error || error.message || '';
-      alert(`حدث خطأ أثناء الحفظ\n${serverMsg}\nملاحظة: تأكد من تحديث الباك إند لاستقبال match_duration, substitutions, goals.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -275,10 +273,10 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
     <div className="task-dialog-overlay" onClick={onClose} style={{ backdropFilter: 'blur(4px)', backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 1000 }}>
       <div className="task-dialog role-dialog" style={{ fontFamily: 'var(--sans)', maxWidth: '850px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }} onClick={(e) => e.stopPropagation()}>
         <div className="task-dialog-header" style={{ flexShrink: 0 }}>
-          <h2>تقرير المباراة (النتيجة والأحداث)</h2>
+          <h2>النتيجة</h2>
           <button type="button" className="close-btn" onClick={onClose}><X size={20} /></button>
         </div>
-        
+
         <div style={{ overflowY: 'auto', flexGrow: 1, padding: '24px' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
             <h3 style={{ margin: 0, color: 'var(--text-h)', fontSize: '1.4rem' }}>
@@ -287,11 +285,11 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
           </div>
 
           <form id="match-result-form" onSubmit={handleSubmit} className="task-form">
-            
+
             {/* القسم الأول: إعدادات المباراة */}
             <div style={{ background: 'var(--bg)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '24px' }}>
               <h4 style={{ margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-h)' }}>
-                <Clock size={18} /> إعدادات المباراة الأساسية
+                <Clock size={18} /> المباراة
               </h4>
               <div className="responsive-grid-2">
                 <CustomDropdown<string>
@@ -302,12 +300,12 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                     { value: '', label: 'ملعوبة / انتهت' },
                     { value: 'مؤجلة', label: 'مؤجلة' }
                   ]}
-                  placeholder="اختر الحالة"
+                  placeholder=""
                 />
 
                 {formData.match_status === 'مؤجلة' ? (
                   <CustomInput
-                    label="تاريخ المباراة الجديد (اختياري)"
+                    label="التاريخ الجديد"
                     type="datetime-local"
                     value={formData.match_date}
                     onChange={e => setFormData({...formData, match_date: e.target.value})}
@@ -318,8 +316,8 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                     value={formData.match_duration}
                     onChange={(val) => setFormData({ ...formData, match_duration: val })}
                     options={[
-                      { value: '90', label: '90 دقيقة (وقت أصلي)' },
-                      { value: '120', label: '120 دقيقة (أشواط إضافية)' }
+                      { value: '90', label: '90 دقيقة' },
+                      { value: '120', label: '120 دقيقة' }
                     ]}
                   />
                 )}
@@ -343,20 +341,20 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                     <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>جاري تحميل اللاعبين...</div>
                   ) : substitutions.length === 0 ? (
                     <div style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '20px', border: '1px dashed var(--border)', borderRadius: '8px' }}>
-                      لم يتم تسجيل أي تبديلات
+                      لا توجد تبديلات
                     </div>
                   ) : (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {substitutions.map((sub, index) => (
                         <div key={sub.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 80px 40px', gap: '12px', alignItems: 'end', background: 'var(--card-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                           <CustomDropdown<string>
-                            label="اللاعب الخارج (Out)"
+                            label="اللاعب الخارج"
                             value={sub.player_out_id}
                             onChange={(val) => updateSubstitution(sub.id, 'player_out_id', val)}
                             options={getPlayerOutOptions()}
                           />
                           <CustomDropdown<string>
-                            label="اللاعب الداخل (In)"
+                            label="اللاعب الداخل"
                             value={sub.player_in_id}
                             onChange={(val) => updateSubstitution(sub.id, 'player_in_id', val)}
                             options={getPlayerInOptions()}
@@ -366,7 +364,6 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                             type="number"
                             value={sub.minute}
                             onChange={e => updateSubstitution(sub.id, 'minute', e.target.value)}
-                            placeholder="مثال: 65"
                           />
                           <button type="button" onClick={() => handleRemoveSubstitution(sub.id)} style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger, #ef4444)', border: 'none', height: '42px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <Trash2 size={18} />
@@ -380,9 +377,9 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                 {/* القسم الثالث: النتيجة والأهداف */}
                 <div style={{ background: 'var(--bg)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border)' }}>
                   <h4 style={{ margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-h)' }}>
-                    <CheckCircle size={18} /> نتيجة المباراة والأهداف
+                    <CheckCircle size={18} /> النتيجة والأهداف
                   </h4>
-                  
+
                   <div className="responsive-grid-2" style={{ gap: '16px', marginBottom: '24px' }}>
                     <CustomInput
                       label="أهداف فريقنا"
@@ -402,7 +399,7 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
 
                   {goals.length > 0 && (
                     <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
-                      <h5 style={{ margin: '0 0 16px 0', color: 'var(--text-h)' }}>تفاصيل أهداف فريقنا:</h5>
+                      <h5 style={{ margin: '0 0 16px 0', color: 'var(--text-h)' }}>أهدافنا</h5>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                         {goals.map((goal, index) => (
                           <div key={goal.id} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '12px', alignItems: 'end', background: 'var(--card-bg)', padding: '16px', borderRadius: '8px', border: '1px solid var(--primary)' }}>
@@ -413,7 +410,6 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                                 type="number"
                                 value={goal.minute}
                                 onChange={e => updateGoal(goal.id, 'minute', e.target.value)}
-                                placeholder="دقيقة"
                                 required
                               />
                             </div>
@@ -425,7 +421,7 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
                               required
                             />
                             <CustomDropdown<string>
-                              label="صانع الهدف (اختياري)"
+                              label="صانع الهدف"
                               value={goal.assist_id}
                               onChange={(val) => updateGoal(goal.id, 'assist_id', val)}
                               options={getAssistOptions()}
@@ -446,7 +442,7 @@ export const SetMatchResultDialog: React.FC<SetMatchResultDialogProps> = ({ isOp
             إلغاء
           </button>
           <button type="submit" form="match-result-form" className="mc-btn mc-btn-primary" disabled={isSubmitting} style={{ padding: '12px 32px', minWidth: '140px', fontSize: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-            {isSubmitting ? 'جاري الحفظ...' : <><CheckCircle size={18} /> حفظ التقرير والنتيجة</>}
+            {isSubmitting ? 'جاري الحفظ...' : <><CheckCircle size={18} /> تأكيد</>}
           </button>
         </div>
 

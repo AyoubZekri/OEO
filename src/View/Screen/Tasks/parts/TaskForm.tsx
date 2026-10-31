@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Save, Loader2, AlertCircle, FileText, UserRound, Layers, Shapes, CalendarClock, CalendarDays, BellRing, Repeat, Zap, Info } from 'lucide-react';
+import { Save, Loader2, AlertCircle, FileText, UserRound, Layers, Shapes, CalendarClock, CalendarDays, BellRing, Repeat, Zap, Info, CalendarHeart, CalendarCheck } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { UserPicker } from '../../../shared/FormBits';
 import { toApiDate, toInputDate } from '../../../shared/dates';
 import type { TasksAdmin } from '../useTasks';
+import { warn, warnUnlessServer } from './formWarn';
 import {
-  durationText, EVENT_META, EVENTS, eventOffsetText, KIND_META, NATURE_META, WEEK_DAYS,
+  activityOffsetText, durationText, EVENT_META, EVENTS, eventOffsetText, KIND_META, NATURE_META, ONCE_LABEL, SINGLE_LABEL, isDated, WEEK_DAYS,
   type EventType, type Task, type TaskKind, type TaskNature, type TaskTemplate,
 } from '../taskUtils';
 
@@ -62,7 +63,8 @@ const EventOffset: React.FC<{ value: Offset; onChange: (v: Offset) => void }> = 
 export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTemplate; appointment?: boolean; mobile: boolean }> = ({ c, task, template, appointment, mobile }) => {
   const editing = Boolean(task || template);
   const [title, setTitle] = useState(task?.title || template?.title || '');
-  const [details, setDetails] = useState(task?.details || template?.details || '');
+  // No details field: a task or an appointment edited keeps the details it already has
+  const details = task?.details || template?.details || '';
   const [assignee, setAssignee] = useState(String(task?.assignee?.id ?? template?.assignee?.id ?? ''));
   const [kind, setKind] = useState<TaskKind>(template || appointment || (!task && !c.can('add')) ? 'scheduled' : task?.kind || 'normal');
   const [nature, setNature] = useState<TaskNature | ''>(task?.nature || template?.nature || '');
@@ -72,36 +74,43 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
   const [alertAt, setAlertAt] = useState(toInputDate(task?.alert_at));
 
   // The appointment
-  const [schedule, setSchedule] = useState<'event' | 'periodic'>(template?.schedule || 'event');
+  const [schedule, setSchedule] = useState<'event' | 'periodic' | 'once' | 'single'>(template?.schedule || 'event');
   const [eventType, setEventType] = useState<EventType>(template?.event_type || 'match');
   const [alertOff, setAlertOff] = useState(split(template?.schedule === 'event' ? template.alert_offset : -2880));
   const [dueOff, setDueOff] = useState(split(template?.schedule === 'event' ? template.due_offset : -1440));
-  const [repeat, setRepeat] = useState<'weekly' | 'monthly'>(template?.repeat || 'weekly');
+  const [repeat, setRepeat] = useState<'daily' | 'weekly' | 'monthly'>(template?.repeat || 'weekly');
   const [weekDay, setWeekDay] = useState(template?.repeat === 'weekly' ? template.repeat_day || 7 : 7);
   const [monthDay, setMonthDay] = useState(template?.repeat === 'monthly' ? template.repeat_day || 1 : 1);
   const periodic = template?.schedule === 'periodic' ? template : null;
   // From the periodic day's start: by default the alert at 08:00 and the deadline at 18:00 that day
   const [pAlertOff, setPAlertOff] = useState(split(periodic ? periodic.alert_offset : 480));
   const [pDueOff, setPDueOff] = useState(split(periodic ? periodic.due_offset : 1080));
+  // A programme or a one-time appointment: its date and time; by default the alert a week before and the deadline at it
+  const activity = isDated(template?.schedule) ? template : null;
+  const [onceAt, setOnceAt] = useState(toInputDate(activity?.once_at));
+  const [oAlertOff, setOAlertOff] = useState(split(activity ? activity.alert_offset : -10080));
+  const [oDueOff, setODueOff] = useState(split(activity ? activity.due_offset : 0));
 
-  const [error, setError] = useState('');
+  // A field to type left empty: its message under it (a choice not made: a snackbar)
+  const [missing, setMissing] = useState<{ title?: boolean; onceAt?: boolean }>({});
   const [saving, setSaving] = useState(false);
 
   const eventMinutes = (v: typeof alertOff) => Math.round((Number(v.amount) || 0) * v.unit) * (v.before ? -1 : 1);
-  const alertMinutes = eventMinutes(schedule === 'event' ? alertOff : pAlertOff);
-  const dueMinutes = eventMinutes(schedule === 'event' ? dueOff : pDueOff);
+  const alertMinutes = eventMinutes(schedule === 'event' ? alertOff : isDated(schedule) ? oAlertOff : pAlertOff);
+  const dueMinutes = eventMinutes(schedule === 'event' ? dueOff : isDated(schedule) ? oDueOff : pDueOff);
   // An appointment's schedule (a task an appointment created keeps its dates)
   const scheduled = kind === 'scheduled' && !task;
   // Only a normal task has a deadline of its own
   const withDeadline = kind === 'normal';
 
   const save = async () => {
-    if (!title.trim()) return setError('اكتب المهمة');
-    if (!assignee) return setError('اختر المكلّف بالمهمة');
-    if (scheduled && dueMinutes < alertMinutes) return setError('آخر أجل يكون بعد التنبيه');
-    if (generated && alertAt && dueAt && dueAt < alertAt) return setError('آخر أجل يكون بعد التنبيه');
-    if (!nature) return setError('اختر طبيعة المهمة: داخلية، خارجية أو اتصال');
-    setError('');
+    const empty = { title: !title.trim(), onceAt: scheduled && isDated(schedule) && !onceAt };
+    setMissing(empty);
+    if (empty.title || empty.onceAt) return;
+    if (!assignee) return warn('اختر المكلّف بالمهمة');
+    if (scheduled && dueMinutes < alertMinutes) return warn('آخر أجل يكون بعد التنبيه');
+    if (generated && alertAt && dueAt && dueAt < alertAt) return warn('آخر أجل يكون بعد التنبيه');
+    if (!nature) return warn('اختر طبيعة المهمة: داخلية، خارجية أو اتصال');
     setSaving(true);
     try {
       await c.save({
@@ -116,7 +125,8 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
             schedule,
             event_type: schedule === 'event' ? eventType : null,
             repeat: schedule === 'periodic' ? repeat : null,
-            repeat_day: schedule === 'periodic' ? (repeat === 'weekly' ? weekDay : monthDay) : null,
+            repeat_day: schedule === 'periodic' && repeat !== 'daily' ? (repeat === 'weekly' ? weekDay : monthDay) : null,
+            once_at: isDated(schedule) ? toApiDate(onceAt) : null,
             alert_offset: alertMinutes,
             due_offset: dueMinutes,
           }
@@ -124,7 +134,7 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
             : withDeadline ? { due_at: toApiDate(dueAt) } : {}),
       });
     } catch (e) {
-      setError((e as Error).message);
+      warnUnlessServer(e);
     } finally {
       setSaving(false);
     }
@@ -158,18 +168,13 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
       <div className={`tk-form calm tsk-form ${mobile ? 'phone' : ''}`}>
         <section className="tk-sec tv-sec">
           <div className="tk-sec-body">
-            <label className="tk-field">
+            <label className={`tk-field ${missing.title ? 'tk-missing' : ''}`}>
               <span className="tk-label"><FileText size={14} />المهمة</span>
-              <input className="tk-input" value={title} maxLength={200} onChange={e => setTitle(e.target.value)} />
+              <input className="tk-input" value={title} maxLength={200} onChange={e => { setTitle(e.target.value); setMissing(m => ({ ...m, title: false })); }} />
+              {missing.title && <small className="tk-field-error"><AlertCircle size={13} />اكتب المهمة</small>}
             </label>
-            {kind !== 'urgent' && (
-              <label className="tk-field">
-                <span className="tk-label">التفاصيل <em>اختياري</em></span>
-                <textarea className="tk-input" rows={2} value={details} onChange={e => setDetails(e.target.value)} />
-              </label>
-            )}
 
-            <UserPicker mobile={mobile} label="المكلّف بالمهمة" icon={UserRound} value={assignee} users={c.users} onChange={setAssignee} placeholder="اختر العضو" />
+            <UserPicker mobile={mobile} label="المكلّف" icon={UserRound} value={assignee} users={c.users} onChange={setAssignee} placeholder="—" />
 
             {!appointment && !template && (
               <div className="tk-field">
@@ -178,7 +183,7 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
                   {kinds.map(k => {
                     const meta = KIND_META[k];
                     return (
-                      <button key={k} type="button" role="radio" aria-checked={kind === k} className={`tone-${meta.tone} ${kind === k ? 'on' : ''}`} disabled={kindLocked(k)} onClick={() => { setKind(k); setError(''); }}>
+                      <button key={k} type="button" role="radio" aria-checked={kind === k} className={`tone-${meta.tone} ${kind === k ? 'on' : ''}`} disabled={kindLocked(k)} onClick={() => setKind(k)}>
                         <span className="tsk-kind-icon"><meta.icon size={18} /></span><strong>{meta.label}</strong>
                       </button>
                     );
@@ -212,12 +217,29 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
             {scheduled && (
               <>
                 <span className="tk-label"><CalendarClock size={14} />الموعد</span>
-                <div className="tk-seg two">
+                <div className="tk-seg four">
                   <button type="button" className={schedule === 'event' ? 'on' : ''} onClick={() => setSchedule('event')}><Zap size={15} />مرتبطة بحدث</button>
                   <button type="button" className={schedule === 'periodic' ? 'on' : ''} onClick={() => setSchedule('periodic')}><Repeat size={15} />دورية</button>
+                  <button type="button" className={schedule === 'once' ? 'on' : ''} onClick={() => setSchedule('once')}><CalendarHeart size={15} />{ONCE_LABEL}</button>
+                  <button type="button" className={schedule === 'single' ? 'on' : ''} onClick={() => setSchedule('single')}><CalendarCheck size={15} />{SINGLE_LABEL}</button>
                 </div>
 
-                {schedule === 'event' ? (
+                {isDated(schedule) ? (
+                  <>
+                    {/* Done once: its task is made on saving, and shows on the home page when its alert comes */}
+                    <label className={`tk-field ${missing.onceAt ? 'tk-missing' : ''}`}>
+                      <span className="tk-label"><CalendarDays size={14} />{schedule === 'single' ? 'تاريخ الموعد' : 'تاريخ البرنامج'}</span>
+                      <input className="tk-input" type="datetime-local" value={onceAt} onChange={e => { setOnceAt(e.target.value); setMissing(m => ({ ...m, onceAt: false })); }} />
+                      {missing.onceAt && <small className="tk-field-error"><AlertCircle size={13} />{schedule === 'single' ? 'حدد تاريخ الموعد' : 'حدد تاريخ البرنامج'}</small>}
+                    </label>
+                    <TimeBox label="التنبيه" icon={BellRing} tone="orange" summary={activityOffsetText(alertMinutes, schedule)}>
+                      <EventOffset value={oAlertOff} onChange={setOAlertOff} />
+                    </TimeBox>
+                    <TimeBox label="آخر أجل" icon={CalendarClock} tone="blue" summary={activityOffsetText(dueMinutes, schedule)}>
+                      <EventOffset value={oDueOff} onChange={setODueOff} />
+                    </TimeBox>
+                  </>
+                ) : schedule === 'event' ? (
                   <>
                     <div className="tk-choice-list tsk-events">
                       {EVENTS.filter(e => e !== 'birthday' || template?.event_type === 'birthday').map(e => {
@@ -240,12 +262,13 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
                   <>
                     <div className="tk-field">
                       <span className="tk-label"><Repeat size={14} />التكرار</span>
-                      <div className="tk-seg two">
+                      <div className="tk-seg three">
+                        <button type="button" className={repeat === 'daily' ? 'on' : ''} onClick={() => setRepeat('daily')}>كل يوم</button>
                         <button type="button" className={repeat === 'weekly' ? 'on' : ''} onClick={() => setRepeat('weekly')}>كل أسبوع</button>
                         <button type="button" className={repeat === 'monthly' ? 'on' : ''} onClick={() => setRepeat('monthly')}>كل شهر</button>
                       </div>
                     </div>
-                    {repeat === 'weekly' ? (
+                    {repeat === 'daily' ? null : repeat === 'weekly' ? (
                       <div className="tk-field">
                         <span className="tk-label"><CalendarDays size={14} />يوم المهمة</span>
                         <div className="tk-days tsk-week">
@@ -274,14 +297,13 @@ export const TaskForm: React.FC<{ c: TasksAdmin; task?: Task; template?: TaskTem
               <div className="tk-seg three tsk-nature">
                 {(Object.keys(NATURE_META) as TaskNature[]).map(n => {
                   const meta = NATURE_META[n];
-                  return <button key={n} type="button" className={nature === n ? 'on' : ''} onClick={() => { setNature(n); setError(''); }}><meta.icon size={15} />{meta.label}</button>;
+                  return <button key={n} type="button" className={nature === n ? 'on' : ''} onClick={() => setNature(n)}><meta.icon size={15} />{meta.label}</button>;
                 })}
               </div>
             </div>
           </div>
         </section>
 
-        {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
     </SidePanel>
   );

@@ -30,6 +30,7 @@ import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Payments.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const Payments: React.FC = () => {
   const { t } = useTranslation();
@@ -313,8 +314,8 @@ export const Payments: React.FC = () => {
                               ...(hasAccess(permissions.payments.edit) ? [{ key: 'edit', label: 'تعديل', icon: Edit, color: '#f97316', onClick: () => credit.openForm(d) }] : []),
                               ...(hasAccess(permissions.payments.delete) ? [{
                                 key: 'delete', label: 'حذف', icon: Trash2, danger: true,
-                                onClick: () => {
-                                  if (window.confirm(`هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`)) credit.remove(d);
+                                onClick: async () => {
+                                  if (await confirmDelete('حذف الشراء بالدين؟', d.creditor)) credit.remove(d);
                                 },
                               }] : []),
                             ]}

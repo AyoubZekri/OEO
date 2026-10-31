@@ -27,6 +27,8 @@ import { TransferPaymentDialog } from '../../Screen/Payments/TransferPaymentDial
 import { TransferableDialog } from '../../Screen/Payments/TransferableDialog';
 import { BulkTransferDialog } from '../../Screen/Payments/BulkTransferDialog';
 import './MobilePayments.css';
+import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobilePaymentsProps {
   c: ReturnType<typeof usePaymentsController>;
@@ -203,11 +205,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
       {c.isLoading && !c.payments.length ? (
         <MobileLoader text="جاري تحميل العمليات..." />
       ) : groups.length === 0 ? (
-        <div className="mpy-empty">
-          <span className="mpy-empty-icon"><Banknote size={36} /></span>
-          <strong>لا توجد عمليات</strong>
-          <p>{c.searchQuery || kind || fund || c.selectedFundFilter === 'none' || c.filterNature !== 'all' ? 'غيّر البحث أو التصفية.' : can.add ? 'أضف دفعة أو مصروفاً بالزر +' : ''}</p>
-        </div>
+        <StateIcon icon={Banknote} />
       ) : (
         <div className="mpy-list">
           {groups.map(g => (
@@ -246,8 +244,8 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
                               label: 'حذف',
                               icon: Trash2,
                               danger: true,
-                              onClick: () => {
-                                if (window.confirm(`هل أنت متأكد من حذف الشراء بالدين من «${d.creditor}»؟${d.repaid > 0 ? ' (تُعاد المبالغ المدفوعة إلى صناديقها)' : ''}`)) credit.remove(d);
+                              onClick: async () => {
+                                if (await confirmDelete('حذف الشراء بالدين؟', d.creditor)) credit.remove(d);
                               },
                             }] : []),
                           ]}

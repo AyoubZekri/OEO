@@ -46,6 +46,7 @@ import { MyTravels } from './View/Screen/Personal/MyTravels';
 import { MyMedical } from './View/Screen/Personal/MyMedical';
 import { MyFeedback } from './View/Screen/Feedback/MyFeedback';
 import { FeedbackAdmin } from './View/Screen/Feedback/FeedbackAdmin';
+import { Goals } from './View/Screen/Goals/Goals';
 import { TasksHome } from './View/Screen/Tasks/TasksHome';
 import { HomeTasks } from './View/Screen/Tasks/HomeTasks';
 import { useCan } from './core/functions/useCan';
@@ -59,12 +60,51 @@ import './App.css';
 import { DocViewerHost } from './View/widget/DocViewer';
 
 // Pages that draw their own app bar on phones, so the Topbar is hidden there
-const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Travels, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings, Approutes.MyTravels, Approutes.MyMedical, Approutes.MyFeedback, Approutes.Feedback, Approutes.MyTasks, Approutes.Tasks, Approutes.Finance];
+const MOBILE_APPBAR_PAGES = ['/', Approutes.Operations, Approutes.Members, Approutes.More, Approutes.Disciplinary, Approutes.Teams, Approutes.Clubs, Approutes.TrainingSessions, Approutes.Matches, Approutes.Meetings, Approutes.Decisions, Approutes.MedicalRecords, Approutes.Contracts, Approutes.Payments, Approutes.Funds, Approutes.Debts, Approutes.Reports, Approutes.Equipment, Approutes.EquipmentOperations, Approutes.Roles, Approutes.Users, Approutes.AbsenceRequests, Approutes.Travels, Approutes.MyDisciplinary, Approutes.MyTrainingSessions, Approutes.MyMatches, Approutes.MyAbsences, Approutes.MyMeetings, Approutes.MyTravels, Approutes.MyMedical, Approutes.MyFeedback, Approutes.Feedback, Approutes.Goals, Approutes.MyTasks, Approutes.Tasks, Approutes.Finance];
 
-/** The management's home page: the tasks whose time came; without the tasks permission, the finance page */
+/**
+ * The management's home page (the personal space has none): with the tasks permission, every task whose time came —
+ * mine and the others' — on the same page; without it, mine only
+ */
 const HomeRoute: React.FC = () => {
   const can = useCan();
-  return can('tasks') ? <HomeTasks /> : <Navigate to={Approutes.Finance} replace />;
+  return can('tasks') ? <HomeTasks /> : <MyHome />;
+};
+
+/** The management's appointments page, the same way: with the appointments permission all of them; without it, mine */
+const AppointmentsRoute: React.FC = () => {
+  const can = useCan();
+  return can('appointments') ? <TasksHome /> : <MyAppointments />;
+};
+
+/** The management's training sessions, the same way: with their permission all of them; without it, mine */
+const TrainingSessionsRoute: React.FC = () => {
+  const can = useCan();
+  return can('trainingSessions') ? <TrainingSessions /> : <MyTrainingSessions />;
+};
+
+/** The management's matches, the same way: with their permission all of them; without it, mine */
+const MatchesRoute: React.FC = () => {
+  const can = useCan();
+  return can('matches') ? <Matches /> : <MyMatches />;
+};
+
+/** The management's opinions, one page: with their permission everyone's (and mine sent from it); without it, mine */
+const FeedbackRoute: React.FC = () => {
+  const can = useCan();
+  return can('feedback') ? <FeedbackAdmin /> : <MyFeedback />;
+};
+
+/** The management's meetings, the same way: with their permission all of them; without it, mine */
+const MeetingsRoute: React.FC = () => {
+  const can = useCan();
+  return can('meetings') ? <Meetings /> : <MyMeetings />;
+};
+
+/** The management's trips, the same way: with their permission all of them; without it, mine */
+const TravelsRoute: React.FC = () => {
+  const can = useCan();
+  return can('travels') ? <Travels /> : <MyTravels />;
 };
 
 const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
@@ -77,7 +117,11 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   }, [i18n.language]);
 
   const isMobile = useIsMobile();
-  const { space } = useSpace();
+  // One space per account: the management one for who has a role there, the personal one for who has none.
+  // In the personal one, a player has no home page nor appointments (it opens on the training sessions), and someone
+  // who is not a player no medical reports
+  const { space, isPlayer } = useSpace();
+  const personalStart = isPlayer ? Approutes.MyTrainingSessions : '/';
   // The Android app: this phone's notifications, and its back button (back a step, never closing the app)
   usePushNotifications();
   useBackButton();
@@ -92,26 +136,27 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         <div style={{ padding: '20px', flex: 1 }}>
           {space === 'personal' ? (
             <Routes>
-              {/* The personal space's home page: my tasks whose time came, like the management's */}
-              <Route path="/" element={<MyHome />} />
+              {/* My tasks' home page, only for someone without the management space (theirs is there) */}
+              <Route path="/" element={isPlayer ? <Navigate to={personalStart} replace /> : <MyHome />} />
               <Route path={Approutes.MyTrainingSessions} element={<MyTrainingSessions />} />
               <Route path={Approutes.MyMatches} element={<MyMatches />} />
               <Route path={Approutes.MyAbsences} element={<MyAbsences />} />
               <Route path={Approutes.MyMeetings} element={<MyMeetings />} />
               <Route path={Approutes.MyTravels} element={<MyTravels />} />
-              <Route path={Approutes.MyMedical} element={<MyMedical />} />
+              <Route path={Approutes.MyMedical} element={isPlayer ? <MyMedical /> : <Navigate to={personalStart} replace />} />
               <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
               <Route path={Approutes.MyFeedback} element={<MyFeedback />} />
-              <Route path={Approutes.MyTasks} element={<MyAppointments />} />
-              <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />
+              {/* My appointments: the same, only for someone without the management space */}
+              <Route path={Approutes.MyTasks} element={isPlayer ? <Navigate to={personalStart} replace /> : <MyAppointments />} />
+              <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to={personalStart} replace />} />
               {/* The management pages are not part of the personal space */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to={personalStart} replace />} />
             </Routes>
           ) : (
           <Routes>
             <Route path="/" element={<HomeRoute />} />
             <Route path={Approutes.Finance} element={<Home />} />
-            <Route path={Approutes.Tasks} element={<RequirePermission module="appointments"><TasksHome /></RequirePermission>} />
+            <Route path={Approutes.Tasks} element={<AppointmentsRoute />} />
             <Route path="/appointments" element={<Navigate to={Approutes.Tasks} replace />} />
             <Route path={Approutes.Roles} element={<RequirePermission module="usersAndRoles" action="viewRoles"><Roles /></RequirePermission>} />
             <Route path={Approutes.Users} element={<RequirePermission module="usersAndRoles" action="viewUsers"><Users /></RequirePermission>} />
@@ -125,17 +170,24 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Equipment} element={<RequirePermission module="equipment"><Equipment /></RequirePermission>} />
             <Route path={Approutes.EquipmentOperations} element={<RequirePermission module="equipmentOperations"><EquipmentOperations /></RequirePermission>} />
             <Route path={Approutes.Disciplinary} element={<RequirePermission module="disciplinary"><Disciplinary /></RequirePermission>} />
-            <Route path={Approutes.TrainingSessions} element={<RequirePermission module="trainingSessions"><TrainingSessions /></RequirePermission>} />
+            {/* «إجراءاتي», for everyone: the personal space's page as it is */}
+            <Route path={Approutes.MyDisciplinary} element={<MyDisciplinary />} />
+            <Route path={Approutes.TrainingSessions} element={<TrainingSessionsRoute />} />
             <Route path={Approutes.TakeAttendance} element={<RequirePermission module="trainingSessions" action="attendance"><TakeAttendance /></RequirePermission>} />
             <Route path={Approutes.AbsenceRequests} element={<RequirePermission module="absences"><AbsenceRequests /></RequirePermission>} />
-            <Route path={Approutes.Matches} element={<RequirePermission module="matches"><Matches /></RequirePermission>} />
+            {/* «غياباتي», for everyone: the personal space's page as it is (my requests and justifications) */}
+            <Route path={Approutes.MyAbsences} element={<MyAbsences />} />
+            <Route path={Approutes.Matches} element={<MatchesRoute />} />
             <Route path="/matches/:id/attendance" element={<RequirePermission module="matches" action="attendance"><MatchAttendance /></RequirePermission>} />
             <Route path={Approutes.MedicalRecords} element={<RequirePermission module="medical"><Medical /></RequirePermission>} />
-            <Route path={Approutes.Meetings} element={<RequirePermission module="meetings"><Meetings /></RequirePermission>} />
+            {/* «تقاريري الطبية», for everyone: the personal space's page as it is */}
+            <Route path={Approutes.MyMedical} element={<MyMedical />} />
+            <Route path={Approutes.Meetings} element={<MeetingsRoute />} />
             <Route path="/meetings/:id/attendance" element={<RequirePermission module="meetings" action="attendance"><TakeMeetingAttendance /></RequirePermission>} />
             <Route path={Approutes.Decisions} element={<RequirePermission module="decisions"><Decisions /></RequirePermission>} />
-            <Route path={Approutes.Travels} element={<RequirePermission module="travels"><Travels /></RequirePermission>} />
-            <Route path={Approutes.Feedback} element={<RequirePermission module="feedback"><FeedbackAdmin /></RequirePermission>} />
+            <Route path={Approutes.Travels} element={<TravelsRoute />} />
+            <Route path={Approutes.Feedback} element={<FeedbackRoute />} />
+            <Route path={Approutes.Goals} element={<RequirePermission module="goals"><Goals /></RequirePermission>} />
             {/* Phone-only pages: widening the screen sends the user to the desktop home */}
             <Route path={Approutes.Operations} element={isMobile ? <Operations /> : <Navigate to="/" replace />} />
             <Route path={Approutes.More} element={isMobile ? <MobileMore controller={controller} /> : <Navigate to="/" replace />} />

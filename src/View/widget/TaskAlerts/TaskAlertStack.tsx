@@ -535,22 +535,28 @@ export const TaskAlerts: React.FC = () => {
     if (a.target.type === 'disciplinary') {
       // Something that happened is seen once opened; a reason that holds (late, near…) stays until it is solved
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
+      // Mine: «إجراءاتي», in the management space when it is open to me
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
       const page = a.target.space === 'personal' ? Approutes.MyDisciplinary : Approutes.Disciplinary;
       navigate(`${page}?action=${a.target.id}`);
       return;
     }
     if (a.target.type === 'task') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
-      // Both spaces: the home page (its tasks' list), the task's details open there
+      // The home page (its tasks' list), the task's details open there: the management's, where every user's own
+      // tasks are (the personal space has a home page only for who has no management space)
+      const home = canManage ? 'management' : 'personal';
+      if (space !== home) setSpace(home);
       navigate(`/?task=${a.target.id}`);
       return;
     }
     if (a.target.type === 'feedback') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
-      navigate(`${a.target.space === 'personal' ? Approutes.MyFeedback : Approutes.Feedback}?feedback=${a.target.id}`);
+      // My opinions: the management's one opinions page when that space is open to me
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
+      navigate(`${where === 'personal' ? Approutes.MyFeedback : Approutes.Feedback}?feedback=${a.target.id}`);
       return;
     }
     if (a.target.type === 'debt') {
@@ -560,51 +566,64 @@ export const TaskAlerts: React.FC = () => {
     }
     if (a.target.type === 'medical') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
+      // Mine: «تقاريري الطبية», in the management space when it is open to me
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
       const page = a.target.space === 'personal' ? Approutes.MyMedical : Approutes.MedicalRecords;
       navigate(a.target.id ? `${page}?record=${a.target.id}` : page);
       return;
     }
     if (a.target.type === 'travel') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
-      const page = a.target.space === 'personal' ? Approutes.MyTravels : Approutes.Travels;
+      // My trips are in the management space when it is open to me (the personal one has them only otherwise)
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
+      const page = where === 'personal' ? Approutes.MyTravels : Approutes.Travels;
       navigate(a.target.id ? `${page}?travel=${a.target.id}` : page);
       return;
     }
     if (a.target.type === 'meeting') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
+      // My meetings are in the management space when it is open to me (the personal one has them only otherwise)
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
+      const page = where === 'personal' ? Approutes.MyMeetings : Approutes.Meetings;
       if (a.target.attendance) navigate(`/meetings/${a.target.id}/attendance`);
       else if (a.target.decisions) navigate(Approutes.Decisions);
-      else if (!a.target.id) navigate(a.target.space === 'personal' ? Approutes.MyMeetings : Approutes.Meetings);
-      else navigate(`${a.target.space === 'personal' ? Approutes.MyMeetings : Approutes.Meetings}?meeting=${a.target.id}`);
+      else if (!a.target.id) navigate(page);
+      else navigate(`${page}?meeting=${a.target.id}`);
       return;
     }
     if (a.target.type === 'absence') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
+      // My absences: «غياباتي», in the management space when it is open to me
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
       navigate(a.target.space === 'personal' ? `${Approutes.MyAbsences}?absence=${a.target.id}` : `${Approutes.AbsenceRequests}?tab=${a.target.tab || 'requests'}`);
       return;
     }
     if (a.target.type === 'match') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
+      // My matches are in the management space when it is open to me (the personal one has them only otherwise)
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
       if (a.target.attendance) {
         navigate(`/matches/${a.target.id}/attendance`);
         return;
       }
-      navigate(`${a.target.space === 'personal' ? Approutes.MyMatches : Approutes.Matches}?match=${a.target.id}`);
+      navigate(`${where === 'personal' ? Approutes.MyMatches : Approutes.Matches}?match=${a.target.id}`);
       return;
     }
     if (a.target.type === 'training') {
       if (a.event) dismiss(a);
-      if (space !== a.target.space) setSpace(a.target.space);
+      // My sessions are in the management space when it is open to me (the personal one has them only otherwise)
+      const where = a.target.space === 'personal' && canManage ? 'management' : a.target.space;
+      if (space !== where) setSpace(where);
       if (a.target.attendance) {
         navigate(`/training-sessions/${a.target.id}/attendance`);
         return;
       }
-      const page = a.target.space === 'personal' ? Approutes.MyTrainingSessions : Approutes.TrainingSessions;
+      const page = where === 'personal' ? Approutes.MyTrainingSessions : Approutes.TrainingSessions;
       navigate(`${page}?session=${a.target.id}`);
     }
   };

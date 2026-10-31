@@ -13,6 +13,8 @@ import { decisionTitle, decisionState, STATE_LABEL } from './decisionUtils';
 import { MobileDecisionDetails } from './MobileDecisionDetails';
 import { MobileDecisionForm, type DecisionDraft } from './MobileDecisionForm';
 import './MobileDecisions.css';
+import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
 
 export interface MobileDecisionsProps {
   decisions: Decision[];
@@ -39,12 +41,11 @@ export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
   const byMeeting = meetingId ? decisions.filter(d => String(d.meetingId) === meetingId) : decisions;
   const list = byMeeting;
 
-  const avg = decisions.length ? Math.round(decisions.reduce((s, d) => s + (d.progress || 0), 0) / decisions.length) : 0;
   const details = detailsId ? decisions.find(d => String(d.id) === detailsId) : undefined;
   const selectedMeeting = meetings.find(m => String(m.id) === meetingId);
 
-  const remove = (d: Decision) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا القرار؟')) onDelete(d.id);
+  const remove = async (d: Decision) => {
+    if (await confirmDelete('حذف القرار؟')) onDelete(d.id);
   };
 
   const menuItems = (d: Decision): MobileRowMenuItem[] => [
@@ -61,25 +62,6 @@ export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
         <MobileLoader text="جاري تحميل القرارات..." />
       ) : (
         <>
-          {/* Summary */}
-          <section className="mdc-hero">
-            <div className="mdc-hero-top">
-              <div className="mdc-ring" style={{ '--mdc-p': avg } as React.CSSProperties}>
-                <span><strong>{avg}%</strong><small>الإنجاز</small></span>
-              </div>
-              <div className="mdc-hero-text">
-                <small>قرارات النادي</small>
-                <strong>{decisions.length}</strong>
-                <span>متوسط نسبة الإنجاز لكل القرارات</span>
-              </div>
-            </div>
-            <div className="mdc-stats">
-              <div><strong>{decisions.filter(d => decisionState(d) === 'active' || decisionState(d) === 'new').length}</strong><small>جارية</small></div>
-              <div className="done"><strong>{decisions.filter(d => decisionState(d) === 'done').length}</strong><small>مكتملة</small></div>
-              <div className="late"><strong>{decisions.filter(d => decisionState(d) === 'late').length}</strong><small>متأخرة</small></div>
-            </div>
-          </section>
-
           {/* Meeting filter (searchable, any number of meetings) */}
           {meetings.length > 0 && (
             <MobileSelect
@@ -100,11 +82,7 @@ export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
           )}
 
           {list.length === 0 ? (
-            <div className="mdc-empty">
-              <span className="mdc-empty-icon"><Gavel size={36} /></span>
-              <strong>{decisions.length ? 'لا توجد قرارات لهذا الاجتماع' : 'لا توجد قرارات حالياً'}</strong>
-              <p>{decisions.length ? 'اختر اجتماعاً آخر لرؤية قراراته.' : 'أضف قراراً جديداً بالزر + وعيّن المسؤولين عنه.'}</p>
-            </div>
+            <StateIcon icon={Gavel} />
           ) : (
             <div className="mdc-list">
               {list.map(d => {

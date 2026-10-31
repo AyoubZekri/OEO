@@ -766,3 +766,19 @@ body.dark-mode .mus-access span { color: #34d399; }
   background: var(--bg, #f1f5f9);
 }
 .mus-avatar.big.has-photo img { border-radius: 18px; }
+
+/* The role's name left wrong: a red edge (its message under it) */
+.me-input.is-missing { border-color: #ef4444 !important; }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .mus-hero {
+  color: var(--ms-text, #0f172a);
+  background: var(--ms-card, #fff);
+  border-color: var(--ms-border, #e2e8f0);
+  box-shadow: none;
+}
+body:not(.dark-mode) .mus-progress b { color: #059669; }
+body:not(.dark-mode) .mus-hero-top small { color: #ea580c; }
+body:not(.dark-mode) .mus-stats div { background: var(--ms-field, #f8fafc); border-color: var(--ms-border, #e2e8f0); }
+body:not(.dark-mode) .mus-stats .green svg, body:not(.dark-mode) .mus-stats .green strong { color: #059669; }
+body:not(.dark-mode) .mus-stats .amber svg, body:not(.dark-mode) .mus-stats .amber strong { color: #d97706; }

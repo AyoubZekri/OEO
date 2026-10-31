@@ -80,7 +80,8 @@ export interface TaskPayload {
   assignee_id: number;
   alert_at?: string | null;
   due_at?: string | null;
-  schedule?: 'event' | 'periodic';
+  schedule?: 'event' | 'periodic' | 'once' | 'single';
+  once_at?: string | null;
   event_type?: string | null;
   repeat?: string | null;
   repeat_day?: number | null;

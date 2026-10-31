@@ -290,7 +290,10 @@ body.dark-mode .tsk-hcard.kind-normal { --k: #64748b; --k-bg: var(--tk-card); --
 .tsk-acard.off .tsk-acard-tile small { background: #94a3b8; }
 .tsk-acard.off .tsk-acard-tile b { color: #94a3b8; }
 .tsk-acard-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.tsk-acard-body h4 { margin: 0 0 2px; color: var(--tk-text); font-size: 0.95rem; font-weight: 900; line-height: 1.5; overflow-wrap: anywhere; }
+/* Every phone card the same height: the title on two lines at most, each line under it on one */
+.tsk-acard-body h4 { margin: 0 0 2px; min-height: 3em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--tk-text); font-size: 0.95rem; font-weight: 900; line-height: 1.5; overflow-wrap: anywhere; }
+
+.tsk-acard.compact .tsk-acard-line { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
 /* Every line whole: the title and who does it never cut */
 .tsk-acard-line {
   display: flex;
@@ -311,3 +314,6 @@ body.dark-mode .tsk-hcard.kind-normal { --k: #64748b; --k-bg: var(--tk-card); --
 /* A new task shows no status: its ⋮ stays at the far side */
 .tsk-hcard-top .tsk-menu-cell { margin-inline-start: auto; }
 .tsk-hcard-top .tsk-hcard-status + .tsk-menu-cell { margin-inline-start: 0; }
+
+/* The upcoming appointments' cards: in white (their kind's badge keeps its colour) */
+.tsk-ucards .tsk-hcard { --k-bg: var(--tk-card); --k-line: var(--tk-border); }

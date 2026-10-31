@@ -14,6 +14,7 @@ import {
 import { MobileContractDetails } from './MobileContractDetails';
 import { MobileContractForm } from './MobileContractForm';
 import './MobileContracts.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 // Short names of the contract types for the filter
 const TYPE_CHIP: Record<string, string> = { 'موظف / إداري / طبيب': 'إداري وطاقم' };
@@ -104,11 +105,7 @@ export const MobileContracts: React.FC<MobileContractsProps> = ({ c, can }) => {
       {c.isLoading && !c.contracts.length ? (
         <MobileLoader text="جاري تحميل العقود..." />
       ) : list.length === 0 ? (
-        <div className="mct-empty">
-          <span className="mct-empty-icon"><FileSignature size={36} /></span>
-          <strong>{c.searchQuery || type ? 'لا توجد نتائج' : 'لا توجد عقود حالياً'}</strong>
-          <p>{c.searchQuery || type ? 'جرّب اسماً آخر أو نوعاً آخر.' : can.add ? 'أضف عقداً جديداً بالزر +' : ''}</p>
-        </div>
+        <StateIcon icon={FileSignature} />
       ) : (
         <div className="mct-list">
           {list.map(x => {

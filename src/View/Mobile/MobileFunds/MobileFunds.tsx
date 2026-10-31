@@ -16,6 +16,7 @@ import { DebtForm } from '../../Screen/Debts/parts/DebtForm';
 import type { FundLoan } from '../../Screen/Funds/useFundLoan';
 import '../../Screen/Debts/Debts.css';
 import './MobileFunds.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileFundsProps {
   c: ReturnType<typeof useFundsController>;
@@ -77,11 +78,7 @@ export const MobileFunds: React.FC<MobileFundsProps> = ({ c, can, loan }) => {
       {c.isLoading && !c.funds.length ? (
         <MobileLoader text="جاري تحميل الصناديق..." />
       ) : c.funds.length === 0 ? (
-        <div className="mfd-empty">
-          <span className="mfd-empty-icon"><Wallet size={36} /></span>
-          <strong>لا توجد صناديق حالياً</strong>
-          {can.add && <p>أضف صندوقاً جديداً بالزر +</p>}
-        </div>
+        <StateIcon icon={Wallet} />
       ) : (
         <div className="mfd-list">
           {c.funds.map(f => {

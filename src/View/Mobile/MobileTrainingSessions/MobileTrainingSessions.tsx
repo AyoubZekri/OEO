@@ -17,6 +17,7 @@ import { MyAttendanceBadge } from './MyAttendanceBadge';
 import { MobileSessionDetails } from './MobileSessionDetails';
 import { MobileSessionForm } from './MobileSessionForm';
 import './MobileTrainingSessions.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileTrainingSessionsProps {
   controller: ReturnType<typeof useTrainingSessionsController>;
@@ -162,11 +163,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
       {controller.isLoading ? (
         <MobileLoader text="جاري تحميل الحصص..." />
       ) : list.length === 0 ? (
-        <div className="mts-empty">
-          <span className="mts-empty-icon"><Calendar size={36} /></span>
-          <strong>{period === 'upcoming' ? 'لا توجد حصص قادمة' : 'لا توجد حصص سابقة'}</strong>
-          <p>{period === 'upcoming' ? (personal ? 'ستظهر هنا حصص فئتك عند برمجتها.' : 'أضف حصة تدريبية جديدة بالزر +') : 'ستظهر هنا الحصص بعد انقضاء تاريخها.'}</p>
-        </div>
+        <StateIcon icon={Calendar} />
       ) : (
         <div className="mts-list">
           {groups.map(group => (

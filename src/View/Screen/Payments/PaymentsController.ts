@@ -10,6 +10,7 @@ import type { Fund } from '../Funds/fund_model';
 import { ContractsData } from '../Contracts/contracts_data';
 import { ContractModel } from '../Contracts/contract_model';
 import type { PaymentMember, PaymentRecord } from './payment_model';
+import { confirmDelete } from '../../shared/confirmDelete';
 /**
  * A purchase on credit paid in full is an expense like the others; one not fully paid is listed apart
  * (from the purchases on credit, with its pay action), so it is left out of this list.
@@ -213,7 +214,7 @@ export const usePaymentsController = () => {
     Boolean((p.isTransferable ?? p.is_transferable) && (p as PaymentRecord & { fund_id?: string }).fund_id && !p.isCredit && funds.length > 1);
 
   const deletePayment = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه الدفعة؟ (الحذف لا يقوم بإرجاع المبلغ للصندوق تلقائياً)')) {
+    if (await confirmDelete('حذف الدفعة؟')) {
       setIsLoading(true);
       const response = await paymentsData.deletePayment({ id });
       if (response) {

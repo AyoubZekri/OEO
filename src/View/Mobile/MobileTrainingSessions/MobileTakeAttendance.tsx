@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import {
   Save, Loader2, Check, Clock, X, Search, MapPin, Users, Stethoscope, MessageSquarePlus,
-  ListChecks, AlertTriangle, CheckCheck, ClipboardCheck,
+  ListChecks, AlertTriangle, Filter as FilterIcon, ChevronDown,
 } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileSheet } from '../widgets/MobileSheet';
+import { MobileSelect } from '../widgets/MobileSelect';
 import { Applink } from '../../../LinkApi';
 import { dayLabel } from './sessionUtils';
 import { playersText } from '../MobileTeams/teamRoster';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileTakeAttendance.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 type AttendanceStatus = 'حاضر' | 'متأخر' | 'غائب مبرر' | 'غائب غير مبرر' | null;
 type Status = NonNullable<AttendanceStatus>;
@@ -91,15 +93,18 @@ export const MobileTakeAttendance: React.FC<MobileTakeAttendanceProps> = ({ c, i
   const list = c.attendanceList;
   const recorded = list.filter(p => p.status).length;
   const missing = list.length - recorded;
-  const attended = c.stats.present + c.stats.late;
-  const rate = list.length ? Math.round((attended / list.length) * 100) : 0;
-  const donePct = list.length ? (recorded / list.length) * 100 : 0;
 
   const q = search.trim().toLowerCase();
   const visible = list.filter(p =>
     (filter === 'all' || (filter === 'none' ? !p.status : choiceOf(p.status) === filter))
     && (!q || p.name.toLowerCase().includes(q) || (p.shirt_number || '').includes(q)));
 
+  // The status filter's choices: all, not recorded yet, then each status
+  const filterOptions: { key: Filter; label: string }[] = [
+    { key: 'all', label: 'الكل' },
+    { key: 'none', label: 'لم يُسجل' },
+    ...STATUSES.map(s => ({ key: s.key as Filter, label: s.label })),
+  ];
   const counts: Partial<Record<Filter, number>> = {
     all: list.length,
     none: missing,
@@ -159,11 +164,10 @@ export const MobileTakeAttendance: React.FC<MobileTakeAttendanceProps> = ({ c, i
         </button>
       )}
     >
-      {/* Session + progress */}
+      {/* The session (or match, meeting): what, when and where */}
       <section className="mta-hero">
         <div className="mta-hero-top">
           <div className="mta-hero-text">
-            <small><ClipboardCheck size={13} /> كشف الحضور</small>
             <strong>{info?.title || subject}</strong>
             {info && (
               <>
@@ -175,53 +179,40 @@ export const MobileTakeAttendance: React.FC<MobileTakeAttendanceProps> = ({ c, i
               </>
             )}
           </div>
-          <div className="mta-ring" style={{ '--mta-p': rate } as React.CSSProperties}>
-            <span><strong>{rate}%</strong><small>حضور</small></span>
-          </div>
-        </div>
-
-        <div className="mta-progress">
-          <div className="mta-progress-head">
-            <span>تم تسجيل <strong>{recorded}</strong> من {list.length}</span>
-            {list.length === 0 ? <em>لا يوجد أحد</em> : missing > 0 ? <em>متبقي {missing}</em> : <em className="done"><CheckCheck size={13} /> مكتمل</em>}
-          </div>
-          <div className="mta-progress-bar"><div style={{ width: `${donePct}%` }} /></div>
         </div>
       </section>
 
       {warn && missing > 0 && (
-        <p className="mta-warn"><AlertTriangle size={16} /> حدد حالة {playersText(missing)} قبل الحفظ، تجدهم أدناه.</p>
+        <p className="mta-warn"><AlertTriangle size={16} /> حدد حالة {playersText(missing)} قبل الحفظ</p>
       )}
 
-      {/* Filters */}
-      <div className="mta-filters">
-        {([['all', 'الكل'], ['none', 'لم يُسجل'], ...STATUSES.map(s => [s.key, s.label])] as [Filter, string][]).map(([key, label]) => (
-          <button
-            key={key}
-            type="button"
-            className={`tone-${key === 'all' ? 'all' : key === 'none' ? 'none' : toneOf(key as Status)} ${filter === key ? 'active' : ''}`}
-            onClick={() => setFilter(key)}
-          >
-            {label} <span>{counts[key] ?? 0}</span>
-          </button>
-        ))}
-      </div>
-
+      {/* The search, the status filter (a sheet from the bottom, like the other pages) and the marking of all */}
       <div className="mta-toolbar">
         <label className="mta-search">
           <Search size={17} />
-          <input type="search" placeholder="ابحث بالاسم أو رقم القميص..." value={search} onChange={e => setSearch(e.target.value)} />
+          <input type="search" placeholder="ابحث بالاسم" value={search} onChange={e => setSearch(e.target.value)} />
         </label>
+        <MobileSelect
+          label="الحالة"
+          icon={FilterIcon}
+          value={filter}
+          options={filterOptions.map(o => ({ value: o.key, label: o.label, hint: String(counts[o.key] ?? 0) }))}
+          onChange={v => setFilter(v as Filter)}
+          renderTrigger={open => (
+            <button type="button" className={`mta-filter ${filter !== 'all' ? 'active' : ''}`} onClick={open}>
+              <FilterIcon size={15} />
+              <span><small>الحالة</small><strong>{filterOptions.find(o => o.key === filter)?.label}</strong></span>
+              <ChevronDown size={15} />
+            </button>
+          )}
+        />
         <button type="button" className="mta-bulk" onClick={() => setBulkOpen(true)} aria-label="تحديد الكل">
           <ListChecks size={20} />
         </button>
       </div>
 
       {visible.length === 0 ? (
-        <div className="mta-empty">
-          <Users size={40} />
-          <p>{filter === 'none' && !q ? 'تم تسجيل حالة جميع اللاعبين' : 'لا يوجد لاعبون مطابقون'}</p>
-        </div>
+        <StateIcon icon={Users} />
       ) : (
         <div className="mta-list">
           {visible.map((p, idx) => {
@@ -236,9 +227,10 @@ export const MobileTakeAttendance: React.FC<MobileTakeAttendanceProps> = ({ c, i
                   <span className="mta-player-text">
                     <strong>{p.name}</strong>
                     <small>
-                      {p.shirt_number && <b>#{p.shirt_number}</b>}
+                      {/* The shirt number once: here only when the photo takes its place */}
+                      {p.shirt_number && photo && <b>#{p.shirt_number}</b>}
                       {p.is_injured && <em><Stethoscope size={12} /> مصاب</em>}
-                      {!p.shirt_number && !p.is_injured && (p.role || p.status || 'لم يُسجل بعد')}
+                      {(!p.shirt_number || !photo) && !p.is_injured && p.role}
                     </small>
                   </span>
                   {!p.is_injured && (

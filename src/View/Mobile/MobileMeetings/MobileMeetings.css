@@ -806,3 +806,19 @@ body.dark-mode .mmg-page {
 
 /* Who sent a point (a member) */
 .mmg-point-by { display: block; margin-top: 2px; color: #f97316; font-weight: 700; font-size: 0.74rem; }
+
+/* A required field left empty: a red edge (its message under it) */
+.me-input.is-missing { border-color: #ef4444 !important; }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .mmg-hero {
+  color: var(--mmg-text, #0f172a);
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+body:not(.dark-mode) .mmg-hero::before { border-color: #e2e8f0; }
+body:not(.dark-mode) .mmg-hero-tag,
+body:not(.dark-mode) .mmg-hero-note,
+body:not(.dark-mode) .mmg-hero-facts svg { color: #ea580c; }
+body:not(.dark-mode) .mmg-hero-facts { background: #f8fafc; border-color: #e2e8f0; }

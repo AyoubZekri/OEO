@@ -37,14 +37,13 @@ export const MobileRejectSheet: React.FC<{ absence: AbsenceRecord; onConfirm: (n
           </div>
         </div>
         <textarea
-          className="mab-textarea"
+          className={`mab-textarea ${error ? 'is-missing' : ''}`}
           value={note}
           onChange={e => { setNote(e.target.value); setError(false); }}
-          placeholder="سبب الرفض (يصل إلى العضو)"
+          placeholder="سبب الرفض"
           rows={4}
         />
         {error && <p className="mab-error"><AlertCircle size={14} /> اكتب سبب الرفض</p>}
-        <p className="mab-note">القرار نهائي.</p>
       </div>
     </MobileSheet>
   );

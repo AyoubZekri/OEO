@@ -24,7 +24,9 @@ export const TaskTable: React.FC<{
   select?: TaskSelection;
   /** Its conversation: a button of its own on the row (with its new messages) */
   onChat?: (t: Task) => void;
-}> = ({ tasks, onOpen, mine, menu, tint, select, onChat }) => (
+  /** The upcoming appointments: their type's icon before the title */
+  upcoming?: boolean;
+}> = ({ tasks, onOpen, mine, menu, tint, select, onChat, upcoming }) => (
   <div className="members-table-wrapper">
     <table className="custom-table tk-table">
       <thead>
@@ -43,27 +45,40 @@ export const TaskTable: React.FC<{
           const open = () => onOpen(t);
           const late = t.overdue && isOpen(t);
           const picked = select?.picked(t);
+          const src = sourceMeta(t);
+          const title = (
+            <>
+              <strong>
+                {picked && <span className="tsk-pick" aria-label="محددة"><Check size={12} strokeWidth={3} /></span>}
+                {tint && t.kind === 'urgent' && isOpen(t) && <span className="tsk-live" aria-hidden="true" />}
+                {t.title}
+                {!onChat && t.unread > 0 && <span className="tsk-unread" title="رسائل جديدة"><MessageCircle size={12} />{t.unread}</span>}
+                {mine && !t.seen && <span className="tsk-dot-new" title="جديدة" />}
+              </strong>
+              {t.event_label && <small>{t.event_label}</small>}
+            </>
+          );
           return (
             <tr
               key={t.id}
-              className={`tk-row ${isOpen(t) ? '' : 'done'} ${tint ? `tsk-tint-${t.kind}` : ''} ${select?.enabled ? 'tsk-selectable' : ''} ${picked ? 'tsk-picked' : ''}`}
+              className={`tk-row ${isOpen(t) ? '' : 'done'} ${tint ? `tsk-tint-${t.kind}` : ''} ${select?.enabled ? 'tsk-selectable' : ''} ${picked ? 'tsk-picked' : ''} ${upcoming ? `tsk-urow ${t.source === 'periodic' ? 'periodic' : ''}` : ''}`}
               tabIndex={0}
               {...(select ? select.rowProps(t, open) : { onClick: open })}
               onKeyDown={e => { if (e.key === 'Enter') open(); }}
             >
               <td data-label="المهمة" className="tk-title-cell">
-                <strong>
-                  {picked && <span className="tsk-pick" aria-label="محددة"><Check size={12} strokeWidth={3} /></span>}
-                  {tint && t.kind === 'urgent' && isOpen(t) && <span className="tsk-live" aria-hidden="true" />}
-                  {t.title}
-                  {!onChat && t.unread > 0 && <span className="tsk-unread" title="رسائل جديدة"><MessageCircle size={12} />{t.unread}</span>}
-                  {mine && !t.seen && <span className="tsk-dot-new" title="جديدة" />}
-                </strong>
-                {t.event_label && <small>{t.event_label}</small>}
+                {/* The upcoming appointments: their type's icon (match, training…) before the title */}
+                {upcoming ? (
+                  <span className="tsk-utitle">
+                    <span className="tsk-uicon"><src.icon size={18} /></span>
+                    <span>{title}</span>
+                  </span>
+                ) : title}
               </td>
               <td data-label="النوع"><KindBadge task={t} /></td>
               <td data-label="الطبيعة">{NATURE_META[t.nature].label}</td>
-              <td data-label={mine ? 'من طرف' : 'المكلّف'}>{(mine ? t.created_by : t.assignee?.name) || '—'}</td>
+              {/* Who does it: nothing shown when no one is given it yet */}
+              <td data-label={mine ? 'من طرف' : 'المكلّف'}>{mine ? t.created_by || 'النظام' : t.assignee?.name}</td>
               <td data-label="آخر أجل"><span className={`tk-due ${late ? 'late' : ''}`}>{t.due_at ? dateText(t.due_at) : '—'}</span></td>
               <td data-label="الحالة"><StatusBadge task={t} /></td>
               <td data-label="إجراءات" className="actions-cell" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>

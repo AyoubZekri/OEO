@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Save, Loader2, Gavel, ListChecks, Calendar, Users, Plus, X, Search, Check, AlertCircle, UserPlus, ChevronDown, Clock, FileText,
+  Save, Loader2, ListChecks, Calendar, Users, Plus, X, Search, Check, AlertCircle, UserPlus, ChevronDown, Clock, FileText,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
@@ -11,8 +11,9 @@ import type { Meeting } from '../../Screen/Meetings/meeting_model';
 import type { MemberModel } from '../../Screen/Members/member_model';
 import { TYPE_LABELS } from '../MobileMembers/memberLabels';
 import { fullName, memberPhoto } from '../MobileTeams/teamRoster';
-import { isoDay, longDate } from '../MobileTrainingSessions/sessionUtils';
+import { isoDay } from '../MobileTrainingSessions/sessionUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 export interface DecisionDraft {
   meetingId: string;
@@ -76,10 +77,10 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
     set('assigneeIds', draft.assigneeIds.includes(id) ? draft.assigneeIds.filter(x => x !== id) : [...draft.assigneeIds, id]);
 
   const save = async () => {
-    if (Object.values(errors).some(Boolean)) {
-      setShowErrors(true);
-      return;
-    }
+    setShowErrors(true);
+    if (errors.text) return;
+    // The tasks and the assignees, choices: a snackbar
+    if (errors.tasks || errors.assignees) return showSnackbar('خطأ', (errors.tasks || errors.assignees)!, '#ef4444');
     setSaving(true);
     try {
       await onSave(draft);
@@ -103,13 +104,13 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mdc-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : 'حفظ القرار'}
+          {saving ? 'جاري الحفظ...' : decision ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
       {/* Meeting */}
       <section className="mdc-form-card">
-        <h3 className="mdc-form-title"><span>1</span> الاجتماع التابع له</h3>
+        <h3 className="mdc-form-title">الاجتماع</h3>
         <MobileSelect
           label="الاجتماع"
           icon={Calendar}
@@ -131,8 +132,8 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
       </section>
 
       {/* Decision */}
-      <section className={`mdc-form-card ${showErrors && (errors.text || errors.tasks) ? 'has-error' : ''}`}>
-        <h3 className="mdc-form-title"><span>2</span> القرار</h3>
+      <section className={`mdc-form-card ${showErrors && errors.text ? 'has-error' : ''}`}>
+        <h3 className="mdc-form-title">القرار</h3>
         <div className="mdc-seg">
           <button type="button" className={draft.type === 'normal' ? 'active' : ''} onClick={() => set('type', 'normal')}><FileText size={16} /> نص القرار</button>
           <button type="button" className={draft.type === 'checklist' ? 'active' : ''} onClick={() => set('type', 'checklist')}><ListChecks size={16} /> مهام متعددة</button>
@@ -141,11 +142,10 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
         {draft.type === 'normal' ? (
           <>
             <textarea
-              className="me-textarea"
+              className={`me-textarea ${showErrors && errors.text ? 'is-missing' : ''}`}
               rows={5}
               value={draft.text}
               onChange={e => set('text', e.target.value)}
-              placeholder="اكتب تفاصيل القرار بشكل واضح ليفهمه المسؤولون..."
             />
             {err(errors.text)}
           </>
@@ -158,7 +158,6 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
                 value={newTask}
                 onChange={e => setNewTask(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTask(); } }}
-                placeholder="اكتب مهمة ثم اضغط +"
               />
               <button type="button" onClick={addTask} disabled={!newTask.trim()} aria-label="إضافة المهمة"><Plus size={20} /></button>
             </div>
@@ -175,14 +174,13 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
                 ))}
               </ol>
             )}
-            {err(errors.tasks)}
           </>
         )}
       </section>
 
       {/* People + deadline */}
-      <section className={`mdc-form-card ${showErrors && errors.assignees ? 'has-error' : ''}`}>
-        <h3 className="mdc-form-title"><span>3</span> التنفيذ</h3>
+      <section className="mdc-form-card">
+        <h3 className="mdc-form-title">التنفيذ</h3>
         <div className="me-field">
           <span className="me-label"><Users size={14} /> المسؤولون عن التنفيذ</span>
           <div className="mdc-chosen">
@@ -198,10 +196,9 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
             </button>
           </div>
         </div>
-        {err(errors.assignees)}
 
         <label className="me-field">
-          <span className="me-label"><Clock size={14} /> الأجل الزمني (اختياري)</span>
+          <span className="me-label"><Clock size={14} /> الأجل الزمني</span>
           <input className="me-input" type="date" dir="ltr" value={draft.deadline} onChange={e => set('deadline', e.target.value)} />
         </label>
         <div className="mdc-quick">
@@ -210,7 +207,6 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
           ))}
           {draft.deadline && <button type="button" onClick={() => set('deadline', '')}>بدون أجل</button>}
         </div>
-        {draft.deadline && <p className="mdc-hint"><Gavel size={13} /> {longDate(draft.deadline)}</p>}
       </section>
 
       {picker && (
@@ -226,7 +222,7 @@ export const MobileDecisionForm: React.FC<MobileDecisionFormProps> = ({
           <div className="mdc-sheet-search">
             <label className="mdc-search">
               <Search size={17} />
-              <input type="search" placeholder="ابحث بالاسم..." value={query} onChange={e => setQuery(e.target.value)} />
+              <input type="search" placeholder="ابحث بالاسم" value={query} onChange={e => setQuery(e.target.value)} />
             </label>
           </div>
           <div className="mdc-member-list">

@@ -41,7 +41,6 @@ export const DecisionView: React.FC<{ value: DecisionValues; emptyText?: string 
       <div className="dv-empty">
         <span><Gavel size={26} /></span>
         <strong>{emptyText}</strong>
-        <small>يظهر هنا قرار الإدارة وأسبابه وتاريخ سريانه</small>
       </div>
     );
   }

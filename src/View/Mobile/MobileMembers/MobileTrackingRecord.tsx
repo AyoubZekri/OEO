@@ -14,6 +14,7 @@ import {
 import type { AbsenceRecord } from '../../Screen/Absence/AbsenceRequestsController';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileTrackingRecord.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileTrackingRecordProps {
   member: MemberModel;
@@ -297,11 +298,7 @@ export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ memb
       {tab === 'disciplinary' && (loadingExtra ? (
         <MobileLoader text="جاري تحميل السجل التأديبي..." />
       ) : disciplinary.length === 0 ? (
-        <div className="me-empty">
-          <CheckCircle2 size={44} />
-          <strong>سجل نظيف</strong>
-          <p>لا توجد أي إجراءات تأديبية مسجلة لهذا العضو.</p>
-        </div>
+        <StateIcon icon={CheckCircle2} />
       ) : (
         disciplinary.map(d => {
           const Icon = DISCIPLINARY_ICONS[d.actionType] || AlertTriangle;
@@ -323,11 +320,7 @@ export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ memb
       {tab === 'absences' && (loadingExtra ? (
         <MobileLoader text="جاري تحميل الغيابات..." />
       ) : absences.length === 0 ? (
-        <div className="me-empty">
-          <CheckCircle2 size={44} />
-          <strong>لا توجد غيابات ولا تأخرات</strong>
-          <p>لم يُسجل أي غياب أو تأخر لهذا العضو.</p>
-        </div>
+        <StateIcon icon={CheckCircle2} />
       ) : (
         <AbsenceList absences={absences} />
       ))}

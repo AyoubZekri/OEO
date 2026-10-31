@@ -1,37 +1,24 @@
-import React, { useMemo, useState } from 'react';
-import { SpaceContext, type AppSpace, type SpaceState } from './space';
+import React, { useMemo } from 'react';
+import { SpaceContext, type SpaceState } from './space';
 import { useAuth } from './AuthContext';
 import { ALL_MODULES } from '../../View/Screen/UserManagement/Roles/role_model';
 
-const STORAGE_KEY = 'appSpace';
-
-const readSaved = (): AppSpace | null => {
-  try {
-    const v = localStorage.getItem(STORAGE_KEY);
-    return v === 'management' || v === 'personal' ? v : null;
-  } catch {
-    return null;
-  }
-};
-
 /**
- * The space the user works in; it opens on the last one used. Without management rights it is always "personal".
+ * The space the user works in, one per account (no switching): the management space for who has a role in it (a page
+ * of it to view, or full access) — their own records are there too; the personal space only for who has none.
  * A player has the personal space only, whatever their role (even a full-access one).
  */
 export const SpaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { permissions, isFullAccess, user } = useAuth();
-  const isPlayer = user?.memberType === 'player';
+  const isPlayer = ['player', 'لاعب'].includes(user?.memberType || '');
   const canManage = !isPlayer && (isFullAccess || ALL_MODULES.some(m => (permissions[m] as unknown as Record<string, boolean> | undefined)?.view === true));
-  const [chosen, setChosen] = useState<AppSpace>(() => readSaved() || 'management');
-
   const value = useMemo<SpaceState>(() => ({
-    space: canManage ? chosen : 'personal',
+    space: canManage ? 'management' : 'personal',
     canManage,
-    setSpace: (space: AppSpace) => {
-      setChosen(space);
-      try { localStorage.setItem(STORAGE_KEY, space); } catch { /* the choice is only not remembered */ }
-    },
-  }), [canManage, chosen]);
+    isPlayer,
+    // Nothing to switch to: each account has its one space
+    setSpace: () => undefined,
+  }), [canManage, isPlayer]);
 
   return <SpaceContext.Provider value={value}>{children}</SpaceContext.Provider>;
 };

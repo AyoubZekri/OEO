@@ -5,6 +5,7 @@ import { Crud } from '../../../core/class/Crud';
 import { MembersData } from '../Members/members_data';
 import { MemberModel } from '../Members/member_model';
 import { showSnackbar } from '../../../core/functions/Snacpar';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export interface Entitlement {
   id: string;
@@ -293,7 +294,7 @@ export const useContractsController = () => {
   };
 
   const handleDeleteContract = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذا العقد؟')) {
+    if (await confirmDelete('حذف العقد؟')) {
       setIsLoading(true);
       const response = await contractsData.deleteContract(id);
       if (response && !response.error) {

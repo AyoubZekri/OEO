@@ -13,6 +13,7 @@ import { type RolePermissions, userInitials } from './roleUtils';
 import { MobileUserDetails } from './MobileUserDetails';
 import { MobileUserForm } from './MobileUserForm';
 import './MobileUsers.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileUsersProps {
   c: ReturnType<typeof useUsersController>;
@@ -35,7 +36,6 @@ export const MobileUsers: React.FC<MobileUsersProps> = ({ c, roles, can }) => {
   const q = query.trim().toLowerCase();
   const list = c.users.filter(u => !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
   const details = detailsId ? c.users.find(u => String(u.id) === detailsId) : undefined;
-  const fullCount = c.users.filter(u => roleOf(u)?.accessLevel === 'full').length;
 
   const menuItems = (u: UserModel): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(u.id) },
@@ -47,34 +47,16 @@ export const MobileUsers: React.FC<MobileUsersProps> = ({ c, roles, can }) => {
     <div className="mus-page">
       <MobileAppBar title={t('users.title')} />
 
-      <section className="mus-hero">
-        <div className="mus-hero-top">
-          <span className="mus-hero-icon"><UserCog size={26} /></span>
-          <div>
-            <small>حسابات الدخول للتطبيق</small>
-            <strong>{c.users.length}</strong>
-          </div>
-        </div>
-        <div className="mus-stats">
-          <div className="green"><ShieldCheck size={16} /><strong>{fullCount}</strong><small>{t('roles_permissions.full_access')}</small></div>
-          <div className="amber"><ShieldAlert size={16} /><strong>{c.users.length - fullCount}</strong><small>صلاحيات جزئية أو بدون دور</small></div>
-        </div>
-      </section>
-
       <label className="mus-search">
         <Search size={17} />
-        <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالاسم أو البريد..." />
+        <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالاسم أو البريد" />
         {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
       </label>
 
       {c.isLoading && !c.users.length ? (
         <MobileLoader text="جاري تحميل المستخدمين..." />
       ) : list.length === 0 ? (
-        <div className="mus-empty">
-          <span className="mus-empty-icon"><UserCog size={36} /></span>
-          <strong>{query ? 'لا توجد نتائج' : t('users.no_users')}</strong>
-          {!query && can.add && <p>أضف مستخدماً جديداً بالزر +</p>}
-        </div>
+        <StateIcon icon={UserCog} />
       ) : (
         <div className="mus-list">
           {list.map(u => {

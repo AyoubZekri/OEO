@@ -7,9 +7,6 @@ import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileSelect } from '../widgets/MobileSelect';
 import { Applink } from '../../../LinkApi';
 import type { Match } from '../../Screen/Matches/match_model';
-import { CLUB_LOGO, CLUB_NAME } from './matchActions';
-import { dayText, timeText } from './matchUtils';
-import { TeamBadge } from './TeamBadge';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileMatchForm.css';
 
@@ -64,12 +61,11 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
   }, []);
 
   const set = (field: keyof typeof form, value: string) => setForm(prev => ({ ...prev, [field]: value }));
-  const date = form.match_date ? new Date(form.match_date) : null;
 
   const errors = {
     opponent: !form.opponent.trim() ? 'اكتب اسم الفريق الخصم' : null,
     competition: !form.competition.trim() ? 'اكتب اسم المنافسة' : null,
-    date: !form.match_date ? 'حدد تاريخ وتوقيت المباراة' : null,
+    date: !form.match_date ? 'حدد تاريخ المباراة' : null,
     location: !form.location.trim() ? 'اكتب مكان المباراة' : null,
   };
   const hasErrors = Object.values(errors).some(Boolean);
@@ -90,15 +86,15 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
         onSave();
         onClose();
       }
-    } catch (error: any) {
-      const serverMsg = error.response?.data?.message || error.response?.data?.error || error.message || '';
-      alert(`حدث خطأ أثناء الحفظ\n${serverMsg}`);
+    } catch {
+      // The server's message is shown by the shared snackbar
     } finally {
       setSaving(false);
     }
   };
 
   const err = (text: string | null) => showErrors && text ? <p className="mmf-error"><AlertCircle size={14} /> {text}</p> : null;
+  const missing = (text: string | null) => (showErrors && text ? 'is-missing' : '');
 
   // Searchable list, fine for any number of entries
   const picker = (
@@ -137,41 +133,20 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
       footer={(
         <button type="button" className="me-btn primary" onClick={submit} disabled={saving}>
           {saving ? <Loader2 size={18} className="mmf-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : match ? 'حفظ التعديلات' : 'إضافة المباراة'}
+          {saving ? 'جاري الحفظ...' : match ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
-      {/* Live preview */}
-      <section className="mmf-hero">
-        <span className="mmf-comp"><Trophy size={13} /> {form.competition.trim() || 'المنافسة'}</span>
-        <div className="mmf-board">
-          <span className="mmf-team">
-            <TeamBadge logo={CLUB_LOGO} short="OL" className="big" />
-            <small>{CLUB_NAME}</small>
-          </span>
-          <span className="mmf-center">
-            <strong dir="ltr">{date ? timeText(date) : '--:--'}</strong>
-            <small>{date ? dayText(date) : 'بدون موعد'}</small>
-          </span>
-          <span className="mmf-team">
-            <TeamBadge short={form.opponent.slice(0, 4)} className="big" />
-            <small>{form.opponent || 'الخصم'}</small>
-          </span>
-        </div>
-        {form.location.trim() && <span className="mmf-place"><MapPin size={13} /> {form.location.trim()}</span>}
-      </section>
-
       {/* Opponent + competition */}
       <section className={`mmf-card ${showErrors && (errors.opponent || errors.competition) ? 'has-error' : ''}`}>
-        <h3 className="mmf-title"><span>1</span> المواجهة</h3>
+        <h3 className="mmf-title">المواجهة</h3>
         <label className="me-field">
           <span className="me-label"><Shield size={14} /> الفريق الخصم</span>
           <input
-            className="me-input"
+            className={`me-input ${missing(errors.opponent)}`}
             type="text"
             value={form.opponent}
             maxLength={120}
-            placeholder="اكتب اسم الفريق الخصم"
             onChange={e => set('opponent', e.target.value)}
           />
         </label>
@@ -179,46 +154,46 @@ export const MobileMatchForm: React.FC<MobileMatchFormProps> = ({ match, onSave,
 
         <label className="me-field">
           <span className="me-label"><Trophy size={14} /> المنافسة</span>
-          <input className="me-input" type="text" value={form.competition} onChange={e => set('competition', e.target.value)} placeholder="مثال: البطولة الجهوية" />
+          <input className={`me-input ${missing(errors.competition)}`} type="text" value={form.competition} onChange={e => set('competition', e.target.value)} />
         </label>
         {err(errors.competition)}
       </section>
 
       {/* Date + place */}
       <section className={`mmf-card ${showErrors && (errors.date || errors.location) ? 'has-error' : ''}`}>
-        <h3 className="mmf-title"><span>2</span> الموعد والملعب</h3>
+        <h3 className="mmf-title">الموعد والملعب</h3>
         <label className="me-field">
-          <span className="me-label"><Calendar size={14} /> تاريخ وتوقيت المباراة</span>
-          <input className="me-input" type="datetime-local" dir="ltr" value={form.match_date} onChange={e => set('match_date', e.target.value)} />
+          <span className="me-label"><Calendar size={14} /> تاريخ المباراة</span>
+          <input className={`me-input ${missing(errors.date)}`} type="datetime-local" dir="ltr" value={form.match_date} onChange={e => set('match_date', e.target.value)} />
         </label>
         {err(errors.date)}
         <label className="me-field">
-          <span className="me-label"><MapPin size={14} /> المكان / الملعب</span>
-          <input className="me-input" type="text" value={form.location} onChange={e => set('location', e.target.value)} placeholder="مثال: ملعب 8 ماي" />
+          <span className="me-label"><MapPin size={14} /> الملعب</span>
+          <input className={`me-input ${missing(errors.location)}`} type="text" value={form.location} onChange={e => set('location', e.target.value)} />
         </label>
         {err(errors.location)}
       </section>
 
       {/* Gathering */}
       <section className="mmf-card">
-        <h3 className="mmf-title"><span>3</span> التجمع <em>اختياري</em></h3>
+        <h3 className="mmf-title">التجمع</h3>
         <label className="me-field">
           <span className="me-label"><Clock size={14} /> موعد التجمع</span>
           <input className="me-input" type="datetime-local" dir="ltr" value={form.gathering_time} onChange={e => set('gathering_time', e.target.value)} />
         </label>
         <label className="me-field">
           <span className="me-label"><Flag size={14} /> مكان التجمع</span>
-          <input className="me-input" type="text" value={form.gathering_location} onChange={e => set('gathering_location', e.target.value)} placeholder="مثال: مقر النادي" />
+          <input className="me-input" type="text" value={form.gathering_location} onChange={e => set('gathering_location', e.target.value)} />
         </label>
       </section>
 
       {/* Category + staff */}
       <section className="mmf-card">
-        <h3 className="mmf-title"><span>4</span> الفئة والطاقم</h3>
-        {picker('الفئة / الفريق', Tag, 'team_id', teams.map(t => ({ value: String(t.id), label: t.name })), 'اختر الفئة')}
-        {picker('المدرب / الإداري', Users, 'coach_id',
-          staff.map(p => ({ value: String(p.id), label: `${p.first_name} ${p.last_name}`, hint: p.role?.name })), 'اختر المدرب')}
-        {picker('المسؤول الإداري', UserCog, 'admin_id', users.map(u => ({ value: String(u.id), label: u.name })), 'اختر المسؤول')}
+        <h3 className="mmf-title">الفئة والطاقم</h3>
+        {picker('الفئة', Tag, 'team_id', teams.map(t => ({ value: String(t.id), label: t.name })), '—')}
+        {picker('المدرب', Users, 'coach_id',
+          staff.map(p => ({ value: String(p.id), label: `${p.first_name} ${p.last_name}`, hint: p.role?.name })), '—')}
+        {picker('المسؤول الإداري', UserCog, 'admin_id', users.map(u => ({ value: String(u.id), label: u.name })), '—')}
       </section>
     </MobileScreen>
   );

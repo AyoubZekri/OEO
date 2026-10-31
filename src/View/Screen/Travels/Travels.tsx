@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, MapPin, Inbox, RefreshCw } from 'lucide-react';
+import { Plus, MapPin, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileTravels } from '../../Mobile/MobileTravels/MobileTravels';
@@ -12,6 +12,7 @@ import { filterTravels, sortTravels, statusOf, STATUS_FILTERS } from './travelUt
 import '../../shared/kit.css';
 import './Travels.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { StateIcon } from '../../widget/StateIcon';
 
 // Team trips: search, status filter (upcoming / ongoing / done), the trip cards.
 // personal: the personal space's page (the trips I am on, read only, with my role)
@@ -30,7 +31,7 @@ export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) 
   return (
     <div className="tk-page tk-scope">
       <div className="tk-actions-row">
-        <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث بالوجهة أو السبب أو المباراة أو رئيس الوفد..." />
+        <TopbarSearch value={query} onChange={v => setQuery(v)} placeholder="ابحث بالوجهة أو المباراة" />
         <CustomDropdown
           options={STATUS_FILTERS.map(f => ({ value: f.value || 'all', label: `${f.label} (${counts[f.value]})` }))}
           value={status || 'all'}
@@ -42,11 +43,11 @@ export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) 
       {c.loading && !c.travels.length ? <PageLoader mobile={false} text="جاري تحميل التنقلات..." />
         : c.error ? (
           <div className="tk-state">
-            <MapPin size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={32} /><p>{c.travels.length ? 'لا توجد تنقلات بهذه التصفية' : personal ? 'لست ضمن أي تنقل حالياً' : 'لا توجد تنقلات بعد'}</p></div>
+          <StateIcon icon={MapPin} />
         ) : (
           <div className="tk-grid">
             {visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} menu={travelMenu(t, c)} />)}

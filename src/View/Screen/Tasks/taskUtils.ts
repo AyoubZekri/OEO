@@ -1,6 +1,6 @@
 import {
   CircleDot, PlayCircle, PauseCircle, CheckCircle2, XCircle, AlarmClock, ClipboardList, Zap, CalendarClock,
-  Building2, MapPinned, Phone, Mic, Cake, Trophy, Dumbbell, Bus, Briefcase, Repeat, Layers, Shapes, Power, Filter, UserRound, type LucideIcon,
+  Building2, MapPinned, Phone, Mic, Cake, Trophy, Dumbbell, Bus, Briefcase, Repeat, Layers, Shapes, Power, Filter, UserRound, CalendarHeart, CalendarCheck, type LucideIcon,
 } from 'lucide-react';
 import { parseDate } from '../../shared/dates';
 import { Approutes } from '../../../core/constant/routes';
@@ -28,7 +28,7 @@ export interface Task {
   due_at: string | null;
   /** The event or the day it was created for */
   event_label: string | null;
-  source: EventType | 'periodic' | null;
+  source: EventType | 'periodic' | 'once' | 'single' | null;
   template_id: number | null;
   /** The event it was created for (an appointment's task), to open it: a birthday's is the member */
   event: { type: EventType; id: number } | null;
@@ -43,16 +43,18 @@ export interface Task {
   created_at: string | null;
 }
 
-/** An appointment: creates a task with every new event, or periodically */
+/** An appointment: creates a task with every new event, periodically, or once (a programme on its date) */
 export interface TaskTemplate {
   id: number;
   title: string;
   details: string | null;
   nature: TaskNature;
-  schedule: 'event' | 'periodic';
+  schedule: 'event' | 'periodic' | 'once' | 'single';
   event_type: EventType | null;
-  repeat: 'weekly' | 'monthly' | null;
+  repeat: 'daily' | 'weekly' | 'monthly' | null;
   repeat_day: number | null;
+  /** A programme: its date and time ("Y-m-d H:i"); its alert and deadline are counted from it */
+  once_at?: string | null;
   /** Minutes: from the event (negative = before), or from the periodic day's start */
   alert_offset: number;
   due_offset: number;
@@ -121,6 +123,14 @@ export const EVENT_LINK: Record<EventType, { page: string; param: string; open: 
 };
 export const eventLink = (e: NonNullable<Task['event']>) => `${EVENT_LINK[e.type].page}?${EVENT_LINK[e.type].param}=${e.id}`;
 export const PERIODIC_ICON = Repeat;
+/** A programme (an appointment done once, on its date) */
+export const ONCE_ICON = CalendarHeart;
+export const ONCE_LABEL = 'البرنامج';
+/** A one-time appointment (done once, on its date) */
+export const SINGLE_ICON = CalendarCheck;
+export const SINGLE_LABEL = 'موعد';
+/** The two done once on a date of their own */
+export const isDated = (schedule?: string | null) => schedule === 'once' || schedule === 'single';
 
 /** 1 = Monday … 7 = Sunday, shown from Saturday */
 export const WEEK_DAYS = [
@@ -173,18 +183,28 @@ export const dayOffsetText = (minutes: number) => {
 };
 
 /** «مع كل مباراة جديدة», «كل أسبوع · الخميس», «كل شهر · يوم 5» */
-export const scheduleText = (t: Pick<TaskTemplate, 'schedule' | 'event_type' | 'repeat' | 'repeat_day'>) => {
+export const scheduleText = (t: Pick<TaskTemplate, 'schedule' | 'event_type' | 'repeat' | 'repeat_day' | 'once_at'>) => {
   if (t.schedule === 'event') return t.event_type ? `مع ${EVENT_META[t.event_type].every}` : 'مع كل حدث';
+  if (isDated(t.schedule)) return dateText(t.once_at);
+  if (t.repeat === 'daily') return 'كل يوم';
   return t.repeat === 'weekly' ? `كل أسبوع · ${dayName(t.repeat_day)}` : `كل شهر · يوم ${t.repeat_day ?? '—'}`;
 };
 
 export const templateTimesText = (t: TaskTemplate) => (t.schedule === 'event'
   ? { alert: eventOffsetText(t.alert_offset, t.event_type), due: eventOffsetText(t.due_offset, t.event_type) }
-  : { alert: dayOffsetText(t.alert_offset), due: dayOffsetText(t.due_offset) });
+  : isDated(t.schedule)
+    ? { alert: activityOffsetText(t.alert_offset, t.schedule), due: activityOffsetText(t.due_offset, t.schedule) }
+    : { alert: dayOffsetText(t.alert_offset), due: dayOffsetText(t.due_offset) });
+
+/** A programme's or a one-time appointment's alert or deadline: «قبل البرنامج بأسبوع», «عند بداية الموعد» */
+export const activityOffsetText = (minutes: number, schedule: TaskTemplate['schedule'] = 'once') =>
+  eventOffsetText(minutes, null).replace('الحدث', schedule === 'single' ? 'الموعد' : 'البرنامج');
 
 /** Where it comes from: an event, periodic, or given directly */
 export const sourceMeta = (t: Pick<Task, 'source' | 'kind'>) => {
   if (t.source === 'periodic') return { label: 'دورية', icon: Repeat };
+  if (t.source === 'once') return { label: ONCE_LABEL, icon: ONCE_ICON };
+  if (t.source === 'single') return { label: SINGLE_LABEL, icon: SINGLE_ICON };
   if (t.source) return { label: EVENT_META[t.source].label, icon: EVENT_META[t.source].icon };
   return { label: KIND_META[t.kind].label, icon: KIND_META[t.kind].icon };
 };
@@ -327,13 +347,13 @@ export const homeTasks = (tasks: Task[], now = Date.now()) => ({
 });
 
 /** The appointments page's filters: the search (title, who), event / periodic, its nature, on / stopped */
-export interface AppointmentFilter { query: string; schedule: '' | 'event' | 'periodic'; nature: string; status: '' | 'active' | 'paused' }
+export interface AppointmentFilter { query: string; schedule: '' | 'event' | 'periodic' | 'once' | 'single'; nature: string; status: '' | 'active' | 'paused' }
 
 export const NO_APPOINTMENT_FILTER: AppointmentFilter = { query: '', schedule: '', nature: '', status: '' };
 
 /** The appointments page's three filters, as on the other pages (a dropdown each; a bottom sheet on phones) */
 export const APPOINTMENT_FILTERS: { key: 'schedule' | 'nature' | 'status'; label: string; icon: LucideIcon; options: { value: string; label: string }[] }[] = [
-  { key: 'schedule', label: 'النوع', icon: Layers, options: [{ value: '', label: 'كل الأنواع' }, { value: 'event', label: 'مرتبطة بحدث' }, { value: 'periodic', label: 'دورية' }] },
+  { key: 'schedule', label: 'النوع', icon: Layers, options: [{ value: '', label: 'كل الأنواع' }, { value: 'event', label: 'مرتبطة بحدث' }, { value: 'periodic', label: 'دورية' }, { value: 'once', label: ONCE_LABEL }, { value: 'single', label: SINGLE_LABEL }] },
   { key: 'nature', label: 'الطبيعة', icon: Shapes, options: NATURE_FILTERS },
   { key: 'status', label: 'الحالة', icon: Power, options: [{ value: '', label: 'كل الحالات' }, { value: 'active', label: 'مفعلة' }, { value: 'paused', label: 'متوقفة' }] },
 ];
@@ -357,7 +377,7 @@ export const UPCOMING_FILTERS: {
 }[] = [
   {
     key: 'source', label: 'النوع', icon: Layers,
-    options: [{ value: '', label: 'كل الأنواع' }, ...EVENTS.map(e => ({ value: e, label: EVENT_META[e].label })), { value: 'periodic', label: 'دورية' }],
+    options: [{ value: '', label: 'كل الأنواع' }, ...EVENTS.map(e => ({ value: e, label: EVENT_META[e].label })), { value: 'periodic', label: 'دورية' }, { value: 'once', label: ONCE_LABEL }, { value: 'single', label: SINGLE_LABEL }],
     test: (t, v) => t.source === v,
   },
   {

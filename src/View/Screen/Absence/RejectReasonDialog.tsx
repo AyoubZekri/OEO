@@ -30,7 +30,6 @@ export const RejectReasonDialog: React.FC<RejectReasonDialogProps> = ({ absence,
           <span className="ab-dialog-icon"><XCircle size={22} /></span>
           <div className="ab-dialog-title">
             <h2>{request ? 'رفض الطلب' : 'رفض التبرير'}</h2>
-            <p>القرار نهائي، ويصل السبب إلى العضو</p>
           </div>
           <button type="button" className="ab-close" onClick={onClose} aria-label="إغلاق"><X size={20} /></button>
         </header>
@@ -44,16 +43,16 @@ export const RejectReasonDialog: React.FC<RejectReasonDialogProps> = ({ absence,
             </div>
           </div>
           <label className="ab-field">
-            <span>سبب الرفض *</span>
+            <span>سبب الرفض</span>
             <textarea
+              className={error ? 'is-missing' : ''}
               value={note}
               onChange={e => { setNote(e.target.value); setError(false); }}
-              placeholder={request ? 'مثال: الفترة تتزامن مع مباراة مهمة' : 'مثال: الوثيقة غير مختومة، التبرير غير كافٍ...'}
               rows={4}
               autoFocus
             />
+            {error && <p className="ab-field-error"><AlertCircle size={13} /> اكتب سبب الرفض</p>}
           </label>
-          {error && <p className="ab-error"><AlertCircle size={14} /> اكتب سبب الرفض</p>}
         </div>
 
         <footer className="ab-dialog-foot">

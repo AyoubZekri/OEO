@@ -12,6 +12,8 @@ import { MobileOperationDetails } from './MobileOperationDetails';
 import { MobileOperationForm } from './MobileOperationForm';
 import { MobileEquipmentPrint } from './MobileEquipmentPrint';
 import './MobileEquipment.css';
+import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- operations come untyped from the API */
 
@@ -44,7 +46,7 @@ export const MobileEquipmentOps: React.FC<MobileEquipmentOpsProps> = ({ c, can }
   const out = c.operations.reduce((s, op) => s + movementsOf(op).filter(m => !m.return_date).reduce((q: number, m: any) => q + (Number(m.quantity) || 0), 0), 0);
 
   const remove = async (op: any) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه العملية؟ سيتم استرجاع جميع العتاد المرتبط بها.')) {
+    if (await confirmDelete('حذف العملية؟')) {
       await c.deleteOperation(op.id);
     }
   };
@@ -89,11 +91,7 @@ export const MobileEquipmentOps: React.FC<MobileEquipmentOpsProps> = ({ c, can }
       {c.isLoading && !c.operations.length ? (
         <MobileLoader text="جاري تحميل العمليات..." />
       ) : list.length === 0 ? (
-        <div className="meq-empty">
-          <span className="meq-empty-icon"><ArrowLeftRight size={36} /></span>
-          <strong>{c.operations.length ? 'لا توجد نتائج' : 'لا توجد عمليات مسجلة حالياً'}</strong>
-          {!c.operations.length && can.create && <p>سجّل عملية تسليم بالزر +</p>}
-        </div>
+        <StateIcon icon={ArrowLeftRight} />
       ) : (
         <div className="meq-list">
           {list.map(op => {

@@ -3,7 +3,9 @@ import { X, Plus, CalendarX2 } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import type { AbsenceRecord } from './AbsenceRequestsController';
 import { AbsenceCard } from './AbsenceCard';
-import { ABSENCE_TYPES, kindOf, countsOf, byDateDesc, memberName, memberRole, memberTeam, initials } from './absenceUtils';
+import { CustomDropdown } from '../../widget/CustomDropdown';
+import { ABSENCE_TYPES, kindOf, byDateDesc, memberName, memberRole, memberTeam, initials } from './absenceUtils';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MemberAbsenceHistoryDialogProps {
   isOpen: boolean;
@@ -17,7 +19,7 @@ interface MemberAbsenceHistoryDialogProps {
   onDelete: (id: number) => void;
 }
 
-// A member's absence file: counters and every record, newest first
+// A member's absence file: every record, newest first
 export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProps> = ({
   isOpen, onClose, member, absences, onAdd, onJustify, onDecide, onDelete,
 }) => {
@@ -25,7 +27,6 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
   const [type, setType] = useState('');
   if (!isOpen || !member) return null;
 
-  const c = countsOf(absences);
   const list = absences.filter(a => !type || kindOf(a) === type).sort(byDateDesc);
   const name = memberName(member);
 
@@ -44,30 +45,14 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
           <button type="button" className="ab-close" onClick={onClose} aria-label="إغلاق"><X size={20} /></button>
         </header>
 
-        <div className="ab-dialog-stats">
-          <div className="tone-red"><strong>{c.absent}</strong><small>غياب</small></div>
-          <div className="tone-amber"><strong>{c.late}</strong><small>تأخر</small></div>
-          <div className="tone-orange"><strong>{c.leave}</strong><small>مغادرة</small></div>
-          <div className="tone-violet"><strong>{c.request}</strong><small>طلبات عطلة</small></div>
-          <div className="tone-blue"><strong>{c.pending}</strong><small>قيد الدراسة</small></div>
-        </div>
-
         <div className="ab-dialog-body">
           {absences.length > 0 && (
-            <div className="ab-chips">
-              <button type="button" className={!type ? 'on' : ''} onClick={() => setType('')}>الكل</button>
-              {ABSENCE_TYPES.map(t => (
-                <button key={t.value} type="button" className={`tone-${t.tone} ${type === t.value ? 'on' : ''}`} onClick={() => setType(t.value)}>
-                  <t.icon size={14} /> {t.label}
-                </button>
-              ))}
+            <div className="ab-select">
+              <CustomDropdown value={type} onChange={val => setType(val)} options={[{ value: '', label: 'كل الأنواع' }, ...ABSENCE_TYPES.map(t => ({ value: t.value, label: t.label }))]} />
             </div>
           )}
           {list.length === 0 ? (
-            <div className="ab-empty">
-              <span><CalendarX2 size={34} /></span>
-              <strong>{absences.length ? 'لا توجد سجلات من هذا النوع' : 'لا توجد غيابات مسجلة لهذا العضو'}</strong>
-            </div>
+            <StateIcon icon={CalendarX2} />
           ) : (
             <div className="ab-grid">
               {list.map(a => (

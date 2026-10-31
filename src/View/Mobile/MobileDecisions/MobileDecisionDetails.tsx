@@ -124,7 +124,7 @@ export const MobileDecisionDetails: React.FC<MobileDecisionDetailsProps> = ({
               </div>
             ))}
           </div>
-        ) : <p className="me-text empty">لا يوجد مسؤولون محددون</p>}
+        ) : <p className="me-text empty">—</p>}
         {decision.deadline && (
           <div className={`mdc-deadline ${due?.late && state !== 'done' ? 'late' : ''}`}>
             <Clock size={16} />

@@ -5,6 +5,7 @@ import { useSpace } from '../../../core/context/space';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileAppBar } from '../../Mobile/widgets/MobileAppBar';
 import './Personal.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /** Home of the personal space: empty for now, its pages are added step by step */
 export const PersonalHome: React.FC<{ onSwitch?: () => void }> = ({ onSwitch }) => {
@@ -26,9 +27,7 @@ export const PersonalHome: React.FC<{ onSwitch?: () => void }> = ({ onSwitch }) 
       </section>
 
       <section className="ps-empty">
-        <span className="ps-empty-icon"><Sparkles size={30} /></span>
-        <h3>فضاؤك الشخصي جاهز</h3>
-        <p>ستظهر هنا قريباً الأشياء الخاصة بك.</p>
+        <StateIcon icon={Sparkles} />
         {canManage && onSwitch && (
           <button type="button" className="ps-switch" onClick={onSwitch}>
             <LayoutDashboard size={17} />التبديل إلى فضاء التسيير

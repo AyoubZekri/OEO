@@ -23,6 +23,7 @@ export const MODULE_ICONS: Record<PermissionModule, PermissionIcon> = {
   decisions: ListChecks,
   correspondences: Mail,
   feedback: MessageSquare,
+  goals: Target,
   tasks: ClipboardList,
   appointments: CalendarClock,
   contracts: FileText,

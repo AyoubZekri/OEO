@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Save, Loader2, User, UserRound, ChevronDown, Calendar, Clock, Search, Check, AlertCircle, Briefcase, Users } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import { MobileSelect } from '../widgets/MobileSelect';
 import { isoDay } from '../MobileTrainingSessions/sessionUtils';
-import { membersText } from '../MobileTeams/teamRoster';
 import { ABSENCE_TYPES, EVENT_CATEGORIES, memberName, memberRole, memberTeam, initials } from '../../Screen/Absence/absenceUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
 
@@ -33,7 +33,8 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [duration, setDuration] = useState('');
   const [query, setQuery] = useState('');
-  const [error, setError] = useState('');
+  // The fields to type left empty: their message under them (the members, a choice: a snackbar)
+  const [showErrors, setShowErrors] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const modes = ABSENCE_TYPES.filter(t => !(multi && t.mode === 'request'));
@@ -45,19 +46,9 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
   const toggle = (id: string) => setIds(prev => (prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]));
 
   const save = async () => {
-    if (ids.length === 0) {
-      setError(multi ? 'اختر الأعضاء' : 'اختر العضو');
-      return;
-    }
-    if (!date) {
-      setError('اختر التاريخ');
-      return;
-    }
-    if (category === 'أخرى' && !customCategory.trim()) {
-      setError('حدد نوع الفعالية');
-      return;
-    }
-    setError('');
+    setShowErrors(true);
+    if (ids.length === 0) return showSnackbar('خطأ', multi ? 'اختر الأعضاء' : 'اختر العضو', '#ef4444');
+    if (!date || (category === 'أخرى' && !customCategory.trim())) return;
     setSaving(true);
     try {
       // Same fields as AddAbsenceDialog
@@ -89,12 +80,10 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mab-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : multi && ids.length > 1 ? `حفظ (${membersText(ids.length)})` : 'حفظ'}
+          {saving ? 'جاري الحفظ...' : 'تأكيد'}
         </button>
       )}
     >
-      {error && <p className="mab-banner"><AlertCircle size={16} /> {error}</p>}
-
       <section className="me-card">
         <div className={`mab-modes n${modes.length}`}>
           {modes.map(m => (
@@ -112,7 +101,7 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
           <>
             <label className="mab-search in-form">
               <Search size={16} />
-              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث..." />
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث" />
             </label>
             <div className="mab-pick-bar">
               <span>{ids.length} محدد</span>
@@ -164,7 +153,10 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
           ))}
         </div>
         {category === 'أخرى' && (
-          <input className="me-input" value={customCategory} onChange={e => setCustomCategory(e.target.value)} placeholder="أدخل نوع الفعالية" />
+          <>
+            <input className={`me-input ${showErrors && !customCategory.trim() ? 'is-missing' : ''}`} value={customCategory} onChange={e => setCustomCategory(e.target.value)} placeholder="نوع الفعالية" />
+            {showErrors && !customCategory.trim() && <p className="mab-error"><AlertCircle size={14} /> اكتب نوع الفعالية</p>}
+          </>
         )}
         {category === 'اجتماع' && meetings.length > 0 && (
           <MobileSelect
@@ -176,7 +168,7 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
             searchable
             renderTrigger={open => (
               <button type="button" className="mab-select" onClick={open}>
-                <span><small>الاجتماع (اختياري)</small><strong>{meetings.find((m: any) => String(m.id) === meetingId)?.topic || 'بدون تحديد'}</strong></span>
+                <span><small>الاجتماع</small><strong>{meetings.find((m: any) => String(m.id) === meetingId)?.topic || 'بدون تحديد'}</strong></span>
                 <ChevronDown size={17} />
               </button>
             )}
@@ -187,7 +179,8 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Calendar size={14} /> التاريخ</span>
-          <input className="me-input" type="date" dir="ltr" value={date} onChange={e => setDate(e.target.value)} />
+          <input className={`me-input ${showErrors && !date ? 'is-missing' : ''}`} type="date" dir="ltr" value={date} onChange={e => setDate(e.target.value)} />
+          {showErrors && !date && <p className="mab-error"><AlertCircle size={14} /> حدد التاريخ</p>}
         </label>
         <div className="mab-dates">
           {([['اليوم', 0], ['أمس', -1]] as const).map(([l, d]) => (
@@ -196,8 +189,8 @@ export const MobileAbsenceForm: React.FC<MobileAbsenceFormProps> = ({ members, m
         </div>
         {(mode === 'request' || mode === 'late') && (
           <label className="me-field">
-            <span className="me-label"><Clock size={14} /> {mode === 'late' ? 'مدة التأخر (اختياري)' : 'المدة (اختياري)'}</span>
-            <input className="me-input" value={duration} onChange={e => setDuration(e.target.value)} placeholder={mode === 'late' ? 'مثال: 15 دقيقة' : 'مثال: يومان'} />
+            <span className="me-label"><Clock size={14} /> {mode === 'late' ? 'مدة التأخر' : 'المدة'}</span>
+            <input className="me-input" value={duration} onChange={e => setDuration(e.target.value)} />
           </label>
         )}
       </section>

@@ -1,4 +1,4 @@
-import { Pencil, Trash2, Users, List, ClipboardList, CheckCircle, FileText, Activity, Timer } from 'lucide-react';
+import { Pencil, Trash2, Users, List, ClipboardList, CheckCircle, FileText, Activity, Timer, FileUp } from 'lucide-react';
 import type { MobileRowMenuItem } from '../widgets/MobileRowMenu';
 import type { Match } from '../../Screen/Matches/match_model';
 import { type MatchState, matchDate, hasScore } from './matchUtils';
@@ -11,7 +11,8 @@ export interface MatchActions {
   lineup: (m: Match) => void;
   attendance: (m: Match) => void;
   result: (m: Match) => void;
-  report: (m: Match) => void;
+  /** The match's report: a picture or a PDF of the paper report */
+  reportImage: (m: Match) => void;
   viewReport: (m: Match) => void;
   playerStats: (m: Match) => void;
   timeline: (m: Match) => void;
@@ -28,7 +29,7 @@ export const MATCH_ACTION_PERMISSION: Record<string, string> = {
   timeline: 'report',
   result: 'report',
   end: 'report',
-  report: 'report',
+  reportImage: 'report',
   stats: 'report',
   callups: 'callups',
   lineup: 'lineup',
@@ -58,7 +59,7 @@ export const matchActionItems = (m: Match, state: MatchState, a: MatchActions, c
       { key: 'attendance', label: 'الحضور', icon: ClipboardList, color: orange, onClick: () => a.attendance(m) },
       { key: 'result', label: 'النتيجة', icon: CheckCircle, color: orange, onClick: () => a.result(m) },
       ...(scored ? [
-        { key: 'report', label: 'التقرير', icon: FileText, color: orange, onClick: () => a.report(m) },
+        { key: 'reportImage', label: 'رفع التقرير', icon: FileUp, color: orange, onClick: () => a.reportImage(m) },
         { key: 'stats', label: 'تقييم اللاعبين', icon: Activity, color: orange, onClick: () => a.playerStats(m) },
       ] : []),
     ] : []),

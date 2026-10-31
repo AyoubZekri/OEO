@@ -5,7 +5,6 @@ import { MobileScreen } from '../widgets/MobileScreen';
 import type { UserModel } from '../../Screen/UserManagement/Users/user_model';
 import type { RoleModel } from '../../Screen/UserManagement/Roles/role_model';
 import { validInput } from '../../../core/functions/valiedinput';
-import { MODULES, enabledModules, userInitials } from './roleUtils';
 import { useCan } from '../../../core/functions/useCan';
 import { PasswordReveal } from '../../Screen/UserManagement/Users/PasswordReveal';
 import '../MobileEvaluations/MobileEvaluations.css';
@@ -54,37 +53,29 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mus-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : t('users.save_user')}
+          {saving ? 'جاري الحفظ...' : user ? t('users.save_user') : 'تأكيد'}
         </button>
       )}
     >
-      <section className="mus-preview">
-        <span className="mus-avatar big">{name ? userInitials(name) : <User size={24} />}</span>
-        <div>
-          <strong>{name || t('users.username')}</strong>
-          <small dir="ltr">{email || 'example@kaidnews.com'}</small>
-        </div>
-      </section>
-
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><User size={14} /> {t('users.username')}</span>
-          <input className="me-input" type="text" value={name} onChange={e => { setName(e.target.value); setErrors(p => ({ ...p, name: undefined })); }} placeholder={t('users.username_placeholder')} />
+          <input className={`me-input ${errors.name ? 'is-missing' : ''}`} type="text" value={name} onChange={e => { setName(e.target.value); setErrors(p => ({ ...p, name: undefined })); }} />
         </label>
         {err(errors.name)}
 
         <label className="me-field">
           <span className="me-label"><Mail size={14} /> {t('users.email')}</span>
-          <input className="me-input" type="email" dir="ltr" inputMode="email" autoCapitalize="none" value={email} onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: undefined })); }} placeholder="example@kaidnews.com" />
+          <input className={`me-input ${errors.email ? 'is-missing' : ''}`} type="email" dir="ltr" inputMode="email" autoCapitalize="none" value={email} onChange={e => { setEmail(e.target.value); setErrors(p => ({ ...p, email: undefined })); }} />
         </label>
         {err(errors.email)}
 
         {user && can('usersAndRoles', 'editUsers') && <PasswordReveal userId={user.id} />}
 
         <div className="me-field">
-          <span className="me-label"><Lock size={14} /> {user ? 'تغيير كلمة المرور (اتركها فارغة للإبقاء عليها)' : t('users.password')}</span>
+          <span className="me-label"><Lock size={14} /> {user ? 'كلمة المرور الجديدة' : t('users.password')}</span>
           <div className="mus-pass">
-            <input className="me-input" type={showPass ? 'text' : 'password'} dir="ltr" autoComplete="new-password" value={password} onChange={e => { setPassword(e.target.value); setErrors(p => ({ ...p, password: undefined })); }} placeholder="********" />
+            <input className={`me-input ${errors.password ? 'is-missing' : ''}`} type={showPass ? 'text' : 'password'} dir="ltr" autoComplete="new-password" value={password} onChange={e => { setPassword(e.target.value); setErrors(p => ({ ...p, password: undefined })); }} />
             <button type="button" onClick={() => setShowPass(s => !s)} aria-label={showPass ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
               {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
@@ -94,15 +85,15 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
       </section>
 
       <section className="me-card">
-        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')} (اختياري)</h3>
+        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')}</h3>
         {roles.length === 0 ? (
-          <p className="mus-none">لا توجد أدوار بعد: يُحفظ الحساب بدون دور (الفضاء الشخصي فقط).</p>
+          <p className="mus-none">لا توجد أدوار</p>
         ) : (
           <div className="mus-role-pick">
             {/* Member accounts have no role */}
             <button type="button" className={`partial ${roleId === '' ? 'on' : ''}`} onClick={() => setRoleId('')}>
               <span className="mus-role-icon"><ShieldAlert size={18} /></span>
-              <span className="mus-card-text"><strong>بدون دور</strong><small>الفضاء الشخصي فقط</small></span>
+              <span className="mus-card-text"><strong>بدون دور</strong></span>
               <span className="mus-radio">{roleId === '' && <Check size={14} strokeWidth={3} />}</span>
             </button>
             {roles.map(r => {
@@ -113,7 +104,6 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
                   <span className="mus-role-icon">{isFull ? <ShieldCheck size={18} /> : <ShieldAlert size={18} />}</span>
                   <span className="mus-card-text">
                     <strong>{r.name}</strong>
-                    <small>{isFull ? t('roles_permissions.full_access') : `${enabledModules(r).length} من ${MODULES.length} قسماً`}</small>
                   </span>
                   <span className="mus-radio">{on && <Check size={14} strokeWidth={3} />}</span>
                 </button>

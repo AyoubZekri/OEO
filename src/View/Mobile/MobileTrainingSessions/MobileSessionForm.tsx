@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Save, Loader2, Calendar, Clock, MapPin, Users, AlertCircle, Timer, ChevronDown, Search } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import { MobileSelect } from '../widgets/MobileSelect';
 import type { TrainingSessionModel } from '../../Screen/TrainingSessions/TrainingSessionDialog';
-import { durationOf, durationText, isoDay, dayLabel } from './sessionUtils';
+import { durationOf, durationText, isoDay } from './sessionUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileSessionForm.css';
 
@@ -46,15 +47,12 @@ export const MobileSessionForm: React.FC<MobileSessionFormProps> = ({
     time: !start || !end ? 'حدد وقت البداية والنهاية' : !minutes ? 'النهاية يجب أن تكون بعد البداية' : null,
     location: !location.trim() ? 'اكتب مكان التدريب' : null,
   };
-  const [day, month] = date
-    ? [Number(date.split('-')[2]), new Intl.DateTimeFormat('ar-DZ', { month: 'long' }).format(new Date(`${date}T00:00:00`))]
-    : ['—', ''];
 
   const submit = async () => {
-    if (errors.date || errors.time || errors.location) {
-      setShowErrors(true);
-      return;
-    }
+    setShowErrors(true);
+    // The category, a choice: a snackbar (the fields to type: their message under them)
+    if (!teamId) return showSnackbar('خطأ', 'اختر الفئة المعنية', '#ef4444');
+    if (errors.date || errors.time || errors.location) return;
     setSaving(true);
     try {
       // The controller closes this page once the session is saved
@@ -84,27 +82,10 @@ export const MobileSessionForm: React.FC<MobileSessionFormProps> = ({
       footer={(
         <button type="button" className="me-btn primary" onClick={submit} disabled={saving}>
           {saving ? <Loader2 size={18} className="msf-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : session ? 'حفظ التعديلات' : 'إضافة الحصة'}
+          {saving ? 'جاري الحفظ...' : session ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
-      {/* Live preview */}
-      <section className="msf-hero">
-        <span className="msf-cal">
-          <small>{month}</small>
-          <strong>{day}</strong>
-        </span>
-        <span className="msf-hero-text">
-          <small>{date ? dayLabel(date) : 'بدون تاريخ'}</small>
-          <strong>{team?.name || 'اختر الفئة'}</strong>
-          <span>
-            <Clock size={13} /> <bdi dir="ltr">{start || '--:--'} – {end || '--:--'}</bdi>
-            {minutes ? <em>{durationText(minutes)}</em> : null}
-          </span>
-          <span><MapPin size={13} /> {location.trim() || 'مكان التدريب'}</span>
-        </span>
-      </section>
-
       {/* Category: searchable list, fine for any number of categories */}
       <section className="msf-card">
         <h3 className="msf-title"><Users size={16} /> الفئة المعنية</h3>
@@ -121,7 +102,6 @@ export const MobileSessionForm: React.FC<MobileSessionFormProps> = ({
                 <span className="msf-select-icon"><Users size={18} /></span>
                 <span className="msf-select-text">
                   <strong>{team?.name || 'اختر الفئة'}</strong>
-                  <small>{team ? 'اضغط للتغيير' : `${teams.length === 1 ? 'فئة واحدة' : teams.length === 2 ? 'فئتان' : `${teams.length} ${teams.length <= 10 ? 'فئات' : 'فئة'}`} · مع البحث`}</small>
                 </span>
                 {teams.length > 8 && <Search size={16} className="msf-select-search" />}
                 <ChevronDown size={18} />
@@ -180,14 +160,13 @@ export const MobileSessionForm: React.FC<MobileSessionFormProps> = ({
             }))}
           </div>
         </div>
-        {!start && <p className="msf-help">اختيار مدة بدون بداية يجعل البداية 17:00.</p>}
         {showErrors && errors.time && <p className="msf-error"><AlertCircle size={14} /> {errors.time}</p>}
       </section>
 
       {/* Place */}
       <section className={`msf-card ${showErrors && errors.location ? 'has-error' : ''}`}>
         <h3 className="msf-title"><MapPin size={16} /> مكان التدريب</h3>
-        <input className="me-input" type="text" value={location} onChange={e => setLocation(e.target.value)} placeholder="مثال: الملعب الرئيسي" />
+        <input className="me-input" type="text" value={location} onChange={e => setLocation(e.target.value)} />
         {showErrors && errors.location && <p className="msf-error"><AlertCircle size={14} /> {errors.location}</p>}
       </section>
     </MobileScreen>

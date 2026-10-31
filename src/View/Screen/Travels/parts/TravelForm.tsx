@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import { Save, Loader2, AlertCircle, MapPin, Bus, Users, Clock, FileText, Trophy, UserRound, Info, Shirt, Briefcase, Layers } from 'lucide-react';
+import { Save, Loader2, AlertCircle, MapPin, Bus, Users, Clock, FileText, Trophy, UserRound, Shirt, Briefcase, Layers } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { AppSelect, UserPicker } from '../../../shared/FormBits';
 import { dateText, toApiDate, toInputDate } from '../../../shared/dates';
 import type { TravelsController } from '../useTravelsController';
 import { SCHEDULE, type Travel, type TravelMatch } from '../travelUtils';
 import { MemberMultiPicker } from './MemberMultiPicker';
+import { showSnackbar } from '../../../../core/functions/Snacpar';
 
-/** A numbered block of the form (1 → 5), so the order to fill it is clear */
-const Section: React.FC<{ step: number; icon: typeof Clock; title: string; hint?: string; children: React.ReactNode }> = ({ step, icon: Icon, title, hint, children }) => (
+/** A block of the form: its title, then its fields */
+const Section: React.FC<{ icon: typeof Clock; title: string; children: React.ReactNode }> = ({ icon: Icon, title, children }) => (
   <section className="tk-sec tv-sec">
     <header>
-      <span className="tv-step" aria-hidden="true">{step}</span>
-      <div><h4><Icon size={15} />{title}</h4>{hint && <small>{hint}</small>}</div>
+      <div><h4><Icon size={15} />{title}</h4></div>
     </header>
     <div className="tk-sec-body">{children}</div>
   </section>
 );
+
+/** The message under a field left wrong */
+const FieldError: React.FC<{ text?: string }> = ({ text }) => (text ? <small className="tk-field-error"><AlertCircle size={13} />{text}</small> : null);
 
 /** "2026-10-04 16:00" → "2026-10-04T08:00" (same day, another hour) */
 const dayAt = (at: string | null, hour: string) => (at ? `${at.slice(0, 10)}T${hour}` : '');
@@ -44,7 +47,8 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
   const [notes, setNotes] = useState(travel?.special_notes || '');
   const [schedule, setSchedule] = useState<Schedule>(() =>
     Object.fromEntries(SCHEDULE.map(s => [s.key, (travel?.[s.key] as string | null) || ''])));
-  const [error, setError] = useState('');
+  // The fields left wrong: a red edge and their message under them (the match, a choice: a snackbar)
+  const [showErrors, setShowErrors] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Upcoming matches; a past match already linked to this trip stays selectable
@@ -77,12 +81,18 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
     }
   };
 
+  const errors = {
+    destination: !destination.trim() ? 'اكتب وجهة التنقل' : undefined,
+    departure: !departureTime ? 'حدد موعد الانطلاق' : undefined,
+    return: returnTime && departureTime && returnTime < departureTime ? 'العودة تكون بعد الانطلاق' : undefined,
+  };
+  const err = (field: keyof typeof errors) => (showErrors ? errors[field] : undefined);
+  const missing = (field: keyof typeof errors) => (err(field) ? 'is-missing' : '');
+
   const save = async () => {
-    if (linked && !matchId) return setError('اختر المباراة، أو اختر «غير مرتبط بمباراة»');
-    if (!destination.trim()) return setError('اكتب وجهة التنقل');
-    if (!departureTime) return setError('حدد موعد الانطلاق');
-    if (returnTime && returnTime < departureTime) return setError('موعد العودة يجب أن يكون بعد موعد الانطلاق');
-    setError('');
+    setShowErrors(true);
+    if (linked && !matchId) return showSnackbar('خطأ', 'اختر المباراة', '#ef4444');
+    if (Object.values(errors).some(Boolean)) return;
     setSaving(true);
     try {
       await c.save({
@@ -103,7 +113,7 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
         ...Object.fromEntries(SCHEDULE.map(s => [s.key, schedule[s.key as string] || null])),
       });
     } catch (e) {
-      setError((e as Error).message);
+      showSnackbar('خطأ', (e as Error).message, '#ef4444');
     } finally {
       setSaving(false);
     }
@@ -121,18 +131,17 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
           {!mobile && <button type="button" className="btn-cancel tk-dlg-btn" onClick={c.closeForm}>إلغاء</button>}
           <button type="button" className={`tk-btn primary ${mobile ? 'block' : 'tk-dlg-btn'}`} onClick={save} disabled={saving}>
             {saving ? <Loader2 size={17} className="tk-spin" /> : <Save size={17} />}
-            {travel ? 'حفظ التعديلات' : 'إضافة التنقل'}
+            {travel ? 'حفظ التعديلات' : 'تأكيد'}
           </button>
         </>
       )}
     >
       <div className="tk-form calm">
-        <Section step={1} icon={MapPin} title="الوجهة" hint="إلى أين ولماذا">
+        <Section icon={MapPin} title="الوجهة">
           <div className="tk-field">
-            <span className="tk-label"><Trophy size={14} />هل التنقل مرتبط بمباراة؟</span>
             <div className="tk-seg two">
-              <button type="button" className={linked ? 'on' : ''} onClick={() => setLinked(true)}><Trophy size={15} />نعم، مباراة</button>
-              <button type="button" className={!linked ? 'on' : ''} onClick={() => { setLinked(false); setMatchId(''); }}>لا، تنقل آخر</button>
+              <button type="button" className={linked ? 'on' : ''} onClick={() => setLinked(true)}><Trophy size={15} />مباراة</button>
+              <button type="button" className={!linked ? 'on' : ''} onClick={() => { setLinked(false); setMatchId(''); }}>تنقل آخر</button>
             </div>
           </div>
           {linked && (
@@ -143,20 +152,21 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
               value={matchId}
               options={matches.map(m => ({ value: String(m.id), label: `${m.title} — ${dateText(m.at)}`, hint: m.team || undefined }))}
               onChange={pickMatch}
-              placeholder={matches.length ? 'اختر من المباريات القادمة' : 'لا توجد مباريات قادمة'}
+              placeholder=""
             />
           )}
           <label className="tk-field">
             <span className="tk-label">الوجهة</span>
-            <input className="tk-input" value={destination} onChange={e => setDestination(e.target.value)} placeholder="مثال: الجزائر العاصمة - ملعب 5 جويلية" />
+            <input className={`tk-input ${missing('destination')}`} value={destination} onChange={e => setDestination(e.target.value)} />
+            <FieldError text={err('destination')} />
           </label>
           <label className="tk-field">
             <span className="tk-label">سبب التنقل</span>
-            <input className="tk-input" value={reason} onChange={e => setReason(e.target.value)} placeholder="مثال: مباراة البطولة، تربص تحضيري..." />
+            <input className="tk-input" value={reason} onChange={e => setReason(e.target.value)} />
           </label>
         </Section>
 
-        <Section step={2} icon={Bus} title="التنقل" hint="الانطلاق والعودة والإقامة">
+        <Section icon={Bus} title="التنقل">
           <div className="tk-grid-2">
             <label className="tk-field">
               <span className="tk-label">مكان الانطلاق</span>
@@ -164,28 +174,30 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
             </label>
             <label className="tk-field">
               <span className="tk-label">وسيلة النقل</span>
-              <input className="tk-input" value={transport} onChange={e => setTransport(e.target.value)} placeholder="مثال: حافلة النادي" />
+              <input className="tk-input" value={transport} onChange={e => setTransport(e.target.value)} />
             </label>
           </div>
           <div className="tk-grid-2">
             <label className="tk-field">
               <span className="tk-label">موعد الانطلاق</span>
-              <input className="tk-input" type="datetime-local" value={departureTime} onChange={e => setDepartureTime(e.target.value)} />
+              <input className={`tk-input ${missing('departure')}`} type="datetime-local" value={departureTime} onChange={e => setDepartureTime(e.target.value)} />
+              <FieldError text={err('departure')} />
             </label>
             <label className="tk-field">
-              <span className="tk-label">موعد العودة <em>اختياري</em></span>
-              <input className="tk-input" type="datetime-local" value={returnTime} onChange={e => setReturnTime(e.target.value)} />
+              <span className="tk-label">موعد العودة</span>
+              <input className={`tk-input ${missing('return')}`} type="datetime-local" value={returnTime} onChange={e => setReturnTime(e.target.value)} />
+              <FieldError text={err('return')} />
             </label>
           </div>
           <label className="tk-field">
-            <span className="tk-label">الإقامة <em>اختياري</em></span>
-            <input className="tk-input" value={accommodation} onChange={e => setAccommodation(e.target.value)} placeholder="مثال: فندق ..." />
+            <span className="tk-label">الإقامة</span>
+            <input className="tk-input" value={accommodation} onChange={e => setAccommodation(e.target.value)} />
           </label>
         </Section>
 
-        <Section step={3} icon={Users} title="الوفد" hint="رئيس الوفد، الفئة واللاعبون، والطاقم المرافق">
+        <Section icon={Users} title="الوفد">
           <div className="tk-grid-2">
-            <UserPicker mobile={mobile} label="رئيس الوفد" icon={UserRound} value={headId} users={staff} onChange={setHeadId} placeholder="اختر عضواً" />
+            <UserPicker mobile={mobile} label="رئيس الوفد" icon={UserRound} value={headId} users={staff} onChange={setHeadId} placeholder="" />
             <AppSelect
               mobile={mobile}
               label="الفئة"
@@ -193,7 +205,7 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
               value={teamId}
               options={[{ value: '', label: 'كل الفئات' }, ...c.options.teams.map(t => ({ value: String(t.id), label: t.name }))]}
               onChange={changeTeam}
-              placeholder="اختر الفئة"
+              placeholder=""
             />
           </div>
           <MemberMultiPicker
@@ -207,7 +219,7 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
           <MemberMultiPicker label="الطاقم المرافق" icon={Briefcase} people={staff} value={staffIds} onChange={setStaffIds} empty="لا يوجد أعضاء في الطاقم" showType />
         </Section>
 
-        <Section step={4} icon={Clock} title="البرنامج الزمني" hint="أوقات يوم التنقل، املأ ما تعرفه">
+        <Section icon={Clock} title="البرنامج الزمني">
           <div className="tk-grid-3">
             {SCHEDULE.map(s => (
               <label key={s.key} className="tk-field">
@@ -216,14 +228,12 @@ export const TravelForm: React.FC<{ c: TravelsController; travel: Travel | null;
               </label>
             ))}
           </div>
-          {linked && matchId && <small className="tk-hint"><Info size={12} />وقت المباراة يُملأ من المباراة المختارة إذا كان فارغاً</small>}
         </Section>
 
-        <Section step={5} icon={FileText} title="ملاحظات خاصة">
-          <textarea className="tk-input" rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="تعليمات للوفد، وثائق مطلوبة..." />
+        <Section icon={FileText} title="ملاحظات">
+          <textarea className="tk-input" rows={3} value={notes} onChange={e => setNotes(e.target.value)} />
         </Section>
 
-        {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
     </SidePanel>
   );

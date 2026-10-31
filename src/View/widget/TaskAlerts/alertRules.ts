@@ -1307,7 +1307,9 @@ const appointmentAlert = (t: Task, now: number) => {
   const due = parseDate(t.due_at);
   const today = new Date(now);
   const onTheDay = Boolean(due && due.toDateString() === today.toDateString());
-  const text = t.source && t.source !== 'periodic' ? APPOINTMENT_TEXT[t.source] : null;
+  const text = t.source === 'once' ? { near: 'اقتراب البرنامج', now: 'اليوم البرنامج' }
+    : t.source === 'single' ? { near: 'اقتراب موعد', now: 'اليوم موعد' }
+    : t.source && t.source !== 'periodic' ? APPOINTMENT_TEXT[t.source] : null;
   return { onTheDay, title: text ? (onTheDay ? text.now : text.near) : 'حان موعد مهمة' };
 };
 

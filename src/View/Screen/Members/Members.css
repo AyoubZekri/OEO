@@ -1626,3 +1626,26 @@ body.dark-mode .badge-amber {
   color: #fcd34d;
   border-color: rgba(245, 158, 11, 0.25);
 }
+
+/* The member form: a required field left empty — a red edge, and its message right under it (computer and phone) */
+.form-control.is-missing, .mf-control.is-missing { border-color: #ef4444 !important; }
+.member-field-error { display: flex; align-items: center; gap: 5px; margin-top: 6px; color: #ef4444; font-size: 0.78rem; font-weight: 700; }
+
+/* The members page's «فئات الفرق» (computer): white, the app's orange */
+.members-teams-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--accent, #f97316);
+  border-radius: 12px;
+  background: var(--card-bg, #fff);
+  color: var(--accent, #f97316);
+  font: inherit;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.members-teams-btn:hover { background: color-mix(in srgb, var(--accent, #f97316) 8%, var(--card-bg, #fff)); }

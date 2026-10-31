@@ -4,6 +4,7 @@ import { ImprovementProgramData, type ImprovementProgramRecord } from './improve
 import type { EvaluationRecord } from './evaluation_data';
 import type { MemberModel } from '../member_model';
 import './Evaluation.css';
+import { confirmDelete } from '../../../shared/confirmDelete';
 
 interface ImprovementProgramDialogProps {
   player: MemberModel;
@@ -95,7 +96,7 @@ export const ImprovementProgramDialog: React.FC<ImprovementProgramDialogProps> =
 
   const handleDelete = async () => {
     if (!program || !program.id) return;
-    if (window.confirm('هل أنت متأكد من حذف هذا البرنامج؟ لا يمكن التراجع عن هذا الإجراء.')) {
+    if (await confirmDelete('حذف البرنامج؟')) {
       setSaving(true);
       try {
         const success = await dataService.deleteProgram(program.id);

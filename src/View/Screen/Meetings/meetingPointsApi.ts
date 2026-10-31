@@ -1,5 +1,6 @@
 import client from '../../../core/api/client';
 import type { AgendaItem } from '../../Mobile/MobileMeetings/meetingUtils';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 /** Sending a point into a meeting's list, and removing a sent one (the server checks who may) */
 export const meetingPointsApi = {
@@ -7,7 +8,7 @@ export const meetingPointsApi = {
 
   /** Asks first; shows the server's message when refused. Resolves true when removed */
   remove: async (meetingId: string, item: AgendaItem) => {
-    if (!item.id || !window.confirm('حذف هذه النقطة؟')) return false;
+    if (!item.id || !(await confirmDelete('حذف النقطة؟'))) return false;
     try {
       await client.post('/meetings/points/delete', { meeting_id: meetingId, point_id: item.id });
       return true;

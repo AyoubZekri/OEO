@@ -5,6 +5,7 @@ import { ContractReviewData, type ContractReviewRecord } from './contract_review
 import type { EvaluationRecord } from './evaluation_data';
 import type { MemberModel } from '../member_model';
 import './Evaluation.css';
+import { confirmDelete } from '../../../shared/confirmDelete';
 
 interface ContractReviewDialogProps {
   player: MemberModel;
@@ -100,7 +101,7 @@ export const ContractReviewDialog: React.FC<ContractReviewDialogProps> = ({ play
 
   const handleDelete = async () => {
     if (!review || !review.id) return;
-    if (window.confirm('هل أنت متأكد من حذف هذه المراجعة التعاقدية؟ لا يمكن التراجع عن هذا الإجراء.')) {
+    if (await confirmDelete('حذف المراجعة التعاقدية؟')) {
       setSaving(true);
       try {
         const success = await dataService.deleteReview(review.id);

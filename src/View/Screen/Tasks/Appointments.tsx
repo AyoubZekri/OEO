@@ -6,7 +6,7 @@ import { TopbarSearch } from '../../widget/TopbarSearch';
 import { PageLoader } from '../../shared/PageLoader';
 import { MobileAppointments } from '../../Mobile/MobileTasks/MobileAppointments';
 import { useTasksAdmin } from './useTasks';
-import { AppointmentCard } from './parts/AppointmentCard';
+import { AppointmentTable } from './parts/AppointmentTable';
 import { TemplateOverlays } from './parts/TemplateOverlays';
 import { APPOINTMENT_FILTERS, filterAppointments, NO_APPOINTMENT_FILTER, type AppointmentFilter, type TaskTemplate } from './taskUtils';
 import '../../shared/kit.css';
@@ -17,13 +17,14 @@ import './Tasks.css';
 /**
  * The appointments page (the tasks themselves are on the home page): each one creates its task with every new match /
  * training session / trip / meeting, or every week / month. Like the other pages: the search, the filters (type,
- * nature, state) and «موعد جديد» on one line, then the appointments as cards. Phones: MobileAppointments.
+ * nature, state) and «موعد جديد» on one line, then the appointments in a table. Phones: MobileAppointments (cards).
  */
 export const Appointments: React.FC<{ tabs?: React.ReactNode }> = ({ tabs }) => {
   const c = useTasksAdmin('templates');
   const isMobile = useIsMobile();
   const [filters, setFilters] = useState<AppointmentFilter>(NO_APPOINTMENT_FILTER);
   const [toDelete, setToDelete] = useState<TaskTemplate | null>(null);
+  const [viewingId, setViewingId] = useState<number | null>(null);
 
   if (isMobile) return <MobileAppointments c={c} tabs={tabs} />;
 
@@ -31,6 +32,9 @@ export const Appointments: React.FC<{ tabs?: React.ReactNode }> = ({ tabs }) => 
   const edit = c.can('edit') ? (t: TaskTemplate) => c.openForm({ template: t }) : undefined;
   const toggle = c.can('toggle') ? c.toggleTemplate : undefined;
   const remove = c.can('delete') ? setToDelete : undefined;
+  // Its details: the current one from the list (a change made meanwhile shows)
+  const viewing = c.templates.find(t => t.id === viewingId) ?? null;
+  const view = (t: TaskTemplate) => setViewingId(t.id);
   // How many each choice would show, with the other filters applied
   const count = (key: keyof AppointmentFilter, value: string) => filterAppointments(c.templates, { ...filters, [key]: value }).length;
 
@@ -60,12 +64,10 @@ export const Appointments: React.FC<{ tabs?: React.ReactNode }> = ({ tabs }) => 
         ) : visible.length === 0 ? (
           <div className="tk-state"><Inbox size={32} /><p>{c.templates.length ? 'لا توجد مواعيد بهذه التصفية' : 'لا توجد مواعيد بعد'}</p></div>
         ) : (
-          <div className="tk-grid">
-            {visible.map(t => <AppointmentCard key={t.id} t={t} mobile={false} onEdit={edit} onToggle={toggle} onDelete={remove} />)}
-          </div>
+          <AppointmentTable templates={visible} onView={view} onEdit={edit} onToggle={toggle} onDelete={remove} />
         )}
 
-      <TemplateOverlays c={c} mobile={false} toDelete={toDelete} onDeleteClose={() => setToDelete(null)} />
+      <TemplateOverlays c={c} mobile={false} viewing={viewing} onViewClose={() => setViewingId(null)} toDelete={toDelete} onDeleteClose={() => setToDelete(null)} />
     </div>
   );
 };

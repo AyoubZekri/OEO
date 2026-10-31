@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X, Calendar, ArrowRight, Save } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
 import { CustomDropdown } from '../../widget/CustomDropdown';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 export interface TrainingSessionModel {
   id?: number;
@@ -40,9 +41,12 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
   const [end, setEnd] = useState('');
   const [status, setStatus] = useState('مجدولة');
   const [teamId, setTeamId] = useState('');
+  // The fields to type left empty: their message under them (the category, a choice: a snackbar)
+  const [showErrors, setShowErrors] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
+      setShowErrors(false);
       if (sessionToEdit) {
         setDate(sessionToEdit.date);
         setLocation(sessionToEdit.location);
@@ -63,8 +67,20 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
 
   if (!isOpen) return null;
 
+  const errors = {
+    date: !date ? 'حدد تاريخ التدريب' : null,
+    location: !location.trim() ? 'اكتب مكان التدريب' : null,
+    start: !start ? 'حدد بداية الحصة' : null,
+    end: !end ? 'حدد نهاية الحصة' : start && end <= start ? 'النهاية تكون بعد البداية' : null,
+  };
+  const error = (field: keyof typeof errors) => (showErrors ? errors[field] : null);
+  const missingClass = (field: keyof typeof errors) => (error(field) ? 'is-missing' : '');
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setShowErrors(true);
+    if (!teamId) return showSnackbar('خطأ', 'اختر الفئة المعنية', '#ef4444');
+    if (Object.values(errors).some(Boolean)) return;
     onSave({
       id: sessionToEdit?.id,
       team_id: teamId,
@@ -98,58 +114,61 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
             <X size={24} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="modern-dialog-body">
-          
+
           <div className="modern-form-group">
             <CustomDropdown<string>
-              label="الفئة المعنية (الفريق)"
+              label="الفئة المعنية"
               value={teamId}
               options={teamOptions}
               onChange={(val) => setTeamId(val)}
-              placeholder="اختر الفئة المعنية..."
+              placeholder=""
             />
           </div>
 
           <div className="modern-form-group" style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
-              <CustomInput 
+              <CustomInput
                 label="تاريخ التدريب"
-                required 
-                type="date" 
-                value={date} 
-                onChange={(e) => setDate(e.target.value)} 
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className={missingClass('date')}
+                error={error('date')}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <CustomInput 
+              <CustomInput
                 label="مكان التدريب"
-                required 
-                type="text" 
-                value={location} 
-                onChange={(e) => setLocation(e.target.value)} 
-                placeholder="مثال: القاعة الرئيسية" 
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className={missingClass('location')}
+                error={error('location')}
               />
             </div>
           </div>
 
           <div className="modern-form-group" style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
-              <CustomInput 
+              <CustomInput
                 label="بداية الحصة"
-                required 
-                type="time" 
-                value={start} 
-                onChange={(e) => setStart(e.target.value)} 
+                type="time"
+                value={start}
+                onChange={(e) => setStart(e.target.value)}
+                className={missingClass('start')}
+                error={error('start')}
               />
             </div>
             <div style={{ flex: 1 }}>
-              <CustomInput 
+              <CustomInput
                 label="نهاية الحصة"
-                required 
-                type="time" 
-                value={end} 
-                onChange={(e) => setEnd(e.target.value)} 
+                type="time"
+                value={end}
+                onChange={(e) => setEnd(e.target.value)}
+                className={missingClass('end')}
+                error={error('end')}
               />
             </div>
           </div>
@@ -163,7 +182,7 @@ export const TrainingSessionDialog: React.FC<TrainingSessionDialogProps> = ({ is
           </button>
           <button type="button" className="modern-btn-primary" onClick={handleSubmit}>
             <Save size={18} />
-            {sessionToEdit ? 'حفظ التعديلات' : 'إضافة الحصة'}
+            {sessionToEdit ? 'حفظ التعديلات' : 'تأكيد'}
           </button>
         </div>
       </div>

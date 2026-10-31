@@ -11,6 +11,7 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileEquipmentOps } from '../../Mobile/MobileEquipment/MobileEquipmentOps';
 import './Equipment.css';
 import './EquipmentOperations.css';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 export const EquipmentOperations: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
@@ -51,7 +52,7 @@ export const EquipmentOperations: React.FC = () => {
   };
 
   const handleDelete = async (id: number | string) => {
-    if (window.confirm('هل أنت متأكد من حذف هذه العملية؟ سيتم استرجاع جميع العتاد المرتبط بها.')) {
+    if (await confirmDelete('حذف العملية؟')) {
       await deleteOperation(id);
     }
   };

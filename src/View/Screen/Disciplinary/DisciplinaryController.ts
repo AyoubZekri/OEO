@@ -6,6 +6,7 @@ import { MembersData } from '../Members/members_data';
 import { MemberModel } from '../Members/member_model';
 import { Crud } from '../../../core/class/Crud';
 import { useAuth } from '../../../core/context/AuthContext';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 const DISCIPLINARY = Applink.disciplinary;
 
@@ -178,7 +179,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
 
   const handleDelete = async (id: string) => {
     if (deletingId) return;
-    if (window.confirm('هل أنت متأكد من حذف هذا الإجراء التأديبي؟')) {
+    if (await confirmDelete('حذف الإجراء التأديبي؟')) {
       setDeletingId(id);
       try {
         await axios.post(`${DISCIPLINARY}/delete`, { id }, {

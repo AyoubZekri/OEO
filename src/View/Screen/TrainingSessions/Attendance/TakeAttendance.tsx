@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import {
   ArrowRight, Save, Check, X, Clock, FileWarning,
-  Users, MapPin, Calendar, CheckCircle2, Search,
-  ClipboardCheck, AlertTriangle, Stethoscope
+  Users, Search,
+  ClipboardCheck, Stethoscope
 } from 'lucide-react';
 import { useTakeAttendanceController } from './TakeAttendanceController';
 import type { PlayerAttendance } from './TakeAttendanceController';
@@ -10,6 +10,7 @@ import { Applink } from '../../../../LinkApi';
 import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { MobileTakeAttendance } from '../../../Mobile/MobileTrainingSessions/MobileTakeAttendance';
 import './TakeAttendance.css';
+import { StateIcon } from '../../../widget/StateIcon';
 
 const STATUS_BUTTONS: {
   key: PlayerAttendance['status'];
@@ -50,14 +51,6 @@ export const TakeAttendance: React.FC = () => {
     (p.shirt_number || '').includes(search)
   );
 
-  const progressPct = c.stats.total > 0
-    ? Math.round(((c.stats.present + c.stats.late) / c.stats.total) * 100)
-    : 0;
-
-  const circleRadius = 35;
-  const circleCircumference = 2 * Math.PI * circleRadius;
-  const circleOffset = circleCircumference - (progressPct / 100) * circleCircumference;
-
   /* ── Loading ── */
   if (c.isLoading) {
     return (
@@ -75,8 +68,7 @@ export const TakeAttendance: React.FC = () => {
     return (
       <div className="ta-container">
         <div className="ta-error-box">
-          <AlertTriangle size={40} />
-          <p>{c.error}</p>
+          <StateIcon failed />
           <button type="button" className="ta-back-btn" onClick={c.handleBack}>
             <ArrowRight size={18} /> رجوع
           </button>
@@ -103,14 +95,6 @@ export const TakeAttendance: React.FC = () => {
           </div>
           <div>
             <h1 className="ta-title">كشف الحضور والغياب</h1>
-            {c.sessionInfo && (
-              <div className="ta-session-meta">
-                <span><Users size={13} /> {c.sessionInfo.team_name}</span>
-                <span><Calendar size={13} /> {c.sessionInfo.session_date}</span>
-                <span><MapPin size={13} /> {c.sessionInfo.location}</span>
-                <span><Clock size={13} /> {c.sessionInfo.start_time} – {c.sessionInfo.end_time}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -125,55 +109,6 @@ export const TakeAttendance: React.FC = () => {
         </button>
       </div>
 
-      {/* ═══ STATS ROW ═══ */}
-      <div className="ta-stats-row">
-        <div className="ta-stat-card ta-stat-total">
-          <span className="ta-stat-num">{c.stats.total}</span>
-          <span className="ta-stat-lbl">إجمالي اللاعبين</span>
-        </div>
-        <div className="ta-stat-card ta-stat-present">
-          <CheckCircle2 size={18} />
-          <span className="ta-stat-num">{c.stats.present}</span>
-          <span className="ta-stat-lbl">حاضر</span>
-        </div>
-        <div className="ta-stat-card ta-stat-late">
-          <Clock size={18} />
-          <span className="ta-stat-num">{c.stats.late}</span>
-          <span className="ta-stat-lbl">متأخر</span>
-        </div>
-        <div className="ta-stat-card ta-stat-excused">
-          <FileWarning size={18} />
-          <span className="ta-stat-num">{c.stats.excused}</span>
-          <span className="ta-stat-lbl">غائب مبرر</span>
-        </div>
-        <div className="ta-stat-card ta-stat-absent">
-          <X size={18} />
-          <span className="ta-stat-num">{c.stats.absent}</span>
-          <span className="ta-stat-lbl">غائب غير مبرر</span>
-        </div>
-
-        {/* Progress */}
-        <div className="ta-progress-card">
-          <div className="ta-circular-wrap">
-            <svg className="ta-circular-svg" viewBox="0 0 100 100">
-              <circle className="ta-circular-bg" cx="50" cy="50" r={circleRadius} />
-              <circle 
-                className="ta-circular-fill" 
-                cx="50" cy="50" r={circleRadius} 
-                style={{ 
-                  strokeDasharray: circleCircumference, 
-                  strokeDashoffset: circleOffset 
-                }} 
-              />
-            </svg>
-            <div className="ta-circular-text">
-              <strong>{progressPct}%</strong>
-              <span>نسبة الحضور</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* ═══ TOOLBAR: Search + Mark All ═══ */}
       <div className="ta-toolbar">
         <div className="ta-search-wrap">
@@ -181,7 +116,7 @@ export const TakeAttendance: React.FC = () => {
           <input
             type="text"
             className="ta-search"
-            placeholder="بحث باسم اللاعب أو رقم القميص..."
+            placeholder="ابحث باسم اللاعب"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -204,10 +139,7 @@ export const TakeAttendance: React.FC = () => {
       {/* ═══ PLAYERS GRID ═══ */}
       <div className="ta-players-grid">
         {filtered.length === 0 ? (
-          <div className="ta-empty">
-            <Users size={48} strokeWidth={1} />
-            <p>لا يوجد لاعبون مطابقون للبحث.</p>
-          </div>
+          <StateIcon icon={Users} />
         ) : (
           filtered.map((player, idx) => (
             <div
@@ -221,11 +153,6 @@ export const TakeAttendance: React.FC = () => {
                 ) : (
                   <span>{player.shirt_number || (idx + 1)}</span>
                 )}
-                {player.status && (
-                  <div className={`ta-status-badge ta-badge-${STATUS_BUTTONS.find(s => s.key === player.status)?.cls}`}>
-                    {STATUS_BUTTONS.find(s => s.key === player.status)?.icon}
-                  </div>
-                )}
               </div>
 
               {/* Name */}
@@ -238,7 +165,8 @@ export const TakeAttendance: React.FC = () => {
                     </span>
                   )}
                 </span>
-                {player.shirt_number && (
+                {/* The shirt number once: here only when the photo takes its place */}
+                {player.shirt_number && getPhotoUrl(player.photo) && (
                   <span className="ta-shirt-num">#{player.shirt_number}</span>
                 )}
               </div>

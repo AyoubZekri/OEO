@@ -88,7 +88,6 @@ export const MobileDisciplinaryUpload: React.FC<{
           <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e => { pick(e.target.files?.[0]); e.target.value = ''; }} />
           <span className="mda-drop-icon"><UploadCloud size={30} /></span>
           <strong>اضغط لاختيار الوثيقة</strong>
-          <small>صورة (JPG, PNG) أو ملف PDF — الصور الكبيرة تُضغط تلقائياً</small>
         </label>
       )}
 

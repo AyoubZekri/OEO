@@ -9,6 +9,7 @@ import { ContractReviewData, type ContractReviewRecord } from '../../Screen/Memb
 import type { EvaluationRecord } from '../../Screen/Members/Evaluation/evaluation_data';
 import type { MemberModel } from '../../Screen/Members/member_model';
 import './MobileEvaluations.css';
+import { confirmDelete } from '../../shared/confirmDelete';
 
 interface MobileContractReviewProps {
   player: MemberModel;
@@ -97,7 +98,7 @@ export const MobileContractReview: React.FC<MobileContractReviewProps> = ({ play
 
   const handleDelete = async () => {
     if (!review?.id) return;
-    if (!window.confirm('هل أنت متأكد من حذف هذه المراجعة التعاقدية؟ لا يمكن التراجع عن هذا الإجراء.')) return;
+    if (!(await confirmDelete('حذف المراجعة التعاقدية؟'))) return;
     setSaving(true);
     try {
       if (await dataService.deleteReview(review.id)) onClose();

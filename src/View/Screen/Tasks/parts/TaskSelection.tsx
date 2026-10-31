@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { CheckCheck, Trash2, X } from 'lucide-react';
 import type { Task } from '../taskUtils';
 import type { TaskSelection } from './useTaskSelection';
-import { DeleteConfirm } from './DeleteConfirm';
+import { DeleteConfirm } from '../../../shared/DeleteConfirm';
 
 /** The bar while selecting: cancel, how many, select all shown, delete (asked first) */
 export const TaskSelectionBar: React.FC<{ s: TaskSelection; tasks: Task[]; mobile: boolean; onDelete: (ids: number[]) => Promise<void> }> = ({ s, tasks, mobile, onDelete }) => {
@@ -26,7 +26,6 @@ export const TaskSelectionBar: React.FC<{ s: TaskSelection; tasks: Task[]; mobil
       {asking && (
         <DeleteConfirm
           title={`حذف ${picked.length === 1 ? 'المهمة المحددة' : `المهام المحددة (${picked.length})`}؟`}
-          note="تُحذف المهام ومحادثاتها نهائياً، ولا يمكن التراجع."
           onConfirm={async () => { await onDelete(picked); s.clear(); }}
           onClose={() => setAsking(false)}
         />

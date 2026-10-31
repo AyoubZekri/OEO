@@ -101,8 +101,8 @@
     "add_details": "إضافة تفاصيل",
     "edit_details": "تعديل التفاصيل",
     "edit_permissions": "تعديل الصلاحيات",
-    "role_name": "إسم الدور",
-    "access_level": "مستوى الصلاحيات",
+    "role_name": "الدور",
+    "access_level": "الصلاحيات",
     "cancel": "إلغاء",
     "save_role": "حفظ الدور",
     "permissions": "الصلاحيات",
@@ -130,7 +130,8 @@
       "correspondences": "المراسلات",
       "tasks": "الصفحة الرئيسية (المهام)",
       "appointments": "المواعيد",
-      "feedback": "آراء الأعضاء"
+      "feedback": "آراء الأعضاء",
+      "goals": "الأهداف العامة"
     },
     "actions": {
       "view": "عرض",
@@ -211,10 +212,10 @@
     "password": "كلمة المرور",
     "role": "الدور",
     "cancel": "إلغاء",
-    "save_user": "حفظ المستخدم",
+    "save_user": "حفظ التعديلات",
     "first_name_placeholder": "مثال: أحمد",
     "last_name_placeholder": "مثال: محمد",
-    "username": "إسم المستخدم",
+    "username": "الاسم",
     "username_placeholder": "إسم المستخدم"
   },
   "hr": {

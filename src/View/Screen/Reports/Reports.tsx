@@ -14,6 +14,7 @@ import { ItemsPerPageSelector } from '../../widget/ItemsPerPageSelector';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileReports } from '../../Mobile/MobileReports/MobileReports';
 import './Reports.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -259,10 +260,7 @@ export const Reports: React.FC = () => {
   };
 
   const renderEmptyState = () => (
-    <div className="empty-state">
-      <SearchX size={48} />
-      <p>{t('reports.no_data')}</p>
-    </div>
+    <StateIcon icon={SearchX} />
   );
 
   return (

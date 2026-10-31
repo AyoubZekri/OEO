@@ -207,3 +207,6 @@
 }
 .user-avatar.has-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 body.dark-mode .user-avatar.has-photo { border-color: #1e293b; }
+
+/* The user's form: a field left wrong — a red edge (its message under it) */
+.task-form .form-group input.is-missing { border-color: #ef4444 !important; }

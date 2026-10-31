@@ -9,6 +9,7 @@ import { loadMatchEvents, nameOf } from './matchApi';
 import { MatchStrip } from './MatchStrip';
 import '../MobileEvaluations/MobileEvaluations.css';
 import './MobileMatchLineup.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- events come untyped from the API */
 
@@ -143,7 +144,7 @@ export const MobileMatchTimeline: React.FC<{ match: Match; onClose: () => void }
         <MobileLoader text="جاري تحميل الأحداث..." />
       ) : tab === 'events' ? (
         events.length === 0 ? (
-          <div className="mp-empty"><Activity size={36} /><p>لا توجد أحداث مسجلة لهذه المباراة</p></div>
+          <StateIcon icon={Activity} />
         ) : (
           <ol className="mp-timeline">
             <li className="mp-divider"><span>انطلاق المباراة</span></li>
@@ -173,7 +174,7 @@ export const MobileMatchTimeline: React.FC<{ match: Match; onClose: () => void }
           </ol>
         )
       ) : callups.length === 0 ? (
-        <div className="mp-empty"><LayoutGrid size={36} /><p>لا توجد تشكيلة مسجلة</p></div>
+        <StateIcon icon={LayoutGrid} />
       ) : (
         <div className="mml-pitch">
           <FootballPitch

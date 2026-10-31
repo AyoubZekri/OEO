@@ -19,23 +19,23 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
 
   return (
     <div className="task-dialog-overlay" onClick={onClose} style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(15, 23, 42, 0.6)' }}>
-      <div 
-        className="task-dialog role-dialog" 
-        style={{ 
-          fontFamily: 'var(--sans)', 
-          maxWidth: '900px', 
-          width: '95%', 
-          borderRadius: '24px', 
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', 
-          display: 'flex', 
-          flexDirection: 'column', 
+      <div
+        className="task-dialog role-dialog"
+        style={{
+          fontFamily: 'var(--sans)',
+          maxWidth: '900px',
+          width: '95%',
+          borderRadius: '24px',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+          display: 'flex',
+          flexDirection: 'column',
           maxHeight: '90vh',
           background: 'var(--card-bg)',
           overflow: 'hidden'
-        }} 
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        
+
         {/* Header */}
         <div className="dialog-app-bar" style={{ borderRadius: '24px 24px 0 0' }}>
           <div>
@@ -45,12 +45,9 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
               </div>
               <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 800, color: 'white' }}>الاستدعاء</h2>
             </div>
-            <p className="hide-on-mobile" style={{ margin: '8px 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '0.95rem' }}>
-              {matchData?.match_title ? `مباراة: ${matchData?.match_title}` : 'تحديد اللاعبين للمباراة القادمة'}
-            </p>
           </div>
           <button type="button" onClick={onClose} style={{
-            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', 
+            background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white',
             width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s'
           }} onMouseOver={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
@@ -64,15 +61,15 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
         <div className="dialog-toolbar">
           <div style={{ position: 'relative', flexGrow: 1, minWidth: '250px', width: '100%' }}>
             <Search size={20} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-            <input 
-              type="text" 
-              placeholder="بحث..." 
+            <input
+              type="text"
+              placeholder="بحث..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="dialog-search-input"
             />
           </div>
-          
+
           <div className="hide-on-mobile" style={{ display: 'flex', gap: '12px', width: '100%' }}>
             <div style={{ background: 'var(--bg)', padding: '12px 20px', borderRadius: '12px', textAlign: 'center', flex: 1 }}>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>المتاحين</div>
@@ -87,7 +84,7 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
 
         {/* Grid Area */}
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, overflow: 'hidden' }}>
-          
+
           <div style={{ padding: '24px 32px', overflowY: 'auto', flexGrow: 1 }}>
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '60px', color: 'var(--text-muted)', fontSize: '1.1rem', fontWeight: 600 }}>جاري تحميل قائمة اللاعبين...</div>
@@ -98,15 +95,15 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
                 {filteredPlayers.map(player => {
                   const isSelected = !!selectedPlayers[player.id];
                   const playerNumber = player.shirt_number || player.Shirt_number || '-';
-                  
+
                   return (
-                    <div 
-                      key={player.id} 
-                      style={{ 
-                        display: 'flex', 
+                    <div
+                      key={player.id}
+                      style={{
+                        display: 'flex',
                         flexDirection: 'column',
-                        padding: '16px', 
-                        borderRadius: '16px', 
+                        padding: '16px',
+                        borderRadius: '16px',
                         border: isSelected ? '2px solid var(--accent)' : (player.medicalState === 'treatment' ? '1px solid #f59e0b' : '1px solid var(--border)'),
                         background: isSelected ? 'var(--accent-bg)' : (player.medicalState === 'injured' ? '#fef2f2' : (player.medicalState === 'treatment' ? '#fffbeb' : 'var(--card-bg)')),
                         boxShadow: isSelected ? '0 4px 12px var(--accent-bg)' : '0 2px 4px rgba(0,0,0,0.02)',
@@ -120,8 +117,8 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
                       onMouseOut={e => !isSelected && player.medicalState !== 'injured' && (e.currentTarget.style.borderColor = 'var(--border)')}
                     >
                       <div style={{ position: 'absolute', top: '16px', left: '16px' }}>
-                        <div style={{ 
-                          width: '24px', height: '24px', borderRadius: '50%', 
+                        <div style={{
+                          width: '24px', height: '24px', borderRadius: '50%',
                           border: isSelected ? 'none' : '2px solid var(--border)',
                           background: isSelected ? 'var(--accent)' : (player.medicalState === 'injured' ? 'var(--danger, #ef4444)' : 'var(--card-bg)'),
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -161,7 +158,7 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
                           </div>
                         </div>
                       </div>
-                      
+
                       {isSelected && (
                         <div style={{ marginTop: '16px', borderTop: '1px dashed var(--border)', paddingTop: '16px' }} onClick={e => e.stopPropagation()}>
                           {player.medicalState === 'treatment' ? (
@@ -169,16 +166,16 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
                               <span style={{ fontWeight: 800, marginRight: '4px' }}>توصية الطبيب:</span> {selectedPlayers[player.id].notes}
                             </div>
                           ) : (
-                            <input 
-                              type="text" 
-                              placeholder="ملاحظات (اختياري)..."
+                            <input
+                              type="text"
+                              placeholder="ملاحظة"
                               value={selectedPlayers[player.id].notes}
                               onChange={(e) => handleNoteChange(player.id, e.target.value)}
-                              style={{ 
-                                width: '100%', padding: '10px 14px', borderRadius: '8px', 
+                              style={{
+                                width: '100%', padding: '10px 14px', borderRadius: '8px',
                                 border: '1px solid var(--border)', fontSize: '0.85rem',
-                                background: 'var(--card-bg)', 
-                                color: 'var(--text)', 
+                                background: 'var(--card-bg)',
+                                color: 'var(--text)',
                                 boxSizing: 'border-box',
                                 outline: 'none', transition: 'border-color 0.2s'
                               }}
@@ -196,18 +193,18 @@ export const MatchCallupsDialog: React.FC<MatchCallupsDialogProps> = ({ isOpen, 
           </div>
 
           <div style={{ padding: '16px 24px', background: 'var(--card-bg)', backdropFilter: 'blur(8px)', borderTop: '1px solid var(--border)', display: 'flex', gap: '12px' }}>
-            <button type="button" onClick={onClose} style={{ 
-              padding: '12px', borderRadius: '12px', border: 'none', 
+            <button type="button" onClick={onClose} style={{
+              padding: '12px', borderRadius: '12px', border: 'none',
               background: 'var(--bg)', color: 'var(--text)', fontWeight: 700, fontSize: '0.95rem',
               cursor: 'pointer', transition: 'all 0.2s', flex: 1
             }} onMouseOver={e => e.currentTarget.style.background = 'var(--bg-hover)'} onMouseOut={e => e.currentTarget.style.background = 'var(--bg)'}>
               إلغاء
             </button>
-            
-            <button type="submit" disabled={isSubmitting || isLoading} style={{ 
-              padding: '12px', borderRadius: '12px', border: 'none', 
+
+            <button type="submit" disabled={isSubmitting || isLoading} style={{
+              padding: '12px', borderRadius: '12px', border: 'none',
               background: '#f97316', color: 'white', fontWeight: 700, fontSize: '0.95rem',
-              cursor: (isSubmitting || isLoading) ? 'not-allowed' : 'pointer', 
+              cursor: (isSubmitting || isLoading) ? 'not-allowed' : 'pointer',
               boxShadow: '0 4px 12px rgba(249, 115, 22, 0.3)',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: 'all 0.2s',
               opacity: (isSubmitting || isLoading) ? 0.7 : 1, flex: 2
