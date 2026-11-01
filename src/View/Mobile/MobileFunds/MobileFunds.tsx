@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Eye, Pencil, Trash2, ArrowRightLeft, Wallet } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, ArrowRightLeft } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu, type MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -30,7 +30,6 @@ export const MobileFunds: React.FC<MobileFundsProps> = ({ c, can, loan }) => {
   const [detailsId, setDetailsId] = useUrlDetails('fund');
   const [opType, setOpType] = useState<TransactionType>('إيداع');
 
-  const total = c.funds.reduce((s, f) => s + balanceOf(f), 0);
   const details = detailsId ? c.funds.find(f => String(f.id) === detailsId) : undefined;
   const operating = c.selectedFundId ? c.funds.find(f => String(f.id) === String(c.selectedFundId)) : undefined;
   const txOf = (id: string) => c.transactions.filter(t => txFund(t) === String(id) || txTo(t) === String(id));
@@ -51,34 +50,10 @@ export const MobileFunds: React.FC<MobileFundsProps> = ({ c, can, loan }) => {
     <div className="mfd-page">
       <MobileAppBar title="الصناديق المالية" />
 
-      <section className="mfd-hero">
-        <div className="mfd-hero-top">
-          <span className="mfd-hero-icon"><Wallet size={26} /></span>
-          <div>
-            <small>الرصيد الإجمالي · {arCount(c.funds.length, 'صندوق واحد', 'صندوقان', 'صناديق', 'صندوقاً')}</small>
-            <strong dir="ltr">{moneyText(total)}</strong>
-          </div>
-        </div>
-        {c.funds.length > 0 && total > 0 && (
-          <>
-            <div className="mfd-share" aria-hidden="true">
-              {c.funds.map(f => balanceOf(f) > 0 && (
-                <i key={f.id} className={`ic-${fundIcon(f.icon).value}`} style={{ flexGrow: balanceOf(f) }} />
-              ))}
-            </div>
-            <div className="mfd-legend">
-              {c.funds.map(f => (
-                <span key={f.id}><i className={`ic-${fundIcon(f.icon).value}`} />{f.name}<b>{Math.round((balanceOf(f) / total) * 100)}%</b></span>
-              ))}
-            </div>
-          </>
-        )}
-      </section>
-
       {c.isLoading && !c.funds.length ? (
         <MobileLoader text="جاري تحميل الصناديق..." />
       ) : c.funds.length === 0 ? (
-        <StateIcon icon={Wallet} />
+        <StateIcon />
       ) : (
         <div className="mfd-list">
           {c.funds.map(f => {

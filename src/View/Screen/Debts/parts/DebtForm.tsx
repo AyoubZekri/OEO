@@ -1,22 +1,25 @@
 import React, { useState } from 'react';
-import { Save, Loader2, AlertCircle, Landmark, UserRound, Wallet, Tag, CalendarDays, FileText, Info, Banknote, Lock } from 'lucide-react';
+import { Save, Loader2, AlertCircle, Landmark, UserRound, Wallet, Tag, CalendarDays, FileText, Banknote, Lock } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { CurrencyInput } from '../../../widget/CurrencyInput';
 import { AppSelect } from '../../../shared/FormBits';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
 import type { DebtsController } from '../useDebtsController';
 import { DEBT_NATURES, todayIso, type Debt, type DebtKind } from '../debtUtils';
+import { showSnackbar } from '../../../../core/functions/Snacpar';
 
-/** A numbered block of the form, same look as the travels form */
-const Section: React.FC<{ step: number; icon: typeof Info; title: string; hint?: string; children: React.ReactNode }> = ({ step, icon: Icon, title, hint, children }) => (
+/** A block of the form, same look as the travels form: its title, then its fields */
+const Section: React.FC<{ icon: typeof Tag; title: string; children: React.ReactNode }> = ({ icon: Icon, title, children }) => (
   <section className="tk-sec tv-sec">
     <header>
-      <span className="tv-step" aria-hidden="true">{step}</span>
-      <div><h4><Icon size={15} />{title}</h4>{hint && <small>{hint}</small>}</div>
+      <div><h4><Icon size={15} />{title}</h4></div>
     </header>
     <div className="tk-sec-body">{children}</div>
   </section>
 );
+
+/** The message under a field left wrong */
+const FieldError: React.FC<{ text?: string | null }> = ({ text }) => (text ? <small className="tk-field-error"><AlertCircle size={13} />{text}</small> : null);
 
 /**
  * Add or edit a debt of the page's kind: a loan put into a fund (debts page),
@@ -42,7 +45,8 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
   const [fundId, setFundId] = useState(debt?.fund_id ? String(debt.fund_id) : prefill?.fundId || '');
   const [nature, setNature] = useState(debt?.expense_nature || '');
   const [notes, setNotes] = useState(debt?.notes || '');
-  const [error, setError] = useState('');
+  // The fields to type left wrong: their message under them (the fund, a choice: a snackbar)
+  const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const isLoan = kind === 'loan';
@@ -51,14 +55,19 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
   const lockedFund = locked ? prefill!.fundName || c.funds.find(f => String(f.id) === prefill!.fundId)?.name || '' : '';
   const value = Number(amount.replace(',', '.')) || 0;
 
+  const errors = {
+    creditor: !creditor.trim() ? (isLoan ? 'اكتب اسم الدائن' : 'اكتب اسم البائع') : null,
+    amount: value <= 0 ? 'اكتب المبلغ' : debt && value + 0.005 < debt.repaid ? `أقل مما سُدد (${moneyText(debt.repaid)})` : null,
+    date: !debtDate ? 'حدد التاريخ' : null,
+    due: dueDate && debtDate && dueDate < debtDate ? 'الاستحقاق يكون بعد تاريخ الدين' : null,
+  };
+  const err = (field: keyof typeof errors) => (tried ? errors[field] : null);
+  const missing = (field: keyof typeof errors) => (err(field) ? 'is-missing' : '');
+
   const save = async () => {
-    if (!creditor.trim()) return setError(isLoan ? 'اكتب اسم الشخص الذي استلفنا منه' : 'اكتب اسم البائع أو المحل');
-    if (value <= 0) return setError('اكتب مبلغ الدين');
-    if (debt && value + 0.005 < debt.repaid) return setError(`المبلغ أقل مما تم تسديده (${moneyText(debt.repaid)})`);
-    if (isLoan && !fundId) return setError('اختر الصندوق الذي وُضع فيه المال');
-    if (!debtDate) return setError('حدد تاريخ الدين');
-    if (dueDate && dueDate < debtDate) return setError('تاريخ الاستحقاق يجب أن يكون بعد تاريخ الدين');
-    setError('');
+    setTried(true);
+    if (Object.values(errors).some(Boolean)) return;
+    if (isLoan && !fundId) return showSnackbar('خطأ', 'اختر الصندوق', '#ef4444');
     setSaving(true);
     try {
       await c.save({
@@ -74,7 +83,7 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
         notes: notes.trim() || null,
       });
     } catch (e) {
-      setError((e as Error).message);
+      showSnackbar('خطأ', (e as Error).message, '#ef4444');
     } finally {
       setSaving(false);
     }
@@ -92,51 +101,53 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
           {!mobile && <button type="button" className="btn-cancel tk-dlg-btn" onClick={c.closeForm}>إلغاء</button>}
           <button type="button" className={`tk-btn primary ${mobile ? 'block' : 'tk-dlg-btn'}`} onClick={save} disabled={saving}>
             {saving ? <Loader2 size={17} className="tk-spin" /> : <Save size={17} />}
-            {debt ? 'حفظ التعديلات' : 'تسجيل الدين'}
+            {debt ? 'حفظ التعديلات' : 'تأكيد'}
           </button>
         </>
       )}
     >
       <div className="tk-form calm">
-        <Section step={1} icon={UserRound} title={isLoan ? 'الدائن' : 'البائع'} hint={isLoan ? 'الشخص الذي استلفنا منه' : 'المحل أو الشخص الذي اشترينا منه'}>
+        <Section icon={UserRound} title={isLoan ? 'الدائن' : 'البائع'}>
           <div className="tk-grid-2">
             <label className="tk-field">
-              <span className="tk-label">{isLoan ? 'اسم الدائن' : 'اسم البائع / المحل'}</span>
-              <input className="tk-input" value={creditor} onChange={e => setCreditor(e.target.value)} placeholder={isLoan ? 'مثال: أحمد بن علي' : 'مثال: محل الرياضة'} />
+              <span className="tk-label">{isLoan ? 'اسم الدائن' : 'اسم البائع'}</span>
+              <input className={`tk-input ${missing('creditor')}`} value={creditor} onChange={e => setCreditor(e.target.value)} />
+              <FieldError text={err('creditor')} />
             </label>
             <label className="tk-field">
-              <span className="tk-label">الهاتف <em>اختياري</em></span>
-              <input className="tk-input" dir="ltr" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="0X XX XX XX XX" />
+              <span className="tk-label">الهاتف</span>
+              <input className="tk-input" dir="ltr" inputMode="tel" value={phone} onChange={e => setPhone(e.target.value)} />
             </label>
           </div>
           <label className="tk-field">
-            <span className="tk-label">{isLoan ? 'سبب الاستلاف' : 'البيان (تفاصيل المصروف)'} <em>اختياري</em></span>
-            <input className="tk-input" value={title} onChange={e => setTitle(e.target.value)} placeholder={isLoan ? 'مثال: تغطية مصاريف التنقل' : 'مثال: ملابس الفريق، كراء الملعب، فاتورة...'} />
+            <span className="tk-label">{isLoan ? 'سبب الاستلاف' : 'البيان'}</span>
+            <input className="tk-input" value={title} onChange={e => setTitle(e.target.value)} />
           </label>
         </Section>
 
-        <Section step={2} icon={Banknote} title="المبلغ والتواريخ">
+        <Section icon={Banknote} title="المبلغ والتواريخ">
           <div className="tk-grid-2">
             <label className="tk-field">
-              <span className="tk-label">مبلغ الدين (د.ج)</span>
+              <span className="tk-label">المبلغ</span>
               {locked
                 ? <span className="tk-input db-locked"><Lock size={14} />{moneyText(value)}</span>
-                : <CurrencyInput className="tk-input db-money-input" inputMode="numeric" value={amount} onChangeValue={setAmount} placeholder="0,00" />}
+                : <CurrencyInput className={`tk-input db-money-input ${missing('amount')}`} inputMode="numeric" value={amount} onChangeValue={setAmount} />}
+              <FieldError text={err('amount')} />
             </label>
             {isLoan && locked ? (
               <div className="tk-field">
-                <span className="tk-label"><Wallet size={14} />الصندوق الذي وُضع فيه المال</span>
+                <span className="tk-label"><Wallet size={14} />الصندوق</span>
                 <span className="tk-input db-locked"><Lock size={14} />{lockedFund || '—'}</span>
               </div>
             ) : isLoan ? (
               <AppSelect
                 mobile={mobile}
-                label="الصندوق الذي وُضع فيه المال"
+                label="الصندوق"
                 icon={Wallet}
                 value={fundId}
                 options={c.funds.map(f => ({ value: String(f.id), label: f.name, hint: moneyText(Number(f.initialBalance) || 0) }))}
                 onChange={setFundId}
-                placeholder={c.funds.length ? 'اختر الصندوق' : 'لا توجد صناديق'}
+                placeholder=""
               />
             ) : (
               <AppSelect
@@ -146,33 +157,28 @@ export const DebtForm: React.FC<{ c: DebtsController; debt: Debt | null; initial
                 value={nature}
                 options={DEBT_NATURES.map(n => ({ value: n, label: n }))}
                 onChange={setNature}
-                placeholder="اختر طبيعة المصروف"
+                placeholder=""
               />
             )}
           </div>
           <div className="tk-grid-2">
             <label className="tk-field">
               <span className="tk-label"><CalendarDays size={14} />تاريخ الدين</span>
-              <input className="tk-input" type="date" value={debtDate} onChange={e => setDebtDate(e.target.value)} />
+              <input className={`tk-input ${missing('date')}`} type="date" value={debtDate} onChange={e => setDebtDate(e.target.value)} />
+              <FieldError text={err('date')} />
             </label>
             <label className="tk-field">
-              <span className="tk-label"><CalendarDays size={14} />تاريخ الاستحقاق <em>اختياري</em></span>
-              <input className="tk-input" type="date" value={dueDate} min={debtDate} onChange={e => setDueDate(e.target.value)} />
+              <span className="tk-label"><CalendarDays size={14} />تاريخ الاستحقاق</span>
+              <input className={`tk-input ${missing('due')}`} type="date" value={dueDate} min={debtDate} onChange={e => setDueDate(e.target.value)} />
+              <FieldError text={err('due')} />
             </label>
           </div>
-          <small className="tk-hint">
-            <Info size={12} />
-            {isLoan
-              ? 'يُضاف المبلغ إلى رصيد الصندوق المختار فور التسجيل.'
-              : 'لا يتحرك أي مال الآن: يُسجل المصروف عند كل تسديد.'}
-          </small>
         </Section>
 
-        <Section step={3} icon={FileText} title="ملاحظات">
-          <textarea className="tk-input" rows={3} value={notes} onChange={e => setNotes(e.target.value)} placeholder="شروط التسديد، اتفاق مع الدائن..." />
+        <Section icon={FileText} title="ملاحظات">
+          <textarea className="tk-input" rows={3} value={notes} onChange={e => setNotes(e.target.value)} />
         </Section>
 
-        {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
     </SidePanel>
   );

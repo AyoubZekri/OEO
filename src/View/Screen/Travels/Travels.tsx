@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, MapPin, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { MobileTravels } from '../../Mobile/MobileTravels/MobileTravels';
@@ -47,7 +47,7 @@ export const Travels: React.FC<{ personal?: boolean }> = ({ personal = false }) 
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <StateIcon icon={MapPin} />
+          <StateIcon />
         ) : (
           <div className="tk-grid">
             {visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} menu={travelMenu(t, c)} />)}

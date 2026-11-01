@@ -983,3 +983,16 @@ body.dark-mode .mct-page {
   display: flex;
   gap: 10px;
 }
+
+/* A required field left wrong: a red edge (its message under it) */
+.me-input.is-missing { border-color: #ef4444 !important; }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .mct-hero {
+  color: #0f172a;
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+body:not(.dark-mode) .mct-hero-top small,
+body:not(.dark-mode) .mct-total small { color: #ea580c; }

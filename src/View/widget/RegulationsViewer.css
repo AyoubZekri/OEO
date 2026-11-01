@@ -1,0 +1,93 @@
+/* The internal regulations to read: a full window, its pages scrolled one under the other */
+.reg-viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  flex-direction: column;
+  background: #525659;
+  direction: rtl;
+}
+
+.reg-viewer-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+  background: var(--card-bg, #fff);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.reg-viewer-head h2 { flex: 1; margin: 0; font-size: 1.05rem; font-weight: 800; color: var(--text-h, #111827); }
+.reg-viewer-icon { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 11px; background: rgba(249, 115, 22, 0.12); color: #f97316; }
+.reg-viewer-head button {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: transparent;
+  color: var(--text-h, #111827);
+  cursor: pointer;
+}
+
+.reg-viewer-pages {
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
+  /* A picture of the pages: nothing to select or copy */
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.reg-viewer-pages * { user-select: none !important; -webkit-user-select: none !important; }
+.reg-viewer-pages img { pointer-events: none; }
+
+.reg-viewer-paper { width: 210mm; margin: 0 auto; }
+.reg-viewer-paper .internal-regulations-container.on-screen { display: flex; flex-direction: column; gap: 12px; }
+
+/* The A4 pages (the printed receipt's frame, kept to this window) */
+.reg-viewer .receipt-wrapper {
+  position: relative;
+  width: 210mm;
+  height: 296mm;
+  margin: 0 !important;
+  overflow: hidden;
+  box-sizing: border-box;
+  direction: rtl;
+  color: #000;
+  background: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+.reg-viewer .receipt-wrapper * { font-family: Arial, Helvetica, sans-serif; }
+.reg-viewer .receipt-bg-image { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; }
+.reg-viewer .receipt-content { position: relative; z-index: 2; width: 100%; height: 100%; box-sizing: border-box; }
+
+/* Phone: the regulations' own page — the text one part after the other, large enough to read, never selectable */
+.reg-phone {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  color: var(--ms-text, #0f172a);
+}
+.reg-phone * { user-select: none !important; -webkit-user-select: none !important; }
+.reg-flow { display: flex; flex-direction: column; gap: 4px; padding: 4px 2px 24px; }
+.reg-flow-part { display: contents; }
+.reg-flow .reg-header { text-align: center; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 3px solid #ea580c; }
+.reg-flow .reg-header h1 { margin: 0 0 6px; color: #ea580c; font-size: 1.15rem; font-weight: 900; line-height: 1.5; }
+.reg-flow .reg-header p { margin: 0; font-size: 0.85rem; line-height: 1.6; }
+.reg-flow .reg-preamble { padding: 12px 14px; border: none; border-radius: 14px; background: rgba(249, 115, 22, 0.08); font-size: 0.92rem; line-height: 1.8; }
+.reg-flow .reg-chapter { margin: 18px 0 6px; padding: 10px 14px; border-radius: 12px; background: #ea580c; color: #fff; font-size: 1rem; font-weight: 900; line-height: 1.5; }
+.reg-flow .reg-article-title { margin: 12px 0 4px; color: #ea580c; font-size: 0.95rem; font-weight: 800; line-height: 1.6; }
+.reg-flow .reg-text, .reg-flow p { font-size: 0.92rem; line-height: 1.85; margin: 0 0 6px; }
+.reg-flow .reg-list { margin: 4px 0 8px; padding-inline-start: 22px; }
+.reg-flow .reg-list li { font-size: 0.92rem; line-height: 1.8; }
+.reg-flow .reg-table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; margin: 8px 0; }
+.reg-flow .reg-table th, .reg-flow .reg-table td { font-size: 0.82rem; padding: 8px; border: 1px solid var(--ms-border, #e2e8f0); line-height: 1.6; }
+.reg-flow .reg-table th { background: rgba(249, 115, 22, 0.1); }
+/* The signature boxes are for the printed copy */
+.reg-flow .reg-signature-box, .reg-flow .reg-footer { display: none; }

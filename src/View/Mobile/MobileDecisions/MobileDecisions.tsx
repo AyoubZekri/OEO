@@ -82,7 +82,7 @@ export const MobileDecisions: React.FC<MobileDecisionsProps> = ({
           )}
 
           {list.length === 0 ? (
-            <StateIcon icon={Gavel} />
+            <StateIcon />
           ) : (
             <div className="mdc-list">
               {list.map(d => {

@@ -11,6 +11,7 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileContracts } from '../../Mobile/MobileContracts/MobileContracts';
 import './Contracts.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Contracts: React.FC = () => {
   const { t } = useTranslation();
@@ -69,10 +70,10 @@ export const Contracts: React.FC = () => {
     <div className="contracts-container">
       <div className="contracts-header">
 
-        
+
         <div className="contracts-actions">
-          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder={t('contracts.search_placeholder', 'ابحث برقم العقد أو اسم المستفيد...')} />
-          <CustomDropdown 
+          <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder="ابحث برقم العقد أو اسم المستفيد" />
+          <CustomDropdown
             options={[
               { value: 'all', label: t('contracts.filter_all', 'الكل') },
               { value: 'مدرب', label: 'مدرب' },
@@ -122,8 +123,8 @@ export const Contracts: React.FC = () => {
                 <td data-label={t('contracts.contract_type', 'نوع العقد')}><span className="badge badge-purple">{contract.contractType}</span></td>
                 <td className="amount-cell" data-label={t('contracts.contract_value', 'قيمة العقد')}>{formatCurrency(contract.contractValue)}</td>
                 <td style={{ color: 'var(--text-muted)' }} data-label={t('contracts.start_date', 'الموسم')}>
-                  {(contract.startDate && /^\d{4}-\d{2}-\d{2}$/.test(contract.startDate)) 
-                      ? new Intl.DateTimeFormat('ar-DZ').format(new Date(contract.startDate)) 
+                  {(contract.startDate && /^\d{4}-\d{2}-\d{2}$/.test(contract.startDate))
+                      ? new Intl.DateTimeFormat('ar-DZ').format(new Date(contract.startDate))
                       : contract.startDate || '-'}
                 </td>
                   <td data-label={t('contracts.actions', 'إجراءات')} className="actions-cell">
@@ -148,22 +149,20 @@ export const Contracts: React.FC = () => {
                   </td>
               </tr>
             ))}
-            {contracts.length === 0 && (
+            {contracts.length === 0 && !isLoading && (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '32px', color: '#64748b' }}>
-                  {isLoading ? 'جاري التحميل...' : 'لا توجد عقود'}
-                </td>
+                <td colSpan={7}><StateIcon /></td>
               </tr>
             )}
           </tbody>
         </table>
         </div>
-        <Pagination 
-          totalItems={contracts.length} 
-          itemsPerPage={itemsPerPage} 
-          currentPage={currentPage} 
-          onPageChange={setCurrentPage} 
-          onItemsPerPageChange={setItemsPerPage} 
+        <Pagination
+          totalItems={contracts.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       </div>
 
@@ -180,22 +179,21 @@ export const Contracts: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="dialog-body">
               <form className="add-contract-form">
                 <div className="form-row">
                   <div className="form-group" style={{ zIndex: 3, flex: 1 }}>
                     <CustomDropdown<string>
-                      label={t('contracts.beneficiary', 'المستفيد') + ' *'}
+                      label={t('contracts.beneficiary', 'المستفيد')}
                       value={formData.individuals_id}
-                      placeholder="-- اختر المستفيد --"
-                      options={individuals.map(ind => ({ 
-                        value: String(ind.id), 
-                        label: `${ind.first_name} ${ind.last_name} (${ind.type === 'player' ? 'لاعب' : ind.type === 'coach' ? 'مدرب' : ind.type === 'assistant_coach' ? 'مساعد مدرب' : ind.type === 'goalkeeper_coach' ? 'مدرب حراس' : ind.type === 'equipment_manager' ? 'مسؤول العتاد' : 'إداري'})` 
+                      placeholder=""
+                      options={individuals.map(ind => ({
+                        value: String(ind.id),
+                        label: `${ind.first_name} ${ind.last_name} (${ind.type === 'player' ? 'لاعب' : ind.type === 'coach' ? 'مدرب' : ind.type === 'assistant_coach' ? 'مساعد مدرب' : ind.type === 'goalkeeper_coach' ? 'مدرب حراس' : ind.type === 'equipment_manager' ? 'مسؤول العتاد' : 'إداري'})`
                       }))}
                       onChange={(val) => setFormDataValue('individuals_id', val)}
                     />
-                    {errors.individuals_id && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.individuals_id}</span>}
                   </div>
                 </div>
 
@@ -212,8 +210,8 @@ export const Contracts: React.FC = () => {
                     />
                   </div>
                   <div className="form-group" style={{ flex: 2 }}>
-                    <label>{t('contracts.start_date', 'الموسم')} *</label>
-                    <input type="text" name="startDate" placeholder="مثال: 2026 - 2027" value={formData.startDate} onChange={handleFormChange} className="form-control" />
+                    <label>{t('contracts.start_date', 'الموسم')}</label>
+                    <input type="text" name="startDate" dir="ltr" value={formData.startDate} onChange={handleFormChange} className="form-control" style={errors.startDate ? { borderColor: '#ef4444' } : undefined} />
                     {errors.startDate && <span className="error-message" style={{ color: '#ef4444', fontSize: '12px', marginTop: '4px', display: 'block' }}>{errors.startDate}</span>}
                   </div>
                 </div>
@@ -233,22 +231,18 @@ export const Contracts: React.FC = () => {
 
                 <div className="installments-section mt-4 mb-4" style={{ backgroundColor: 'var(--bg-body)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', marginBottom: '16px' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-h)' }}>جدول الدفعات المخصصة</h4>
+                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: 'var(--text-h)' }}>الدفعات</h4>
                     <button type="button" className="btn-primary" onClick={controller.handleAddInstallment} style={{ padding: '6px 12px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Plus size={16} /> إضافة دفعة
                     </button>
                   </div>
-                  {controller.formData.installments && controller.formData.installments.length === 0 ? (
-                    <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', padding: '12px', background: 'var(--card-bg)', borderRadius: '8px', border: '1px dashed var(--border)' }}>
-                      لا توجد دفعات مخصصة.
-                    </div>
-                  ) : (
+                  {controller.formData.installments && controller.formData.installments.length === 0 ? null : (
                     <div className="installments-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                       {controller.formData.installments?.map((inst, index) => (
                         <div key={index} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'var(--card-bg)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                           <div className="form-group" style={{ margin: 0, flex: 1 }}>
-                            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>رقم / اسم الدفعة</label>
-                            <input type="text" className="form-control" value={inst.installment_number} onChange={(e) => controller.handleUpdateInstallment(index, 'installment_number', e.target.value)} placeholder="مثال: الأولى" />
+                            <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>الدفعة</label>
+                            <input type="text" className="form-control" value={inst.installment_number} onChange={(e) => controller.handleUpdateInstallment(index, 'installment_number', e.target.value)} />
                           </div>
                           <div className="form-group" style={{ margin: 0, flex: 2 }}>
                             <label style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>القيمة (د.ج)</label>
@@ -291,7 +285,7 @@ export const Contracts: React.FC = () => {
             <div className="dialog-footer">
               <button className="btn-cancel" onClick={closeAddEditModal}>{t('contracts.cancel', 'إلغاء')}</button>
               <button className="btn-primary" onClick={saveContract} disabled={isLoading}>
-                {isLoading ? 'جاري الحفظ...' : t('contracts.save', 'حفظ العقد')}
+                {isLoading ? 'جاري الحفظ...' : formData.contractNumber ? 'حفظ التعديلات' : 'تأكيد'}
               </button>
             </div>
           </div>
@@ -311,7 +305,7 @@ export const Contracts: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="dialog-body">
               <div className="schedule-summary">
                 <div className="summary-item">
@@ -342,7 +336,7 @@ export const Contracts: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="no-data">{t('contracts.no_schedule', 'لا توجد دفعات مخصصة')}</div>
+                  <StateIcon small />
                 )}
               </div>
             </div>
@@ -356,10 +350,10 @@ export const Contracts: React.FC = () => {
 
       {/* Premium Mismatch Warning Modal */}
       {isMismatchWarningOpen && (
-        <div 
-          className="task-dialog-overlay" 
-          style={{ 
-            zIndex: 9999, 
+        <div
+          className="task-dialog-overlay"
+          style={{
+            zIndex: 9999,
             backdropFilter: 'blur(8px)',
             backgroundColor: 'rgba(0, 0, 0, 0.6)',
             display: 'flex',
@@ -372,12 +366,12 @@ export const Contracts: React.FC = () => {
             bottom: 0
           }}
         >
-          <div 
-            className="modal-content" 
-            style={{ 
-              maxWidth: '420px', 
+          <div
+            className="modal-content"
+            style={{
+              maxWidth: '420px',
               width: '90%',
-              textAlign: 'center', 
+              textAlign: 'center',
               padding: '32px 24px',
               borderRadius: '24px',
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
@@ -387,45 +381,41 @@ export const Contracts: React.FC = () => {
             }}
           >
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>
-              <div style={{ 
-                backgroundColor: 'rgba(249, 115, 22, 0.1)', 
-                padding: '20px', 
+              <div style={{
+                backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                padding: '20px',
                 borderRadius: '50%',
                 boxShadow: '0 0 20px rgba(249, 115, 22, 0.2)'
               }}>
                 <AlertTriangle size={42} color="#F97316" strokeWidth={2.5} />
               </div>
             </div>
-            
-            <h2 style={{ 
-              fontSize: '1.4rem', 
-              marginBottom: '12px', 
+
+            <h2 style={{
+              fontSize: '1.4rem',
+              marginBottom: '12px',
               color: 'var(--text-color, #111827)',
               fontWeight: '700'
             }}>
-              تنبيه: عدم تطابق القيم
+              القيم غير متطابقة
             </h2>
-            
-            <p style={{ 
-              marginBottom: '30px', 
-              lineHeight: '1.7', 
+
+            <p style={{
+              marginBottom: '30px',
+              lineHeight: '1.7',
               color: 'var(--text-muted, #4B5563)',
               fontSize: '1.05rem',
               padding: '0 10px'
             }}>
-              مجموع قيم الدفعات لا يساوي القيمة الإجمالية للعقد.
-              <br />
-              <span style={{ fontWeight: '600', color: '#F97316', display: 'inline-block', marginTop: '8px' }}>
-                هل تريد العودة للتعديل أم حفظ العقد كما هو؟
-              </span>
+              مجموع الدفعات لا يساوي قيمة العقد
             </p>
-            
+
             <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-              <button 
-                type="button" 
-                onClick={() => setIsMismatchWarningOpen(false)} 
-                style={{ 
-                  flex: 1, 
+              <button
+                type="button"
+                onClick={() => setIsMismatchWarningOpen(false)}
+                style={{
+                  flex: 1,
                   padding: '12px',
                   borderRadius: '12px',
                   border: '2px solid #E5E7EB',
@@ -441,12 +431,12 @@ export const Contracts: React.FC = () => {
               >
                 تعديل القيم
               </button>
-              
-              <button 
-                type="button" 
-                onClick={proceedSaveContract} 
-                style={{ 
-                  flex: 1, 
+
+              <button
+                type="button"
+                onClick={proceedSaveContract}
+                style={{
+                  flex: 1,
                   padding: '12px',
                   borderRadius: '12px',
                   border: 'none',

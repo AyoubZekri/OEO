@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, CalendarX2 } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 import { useCan } from '../../../core/functions/useCan';
 import type { AbsenceRecord } from './AbsenceRequestsController';
 import { AbsenceCard } from './AbsenceCard';
@@ -52,7 +52,7 @@ export const MemberAbsenceHistoryDialog: React.FC<MemberAbsenceHistoryDialogProp
             </div>
           )}
           {list.length === 0 ? (
-            <StateIcon icon={CalendarX2} />
+            <StateIcon />
           ) : (
             <div className="ab-grid">
               {list.map(a => (

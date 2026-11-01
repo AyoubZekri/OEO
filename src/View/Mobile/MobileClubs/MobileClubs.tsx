@@ -51,7 +51,7 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
         <MobileLoader text="جاري تحميل الأندية..." />
       ) : clubs.length === 0 ? (
         <div className="mcl-empty">
-          <StateIcon icon={Shield} />
+          <StateIcon />
           <button type="button" className="mcl-empty-btn" onClick={() => setEditing(null)}>
             <Plus size={18} /> إضافة أول نادي
           </button>
@@ -79,7 +79,7 @@ export const MobileClubs: React.FC<MobileClubsProps> = ({ controller }) => {
           </label>
 
           {visible.length === 0 ? (
-            <StateIcon icon={Search} />
+            <StateIcon />
           ) : (
             <div className="mcl-grid">
               {visible.map(club => (

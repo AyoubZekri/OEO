@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Briefcase, Calendar, Clock, MapPin, Users, X, ListChecks, Gavel, MessageSquarePlus, CalendarX2, Eye, UserCheck, Timer,
+  Briefcase, Calendar, Clock, MapPin, Users, X, ListChecks, Gavel, MessageSquarePlus, Eye, UserCheck, Timer,
 } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileAppBar } from '../../Mobile/widgets/MobileAppBar';
@@ -189,7 +189,7 @@ export const MyMeetings: React.FC = () => {
             </div>
 
             {list.length === 0 ? (
-              <StateIcon icon={Briefcase} />
+              <StateIcon />
             ) : (
               <div className="mmg-list">
                 {groups.map(g => (
@@ -244,7 +244,7 @@ export const MyMeetings: React.FC = () => {
 
       {isLoading ? <div className="mmx-empty"><strong>جاري تحميل اجتماعاتك...</strong></div>
         : list.length === 0 ? (
-          <StateIcon icon={CalendarX2} />
+          <StateIcon />
         ) : (
           <div className="mmx-grid">
             {list.map(m => {

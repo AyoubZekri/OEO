@@ -7,8 +7,10 @@ import { MobileSelect } from '../widgets/MobileSelect';
 import type { useEquipmentOperationController, OperationItem } from '../../Screen/Equipment/EquipmentOperationController';
 import { TYPE_LABELS } from '../MobileMembers/memberLabels';
 import { isoDay } from '../MobileTrainingSessions/sessionUtils';
-import { HANDOVER_CONDITIONS, seasonChoice, availableOf, initials } from './equipmentUtils';
+import { HANDOVER_CONDITIONS, availableOf, initials } from './equipmentUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { showSnackbar } from '../../../core/functions/Snacpar';
+import { SeasonPicker, currentSeason } from '../../Screen/Equipment/SeasonPicker';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- operations come untyped from the API */
 
@@ -27,7 +29,7 @@ export const MobileOperationForm: React.FC<MobileOperationFormProps> = ({ c, ope
   const [date, setDate] = useState(
     operation?.operation_date ? new Date(operation.operation_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
   );
-  const [season, setSeason] = useState(operation?.sports_season || '');
+  const [season, setSeason] = useState(operation?.sports_season || currentSeason());
   const [items, setItems] = useState<OperationItem[]>(() =>
     operation?.movements?.length
       ? operation.movements.map((mov: any) => ({
@@ -38,7 +40,8 @@ export const MobileOperationForm: React.FC<MobileOperationFormProps> = ({ c, ope
       }))
       : [newItem()],
   );
-  const [error, setError] = useState('');
+  // The date left empty: its message under it (the member and the items: a snackbar)
+  const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const person = c.members.find(m => String(m.id) === member);
@@ -46,22 +49,16 @@ export const MobileOperationForm: React.FC<MobileOperationFormProps> = ({ c, ope
     setItems(prev => prev.map(i => (i.id === id ? { ...i, [field]: value } : i)));
 
   const save = async () => {
-    if (!member || !date || !season) {
-      setError('تاريخ العملية، العضو والموسم الرياضي حقول إجبارية');
-      return;
-    }
-    if (items.some(i => !i.equipment_id || !i.quantity)) {
-      setError('يرجى تعبئة جميع تفاصيل العتاد المحددة');
-      return;
-    }
+    setTried(true);
+    if (!date) return;
+    if (!member) return showSnackbar('خطأ', 'اختر العضو المستلم', '#ef4444');
+    if (items.some(i => !i.equipment_id || !i.quantity)) return showSnackbar('خطأ', 'اختر العتاد واكتب كميته', '#ef4444');
     for (const item of items) {
       const eq = c.equipments.find(e => e.id.toString() === item.equipment_id);
       if (eq && Number(item.quantity) > availableOf(eq)) {
-        setError(`الكمية المطلوبة من العتاد "${eq.name}" غير متوفرة! المتوفر حالياً: ${availableOf(eq)}`);
-        return;
+        return showSnackbar('خطأ', `الكمية غير متوفرة من «${eq.name}» (المتوفر ${availableOf(eq)})`, '#ef4444');
       }
     }
-    setError('');
     setSaving(true);
     const ok = operation
       ? await c.updateOperation(operation.id, member, date, season, items)
@@ -78,11 +75,10 @@ export const MobileOperationForm: React.FC<MobileOperationFormProps> = ({ c, ope
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="meq-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : operation ? 'حفظ التعديلات' : 'تأكيد العملية'}
+          {saving ? 'جاري الحفظ...' : operation ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
-      {error && <p className="meq-banner"><AlertCircle size={16} /> {error}</p>}
 
       <section className="me-card">
         <h3 className="me-section-title"><span><User size={16} /></span>العضو المستلم</h3>
@@ -103,7 +99,7 @@ export const MobileOperationForm: React.FC<MobileOperationFormProps> = ({ c, ope
                 ? <span className="meq-avatar">{initials(`${person.first_name} ${person.last_name}`)}</span>
                 : <span className="meq-pick-icon"><UserRound size={20} /></span>}
               <span className="meq-pick-text">
-                <small>{person ? TYPE_LABELS[person.type] || 'عضو' : 'العضو المستلم'}</small>
+                {person && <small>{TYPE_LABELS[person.type] || 'عضو'}</small>}
                 <strong>{person ? `${person.first_name} ${person.last_name}` : 'اختر عضواً'}</strong>
               </span>
               <ChevronDown size={18} />
@@ -111,23 +107,18 @@ export const MobileOperationForm: React.FC<MobileOperationFormProps> = ({ c, ope
           )}
         />
 
-        <div className="meq-two">
-          <label className="me-field">
-            <span className="me-label"><Calendar size={14} /> تاريخ العملية</span>
-            <input className="me-input" type="date" dir="ltr" value={date} onChange={e => setDate(e.target.value)} />
-          </label>
-          <label className="me-field">
-            <span className="me-label"><Trophy size={14} /> الموسم الرياضي</span>
-            <input className="me-input" type="text" dir="ltr" value={season} onChange={e => setSeason(e.target.value)} placeholder="2025/2026" />
-          </label>
-        </div>
+        {/* The date (with «اليوم»), then the season under it: each one the card's full width */}
+        <label className="me-field">
+          <span className="me-label"><Calendar size={14} /> تاريخ العملية</span>
+          <input className={`me-input ${tried && !date ? 'is-missing' : ''}`} type="date" dir="ltr" value={date} onChange={e => setDate(e.target.value)} />
+          {tried && !date && <p className="meq-form-error"><AlertCircle size={13} /> حدد التاريخ</p>}
+        </label>
         <div className="meq-quick">
           <button type="button" className={date === isoDay(0) ? 'on' : ''} onClick={() => setDate(isoDay(0))}>اليوم</button>
-          {[0, 1].map(o => (
-            <button key={o} type="button" className={season === seasonChoice(o) ? 'on' : ''} onClick={() => setSeason(seasonChoice(o))}>
-              <span dir="ltr">{seasonChoice(o)}</span>
-            </button>
-          ))}
+        </div>
+        <div className="me-field">
+          <span className="me-label"><Trophy size={14} /> الموسم الرياضي</span>
+          <SeasonPicker value={season} onChange={setSeason} label="" />
         </div>
       </section>
 

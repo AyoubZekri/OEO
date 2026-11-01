@@ -2,7 +2,11 @@ import React from 'react';
 import './InternalRegulationsDocument.css';
 import receiptBg from '../../../../assets/receipt-template.png';
 
-export const InternalRegulationsDocument: React.FC = () => {
+/**
+ * The club's internal regulations, A4 pages; `onScreen`: shown in the app (the viewer), not only when printing;
+ * `flow`: the phone's own layout, the text one part after the other (no paper, no page numbers)
+ */
+export const InternalRegulationsDocument: React.FC<{ onScreen?: boolean; flow?: boolean }> = ({ onScreen = false, flow = false }) => {
   const pages = [];
 
   // Page 1: Preamble + Bab 1 (Articles 1-3) + start of Bab 2 (Articles 4-5)
@@ -784,8 +788,16 @@ export const InternalRegulationsDocument: React.FC = () => {
     </>
   );
 
+  if (flow) {
+    return (
+      <div className="reg-flow" dir="rtl">
+        {pages.map((content, index) => <section key={index} className="reg-flow-part">{content}</section>)}
+      </div>
+    );
+  }
+
   return (
-    <div className="internal-regulations-container print-only" style={{ direction: 'rtl' }}>
+    <div className={`internal-regulations-container ${onScreen ? 'on-screen' : 'print-only'}`} style={{ direction: 'rtl' }}>
       {pages.map((content, index) => (
         <div key={index} className="receipt-wrapper page-break-force" style={{ marginBottom: '20px' }}>
           <img src={receiptBg} alt="Background" className="receipt-bg-image" />

@@ -8,6 +8,7 @@ import { parseDate } from '../../../shared/dates';
 import type { DebtsController } from '../useDebtsController';
 import { dayText, dueText, KIND_META, toneOf, type Debt, type DebtRepayment } from '../debtUtils';
 import { CreditorAvatar, DebtBar, PaidRing, StatusPill } from './DebtCard';
+import { StateIcon } from '../../../widget/StateIcon';
 
 const MONTHS_SHORT = ['جانفي', 'فيفري', 'مارس', 'أفريل', 'ماي', 'جوان', 'جويلية', 'أوت', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -83,10 +84,7 @@ export const DebtDetails: React.FC<{ c: DebtsController; debt: Debt; mobile: boo
             <section className="tk-card-box">
               <h3><History size={16} />سجل التسديدات <b>{d.repayments.length}</b></h3>
               {d.repayments.length === 0 ? (
-                <div className="db-empty">
-                  <HandCoins size={26} />
-                  <p>لم يُسدد أي مبلغ بعد</p>
-                </div>
+                <StateIcon small />
               ) : (
                 <ol className="db-timeline">
                   {d.repayments.map(r => (

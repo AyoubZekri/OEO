@@ -451,3 +451,21 @@
 .db-card.compact .db-compact-money { flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 2px; }
 .db-card.compact .db-compact-money b { font-size: 1.12rem; line-height: 1.3; }
 .db-card.compact .db-bar { width: 100%; margin-top: 6px; }
+
+/* The debt's card: who, how much, what is left (the rest in its details) */
+.db-card-simple { display: flex; flex-direction: column; gap: 14px; }
+.db-card-simple .db-card-head { display: flex; align-items: center; gap: 10px; }
+.db-card-simple .db-card-name { flex: 1; min-width: 0; margin: 0; font-size: 1rem; font-weight: 800; color: var(--text-h); overflow-wrap: anywhere; }
+.db-card-simple .db-actions { display: flex; gap: 6px; }
+.db-card-figs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.db-card-figs span { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); }
+.db-card-figs small { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+.db-card-figs b { font-size: 1.05rem; font-weight: 900; color: var(--text-h); direction: ltr; text-align: right; }
+.db-card-figs b.db-left { color: #ef4444; }
+.db-card-figs b.db-paid { color: #10b981; }
+
+/* Phones: the amount and what is left one under the other, inside the card */
+.db-card-simple, .db-card-simple .db-card-figs span { min-width: 0; }
+.db-card-simple .db-card-figs b { overflow-wrap: anywhere; }
+.db-card-simple.stacked .db-card-figs { grid-template-columns: minmax(0, 1fr); }
+.db-card-simple.stacked .db-card-figs span { flex-direction: row; align-items: center; justify-content: space-between; gap: 8px; }

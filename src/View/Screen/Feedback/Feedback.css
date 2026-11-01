@@ -174,3 +174,7 @@
 
 /* Opened from an alert */
 .fb-card.is-focused { border-color: var(--accent, #f97316); outline: 2px solid color-mix(in srgb, #f97316 35%, transparent); outline-offset: 2px; }
+
+/* A required field left empty: a red edge and its message under it */
+.fb-field input.is-missing, .fb-field textarea.is-missing { border-color: #ef4444; }
+.fb-field-error { display: block; margin-top: 6px; color: #ef4444; font-size: 0.8rem; font-weight: 700; }

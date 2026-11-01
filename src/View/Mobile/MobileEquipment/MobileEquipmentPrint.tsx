@@ -27,7 +27,7 @@ export const MobileEquipmentPrint: React.FC<{ operation: any; members: any[]; on
       )}
     >
       <div className="meq-print">
-        <p>نوع المحضر للاعب <b>{receipt.playerName}</b>:</p>
+        <p><b>{receipt.playerName}</b></p>
         <div className="meq-print-options">
           <button type="button" className={type === 'handover' ? 'on' : ''} onClick={() => setType('handover')}>
             <span><ArrowLeftRight size={22} /></span>
@@ -40,7 +40,7 @@ export const MobileEquipmentPrint: React.FC<{ operation: any; members: any[]; on
             <small>المعدات المسترجعة فقط</small>
           </button>
         </div>
-        {empty && <p className="meq-banner"><AlertCircle size={15} /> لا يوجد عتاد مسترجع في هذه العملية لطباعته!</p>}
+        {empty && <p className="meq-banner"><AlertCircle size={15} /> لا يوجد عتاد مسترجع</p>}
       </div>
 
       {/* Hidden printable component */}

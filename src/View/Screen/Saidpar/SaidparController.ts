@@ -125,10 +125,18 @@ export const useSaidparController = (onLogout?: () => void) => {
      title: "",
       items: [
         // Home, for everyone: the tasks whose time came (all of them with the tasks permission, mine only without);
-        // the appointments page; the finance (the former home page)
+        // the appointments page; the general goals; the finance (the former home page)
         { name: 'Home', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
         // The appointments, for everyone too: all of them with the appointments permission, mine only without
         { name: 'Tasks', icon: CalendarClock, isDropdown: false, label: 'المواعيد', route: Approutes.Tasks },
+        // The general goals, after the appointments and before the finance
+        ...(hasAccess(permissions.goals?.view ?? false) ? [{
+          name: 'Goals',
+          icon: Target,
+          isDropdown: false,
+          label: 'الأهداف العامة',
+          route: Approutes.Goals,
+        }] : []),
         ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
           name: 'Finance',
           icon: PieChart,
@@ -144,18 +152,6 @@ export const useSaidparController = (onLogout?: () => void) => {
           route: Approutes.Members,
         }] : []),
 
-        // The disciplinary actions, like the equipment: the actions page (with its permission), and «إجراءاتي» for
-        // everyone (the personal space's page, as it is)
-        {
-          name: 'DisciplinaryGroup',
-          icon: Scale,
-          isDropdown: true,
-          label: 'الإجراءات التأديبية',
-          subItems: [
-            ...(hasAccess(permissions.disciplinary.view) ? [{ name: 'Disciplinary', label: 'الإجراءات التأديبية', route: Approutes.Disciplinary }] : []),
-            { name: 'MyDisciplinaryPage', label: 'إجراءاتي', route: Approutes.MyDisciplinary },
-          ],
-        },
         // The teams: on a computer, from the members page's button; the phone's «المزيد» keeps them
         ...(isMobile && hasAccess(permissions.teams.view) ? [{
           name: 'Teams',
@@ -164,22 +160,6 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'فئات الفرق',
           route: Approutes.Teams,
         }] : []),
-        // The training sessions, for everyone too: all of them with their permission, mine only without
-        { name: 'TrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.TrainingSessions },
-        // The absences, like the equipment: the absences page (with its permission: the others', the decisions), and
-        // «غياباتي» for everyone (the personal space's page, as it is)
-        {
-          name: 'AbsencesGroup',
-          icon: FileWarning,
-          isDropdown: true,
-          label: 'الغيابات',
-          subItems: [
-            ...(hasAccess(permissions.absences.view) ? [{ name: 'AbsenceRequests', label: 'الغيابات', route: Approutes.AbsenceRequests }] : []),
-            { name: 'MyAbsencesPage', label: 'غياباتي', route: Approutes.MyAbsences },
-          ],
-        },
-        // The matches, for everyone too: all of them with their permission, mine only without
-        { name: 'Matches', icon: Calendar, isDropdown: false, label: 'المباريات', route: Approutes.Matches },
         // The meetings, for everyone too (all of them with their permission, mine only without); the decisions, by theirs
         {
           name: 'MeetingsGroup',
@@ -199,18 +179,36 @@ export const useSaidparController = (onLogout?: () => void) => {
             }] : []),
           ]
         },
-
+        // The training sessions, for everyone too: all of them with their permission, mine only without
+        { name: 'TrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.TrainingSessions },
         // The trips, for everyone too: all of them with their permission, mine only without
         { name: 'Travels', icon: Bus, isDropdown: false, label: 'التنقلات', route: Approutes.Travels },
-        // The opinions, one page for everyone: everyone's with their permission (mine sent from it), mine only without
-        { name: 'Feedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.Feedback },
-        ...(hasAccess(permissions.goals?.view ?? false) ? [{
-          name: 'Goals',
-          icon: Target,
-          isDropdown: false,
-          label: 'الأهداف العامة',
-          route: Approutes.Goals,
-        }] : []),
+        // The matches, for everyone too: all of them with their permission, mine only without
+        { name: 'Matches', icon: Calendar, isDropdown: false, label: 'المباريات', route: Approutes.Matches },
+        // The absences, like the equipment: the absences page (with its permission: the others', the decisions), and
+        // «غياباتي» for everyone (the personal space's page, as it is)
+        {
+          name: 'AbsencesGroup',
+          icon: FileWarning,
+          isDropdown: true,
+          label: 'الغيابات',
+          subItems: [
+            ...(hasAccess(permissions.absences.view) ? [{ name: 'AbsenceRequests', label: 'الغيابات', route: Approutes.AbsenceRequests }] : []),
+            { name: 'MyAbsencesPage', label: 'غياباتي', route: Approutes.MyAbsences },
+          ],
+        },
+        // The disciplinary actions, like the equipment: the actions page (with its permission), and «إجراءاتي» for
+        // everyone (the personal space's page, as it is)
+        {
+          name: 'DisciplinaryGroup',
+          icon: Scale,
+          isDropdown: true,
+          label: 'الإجراءات التأديبية',
+          subItems: [
+            ...(hasAccess(permissions.disciplinary.view) ? [{ name: 'Disciplinary', label: 'الإجراءات التأديبية', route: Approutes.Disciplinary }] : []),
+            { name: 'MyDisciplinaryPage', label: 'إجراءاتي', route: Approutes.MyDisciplinary },
+          ],
+        },
         // The medical reports, like the equipment: the medical page (with its permission), and «تقاريري الطبية» for
         // everyone (the personal space's page, as it is)
         {
@@ -223,6 +221,26 @@ export const useSaidparController = (onLogout?: () => void) => {
             { name: 'MyMedicalPage', label: 'تقاريري الطبية', route: Approutes.MyMedical },
           ],
         },
+        ...((hasAccess(permissions.equipment.view) || hasAccess(permissions.equipmentOperations.view)) ? [{
+          name: 'EquipmentGroup',
+          icon: Package,
+          isDropdown: true,
+          label: 'العتاد',
+          subItems: [
+            ...(hasAccess(permissions.equipment.view) ? [{
+              name: 'Equipment',
+              label: 'معدات الفريق',
+              route: Approutes.Equipment,
+            }] : []),
+            ...(hasAccess(permissions.equipmentOperations.view) ? [{
+              name: 'EquipmentOperations',
+              label: 'حركة العتاد',
+              route: Approutes.EquipmentOperations,
+            }] : [])
+          ]
+        }] : []),
+        // The opinions, one page for everyone: everyone's with their permission (mine sent from it), mine only without
+        { name: 'Feedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.Feedback },
         ...(hasAccess(permissions.contracts.view) ? [{
           name: 'Contracts',
           icon: FileText,
@@ -257,24 +275,6 @@ export const useSaidparController = (onLogout?: () => void) => {
           isDropdown: false,
           label: 'sidebar.reports',
           route: Approutes.Reports,
-        }] : []),
-        ...((hasAccess(permissions.equipment.view) || hasAccess(permissions.equipmentOperations.view)) ? [{
-          name: 'EquipmentGroup',
-          icon: Package,
-          isDropdown: true,
-          label: 'العتاد',
-          subItems: [
-            ...(hasAccess(permissions.equipment.view) ? [{
-              name: 'Equipment',
-              label: 'معدات الفريق',
-              route: Approutes.Equipment,
-            }] : []),
-            ...(hasAccess(permissions.equipmentOperations.view) ? [{
-              name: 'EquipmentOperations',
-              label: 'حركة العتاد',
-              route: Approutes.EquipmentOperations,
-            }] : [])
-          ]
         }] : []),
         ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
           name: 'UsersManagement',

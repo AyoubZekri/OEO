@@ -359,3 +359,6 @@ body.dark-mode .no-data {
 
 /* the file an alert opened */
 .med-card.is-focused { outline: 2px solid var(--primary-color, #3b82f6); outline-offset: 2px; }
+
+/* The medical form: a required field left empty — a red edge (its message under it) */
+.task-dialog .form-group input.is-missing { border-color: #ef4444 !important; }

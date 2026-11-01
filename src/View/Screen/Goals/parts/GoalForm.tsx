@@ -5,6 +5,7 @@ import { UserPicker } from '../../../shared/FormBits';
 import { seasonLabel } from '../../../Mobile/MobileContracts/contractUtils';
 import type { GoalsController } from '../useGoals';
 import type { Goal } from '../goalUtils';
+import { showSnackbar } from '../../../../core/functions/Snacpar';
 
 /** «2026 - 2027», one season back or forward */
 const shiftSeason = (season: string, step: number) => {
@@ -33,9 +34,8 @@ export const GoalForm: React.FC<{ c: GoalsController; goal: Goal | null; mobile:
   const [text, setText] = useState(goal?.goal || '');
   const [user, setUser] = useState(goal?.user ? String(goal.user.id) : '');
   const [season, setSeason] = useState(goal?.season || seasonLabel());
-  const [error, setError] = useState('');
-  // A required field left empty: its message right under it
-  const [missing, setMissing] = useState<{ goal?: boolean; user?: boolean }>({});
+  // The goal left empty: its message right under it (the user, a choice: a snackbar)
+  const [missing, setMissing] = useState(false);
   const [saving, setSaving] = useState(false);
   const field = useRef<HTMLTextAreaElement>(null);
 
@@ -48,15 +48,14 @@ export const GoalForm: React.FC<{ c: GoalsController; goal: Goal | null; mobile:
   }, [text]);
 
   const save = async () => {
-    const empty = { goal: !text.trim(), user: !user };
-    setMissing(empty);
-    if (empty.goal || empty.user) return;
-    setError('');
+    setMissing(!text.trim());
+    if (!text.trim()) return;
+    if (!user) return showSnackbar('خطأ', 'اختر المكلّف', '#ef4444');
     setSaving(true);
     try {
       await c.save({ ...(goal ? { id: goal.id } : {}), goal: text.trim(), user_id: Number(user), season });
     } catch (e) {
-      setError((e as Error).message);
+      showSnackbar('خطأ', (e as Error).message, '#ef4444');
     } finally {
       setSaving(false);
     }
@@ -80,23 +79,20 @@ export const GoalForm: React.FC<{ c: GoalsController; goal: Goal | null; mobile:
     >
       <div className={`tk-form calm ${mobile ? '' : 'gl-form'}`}>
         {/* The goal: a field that grows with what is written */}
-        <label className={`tk-field gl-goal-field ${missing.goal ? 'gl-missing' : ''}`}>
+        <label className={`tk-field gl-goal-field ${missing ? 'gl-missing' : ''}`}>
           <span className="tk-label"><Target size={14} />الهدف</span>
           <textarea
             ref={field}
             className="tk-input gl-goal-input"
             rows={1}
             value={text}
-            onChange={e => { setText(e.target.value); setError(''); setMissing(m => ({ ...m, goal: false })); }}
+            onChange={e => { setText(e.target.value); setMissing(false); }}
             autoFocus={!mobile}
           />
-          {missing.goal && <small className="gl-field-error"><AlertCircle size={13} />اكتب الهدف</small>}
+          {missing && <small className="gl-field-error"><AlertCircle size={13} />اكتب الهدف</small>}
         </label>
 
-        <div className={missing.user ? 'gl-missing' : ''}>
-          <UserPicker mobile={mobile} label="المكلّف" icon={UserRound} value={user} users={oncePerName(c.users, user)} placeholder="" onChange={v => { setUser(v); setError(''); setMissing(m => ({ ...m, user: false })); }} />
-          {missing.user && <small className="gl-field-error"><AlertCircle size={13} />اختر المكلّف</small>}
-        </div>
+        <UserPicker mobile={mobile} label="المكلّف" icon={UserRound} value={user} users={oncePerName(c.users, user)} placeholder="" onChange={setUser} />
 
         {/* The season: one step back or forward */}
         <div className="tk-field">
@@ -108,7 +104,6 @@ export const GoalForm: React.FC<{ c: GoalsController; goal: Goal | null; mobile:
           </div>
         </div>
 
-        {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
     </SidePanel>
   );

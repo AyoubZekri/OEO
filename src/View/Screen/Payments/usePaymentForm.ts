@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { usePaymentsController } from './PaymentsController';
 import type { PaymentRecord } from './payment_model';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- payments come with mixed field names from the API */
 
@@ -208,11 +209,18 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
   /** The expense is on credit: only a new expense (مصروف) can be, and only when the page handles it */
   const creditMode = onCredit && transactionType === 'مصروف' && !editingPayment && !!saveCredit;
 
+  /** The fields to type left wrong: their message under them (the member and the fund, choices: a snackbar) */
+  const fieldErrors = {
+    creditor: creditMode && !creditor.trim() ? 'اكتب اسم البائع' : null,
+    date: !paymentDate ? 'حدد التاريخ' : null,
+    due: creditMode && dueDate && paymentDate && dueDate < paymentDate ? 'الأجل يكون بعد تاريخ الشراء' : null,
+    installment: !creditMode && amountNature === 'رقم دفعة' && !installmentNumber.trim() ? 'حدد رقم الدفعة' : null,
+    goals: !creditMode && amountNature === 'تسجيل أهداف' && !(parseInt(numberOfGoals) >= 1) ? 'حدد عدد الأهداف' : null,
+    occasion: !creditMode && amountNature === 'اخرى' && !occasion.trim() ? 'اكتب السبب' : null,
+    amount: amount === '' || (creditMode && !(parseFloat(amount) > 0)) ? 'اكتب المبلغ' : null,
+  };
+
   const saveOnCredit = async () => {
-    if (!creditor.trim()) return setCreditError('اكتب اسم البائع أو المحل');
-    if (!(parseFloat(amount) > 0)) return setCreditError('اكتب المبلغ');
-    if (!paymentDate) return setCreditError('حدد تاريخ الشراء');
-    if (dueDate && dueDate < paymentDate) return setCreditError('تاريخ الاستحقاق يجب أن يكون بعد تاريخ الشراء');
     setCreditError('');
     setCreditSaving(true);
     try {
@@ -228,7 +236,7 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
         notes: notes.trim() || null,
       });
     } catch (err) {
-      setCreditError((err as Error).message);
+      showSnackbar('خطأ', (err as Error).message, '#ef4444');
     } finally {
       setCreditSaving(false);
     }
@@ -246,12 +254,13 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
   const handleSave = (e?: React.FormEvent) => {
     e?.preventDefault();
     setFormSubmitted(true);
+    if (Object.values(fieldErrors).some(Boolean)) return;
     if (creditMode) {
       saveOnCredit();
       return;
     }
-    if (transactionType === 'دفع' && !memberId) return;
-    if (transactionType !== 'مصاريف استثنائية' && !fundId) return;
+    if (transactionType === 'دفع' && !memberId) return showSnackbar('خطأ', 'اختر العضو', '#ef4444');
+    if (transactionType !== 'مصاريف استثنائية' && !fundId) return showSnackbar('خطأ', 'اختر الصندوق', '#ef4444');
 
     let computedOccasion = occasion;
     if (amountNature === 'راتب شهري') {
@@ -314,6 +323,8 @@ export const usePaymentForm = (controller: ReturnType<typeof usePaymentsControll
     selectedContractId, setSelectedContractId,
     selectContract,
     formSubmitted,
+    /** Shown once the form was sent */
+    fieldErrors,
     handleOpenDialog,
     handleSave,
     selectedMemberDetails,

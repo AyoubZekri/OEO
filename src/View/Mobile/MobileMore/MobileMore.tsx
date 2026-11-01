@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Search, Moon, Sun, ChevronLeft, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope,
-  FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, LayoutGrid, Shirt, Bus, Landmark, CalendarX2, LogOut, MessageSquare, ClipboardList, PieChart, Target } from 'lucide-react';
+  Search, Moon, Sun, ChevronLeft, BookOpen, Scale, Shield, Calendar, FileWarning, Trophy, Stethoscope, FileText, Banknote, Wallet, BarChart3, Briefcase, Gavel, Package, ArrowLeftRight, KeyRound, UserCog, Shirt, Bus, Landmark, CalendarX2, LogOut, MessageSquare, ClipboardList, PieChart, Target,
+} from 'lucide-react';
 import '../../Screen/Personal/Personal.css';
 import { useAuth } from '../../../core/context/AuthContext';
 import { Approutes } from '../../../core/constant/routes';
@@ -10,6 +10,7 @@ import type { useSaidparController } from '../../Screen/Saidpar/SaidparControlle
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import './MobileMore.css';
 import { StateIcon } from '../../widget/StateIcon';
+import { RegulationsViewer } from '../../widget/RegulationsViewer';
 
 interface MobileMoreProps {
   controller: ReturnType<typeof useSaidparController>;
@@ -89,6 +90,8 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
   const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [confirmLogout, setConfirmLogout] = useState(false);
+  // The club's internal regulations, opened from the account's buttons
+  const [regulations, setRegulations] = useState(false);
 
   const personal = controller.space === 'personal';
   // Same pages (and permissions) as the sidebar, dropdown children flattened
@@ -118,18 +121,26 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
       <MobileAppBar title="المزيد" />
 
       {/* Account */}
+      {/* Who I am on top, then the account's buttons (icons) in a row of their own: they never squeeze the name */}
       <section className="mo-account">
-        <span className="mo-avatar">{name.charAt(0).toUpperCase()}</span>
-        <div className="mo-account-text">
-          <strong>{name}</strong>
-          <span>{readRoleName(user?.roleId === '1' ? 'مدير النظام' : 'مستخدم')}</span>
+        <div className="mo-account-who">
+          <span className="mo-avatar">{name.charAt(0).toUpperCase()}</span>
+          <div className="mo-account-text">
+            <strong>{name}</strong>
+            <span>{readRoleName(user?.roleId === '1' ? 'مدير النظام' : 'مستخدم')}</span>
+          </div>
         </div>
-        <button type="button" className="mo-theme" onClick={controller.toggleTheme} aria-label="تبديل الوضع">
-          {controller.isDarkMode ? <Sun size={19} /> : <Moon size={19} />}
-        </button>
-        <button type="button" className="mo-theme mo-signout" onClick={() => setConfirmLogout(true)} aria-label="تسجيل الخروج" title="تسجيل الخروج">
-          <LogOut size={19} />
-        </button>
+        <div className="mo-account-actions">
+          <button type="button" onClick={() => setRegulations(true)} aria-label="النظام الداخلي" title="النظام الداخلي">
+            <BookOpen size={20} />
+          </button>
+          <button type="button" onClick={controller.toggleTheme} aria-label="تبديل الوضع" title="تبديل الوضع">
+            {controller.isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+          <button type="button" className="signout" onClick={() => setConfirmLogout(true)} aria-label="تسجيل الخروج" title="تسجيل الخروج">
+            <LogOut size={20} />
+          </button>
+        </div>
       </section>
 
       <label className="mo-search">
@@ -138,7 +149,7 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
       </label>
 
       {grouped.length === 0 ? (
-        <StateIcon icon={LayoutGrid} />
+        <StateIcon />
       ) : grouped.map(group => (
         <section key={group.title} className="mo-group">
           <h2>{group.title}</h2>
@@ -164,6 +175,8 @@ export const MobileMore: React.FC<MobileMoreProps> = ({ controller }) => {
           </div>
         </section>
       ))}
+
+      {regulations && <RegulationsViewer onClose={() => setRegulations(false)} />}
 
       {/* Log out: asked first */}
       {confirmLogout && (

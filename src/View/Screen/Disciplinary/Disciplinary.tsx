@@ -28,6 +28,7 @@ import { useIsMobile } from '../../../core/functions/useIsMobile';
 import './Disciplinary.css';
 import '../Members/Members.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
+import { StateIcon } from '../../widget/StateIcon';
 
 
 const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
@@ -56,8 +57,8 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
 
   return (
     <div className="status-dropdown-container" ref={ref}>
-      <div 
-        className={`status-select-modern ${currentOption.colorClass}`} 
+      <div
+        className={`status-select-modern ${currentOption.colorClass}`}
         onClick={() => setIsOpen(!isOpen)}
       >
         <span>{currentOption.label}</span>
@@ -67,8 +68,8 @@ const StatusDropdown = ({ value, onChange }: { value: string, onChange: (val: st
       {isOpen && (
         <div className="status-dropdown-menu">
           {options.map(opt => (
-            <div 
-              key={opt.value} 
+            <div
+              key={opt.value}
               className={`status-dropdown-item ${opt.colorClass} ${value === opt.value ? 'selected' : ''}`}
               onClick={() => {
                 onChange(opt.value);
@@ -130,7 +131,7 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
     }, { replace: true });
   }, [requestedId, controller.isLoading, controller.disciplinaryList, isMobile, setParams]);
   /* eslint-enable react-hooks/set-state-in-effect */
-  
+
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'طلب توضيح': return <MessageSquare size={14} />;
@@ -246,10 +247,10 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
       {/* Header section */}
       <div className="members-header">
 
-          
+
           <div className="members-actions">
             <TopbarSearch value={controller.searchQuery} onChange={v => controller.setSearchQuery(v)} placeholder="ابحث باسم العضو أو السبب..." />
-          
+
           <CustomDropdown<string>
             value={controller.filterType}
             options={typeOptions}
@@ -291,9 +292,9 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
             <article key={c.id} className="dc-card">
               <header className="dc-head">
                 <div className="status-control-modern dc-status" style={{ opacity: canDo('changeStatus') ? 1 : 0.85, pointerEvents: canDo('changeStatus') ? 'auto' : 'none' }}>
-                  <StatusDropdown 
-                    value={c.status} 
-                    onChange={(val) => controller.handleUpdateStatus(c.id, val as any)} 
+                  <StatusDropdown
+                    value={c.status}
+                    onChange={(val) => controller.handleUpdateStatus(c.id, val as any)}
                   />
                 </div>
                 <MobileRowMenu items={menuItems(c)} label="إجراءات الإجراء التأديبي" />
@@ -339,10 +340,7 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
             </article>
           ))}
           {controller.disciplinaryList.length === 0 && (
-             <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px 20px', color: 'var(--text-muted)' }}>
-               <Scale size={48} style={{ opacity: 0.2, margin: '0 auto 16px', display: 'block' }} />
-               <h3>لا توجد إجراءات تأديبية</h3>
-             </div>
+             <StateIcon />
           )}
           </div>
         )}
@@ -370,7 +368,7 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
           onSave={controller.handleSave}
           editingItem={controller.editingItem}
         />
-      
+
         <ClarificationResponseDialog
           isOpen={controller.isResponseDialogOpen && controller.editingItem?.actionType === 'طلب توضيح'}
           onClose={controller.closeDialog}

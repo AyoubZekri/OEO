@@ -38,14 +38,14 @@ export const EquipmentPrintDialog: React.FC<EquipmentPrintDialogProps> = ({ isOp
             <X size={24} />
           </button>
         </div>
-        
+
         <div className="glass-dialog-body">
           <p style={{ marginBottom: '20px', color: 'var(--text-muted)' }}>
-            الرجاء اختيار نوع المحضر المراد طباعته للاعب <strong>{memberName}</strong>:
+            <strong>{memberName}</strong>
           </p>
 
           <div className="print-options-grid" style={{ gap: '16px', marginBottom: '24px' }}>
-            <div 
+            <div
               className="print-option-card"
               onClick={() => setPrintType('handover')}
               style={{
@@ -60,7 +60,7 @@ export const EquipmentPrintDialog: React.FC<EquipmentPrintDialogProps> = ({ isOp
               <span className="print-option-desc">طباعة قائمة المعدات المسلمة للاعب</span>
             </div>
 
-            <div 
+            <div
               className="print-option-card"
               onClick={() => setPrintType('return')}
               style={{
@@ -78,7 +78,7 @@ export const EquipmentPrintDialog: React.FC<EquipmentPrintDialogProps> = ({ isOp
 
           {printType === 'return' && itemsToPrint.length === 0 && (
             <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger, #ef4444)', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem', textAlign: 'center' }}>
-              لا يوجد عتاد مسترجع في هذه العملية لطباعته!
+              لا يوجد عتاد مسترجع
             </div>
           )}
 
@@ -92,9 +92,9 @@ export const EquipmentPrintDialog: React.FC<EquipmentPrintDialogProps> = ({ isOp
           <button type="button" className="glass-btn-secondary" onClick={onClose}>
             إلغاء
           </button>
-          <button 
-            type="button" 
-            className="glass-btn-primary" 
+          <button
+            type="button"
+            className="glass-btn-primary"
             onClick={() => handlePrint()}
             disabled={printType === 'return' && itemsToPrint.length === 0}
             style={{ display: 'flex', alignItems: 'center', gap: '8px' }}

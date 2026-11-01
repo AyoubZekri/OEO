@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Plus, Eye, Pencil, Trash2, Search, X, Filter, ChevronDown, Wallet, Banknote, Printer, Paperclip, RefreshCw, Calendar,
+  Plus, Eye, Pencil, Trash2, Search, X, Filter, ChevronDown, Wallet, Printer, Paperclip, RefreshCw, Calendar,
   CheckCircle2, BookOpen, Clock, HandCoins, ArrowLeftRight, Layers, Repeat,
 } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
@@ -77,8 +77,6 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   // Money paid: an unpaid purchase on credit is not counted
   // Money paid: a purchase on credit counts for what has been paid on it
   const sumOf = (items: PaymentRecord[]) => items.reduce((s, p) => s + (isCredit(p) ? p.credit.repaid : amountOf(p)), 0);
-  // Every operation, purchases on credit included (one row each), for the totals
-  const everything: PaymentRecord[] = [...unpaid, ...c.payments];
   const details = detailsId ? c.payments.find(p => String(p.id) === detailsId) : undefined;
   const fund = c.funds.find(f => String(f.id) === c.selectedFundFilter);
   // Operation type choices, with how many operations each one has
@@ -119,25 +117,6 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
   return (
     <div className="mpy-page">
       <MobileAppBar title="المصاريف والمدفوعات" />
-
-      {/* Totals */}
-      <section className="mpy-hero">
-        <div className="mpy-hero-top">
-          <span className="mpy-hero-icon"><Banknote size={26} /></span>
-          <div>
-            <small>مجموع العمليات · {everything.length}</small>
-            <strong dir="ltr">{moneyText(sumOf(everything))}</strong>
-          </div>
-        </div>
-        <div className="mpy-stats">
-          {KINDS.map(k => (
-            <div key={k.value} className={`tone-${k.tone}`}>
-              <small><k.icon size={12} /> {k.short}</small>
-              <strong dir="ltr">{moneyText(sumOf(everything.filter(p => kindOf(p) === k.value)))}</strong>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {can.edit && c.funds.length > 1 && (
         <button type="button" className="mpy-bulk" onClick={c.openBulk}>
@@ -205,7 +184,7 @@ export const MobilePayments: React.FC<MobilePaymentsProps> = ({
       {c.isLoading && !c.payments.length ? (
         <MobileLoader text="جاري تحميل العمليات..." />
       ) : groups.length === 0 ? (
-        <StateIcon icon={Banknote} />
+        <StateIcon />
       ) : (
         <div className="mpy-list">
           {groups.map(g => (

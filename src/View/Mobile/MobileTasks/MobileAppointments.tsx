@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, CalendarClock, Inbox, RefreshCw, Search, X, ChevronDown } from 'lucide-react';
+import { Plus, RefreshCw, Search, X, ChevronDown } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileSelect } from '../widgets/MobileSelect';
 import { PageLoader } from '../../shared/PageLoader';
@@ -12,6 +12,7 @@ import '../../Screen/Travels/Travels.css';
 import '../../Screen/Debts/Debts.css';
 import '../../Screen/Tasks/Tasks.css';
 import './MobileTasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 // Phone version of the appointments page, like the other pages: the search and three filters (type, nature, state —
 // a bottom sheet each), the appointments as cards, and the floating add button
@@ -65,11 +66,11 @@ export const MobileAppointments: React.FC<{ c: TasksAdmin; tabs?: React.ReactNod
       {c.loading && !c.templates.length ? <PageLoader mobile text="جاري تحميل المواعيد..." />
         : c.error ? (
           <div className="tk-state">
-            <CalendarClock size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={30} /><p>{c.templates.length ? 'لا توجد مواعيد بهذه التصفية' : 'لا توجد مواعيد بعد'}</p></div>
+          <StateIcon />
         ) : (
           <div className="tk-list">{visible.map(t => <AppointmentCard key={t.id} t={t} onView={view} onEdit={edit} onToggle={toggle} onDelete={remove} />)}</div>
         )}

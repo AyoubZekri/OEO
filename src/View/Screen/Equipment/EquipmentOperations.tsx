@@ -12,6 +12,7 @@ import { MobileEquipmentOps } from '../../Mobile/MobileEquipment/MobileEquipment
 import './Equipment.css';
 import './EquipmentOperations.css';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const EquipmentOperations: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
@@ -26,7 +27,7 @@ export const EquipmentOperations: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [printingOperation, setPrintingOperation] = useState<any | null>(null);
-  
+
   const selectedOperation = selectedOperationId ? operations.find(op => op.id === selectedOperationId) : null;
   const paginatedOperations = operations.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -98,11 +99,11 @@ export const EquipmentOperations: React.FC = () => {
                   </td>
                 </tr>
               ) : paginatedOperations.map(op => {
-                const memberName = op.individual 
-                  ? `${op.individual.first_name} ${op.individual.last_name}` 
+                const memberName = op.individual
+                  ? `${op.individual.first_name} ${op.individual.last_name}`
                   : (op.member ? `${op.member.first_name} ${op.member.last_name}` : 'غير معروف');
                 const itemCount = op.movements ? op.movements.length : 0;
-                
+
                 return (
                   <tr key={op.id}>
                     <td data-label="رقم العملية">#{op.id}</td>
@@ -141,26 +142,24 @@ export const EquipmentOperations: React.FC = () => {
               })}
               {!isLoading && paginatedOperations.length === 0 && (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '24px' }}>
-                    لا توجد عمليات مسجلة حالياً
-                  </td>
+                  <td colSpan={6}><StateIcon /></td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
         {!isLoading && operations.length > 0 && (
-          <Pagination 
-            totalItems={operations.length} 
-            itemsPerPage={itemsPerPage} 
-            currentPage={currentPage} 
-            onPageChange={setCurrentPage} 
-            onItemsPerPageChange={setItemsPerPage} 
+          <Pagination
+            totalItems={operations.length}
+            itemsPerPage={itemsPerPage}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={setItemsPerPage}
           />
         )}
       </div>
 
-      <EquipmentOperationDialog 
+      <EquipmentOperationDialog
         isOpen={isDialogOpen}
         onClose={() => { setIsDialogOpen(false); setEditingOperation(null); }}
         controller={controller}

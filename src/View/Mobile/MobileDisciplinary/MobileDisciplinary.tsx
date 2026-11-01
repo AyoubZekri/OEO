@@ -192,7 +192,7 @@ export const MobileDisciplinary: React.FC<MobileDisciplinaryProps> = ({ controll
       {controller.isLoading ? (
         <MobileLoader text="جاري تحميل الإجراءات..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={Scale} />
+        <StateIcon />
       ) : (
         <div className="md-list">
           {list.map(item => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import {
-  Activity, Calendar, Stethoscope, FileText, ClipboardCheck, Flag, ShieldCheck, Pencil, Trash2, Plus, Check, Clock, Lock,
+  Activity, Stethoscope, FileText, ClipboardCheck, Flag, ShieldCheck, Pencil, Trash2, Plus, Check, Clock, Lock,
 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
@@ -28,7 +28,7 @@ const dateText = (value?: string | null) => (value ? longDate(dayOnly(value)) : 
 const Field: React.FC<{ label: string; value?: string | null; wide?: boolean; secret?: boolean }> = ({ label, value, wide, secret }) => (
   <div className={`mmd2-field ${wide ? 'wide' : ''}`}>
     <small>{secret && <Lock size={11} />} {label}</small>
-    {value ? <strong>{value}</strong> : <em>غير محدد</em>}
+    {value ? <strong>{value}</strong> : <em>—</em>}
   </div>
 );
 
@@ -169,7 +169,6 @@ export const MobileMedicalDetails: React.FC<MobileMedicalDetailsProps> = ({
         </ol>
       </section>
 
-      <p className="mmd2-meta"><Calendar size={12} /> أُنشئ الملف {dateText(record.created_at) || '—'}</p>
     </MobileScreen>
   );
 };

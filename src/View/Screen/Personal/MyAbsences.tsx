@@ -62,7 +62,7 @@ export const MyAbsences: React.FC = () => {
       )}
 
       {list.length === 0 ? (
-        c.isLoading ? null : <StateIcon icon={FileWarning} />
+        c.isLoading ? null : <StateIcon />
       ) : (
         <div className="ab-grid">
           {list.map(a => (

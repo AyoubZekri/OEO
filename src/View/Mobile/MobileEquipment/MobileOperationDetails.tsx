@@ -7,6 +7,7 @@ import {
   type OperationPermissions, memberNameOf, initials, movementsOf, returnedCount, shortDate, RETURN_CONDITIONS,
 } from './equipmentUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- operations come untyped from the API */
 
@@ -84,7 +85,7 @@ export const MobileOperationDetails: React.FC<MobileOperationDetailsProps> = ({
 
       <h3 className="meq-title"><Package size={16} /> العتاد المستلم</h3>
       {moves.length === 0 ? (
-        <p className="meq-none">لا يوجد عتاد مسجل في هذه العملية</p>
+        <StateIcon small />
       ) : (
         <div className="meq-moves">
           {moves.map((mov: any) => (

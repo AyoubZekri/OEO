@@ -2,7 +2,7 @@ import React from 'react';
 import { confirmDeleteMeeting } from './confirmDeleteMeeting';
 import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, FolderOpen, ClipboardCheck, FileWarning } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Clock, MapPin, Users, List, CheckCircle, XCircle, X, ClipboardCheck, FileWarning } from 'lucide-react';
 import { useMeetingsController } from './MeetingsController';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -70,7 +70,7 @@ export const Meetings: React.FC = () => {
             <p className="loading-text">جاري تحميل الاجتماعات...</p>
           </div>
         ) : meetings.length === 0 ? (
-          <StateIcon icon={FolderOpen} />
+          <StateIcon />
         ) : (
           meetings.map(meeting => (
             <div

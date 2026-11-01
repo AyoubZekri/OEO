@@ -44,7 +44,7 @@ export const MobileFundForm: React.FC<MobileFundFormProps> = ({ fund, onSave, on
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mfd-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : 'حفظ'}
+          {saving ? 'جاري الحفظ...' : fund ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
@@ -62,7 +62,7 @@ export const MobileFundForm: React.FC<MobileFundFormProps> = ({ fund, onSave, on
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Type size={14} /> اسم الصندوق</span>
-          <input className="me-input" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="مثال: البنك المركزي" />
+          <input className="me-input" type="text" value={name} onChange={e => setName(e.target.value)} />
         </label>
         {show(errors.name)}
 

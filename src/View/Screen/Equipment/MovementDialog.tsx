@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, User, Calendar, ArrowRightLeft, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
 import './Equipment.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const MovementDialog: React.FC<{
   equipment: any;
@@ -32,18 +33,15 @@ export const MovementDialog: React.FC<{
 
         <div className="eq-dialog-body">
           {movements.length === 0 ? (
-            <div className="eq-empty-state">
-              <ArrowRightLeft size={48} />
-              <p>لا توجد حركات مسجلة لهذا العتاد حتى الآن</p>
-            </div>
+            <StateIcon small />
           ) : (
             <div className="eq-timeline">
               {movements.map((mov: any) => {
                 const isReturned = mov.movement_status === 'إرجاع';
                 const type = isReturned ? 'in' : 'out';
                 const date = isReturned ? mov.return_date : mov.delivery_date;
-                const memberName = mov.operation?.member 
-                  ? `${mov.operation.member.first_name} ${mov.operation.member.last_name}` 
+                const memberName = mov.operation?.member
+                  ? `${mov.operation.member.first_name} ${mov.operation.member.last_name}`
                   : 'غير معروف';
 
                 return (

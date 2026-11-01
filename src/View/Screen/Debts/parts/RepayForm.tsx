@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { HandCoins, Loader2, AlertCircle, Wallet, CreditCard, CalendarDays, Info } from 'lucide-react';
+import { HandCoins, Loader2, AlertCircle, Wallet, CreditCard, CalendarDays } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { CurrencyInput } from '../../../widget/CurrencyInput';
 import { AppSelect } from '../../../shared/FormBits';
 import { moneyText } from '../../../Mobile/MobileContracts/contractUtils';
 import type { DebtsController } from '../useDebtsController';
 import { PAYMENT_METHODS, todayIso, type Debt } from '../debtUtils';
+import { showSnackbar } from '../../../../core/functions/Snacpar';
+
+/** The message under a field left wrong */
+const FieldError: React.FC<{ text?: string | null }> = ({ text }) => (text ? <small className="tk-field-error"><AlertCircle size={13} />{text}</small> : null);
 
 /** "no fund" option of the fund picker */
 const OUTSIDE = 'none';
@@ -20,23 +24,24 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
   const [fundId, setFundId] = useState(d.fund_id ? String(d.fund_id) : '');
   const [method, setMethod] = useState('نقدا');
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState('');
+  // The fields to type left wrong: their message under them (the fund, a choice: a snackbar)
+  const [tried, setTried] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const value = Number(amount.replace(',', '.')) || 0;
-  const after = Math.max(0, Math.round((d.remaining - value) * 100) / 100);
   const quick = [
     { label: 'كل الباقي', v: d.remaining },
     { label: 'النصف', v: Math.round((d.remaining / 2) * 100) / 100 },
     { label: 'الربع', v: Math.round((d.remaining / 4) * 100) / 100 },
   ];
 
+  const amountError = value <= 0 ? 'اكتب المبلغ' : value > d.remaining + 0.005 ? `أكبر من الباقي (${moneyText(d.remaining)})` : null;
+  const dateError = !paidOn ? 'حدد التاريخ' : null;
+
   const save = async () => {
-    if (value <= 0) return setError('اكتب المبلغ المسدد');
-    if (value > d.remaining + 0.005) return setError(`المبلغ أكبر من الباقي (${moneyText(d.remaining)})`);
-    if (!fundId) return setError('اختر الصندوق الذي يُدفع منه، أو «خارج الصناديق»');
-    if (!paidOn) return setError('حدد تاريخ التسديد');
-    setError('');
+    setTried(true);
+    if (amountError || dateError) return;
+    if (!fundId) return showSnackbar('خطأ', 'اختر الصندوق', '#ef4444');
     setSaving(true);
     try {
       await c.repay({
@@ -48,7 +53,7 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
         notes: notes.trim() || null,
       });
     } catch (e) {
-      setError((e as Error).message);
+      showSnackbar('خطأ', (e as Error).message, '#ef4444');
     } finally {
       setSaving(false);
     }
@@ -81,8 +86,9 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
         </div>
 
         <label className="tk-field">
-          <span className="tk-label">{d.kind === 'purchase' ? 'المبلغ المدفوع (د.ج)' : 'المبلغ المسدد (د.ج)'}</span>
-          <CurrencyInput className="tk-input db-money-input big" inputMode="numeric" value={amount} onChangeValue={setAmount} autoFocus={!mobile} />
+          <span className="tk-label">{d.kind === 'purchase' ? 'المبلغ المدفوع' : 'المبلغ المسدد'}</span>
+          <CurrencyInput className={`tk-input db-money-input big ${tried && amountError ? 'is-missing' : ''}`} inputMode="numeric" value={amount} onChangeValue={setAmount} autoFocus={!mobile} />
+          <FieldError text={tried ? amountError : null} />
         </label>
         <div className="db-quick">
           {quick.map(q => (
@@ -91,9 +97,6 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
             </button>
           ))}
         </div>
-        {value > 0 && value <= d.remaining + 0.005 && (
-          <small className="tk-hint"><Info size={12} />{after > 0 ? `يبقى بعد هذا التسديد ${moneyText(after)}` : 'يُصبح الدين مسدداً بالكامل'}</small>
-        )}
 
         <div className="tk-grid-2">
           <AppSelect
@@ -106,7 +109,7 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
               { value: OUTSIDE, label: 'خارج الصناديق' },
             ]}
             onChange={setFundId}
-            placeholder="اختر الصندوق"
+            placeholder=""
           />
           <AppSelect
             mobile={mobile}
@@ -120,22 +123,16 @@ export const RepayForm: React.FC<{ c: DebtsController; debt: Debt; mobile: boole
 
         <label className="tk-field">
           <span className="tk-label"><CalendarDays size={14} />تاريخ التسديد</span>
-          <input className="tk-input" type="date" value={paidOn} onChange={e => setPaidOn(e.target.value)} />
+          <input className={`tk-input ${tried && dateError ? 'is-missing' : ''}`} type="date" value={paidOn} onChange={e => setPaidOn(e.target.value)} />
+          <FieldError text={tried ? dateError : null} />
         </label>
 
         <label className="tk-field">
-          <span className="tk-label">ملاحظات <em>اختياري</em></span>
-          <input className="tk-input" value={notes} onChange={e => setNotes(e.target.value)} placeholder="مثال: الدفعة الأولى" />
+          <span className="tk-label">ملاحظات</span>
+          <input className="tk-input" value={notes} onChange={e => setNotes(e.target.value)} />
         </label>
 
-        {d.kind === 'loan' && (
-          <small className="tk-hint">
-            <Info size={12} />
-            يُنقص المبلغ من رصيد الصندوق المختار مباشرة (لا يُسجل عملية في الصندوق ولا يُحسب مصروفاً).
-          </small>
-        )}
 
-        {error && <p className="tk-error"><AlertCircle size={15} />{error}</p>}
       </div>
     </SidePanel>
   );

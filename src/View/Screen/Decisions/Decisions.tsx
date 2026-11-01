@@ -5,7 +5,7 @@ import { useDecisionsController } from './DecisionsController';
 import type { Decision } from './decision_model';
 import { useMeetingsController } from '../Meetings/MeetingsController';
 import { useMembersController } from '../Members/MembersController';
-import { Plus, Edit2, Trash2, Calendar, Users, CheckCircle, Clock, Filter, X, Eye, ClipboardList, FolderOpen, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, Users, CheckCircle, Clock, X, Eye, ClipboardList, Check } from 'lucide-react';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { CustomInput } from '../../widget/CustomInput';
 import '../Equipment/Equipment.css';
@@ -203,7 +203,7 @@ export const Decisions: React.FC = () => {
             <p className="loading-text">جاري تحميل القرارات...</p>
           </div>
         ) : filteredDecisions.length === 0 ? (
-          <StateIcon icon={FolderOpen} />
+          <StateIcon />
         ) : (
           filteredDecisions.map(decision => {
             const isCompleted = decision.progress === 100;

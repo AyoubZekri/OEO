@@ -85,15 +85,14 @@ export const MobileContractForm: React.FC<{ c: ReturnType<typeof useContractsCon
             </button>
           )}
         />
-        {err(c.errors.individuals_id)}
       </section>
 
       {/* Season and status */}
       <section className="me-card">
         <h3 className="me-section-title"><span><CalendarRange size={16} /></span>الموسم والحالة</h3>
         <label className="me-field">
-          <span className="me-label">الموسم *</span>
-          <input className="me-input" type="text" dir="ltr" name="startDate" value={f.startDate} onChange={c.handleFormChange} placeholder="2026 - 2027" />
+          <span className="me-label">الموسم</span>
+          <input className={`me-input ${c.errors.startDate ? 'is-missing' : ''}`} type="text" dir="ltr" name="startDate" value={f.startDate} onChange={c.handleFormChange} />
         </label>
         <div className="mct-quick">
           {[0, 1].map(o => (
@@ -144,14 +143,14 @@ export const MobileContractForm: React.FC<{ c: ReturnType<typeof useContractsCon
         </div>
 
         {f.installments.length === 0 ? (
-          <p className="mct-none">لا توجد دفعات مخصصة.</p>
+          null
         ) : (
           <div className="mct-inst-list">
             {f.installments.map((inst, i) => (
               <div key={i} className="mct-inst">
                 <span className="mct-schedule-num">{i + 1}</span>
                 <div className="mct-inst-fields">
-                  <input className="me-input" type="text" value={inst.installment_number} onChange={e => c.handleUpdateInstallment(i, 'installment_number', e.target.value)} placeholder="اسم الدفعة" aria-label="رقم / اسم الدفعة" />
+                  <input className="me-input" type="text" value={inst.installment_number} onChange={e => c.handleUpdateInstallment(i, 'installment_number', e.target.value)} aria-label="الدفعة" />
                   <CurrencyInput className="me-input" value={inst.amount} onChangeValue={v => c.handleUpdateInstallment(i, 'amount', v)} inputMode="numeric" aria-label="القيمة (د.ج)" />
                 </div>
                 <button type="button" className="mct-inst-remove" onClick={() => c.handleRemoveInstallment(i)} aria-label="حذف الدفعة"><Trash2 size={16} /></button>
@@ -189,7 +188,7 @@ export const MobileContractForm: React.FC<{ c: ReturnType<typeof useContractsCon
 
       <section className="me-card">
         <h3 className="me-section-title"><span><StickyNote size={16} /></span>ملاحظات</h3>
-        <textarea className="me-textarea" name="notes" rows={3} value={f.notes} onChange={c.handleFormChange} placeholder="أي شروط أو تفاصيل إضافية..." />
+        <textarea className="me-textarea" name="notes" rows={3} value={f.notes} onChange={c.handleFormChange} />
       </section>
 
       {c.isMismatchWarningOpen && (
@@ -205,12 +204,11 @@ export const MobileContractForm: React.FC<{ c: ReturnType<typeof useContractsCon
         >
           <div className="mct-mismatch">
             <span className="mct-mismatch-icon"><AlertTriangle size={30} /></span>
-            <p>مجموع قيم الدفعات لا يساوي القيمة الإجمالية للعقد.</p>
+            <p>مجموع الدفعات لا يساوي قيمة العقد</p>
             <div className="mct-mismatch-grid">
               <div><small>قيمة العقد</small><strong dir="ltr">{moneyText(value)}</strong></div>
               <div><small>مجموع الدفعات</small><strong dir="ltr">{moneyText(sum)}</strong></div>
             </div>
-            <em>هل تريد العودة للتعديل أم حفظ العقد كما هو؟</em>
           </div>
         </MobileSheet>
       )}

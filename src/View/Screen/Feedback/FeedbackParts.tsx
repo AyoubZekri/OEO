@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Star, X, Send, Trash2, MessageSquareReply, CalendarClock, UserRound, Reply, Hourglass } from 'lucide-react';
+import { Star, X, Send, Trash2, MessageSquareReply, CalendarClock, UserRound, Reply } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileScreen } from '../../Mobile/widgets/MobileScreen';
 import { FEEDBACK_TYPES, STATUS_META, dateText, statusOf, typeMeta, type Feedback, type FeedbackType } from './feedbackUtils';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 /** Stars, 1 → 5: to read, or to choose (onChange) */
 export const StarRating: React.FC<{ value: number | null; onChange?: (v: number) => void; size?: number }> = ({ value, onChange, size = 18 }) => {
@@ -58,16 +59,18 @@ export const FeedbackForm: React.FC<{ onSend: (d: { type: FeedbackType; subject:
   const [type, setType] = useState<FeedbackType | ''>('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [error, setError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
   const [busy, setBusy] = useState(false);
+  const subjectMissing = showErrors && !subject.trim();
 
   const submit = async () => {
-    if (!type) return setError('اختر النوع');
-    if (!subject.trim()) return setError('اكتب الموضوع');
+    setShowErrors(true);
+    if (!type) return showSnackbar('خطأ', 'اختر النوع', '#ef4444');
+    if (!subject.trim()) return;
     setBusy(true);
     const err = await onSend({ type, subject: subject.trim(), body: body.trim() });
     setBusy(false);
-    if (err) setError(err);
+    if (err) showSnackbar('خطأ', err, '#ef4444');
   };
 
   return (
@@ -77,7 +80,7 @@ export const FeedbackForm: React.FC<{ onSend: (d: { type: FeedbackType; subject:
       footer={(
         <>
           <button type="button" className="fb-btn ghost" onClick={onClose}>إلغاء</button>
-          <button type="button" className="fb-btn primary" onClick={submit} disabled={busy}><Send size={17} /> {busy ? 'جاري الإرسال...' : 'إرسال'}</button>
+          <button type="button" className="fb-btn primary" onClick={submit} disabled={busy}><Send size={17} /> {busy ? 'جاري الإرسال...' : 'تأكيد'}</button>
         </>
       )}
     >
@@ -85,23 +88,22 @@ export const FeedbackForm: React.FC<{ onSend: (d: { type: FeedbackType; subject:
         <label>النوع</label>
         <div className="fb-types">
           {FEEDBACK_TYPES.map(t => (
-            <button key={t.value} type="button" className={`fb-type tone-${t.tone} ${type === t.value ? 'on' : ''}`} onClick={() => { setType(t.value); setError(''); }}>
+            <button key={t.value} type="button" className={`fb-type tone-${t.tone} ${type === t.value ? 'on' : ''}`} onClick={() => setType(t.value)}>
               <span className="fb-type-icon"><t.icon size={20} /></span>
               <strong>{t.label}</strong>
-              <small>{t.hint}</small>
             </button>
           ))}
         </div>
       </div>
       <div className="fb-field">
         <label htmlFor="fb-subject">الموضوع</label>
-        <input id="fb-subject" value={subject} maxLength={200} onChange={e => { setSubject(e.target.value); setError(''); }} placeholder="عنوان قصير لرأيك" />
+        <input id="fb-subject" className={subjectMissing ? 'is-missing' : ''} value={subject} maxLength={200} onChange={e => setSubject(e.target.value)} />
+        {subjectMissing && <small className="fb-field-error">اكتب الموضوع</small>}
       </div>
       <div className="fb-field">
-        <label htmlFor="fb-body">التفاصيل <span>(اختياري)</span></label>
-        <textarea id="fb-body" rows={5} value={body} maxLength={5000} onChange={e => setBody(e.target.value)} placeholder="اشرح رأيك بالتفصيل..." />
+        <label htmlFor="fb-body">التفاصيل</label>
+        <textarea id="fb-body" rows={5} value={body} maxLength={5000} onChange={e => setBody(e.target.value)} />
       </div>
-      {error && <p className="fb-error">{error}</p>}
     </FeedbackShell>
   );
 };
@@ -112,16 +114,18 @@ export const ReplyForm: React.FC<{ feedback: Feedback; onSave: (text: string, ra
   const meta = typeMeta(feedback.type);
   const [text, setText] = useState(feedback.reply || '');
   const [rating, setRating] = useState<number | null>(feedback.rating);
-  const [error, setError] = useState('');
+  const [showErrors, setShowErrors] = useState(false);
   const [busy, setBusy] = useState(false);
+  const textMissing = showErrors && !text.trim();
 
   const submit = async () => {
-    if (isSuggestion && !rating) return setError('قيّم الاقتراح بالنجوم');
-    if (!text.trim()) return setError('اكتب الرد');
+    setShowErrors(true);
+    if (isSuggestion && !rating) return showSnackbar('خطأ', 'قيّم الاقتراح بالنجوم', '#ef4444');
+    if (!text.trim()) return;
     setBusy(true);
     const err = await onSave(text.trim(), rating);
     setBusy(false);
-    if (err) setError(err);
+    if (err) showSnackbar('خطأ', err, '#ef4444');
   };
 
   return (
@@ -131,7 +135,7 @@ export const ReplyForm: React.FC<{ feedback: Feedback; onSave: (text: string, ra
       footer={(
         <>
           <button type="button" className="fb-btn ghost" onClick={onClose}>إلغاء</button>
-          <button type="button" className="fb-btn primary" onClick={submit} disabled={busy}><Send size={17} /> {busy ? 'جاري الحفظ...' : 'حفظ الرد'}</button>
+          <button type="button" className="fb-btn primary" onClick={submit} disabled={busy}><Send size={17} /> {busy ? 'جاري الحفظ...' : 'تأكيد'}</button>
         </>
       )}
     >
@@ -145,16 +149,16 @@ export const ReplyForm: React.FC<{ feedback: Feedback; onSave: (text: string, ra
         <div className="fb-field">
           <label>تقييم الاقتراح</label>
           <div className="fb-rate">
-            <StarRating value={rating} onChange={v => { setRating(v); setError(''); }} size={30} />
-            <span>{rating ? `${rating} / 5` : 'اختر من نجمة إلى خمس'}</span>
+            <StarRating value={rating} onChange={setRating} size={30} />
+            {rating ? <span>{rating} / 5</span> : null}
           </div>
         </div>
       )}
       <div className="fb-field">
         <label htmlFor="fb-reply">الرد</label>
-        <textarea id="fb-reply" rows={5} value={text} maxLength={5000} onChange={e => { setText(e.target.value); setError(''); }} placeholder="اكتب ردك على العضو..." autoFocus />
+        <textarea id="fb-reply" className={textMissing ? 'is-missing' : ''} rows={5} value={text} maxLength={5000} onChange={e => setText(e.target.value)} autoFocus />
+        {textMissing && <small className="fb-field-error">اكتب الرد</small>}
       </div>
-      {error && <p className="fb-error">{error}</p>}
     </FeedbackShell>
   );
 };
@@ -176,8 +180,6 @@ const agoText = (value: string | null) => {
   if (d < 7) return `منذ ${d} أيام`;
   return dateText(value).split(' · ')[0];
 };
-
-const RATING_WORDS = ['', 'ضعيف', 'مقبول', 'جيد', 'جيد جداً', 'ممتاز'];
 
 /**
  * One opinion, like a message thread: the sender (management) or the type and date (personal space), its status,
@@ -243,14 +245,10 @@ export const FeedbackCard: React.FC<{
           {f.type === 'suggestion' && f.rating ? (
             <div className="fb-rating-row">
               <StarRating value={f.rating} size={17} />
-              <b>{f.rating}/5</b>
-              <span>{RATING_WORDS[f.rating]}</span>
             </div>
           ) : null}
           <p>{f.reply}</p>
         </div>
-      ) : !admin ? (
-        <div className="fb-waiting"><Hourglass size={15} /> وصل رأيك إلى الإدارة، وستتلقى تنبيهاً عند الرد عليه</div>
       ) : null}
 
       {(onReply || onDelete) && (

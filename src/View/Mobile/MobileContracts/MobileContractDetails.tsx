@@ -59,7 +59,7 @@ export const MobileContractDetails: React.FC<MobileContractDetailsProps> = ({ co
       <section className="me-card">
         <h3 className="me-section-title"><span><CalendarClock size={16} /></span>جدول الدفعات</h3>
         {installments.length === 0 ? (
-          <p className="mct-none">لا توجد دفعات مخصصة</p>
+          <p className="mct-none">—</p>
         ) : (
           <>
             <ol className="mct-schedule">

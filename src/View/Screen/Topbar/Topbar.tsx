@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Sun, Moon, Home, Power } from 'lucide-react';
+import { Menu, Sun, Moon, Home, Power, BookOpen } from 'lucide-react';
 import { SPACE_LABELS } from '../../../core/context/space';
 import '../Personal/Personal.css';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../../core/context/AuthContext';
 import './Topbar.css';
 import { TOPBAR_SLOT_ID } from '../../widget/TopbarSearch';
+import { RegulationsViewer } from '../../widget/RegulationsViewer';
 
 interface TopbarProps {
   title: string;
@@ -16,6 +17,8 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  // The club's internal regulations, opened from the profile menu
+  const [regulations, setRegulations] = useState(false);
 
   // Escape closes the account menu
   useEffect(() => {
@@ -115,6 +118,10 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
                     </span>
                   </div>
                   <div className="tb-menu-list">
+                    <button type="button" role="menuitem" onClick={run(() => setRegulations(true))}>
+                      <BookOpen size={20} />
+                      <span>النظام الداخلي</span>
+                    </button>
                     <button type="button" role="menuitem" className="danger" onClick={run(controller.handleLogout)}>
                       <Power size={20} />
                       <span>تسجيل الخروج</span>
@@ -127,6 +134,7 @@ export const Topbar: React.FC<TopbarProps> = ({ title, controller }) => {
         </div>
       </header>
 
+      {regulations && <RegulationsViewer onClose={() => setRegulations(false)} />}
     </>
   );
 };

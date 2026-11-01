@@ -59,7 +59,7 @@ export const usePushNotifications = () => {
       // This account: the token it had on this phone, at once
       const saved = localStorage.getItem(SAVED);
       if (saved) sendToken(saved);
-
+      
       await PushNotifications.removeAllListeners();
       // The first channel had a sound file that does not exist (silent): gone, and a new one with the phone's sound
       await PushNotifications.deleteChannel({ id: 'tasks' }).catch(() => undefined);

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, ClipboardList, MoreVertical, Eye, Target, Handshake, Pencil, Trash2 } from 'lucide-react';
+import { Calendar, MoreVertical, Eye, Target, Handshake, Pencil, Trash2 } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { ScoreRing } from './EvaluationWidgets';
@@ -100,7 +100,7 @@ export const MobileEvaluationHistory: React.FC<MobileEvaluationHistoryProps> = (
         </section>
 
         {evaluations.length === 0 ? (
-          <StateIcon icon={ClipboardList} />
+          <StateIcon />
         ) : (
           evaluations.map(ev => {
             const grade = gradeOf(ev.totalScore || 0);

@@ -72,7 +72,7 @@ export const MobileTeams: React.FC<MobileTeamsProps> = ({ controller, can }) => 
         <MobileLoader text="جاري تحميل الفئات..." />
       ) : teams.length === 0 ? (
         <div className="mt-empty">
-          <StateIcon icon={Shirt} />
+          <StateIcon />
           {can.add && (
             <button type="button" className="mt-empty-btn" onClick={controller.openAddDialog}>
               <Plus size={18} /> إضافة أول فئة

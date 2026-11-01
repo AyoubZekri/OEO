@@ -26,7 +26,7 @@ export const useContractsController = () => {
   const [selectedContract, setSelectedContract] = useState<ContractModel | null>(null);
   const [editingContractId, setEditingContractId] = useState<string | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState('all');
 
@@ -150,15 +150,15 @@ export const useContractsController = () => {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    
+
     // Clear error for this field when user types
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: '' }));
     }
 
     setFormData(prev => {
-      const numValue = ['contractValue', 'numberOfPayments', 'monthlySalary', 'winBonus', 'goalsBonus', 'transportationExpenses'].includes(name) 
-        ? (value === '' ? '' : Number(value)) 
+      const numValue = ['contractValue', 'numberOfPayments', 'monthlySalary', 'winBonus', 'goalsBonus', 'transportationExpenses'].includes(name)
+        ? (value === '' ? '' : Number(value))
         : value;
 
       const newFormData = { ...prev, [name]: numValue };
@@ -167,7 +167,7 @@ export const useContractsController = () => {
       if (name === 'numberOfPayments') {
         const numInstallments = Number(value) || 0;
         let newInstallments = [...(prev.installments || [])];
-        
+
         if (numInstallments > newInstallments.length) {
           // add more
           for (let i = newInstallments.length; i < numInstallments; i++) {
@@ -177,7 +177,7 @@ export const useContractsController = () => {
           // remove excess
           newInstallments = newInstallments.slice(0, numInstallments);
         }
-        
+
         newFormData.installments = newInstallments;
       }
 
@@ -218,11 +218,12 @@ export const useContractsController = () => {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.individuals_id) {
-      newErrors.individuals_id = 'يرجى اختيار المستفيد';
+      newErrors.individuals_id = 'اختر المستفيد';
     } else if (contracts.some(c => String(c.individuals_id) === String(formData.individuals_id) && c.startDate === formData.startDate && c.id !== editingContractId)) {
-      newErrors.individuals_id = 'هذا العضو يمتلك عقداً في هذا الموسم بالفعل.';
-      showSnackbar('تنبيه', 'هذا العضو يمتلك عقداً في هذا الموسم بالفعل.', '#ef4444');
+      newErrors.individuals_id = 'لهذا العضو عقد في هذا الموسم';
     }
+    // The beneficiary, a choice: a snackbar (the typed fields: their message under them)
+    if (newErrors.individuals_id) showSnackbar('خطأ', newErrors.individuals_id, '#ef4444');
     if (formData.contractValue !== '' && Number(formData.contractValue) < 0) {
       newErrors.contractValue = 'قيمة العقد لا يمكن أن تكون سالبة';
     }
@@ -230,11 +231,11 @@ export const useContractsController = () => {
       newErrors.numberOfPayments = 'عدد الدفعات لا يمكن أن يكون سالباً';
     }
     if (!formData.startDate) {
-      newErrors.startDate = 'يرجى إدخال الموسم';
+      newErrors.startDate = 'اكتب الموسم';
     } else if (!/^\d{4}\s*-\s*\d{4}$/.test(formData.startDate)) {
-      newErrors.startDate = 'صيغة الموسم غير صحيحة، يجب أن تكون بالشكل: 2026 - 2027';
+      newErrors.startDate = 'الموسم بالشكل 2026 - 2027';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -278,16 +279,12 @@ export const useContractsController = () => {
       if (response && !response.error) {
         fetchData();
         closeAddEditModal();
-      } else {
-        alert('حدث خطأ أثناء التعديل');
       }
     } else {
       const response = await contractsData.addContract(payload);
       if (response && !response.error) {
         fetchData();
         closeAddEditModal();
-      } else {
-        alert('حدث خطأ أثناء الإضافة');
       }
     }
     setIsLoading(false);
@@ -299,24 +296,22 @@ export const useContractsController = () => {
       const response = await contractsData.deleteContract(id);
       if (response && !response.error) {
         fetchData();
-      } else {
-        alert('حدث خطأ أثناء الحذف');
       }
       setIsLoading(false);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    const numStr = (amount || 0).toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    const numStr = (amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
     const swapped = numStr.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
     return `${swapped} د.ج`;
   };
 
   const filteredContracts = contracts.filter(c => {
-    const matchesSearch = c.beneficiary.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const matchesSearch = c.beneficiary.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           String(c.id).includes(searchQuery);
     const matchesFilter = filterType === 'all' || c.contractType.includes(filterType);
     return matchesSearch && matchesFilter;

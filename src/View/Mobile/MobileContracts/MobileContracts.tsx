@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Eye, Pencil, Trash2, FileSignature, Search, X, Wallet, Filter, ChevronDown } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Search, X, Filter, ChevronDown } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -34,9 +34,6 @@ export const MobileContracts: React.FC<MobileContractsProps> = ({ c, can }) => {
   const list = type ? c.contracts.filter(x => x.contractType === type) : c.contracts;
   const details = detailsId ? c.contracts.find(x => String(x.id) === detailsId) : undefined;
 
-  const total = c.contracts.reduce((s, x) => s + (x.contractValue || 0), 0);
-  const active = c.contracts.filter(x => x.status === 'active').length;
-  const players = c.contracts.filter(x => x.contractType === 'لاعب').length;
 
   const menuItems = (x: ContractModel): MobileRowMenuItem[] => [
     ...(can.view ? [{ key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(x.id) }] : []),
@@ -48,33 +45,13 @@ export const MobileContracts: React.FC<MobileContractsProps> = ({ c, can }) => {
     <div className="mct-page">
       <MobileAppBar title="العقود" />
 
-      {/* Summary */}
-      <section className="mct-hero">
-        <div className="mct-hero-top">
-          <span className="mct-hero-icon"><FileSignature size={26} /></span>
-          <div>
-            <small>عقود النادي</small>
-            <strong>{c.contracts.length}</strong>
-          </div>
-        </div>
-        <div className="mct-total">
-          <small><Wallet size={13} /> إجمالي قيمة العقود</small>
-          <strong dir="ltr">{moneyText(total)}</strong>
-        </div>
-        <div className="mct-stats">
-          <div className="green"><strong>{active}</strong><small>نشطة</small></div>
-          <div><strong>{players}</strong><small>لاعبين</small></div>
-          <div><strong>{c.contracts.length - players}</strong><small>طاقم وإداريين</small></div>
-        </div>
-      </section>
-
       <label className="mct-search">
         <Search size={17} />
         <input
           type="search"
           value={c.searchQuery}
           onChange={e => c.setSearchQuery(e.target.value)}
-          placeholder="ابحث بالاسم أو رقم العقد..."
+          placeholder="ابحث بالاسم أو رقم العقد"
         />
         {c.searchQuery && (
           <button type="button" onClick={() => c.setSearchQuery('')} aria-label="مسح البحث"><X size={15} /></button>
@@ -105,7 +82,7 @@ export const MobileContracts: React.FC<MobileContractsProps> = ({ c, can }) => {
       {c.isLoading && !c.contracts.length ? (
         <MobileLoader text="جاري تحميل العقود..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={FileSignature} />
+        <StateIcon />
       ) : (
         <div className="mct-list">
           {list.map(x => {

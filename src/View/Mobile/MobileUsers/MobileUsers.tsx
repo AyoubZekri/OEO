@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { useTranslation } from 'react-i18next';
-import { Plus, Eye, Pencil, Trash2, UserCog, Search, X, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Search, X, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu, type MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -56,7 +56,7 @@ export const MobileUsers: React.FC<MobileUsersProps> = ({ c, roles, can }) => {
       {c.isLoading && !c.users.length ? (
         <MobileLoader text="جاري تحميل المستخدمين..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={UserCog} />
+        <StateIcon />
       ) : (
         <div className="mus-list">
           {list.map(u => {

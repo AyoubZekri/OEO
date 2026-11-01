@@ -32,6 +32,7 @@ import { processImage } from '../../../core/functions/processImage';
 import { useBackCloses } from '../../Mobile/widgets/useBackCloses';
 import { TopbarSearch } from '../../widget/TopbarSearch';
 import { openDocument } from '../../widget/openDocument';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
@@ -55,15 +56,15 @@ export const Members: React.FC = () => {
       return next;
     }, { replace: true });
   }, [askedMember, allMembers, openRecord, setParams]);
-  const { 
+  const {
     filteredMembers,
     searchQuery,
     setSearchQuery,
     filterTeamId,
     setFilterTeamId,
     teams,
-    selectedMember, 
-    isDialogOpen, 
+    selectedMember,
+    isDialogOpen,
     isAddMemberOpen,
     memberToEdit,
     formData,
@@ -82,8 +83,8 @@ export const Members: React.FC = () => {
     openEditMemberDialog,
     closeAddMemberDialog,
     handleDeleteMember,
-    openExpensesDialog, 
-    closeDialog, 
+    openExpensesDialog,
+    closeDialog,
     isClearanceDialogOpen,
     selectedClearanceMember,
     openClearanceDialog,
@@ -226,7 +227,7 @@ export const Members: React.FC = () => {
       <div className="members-desktop">
       <div className="members-header">
 
-        
+
         <div className="members-actions">
           <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder={t('members.search_placeholder', 'ابحث بالاسم أو المنصب...')} />
           <CustomDropdown<string>
@@ -314,11 +315,11 @@ export const Members: React.FC = () => {
                   <td data-label={t('members.internal_system', 'النظام الداخلي')}>
                     <div style={{ display: 'flex', justifyContent: 'center' }}>
                       {member.is_internal_system_printed ? (
-                        <div 
+                        <div
                           title="تمت طباعة النظام الداخلي"
-                          style={{ 
-                            width: '32px', height: '32px', borderRadius: '50%', 
-                            backgroundColor: '#ecfdf5', color: '#10b981', 
+                          style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            backgroundColor: '#ecfdf5', color: '#10b981',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             boxShadow: '0 0 12px rgba(16, 185, 129, 0.15)',
                             border: '1px solid #a7f3d0'
@@ -326,11 +327,11 @@ export const Members: React.FC = () => {
                           <CheckCircle2 size={16} />
                         </div>
                       ) : (
-                        <div 
+                        <div
                           title="لم تتم الطباعة"
-                          style={{ 
-                            width: '32px', height: '32px', borderRadius: '50%', 
-                            backgroundColor: '#f8fafc', color: '#cbd5e1', 
+                          style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            backgroundColor: '#f8fafc', color: '#cbd5e1',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                             border: '1px dashed #e2e8f0'
                           }}>
@@ -364,20 +365,18 @@ export const Members: React.FC = () => {
               ))}
               {filteredMembers.length === 0 && (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '32px', color: '#64748b', fontSize: '1.1rem' }}>
-                    لا يوجد أعضاء مطابقين للبحث
-                  </td>
+                  <td colSpan={8}><StateIcon /></td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        <Pagination 
-          totalItems={filteredMembers.length} 
-          itemsPerPage={itemsPerPage} 
-          currentPage={currentPage} 
-          onPageChange={setCurrentPage} 
-          onItemsPerPageChange={setItemsPerPage} 
+        <Pagination
+          totalItems={filteredMembers.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       </div>
       </div>
@@ -398,18 +397,18 @@ export const Members: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="dialog-body">
               <form id="memberForm" onSubmit={handleSaveMember} className="add-member-form">
-                
+
                 {/* Basic Info Section */}
                 <div className="form-section" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px' }}>
                   <div className="photo-upload-container" style={{ margin: 0, flexShrink: 0 }}>
                     <div className={`photo-upload-card ${photoFile || (memberToEdit && memberToEdit.photo && !memberToEdit.photo.includes('default')) ? 'has-image' : ''}`} onClick={() => document.getElementById('photo-upload-input')?.click()} title="اختيار صورة">
-                      <input 
+                      <input
                         id="photo-upload-input"
-                        type="file" 
-                        accept="image/*,image/heic,image/heif,.heic,.heif,.HEIC,.HEIF" 
+                        type="file"
+                        accept="image/*,image/heic,image/heif,.heic,.heif,.HEIC,.HEIF"
                         style={{ display: 'none' }}
                         onChange={async (e) => {
                           if (e.target.files && e.target.files.length > 0) {
@@ -426,7 +425,7 @@ export const Members: React.FC = () => {
                           } else {
                             setPhotoFile(null);
                           }
-                        }} 
+                        }}
                       />
                       {isProcessingImage ? (
                         <div className="photo-placeholder-ui">
@@ -716,7 +715,7 @@ export const Members: React.FC = () => {
           onDelete={(id) => controller.deleteEvaluation(id)}
         />
       ) : (
-        <EvaluationHistoryDialog 
+        <EvaluationHistoryDialog
           player={controller.evalHistoryMember}
           evaluations={controller.evaluations}
           onClose={controller.closeEvalHistory}

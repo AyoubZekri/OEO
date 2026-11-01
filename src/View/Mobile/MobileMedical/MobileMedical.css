@@ -684,3 +684,13 @@ body.dark-mode .mmd2-page {
 @keyframes mmd2-spin {
   to { transform: rotate(360deg); }
 }
+
+/* Day mode: the top block is white (dark only in night mode) */
+body:not(.dark-mode) .mmd2-hero {
+  color: #0f172a;
+  background: #ffffff;
+  border-color: #e2e8f0;
+  box-shadow: none;
+}
+body:not(.dark-mode) .mmd2-hero-top small,
+body:not(.dark-mode) .mmd2-hero-note { color: #ea580c; }

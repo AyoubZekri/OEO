@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Pencil, Trash2, Calendar, Clock, MapPin, ClipboardCheck, Dumbbell, Eye, Radio, Users, Filter, ChevronDown } from 'lucide-react';
+import { Plus, Pencil, Trash2, Clock, MapPin, ClipboardCheck, Dumbbell, Eye, Radio, Users, Filter, ChevronDown } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileSelect } from '../widgets/MobileSelect';
@@ -163,7 +163,7 @@ export const MobileTrainingSessions: React.FC<MobileTrainingSessionsProps> = ({ 
       {controller.isLoading ? (
         <MobileLoader text="جاري تحميل الحصص..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={Calendar} />
+        <StateIcon />
       ) : (
         <div className="mts-list">
           {groups.map(group => (

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, CalendarX2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { useUrlDetails } from '../widgets/useUrlDetails';
@@ -32,7 +32,7 @@ export const MobileMyAbsences: React.FC<{ c: ReturnType<typeof useMyAbsences>; n
       {c.isLoading ? (
         <MobileLoader text="جاري تحميل سجلك..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={CalendarX2} />
+        <StateIcon />
       ) : (
         <div className="mab-list">
           {list.map(a => (

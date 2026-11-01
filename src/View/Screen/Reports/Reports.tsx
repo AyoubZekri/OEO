@@ -5,7 +5,7 @@ import { MEMBER_NATURES, EXPENSE_NATURES } from '../Payments/usePaymentForm';
 import { useTranslation } from 'react-i18next';
 import { useReportsController } from './ReportsController';
 import type { ReportCategory, IndividualReportType } from './report_model';
-import { FileText, Printer, Users, CreditCard, Briefcase, Landmark, SearchX, AlertCircle, List, Trash2, Wallet, Bus } from 'lucide-react';
+import { FileText, Users, CreditCard, Briefcase, Landmark, AlertCircle, List, Trash2, Wallet, Bus } from 'lucide-react';
 
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useAuth } from '../../../core/context/AuthContext';
@@ -260,7 +260,7 @@ export const Reports: React.FC = () => {
   };
 
   const renderEmptyState = () => (
-    <StateIcon icon={SearchX} />
+    <StateIcon />
   );
 
   return (

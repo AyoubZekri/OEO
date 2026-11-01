@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Eye, Pencil, Trash2, Shield, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu, type MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -32,7 +32,7 @@ export const MobileRoles: React.FC<{ c: ReturnType<typeof useRolesController>; c
       {c.isLoading && !c.roles.length ? (
         <MobileLoader text="جاري تحميل الأدوار..." />
       ) : c.roles.length === 0 ? (
-        <StateIcon icon={Shield} />
+        <StateIcon />
       ) : (
         <div className="mus-list">
           {c.roles.map(r => {

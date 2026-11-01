@@ -71,7 +71,7 @@ export const MobileEquipmentForm: React.FC<MobileEquipmentFormProps> = ({ equipm
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Type size={14} /> اسم العتاد</span>
-          <input className="me-input" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="مثال: كرات تدريب" />
+          <input className="me-input" type="text" value={name} onChange={e => setName(e.target.value)} />
         </label>
         {show(errors.name)}
 
@@ -84,9 +84,6 @@ export const MobileEquipmentForm: React.FC<MobileEquipmentFormProps> = ({ equipm
           </div>
         </div>
         {show(errors.total)}
-        {equipment && (
-          <p className="meq-note">المتوفر حالياً بالمخزن: <b>{equipment.availableQuantity}</b> من {equipment.totalQuantity}</p>
-        )}
       </section>
     </MobileScreen>
   );

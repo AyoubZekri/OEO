@@ -11,6 +11,7 @@ import { ContractsData } from '../Contracts/contracts_data';
 import { ContractModel } from '../Contracts/contract_model';
 import type { PaymentMember, PaymentRecord } from './payment_model';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 /**
  * A purchase on credit paid in full is an expense like the others; one not fully paid is listed apart
  * (from the purchases on credit, with its pay action), so it is left out of this list.
@@ -64,7 +65,7 @@ export const usePaymentsController = () => {
       } else if (response.data && Array.isArray(response.data)) {
         fetchedMembers = response.data.map(MemberModel.fromJson);
       }
-      
+
       const mappedMembers: PaymentMember[] = fetchedMembers.map(m => ({
         id: m.id,
         firstName: m.first_name,
@@ -101,7 +102,7 @@ export const usePaymentsController = () => {
     fetchFunds();
     fetchContracts();
   }, []);
-  
+
   // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingPayment, setEditingPayment] = useState<PaymentRecord | null>(null);
@@ -188,7 +189,7 @@ export const usePaymentsController = () => {
   const answerTransferable = async (transferable: boolean) => {
     if (!editingTransferable) return;
     const error = await saveTransferable(editingTransferable.id, transferable);
-    if (error) window.alert(error);
+    if (error) showSnackbar('خطأ', error, '#ef4444');
     else setEditingTransferable(null);
   };
 
@@ -268,9 +269,9 @@ export const usePaymentsController = () => {
   };
 
   const formatCurrency = (amount: number) => {
-    const numStr = (amount || 0).toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    const numStr = (amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
     const swapped = numStr.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
     return `${swapped} د.ج`;
@@ -280,21 +281,21 @@ export const usePaymentsController = () => {
     if (!memberId) return undefined;
     return members.find(m => m.id === memberId);
   };
-  
+
   const filteredPayments = payments.filter(p => {
     const member = getMemberDetails(p.memberId);
     const searchLower = searchQuery.toLowerCase();
-    const matchesSearch = 
+    const matchesSearch =
       (member && `${member.firstName} ${member.lastName}`.toLowerCase().includes(searchLower)) ||
       (p.amountNature && p.amountNature.toLowerCase().includes(searchLower)) ||
       (p.creditor && p.creditor.toLowerCase().includes(searchLower)) ||
       (p.paymentDate && p.paymentDate.includes(searchLower));
-      
+
     const matchesFilter = filterNature === 'all' || p.amountNature === filterNature;
     // 'none': paid without a fund (no fund chosen)
     const noFund = !p.fund_id || p.fund_id === 'null' || p.fund_id === '0';
     const matchesFund = selectedFundFilter === 'all' || (selectedFundFilter === 'none' ? noFund : p.fund_id === selectedFundFilter);
-    
+
     return matchesSearch && matchesFilter && matchesFund;
   });
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Eye, Pencil, Trash2, Printer, ArrowLeftRight, Search, X, Calendar, Package, CheckCircle2 } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Printer, Search, X, Calendar, Package, CheckCircle2 } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu, type MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -43,7 +43,6 @@ export const MobileEquipmentOps: React.FC<MobileEquipmentOpsProps> = ({ c, can }
     .filter(op => (tab === 'held' ? !isBack(op) : tab === 'back' ? isBack(op) : true));
   const details = detailsId ? c.operations.find(op => String(op.id) === detailsId) : undefined;
 
-  const out = c.operations.reduce((s, op) => s + movementsOf(op).filter(m => !m.return_date).reduce((q: number, m: any) => q + (Number(m.quantity) || 0), 0), 0);
 
   const remove = async (op: any) => {
     if (await confirmDelete('حذف العملية؟')) {
@@ -62,20 +61,6 @@ export const MobileEquipmentOps: React.FC<MobileEquipmentOpsProps> = ({ c, can }
     <div className="meq-page">
       <MobileAppBar title="حركة العتاد" />
 
-      <section className="meq-hero">
-        <div className="meq-hero-top">
-          <span className="meq-hero-icon teal"><ArrowLeftRight size={26} /></span>
-          <div>
-            <small>عمليات التسليم</small>
-            <strong>{c.operations.length}</strong>
-          </div>
-        </div>
-        <div className="meq-hero-stats">
-          <div className="out"><strong>{out}</strong><small>قطعة بحوزة الأعضاء</small></div>
-          <div className="in"><strong>{c.operations.filter(isBack).length}</strong><small>عمليات مسترجعة بالكامل</small></div>
-        </div>
-      </section>
-
       <label className="meq-search">
         <Search size={17} />
         <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العضو أو رقم العملية..." />
@@ -91,7 +76,7 @@ export const MobileEquipmentOps: React.FC<MobileEquipmentOpsProps> = ({ c, can }
       {c.isLoading && !c.operations.length ? (
         <MobileLoader text="جاري تحميل العمليات..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={ArrowLeftRight} />
+        <StateIcon />
       ) : (
         <div className="meq-list">
           {list.map(op => {

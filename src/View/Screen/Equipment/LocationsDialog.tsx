@@ -1,6 +1,7 @@
 import React from 'react';
-import { X, User, MapPin, Calendar, Package } from 'lucide-react';
+import { X, User, MapPin, Calendar } from 'lucide-react';
 import './Equipment.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const LocationsDialog: React.FC<{
   equipment: any;
@@ -39,12 +40,9 @@ export const LocationsDialog: React.FC<{
           </div>
 
           <h3 className="eq-section-title">الأعضاء الذين بحوزتهم العتاد حالياً</h3>
-          
+
           {(!equipment.holders || equipment.holders.length === 0) ? (
-            <div className="eq-empty-state">
-              <Package size={48} />
-              <p>جميع الكميات متوفرة حالياً في المخزن</p>
-            </div>
+            <StateIcon small />
           ) : (
             <div className="eq-holders-list">
               {equipment.holders.map((holder: any, idx: number) => {
@@ -58,7 +56,7 @@ export const LocationsDialog: React.FC<{
                           <User size={24} strokeWidth={2.5} />
                         </div>
                       )}
-                      
+
                       <div className="holder-details">
                         <h4 className="holder-name">{holder.name}</h4>
                         <div className="holder-meta">
@@ -69,7 +67,7 @@ export const LocationsDialog: React.FC<{
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="holder-card-action">
                       <div className="holder-qty-box">
                         <span className="qty-label">الكمية</span>

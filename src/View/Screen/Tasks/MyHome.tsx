@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardList, Inbox, RefreshCw, Archive } from 'lucide-react';
+import { ClipboardList, RefreshCw, Archive } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { TopbarSearch } from '../../widget/TopbarSearch';
@@ -15,6 +15,7 @@ import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Tasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 const ARCHIVE_PAGE = 10;
 
@@ -52,7 +53,6 @@ export const MyHome: React.FC = () => {
   const shown = onHome(c.tasks, now);
   const { live, archive } = homeTasks(filterTasks(shown, status, query, nature, kind), now);
   const archiveShown = archive.slice((archivePage - 1) * ARCHIVE_PAGE, archivePage * ARCHIVE_PAGE);
-  const filtered = Boolean(status || query || kind || nature);
   const statusCount = (v: string) => shown.filter(STATUS_FILTERS.find(f => f.value === v)!.test).length;
   const kindCount = (v: string) => shown.filter(t => !v || t.kind === v).length;
   const pick = (set: (v: string) => void) => (v: string) => { set(v === 'all' ? '' : v); setArchivePage(1); };
@@ -82,7 +82,7 @@ export const MyHome: React.FC = () => {
       {c.loading && !c.tasks.length ? <PageLoader mobile={false} text="جاري تحميل مهامي..." />
         : c.error ? (
           <div className="tk-state">
-            <ClipboardList size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : (
@@ -93,7 +93,7 @@ export const MyHome: React.FC = () => {
               </h3>
               {live.length
                 ? <div className="table-pagination-wrapper"><TaskTable tasks={live} onOpen={c.openTask} mine menu={menu} tint onChat={chat} /></div>
-                : <div className="tk-state"><Inbox size={30} /><p>{filtered ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
+                : <StateIcon />}
             </section>
 
             {archive.length > 0 && (

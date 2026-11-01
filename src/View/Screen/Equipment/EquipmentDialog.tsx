@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Package } from 'lucide-react';
+import { X, Save, Package, ImagePlus } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
 import './Equipment.css';
 
@@ -13,6 +13,8 @@ export const EquipmentDialog: React.FC<{
   const [totalQuantity, setTotalQuantity] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  // The fields left empty: their message under them
+  const [tried, setTried] = useState(false);
 
   useEffect(() => {
     if (equipmentToEdit) {
@@ -25,11 +27,14 @@ export const EquipmentDialog: React.FC<{
       setImageFile(null);
       setImagePreview(null);
     }
+    setTried(false);
   }, [equipmentToEdit, isOpen]);
 
   if (!isOpen) return null;
 
   const isEdit = !!equipmentToEdit;
+  const nameError = tried && !name.trim() ? 'اكتب اسم العتاد' : null;
+  const quantityError = tried && !(Number(totalQuantity) > 0) ? 'اكتب الكمية' : null;
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -48,6 +53,8 @@ export const EquipmentDialog: React.FC<{
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setTried(true);
+    if (!name.trim() || !(Number(totalQuantity) > 0)) return;
     onSave({
       data: {
         name,
@@ -71,47 +78,48 @@ export const EquipmentDialog: React.FC<{
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="eq-dialog-form">
+        <form onSubmit={handleSubmit} className="eq-dialog-form" noValidate>
           <div className="eq-dialog-body" style={{ padding: '32px 24px' }}>
-            
+
             <div className="form-group" style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                <label style={{ alignSelf: 'flex-start' }}>صورة العتاد</label>
                <div style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed var(--border, #cbd5e1)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: '10px', position: 'relative' }}>
                   {imagePreview ? (
                     <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <span style={{ color: 'var(--text-muted, #94a3b8)', fontSize: '0.9rem' }}>لا توجد صورة</span>
+                    <ImagePlus size={30} color="var(--text-muted, #94a3b8)" />
                   )}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
+                  <input
+                    type="file"
+                    accept="image/*"
                     onChange={handleImageChange}
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', opacity: 0, cursor: 'pointer' }}
                   />
                </div>
-               <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #64748b)' }}>انقر لاختيار صورة</span>
             </div>
 
             <div className="form-group" style={{ marginBottom: '24px' }}>
               <CustomInput
-                type="text" 
+                type="text"
                 label="اسم العتاد"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                required 
+                className={nameError ? 'is-missing' : ''}
+                error={nameError}
               />
             </div>
-            
+
             <div className="form-group">
               <CustomInput
-                type="number" 
+                type="number"
                 label="الكمية الإجمالية"
                 value={totalQuantity}
                 onChange={e => setTotalQuantity(e.target.value)}
-                required 
+                className={quantityError ? 'is-missing' : ''}
+                error={quantityError}
               />
             </div>
-            
+
           </div>
 
           <div className="eq-dialog-footer">
@@ -120,7 +128,7 @@ export const EquipmentDialog: React.FC<{
             </button>
             <button type="submit" className="eq-btn-save">
               <Save size={18} />
-              {isEdit ? 'حفظ التعديلات' : 'إضافة العتاد'}
+              {isEdit ? 'حفظ التعديلات' : 'تأكيد'}
             </button>
           </div>
         </form>

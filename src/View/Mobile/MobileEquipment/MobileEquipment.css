@@ -1381,3 +1381,6 @@ body.dark-mode .meq-card-img .mrm-trigger { background: rgba(23, 24, 28, 0.85); 
 }
 
 .meq-print-options button.on span { background: var(--meq-t); color: #fff; }
+
+/* A required field left empty: a red edge (its message under it) */
+.me-input.is-missing { border-color: #ef4444 !important; }

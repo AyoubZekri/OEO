@@ -5,6 +5,8 @@ import { CustomInput } from '../../widget/CustomInput';
 import { useEquipmentOperationController } from './EquipmentOperationController';
 import type { OperationItem } from './EquipmentOperationController';
 import './EquipmentOperations.css';
+import { showSnackbar as appSnackbar } from '../../../core/functions/Snacpar';
+import { SeasonPicker, currentSeason } from './SeasonPicker';
 
 export const EquipmentOperationDialog: React.FC<{
   isOpen: boolean;
@@ -13,27 +15,25 @@ export const EquipmentOperationDialog: React.FC<{
   editingOperation?: any;
 }> = ({ isOpen, onClose, controller, editingOperation }) => {
   const { equipments, members, createOperation, updateOperation } = controller;
-  
+
   const [selectedMember, setSelectedMember] = useState('');
   const [operationDate, setOperationDate] = useState(new Date().toISOString().split('T')[0]);
-  const [sportsSeason, setSportsSeason] = useState('');
+  const [sportsSeason, setSportsSeason] = useState(currentSeason());
   const [items, setItems] = useState<OperationItem[]>([
     { id: Date.now().toString(), equipment_id: '', quantity: '1', condition: 'جيد' }
   ]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  // The date left empty: its message under it (the member and the items: a snackbar)
+  const [tried, setTried] = useState(false);
 
-  const showSnackbar = (msg: string) => {
-    setSnackbarMessage(msg);
-    setTimeout(() => setSnackbarMessage(''), 3000);
-  };
+  const showSnackbar = (msg: string) => appSnackbar('خطأ', msg, '#ef4444');
 
   React.useEffect(() => {
     if (isOpen) {
       if (editingOperation) {
         setSelectedMember(editingOperation.member_id?.toString() || '');
         setOperationDate(editingOperation.operation_date ? new Date(editingOperation.operation_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]);
-        setSportsSeason(editingOperation.sports_season || '');
+        setSportsSeason(editingOperation.sports_season || currentSeason());
         if (editingOperation.movements && editingOperation.movements.length > 0) {
           setItems(editingOperation.movements.map((mov: any) => ({
             id: mov.id?.toString() || Date.now().toString() + Math.random(),
@@ -47,7 +47,7 @@ export const EquipmentOperationDialog: React.FC<{
       } else {
         setSelectedMember('');
         setOperationDate(new Date().toISOString().split('T')[0]);
-        setSportsSeason('');
+        setSportsSeason(currentSeason());
         setItems([{ id: Date.now().toString(), equipment_id: '', quantity: '1', condition: 'جيد' }]);
       }
     }
@@ -71,14 +71,15 @@ export const EquipmentOperationDialog: React.FC<{
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!selectedMember || !operationDate || !sportsSeason) {
-      showSnackbar('تاريخ العملية، العضو والموسم الرياضي حقول إجبارية');
+
+    setTried(true);
+    if (!operationDate) return;
+    if (!selectedMember) {
+      showSnackbar('اختر العضو المستلم');
       return;
     }
-    
     if (items.some(i => !i.equipment_id || !i.quantity)) {
-      showSnackbar('يرجى تعبئة جميع تفاصيل العتاد المحددة');
+      showSnackbar('اختر العتاد واكتب كميته');
       return;
     }
 
@@ -93,7 +94,7 @@ export const EquipmentOperationDialog: React.FC<{
         }
       }
     }
-    
+
     setIsSubmitting(true);
     let success = false;
     if (editingOperation) {
@@ -102,7 +103,7 @@ export const EquipmentOperationDialog: React.FC<{
       success = await createOperation(selectedMember, operationDate, sportsSeason, items);
     }
     setIsSubmitting(false);
-    
+
     if (success) {
       onClose();
     }
@@ -122,10 +123,10 @@ export const EquipmentOperationDialog: React.FC<{
         </div>
 
         <div className="eq-dialog-body" style={{ padding: '24px', overflowY: 'auto', maxHeight: '70vh' }}>
-          <form onSubmit={handleSubmit} className="ops-form">
-            
-            {/* Header section */}
-            <div className="form-row" style={{ backgroundColor: 'var(--bg-body, #f8fafc)', padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+          <form onSubmit={handleSubmit} className="ops-form" noValidate>
+
+            {/* The member, the date beside it, then the season */}
+            <div className="eq-op-head">
               <CustomDropdown<string>
                 label="العضو المستلم"
                 value={selectedMember}
@@ -134,7 +135,7 @@ export const EquipmentOperationDialog: React.FC<{
                   value: member.id.toString(),
                   label: `${member.first_name} ${member.last_name}`
                 }))}
-                placeholder="-- اختر عضواً --"
+                placeholder=""
               />
 
               <CustomInput
@@ -142,17 +143,11 @@ export const EquipmentOperationDialog: React.FC<{
                 label="تاريخ العملية"
                 value={operationDate}
                 onChange={(e) => setOperationDate(e.target.value)}
-                required
+                className={tried && !operationDate ? 'is-missing' : ''}
+                error={tried && !operationDate ? 'حدد التاريخ' : null}
               />
 
-              <CustomInput
-                type="text"
-                label="الموسم الرياضي"
-                value={sportsSeason}
-                onChange={(e) => setSportsSeason(e.target.value)}
-                placeholder="مثال: 2025/2026"
-                required
-              />
+              <SeasonPicker value={sportsSeason} onChange={setSportsSeason} />
             </div>
 
             {/* Dynamic Items Section */}
@@ -169,7 +164,7 @@ export const EquipmentOperationDialog: React.FC<{
                   <div style={{ position: 'absolute', top: -10, right: -10, background: 'var(--accent, #3b82f6)', color: '#fff', width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', fontWeight: 'bold' }}>
                     {index + 1}
                   </div>
-                  
+
                   <div style={{ flex: 2 }}>
                     <CustomDropdown<string>
                       label="العتاد"
@@ -179,7 +174,7 @@ export const EquipmentOperationDialog: React.FC<{
                         value: eq.id.toString(),
                         label: `${eq.name} (متوفر: ${eq.available_quantity || eq.availableQuantity || 0})`
                       }))}
-                      placeholder="-- اختر عتاداً --"
+                      placeholder=""
                     />
                   </div>
 
@@ -189,7 +184,6 @@ export const EquipmentOperationDialog: React.FC<{
                       label="الكمية"
                       value={item.quantity}
                       onChange={(e) => handleItemChange(item.id, 'quantity', e.target.value)}
-                      required
                     />
                   </div>
 
@@ -207,8 +201,8 @@ export const EquipmentOperationDialog: React.FC<{
                   </div>
 
                   {items.length > 1 && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => handleRemoveItem(item.id)}
                       style={{ marginTop: '28px', color: 'var(--danger, #ef4444)', background: 'transparent', border: 'none', cursor: 'pointer', padding: '8px' }}
                       title="إزالة"
@@ -223,28 +217,11 @@ export const EquipmentOperationDialog: React.FC<{
             <div className="eq-dialog-footer">
               <button type="button" className="eq-btn-cancel" onClick={onClose} disabled={isSubmitting}>إلغاء</button>
               <button type="submit" className="eq-btn-save" disabled={isSubmitting}>
-                {isSubmitting ? 'جاري الحفظ...' : (editingOperation ? 'حفظ التعديلات' : 'تأكيد العملية')}
+                {isSubmitting ? 'جاري الحفظ...' : (editingOperation ? 'حفظ التعديلات' : 'تأكيد')}
               </button>
             </div>
           </form>
         </div>
-        {snackbarMessage && (
-          <div style={{
-            position: 'absolute',
-            bottom: '24px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            backgroundColor: 'var(--danger, #ef4444)',
-            color: 'white',
-            padding: '12px 24px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-            zIndex: 1000,
-            fontWeight: 500
-          }}>
-            {snackbarMessage}
-          </div>
-        )}
       </div>
     </div>
   );

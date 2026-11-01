@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Save, Loader2, UserRound, User, ChevronDown, Wallet, Tag, Calendar, CreditCard, Hash, StickyNote, AlertCircle, Minus, Plus,
   FileSignature, Sparkles, Phone, CalendarDays, CheckCircle2, Clock, Store,
@@ -26,8 +26,6 @@ interface MobilePaymentFormProps {
 
 // Phone version of the add / edit payment dialog; same form state and payload (usePaymentForm)
 export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f }) => {
-  // The desktop form relies on the browser's `required` checks; the phone page checks the same fields here
-  const [checked, setChecked] = useState(false);
 
   const memberContracts = c.contracts.filter(x => String(x.individuals_id) === String(f.memberId));
   const contract = memberContracts.find(x => String(x.id) === String(f.selectedContractId));
@@ -37,23 +35,10 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
   const hasOccasion = !NO_OCCASION_NATURES.includes(f.amountNature);
   const autoAmount = f.transactionType === 'دفع' && !!contract && AUTO_AMOUNT.includes(f.amountNature) && !c.editingPayment;
 
-  const errors = {
-    member: f.transactionType === 'دفع' && !f.memberId ? 'اختر العضو المستفيد' : null,
-    fund: f.transactionType !== 'مصاريف استثنائية' && !f.creditMode && !f.fundId ? 'اختيار الصندوق إجباري' : null,
-    creditor: f.creditMode && !f.creditor.trim() ? 'اكتب اسم البائع أو المحل' : null,
-    date: !f.paymentDate ? 'حدد تاريخ الدفع' : null,
-    installment: f.amountNature === 'رقم دفعة' && !f.installmentNumber.trim() ? 'حدد رقم الدفعة' : null,
-    goals: f.amountNature === 'تسجيل أهداف' && !(parseInt(f.numberOfGoals) >= 1) ? 'حدد عدد الأهداف' : null,
-    occasion: f.amountNature === 'اخرى' && !f.occasion.trim() ? 'اكتب المناسبة أو السبب' : null,
-    amount: f.amount === '' ? 'أدخل المبلغ' : null,
-  };
-  const show = (text: string | null) => ((checked || f.formSubmitted) && text ? <p className="mpy-form-error"><AlertCircle size={14} /> {text}</p> : null);
-
-  const save = () => {
-    setChecked(true);
-    if (Object.values(errors).some(Boolean)) return;
-    f.handleSave();
-  };
+  // The fields left wrong, checked by the shared form state (the member and the fund: a snackbar)
+  const errors = f.fieldErrors;
+  const show = (text: string | null) => (f.formSubmitted && text ? <p className="mpy-form-error"><AlertCircle size={14} /> {text}</p> : null);
+  const save = () => f.handleSave();
 
   const setKind = (value: typeof f.transactionType) => {
     f.setTransactionType(value);
@@ -114,12 +99,12 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         <section className="me-card">
           <h3 className="me-section-title"><span><Store size={16} /></span>البائع</h3>
           <label className="me-field">
-            <span className="me-label"><Store size={14} /> البائع / المحل *</span>
-            <input className="me-input" type="text" value={f.creditor} onChange={e => f.setCreditor(e.target.value)} placeholder="مثال: محل الرياضة" />
+            <span className="me-label"><Store size={14} /> البائع</span>
+            <input className="me-input" type="text" value={f.creditor} onChange={e => f.setCreditor(e.target.value)} />
           </label>
           {show(errors.creditor)}
           <label className="me-field">
-            <span className="me-label"><Phone size={14} /> الهاتف (اختياري)</span>
+            <span className="me-label"><Phone size={14} /> الهاتف</span>
             <input className="me-input" type="tel" dir="ltr" value={f.creditorPhone} onChange={e => f.setCreditorPhone(e.target.value)} />
           </label>
         </section>
@@ -130,7 +115,7 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
         {/* The member: a payment's (required), an expense's (optional, it can be left without one) */}
         <>
             <MobileSelect
-              label={f.transactionType === 'دفع' ? 'العضو المستفيد' : 'العضو (اختياري)'}
+              label={f.transactionType === 'دفع' ? 'العضو المستفيد' : 'العضو'}
               icon={User}
               value={f.memberId}
               options={[
@@ -149,14 +134,13 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
                     ? <span className="mpy-avatar">{initials(person.firstName, person.lastName)}</span>
                     : <span className="mpy-pick-icon"><UserRound size={20} /></span>}
                   <span className="mpy-pick-text">
-                    <small>{person ? TYPE_LABELS[person.memberRole] || person.memberRole : f.transactionType === 'دفع' ? 'العضو المستفيد' : 'العضو (اختياري)'}</small>
+                    <small>{person ? TYPE_LABELS[person.memberRole] || person.memberRole : f.transactionType === 'دفع' ? 'العضو المستفيد' : 'العضو'}</small>
                     <strong>{person ? `${person.firstName} ${person.lastName}` : f.transactionType === 'دفع' ? 'اختر العضو' : 'بدون عضو'}</strong>
                   </span>
                   <ChevronDown size={18} />
                 </button>
               )}
             />
-            {show(errors.member)}
             {person && (person.phoneNumber || person.nationalId) && (
               <div className="mpy-person-facts">
                 {person.phoneNumber && <span><Phone size={12} /> <b dir="ltr">{person.phoneNumber}</b></span>}
@@ -193,12 +177,11 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
               renderTrigger={open => (
                 <button type="button" className={`mpy-select ${fund ? '' : 'empty'}`} onClick={open}>
                   <Wallet size={17} />
-                  <span><small>صندوق الدفع *</small><strong>{fund?.name || 'اختر الصندوق'}</strong></span>
+                  <span><small>صندوق الدفع</small><strong>{fund?.name || 'اختر الصندوق'}</strong></span>
                   <ChevronDown size={17} />
                 </button>
               )}
             />
-            {show(errors.fund)}
           </>
         ) : (
           <p className="mpy-note">لا تحتاج المصاريف الاستثنائية إلى تحديد صندوق.</p>
@@ -330,10 +313,11 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
 
         {f.creditMode && (
           <label className="me-field">
-            <span className="me-label"><CalendarDays size={14} /> آخر أجل للدفع (اختياري)</span>
+            <span className="me-label"><CalendarDays size={14} /> آخر أجل للدفع</span>
             <input className="me-input" type="date" dir="ltr" value={f.dueDate} min={f.paymentDate} onChange={e => f.setDueDate(e.target.value)} />
           </label>
         )}
+        {f.creditMode && show(errors.due)}
 
         {!f.creditMode && (
         <div className="me-field">
@@ -351,12 +335,11 @@ export const MobilePaymentForm: React.FC<MobilePaymentFormProps> = ({ c, form: f
             <input className="me-input" type="text" dir="ltr" value={f.postalCheck} onChange={e => f.setPostalCheck(e.target.value)} />
           </label>
         )}
-        {f.creditMode && f.creditError && <p className="mpy-form-error"><AlertCircle size={14} /> {f.creditError}</p>}
       </section>
 
       <section className="me-card">
         <h3 className="me-section-title"><span><StickyNote size={16} /></span>ملاحظات</h3>
-        <input className="me-input" type="text" value={f.notes} onChange={e => f.setNotes(e.target.value)} placeholder="اختياري" />
+        <input className="me-input" type="text" value={f.notes} onChange={e => f.setNotes(e.target.value)} />
       </section>
 
       {f.pendingPayment && (

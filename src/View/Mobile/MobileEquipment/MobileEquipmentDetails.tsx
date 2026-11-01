@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pencil, History, Users, Calendar, ImageIcon, ArrowUpFromLine, ArrowDownToLine, PackageCheck, User } from 'lucide-react';
+import { Pencil, History, Users, Calendar, ImageIcon, ArrowUpFromLine, ArrowDownToLine, User } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { EquipmentModel } from '../../Screen/Equipment/equipment_model';
 import { shortDate, initials } from './equipmentUtils';
@@ -52,7 +52,7 @@ export const MobileEquipmentDetails: React.FC<MobileEquipmentDetailsProps> = ({
       <section className="me-card">
         <h3 className="me-section-title"><span><Users size={16} /></span>الأعضاء الذين بحوزتهم العتاد حالياً</h3>
         {e.holders.length === 0 ? (
-          <p className="meq-none"><PackageCheck size={20} /> جميع الكميات متوفرة حالياً في المخزن</p>
+          <StateIcon small />
         ) : (
           <ul className="meq-holders">
             {e.holders.map((h: any, i: number) => (
@@ -90,7 +90,7 @@ export const MobileEquipmentMovements: React.FC<{ equipment: EquipmentModel; onC
         </div>
       </section>
       {movements.length === 0 ? (
-        <StateIcon icon={History} />
+        <StateIcon />
       ) : (
         <ol className="meq-timeline">
           {movements.map((mov: any) => {

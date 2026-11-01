@@ -12,6 +12,7 @@ import { isoDay } from '../MobileTrainingSessions/sessionUtils';
 import { TYPE_LABELS } from '../MobileMembers/memberLabels';
 import { type MedicalMode, personName, personPhoto, dayOnly } from './medicalUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- people come untyped from the API */
 
@@ -83,10 +84,10 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
   } : {};
 
   const save = async () => {
-    if (Object.values(errors).some(Boolean)) {
-      setShowErrors(true);
-      return;
-    }
+    setShowErrors(true);
+    // The player and the doctor, choices: a snackbar (the date: its message under it)
+    if (errors.player || errors.doctor) return showSnackbar('خطأ', (errors.player || errors.doctor)!, '#ef4444');
+    if (errors.date) return;
     setSaving(true);
     try {
       const url = record ? Applink.updateMedicalRecord(record.id) : Applink.createMedicalRecord;
@@ -105,10 +106,8 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
         onSave();
         onClose();
       }
-    } catch (error: any) {
-      let msg = error.response?.data?.message || error.response?.data?.error || error.message || '';
-      if (error.response?.data?.errors) msg += '\nتفاصيل الخطأ:\n' + Object.values(error.response.data.errors).flat().join('\n');
-      alert(`حدث خطأ أثناء الحفظ: ${msg}`);
+    } catch {
+      // The server's message is shown by the shared snackbar
     } finally {
       setSaving(false);
     }
@@ -162,28 +161,15 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mmd2-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : 'حفظ الملف'}
+          {saving ? 'جاري الحفظ...' : record && mode === 'injury' ? 'حفظ التعديلات' : 'تأكيد'}
         </button>
       )}
     >
-      <section className="mmd2-hero">
-        <div className="mmd2-hero-top">
-          <span className="mmd2-hero-icon"><head.icon size={24} /></span>
-          <div>
-            <small>{record ? personName(record.player, 'لاعب') : 'ملف إصابة جديد'}</small>
-            <strong className="title">{head.title}</strong>
-          </div>
-        </div>
-        <p className="mmd2-hero-note">{head.hint}</p>
-      </section>
-
       <section className="mmd2-form-card">
         {mode === 'injury' && (
           <>
             {personPick('اللاعب المصاب', 'player_id', players, 'اختر اللاعب')}
-            {err(errors.player)}
-            {personPick('الطبيب / المختص المشرف', 'doctor_id', doctors, 'اختر الطبيب', true)}
-            {err(errors.doctor)}
+            {personPick('الطبيب', 'doctor_id', doctors, 'اختر الطبيب', true)}
             {dateInput('تاريخ الإصابة', 'injury_date')}
             <div className="mmd2-quick">
               {[['اليوم', 0], ['أمس', -1]].map(([l, d]) => (
@@ -192,12 +178,12 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
             </div>
             {err(errors.date)}
             <label className="me-field">
-              <span className="me-label"><MapPin size={14} /> مكان حدوثها</span>
-              <input className="me-input" type="text" value={form.incident_location} onChange={e => set('incident_location', e.target.value)} placeholder="تدريب، مباراة، خارج النشاط" />
+              <span className="me-label"><MapPin size={14} /> مكان الإصابة</span>
+              <input className="me-input" type="text" value={form.incident_location} onChange={e => set('incident_location', e.target.value)} />
             </label>
             <label className="me-field">
               <span className="me-label"><Activity size={14} /> طبيعة الإصابة</span>
-              <input className="me-input" type="text" value={form.injury_nature} onChange={e => set('injury_nature', e.target.value)} placeholder="كدمة، تمزق، كسر..." />
+              <input className="me-input" type="text" value={form.injury_nature} onChange={e => set('injury_nature', e.target.value)} />
             </label>
           </>
         )}
@@ -210,8 +196,8 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
             </label>
             {dateInput('موعد الفحص القادم', 'next_exam_date')}
             <label className="me-field">
-              <span className="me-label"><Lock size={14} /> التشخيص الطبي الدقيق (سري)</span>
-              <textarea className="me-textarea" rows={5} value={form.diagnosis} onChange={e => set('diagnosis', e.target.value)} placeholder="وصف طبي دقيق لحالة اللاعب..." />
+              <span className="me-label"><Lock size={14} /> التشخيص</span>
+              <textarea className="me-textarea" rows={5} value={form.diagnosis} onChange={e => set('diagnosis', e.target.value)} />
             </label>
           </>
         )}
@@ -220,10 +206,10 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
           <>
             {dateInput('تاريخ الفحص النهائي', 'last_exam_date', ClipboardCheck)}
             <label className="me-field">
-              <span className="me-label"><FileText size={14} /> القرار الطبي / النتيجة</span>
+              <span className="me-label"><FileText size={14} /> القرار الطبي</span>
               <input className="me-input" type="text" value={form.medical_decision} onChange={e => set('medical_decision', e.target.value)} />
             </label>
-            {dateInput('تاريخ انتهاء الغياب (المتوقع)', 'absence_to')}
+            {dateInput('تاريخ انتهاء الغياب', 'absence_to')}
           </>
         )}
 
@@ -232,7 +218,7 @@ export const MobileMedicalForm: React.FC<MobileMedicalFormProps> = ({ record, mo
             {dateInput('تاريخ نهاية مرحلة العلاج', 'absence_from', Flag)}
             <label className="me-field">
               <span className="me-label"><FileText size={14} /> القيود والتعليمات للطاقم الفني</span>
-              <textarea className="me-textarea" rows={4} value={form.restrictions} onChange={e => set('restrictions', e.target.value)} placeholder="مثال: تجنب الاحتكاك البدني، المشاركة 30 دقيقة فقط..." />
+              <textarea className="me-textarea" rows={4} value={form.restrictions} onChange={e => set('restrictions', e.target.value)} />
             </label>
           </>
         )}

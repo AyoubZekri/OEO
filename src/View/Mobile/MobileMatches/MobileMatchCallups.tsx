@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Save, Loader2, Search, Stethoscope, HeartPulse, CheckCheck, X, Users, UserCheck } from 'lucide-react';
+import { Check, Save, Loader2, Search, Stethoscope, HeartPulse, CheckCheck, X, UserCheck } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { Applink } from '../../../LinkApi';
@@ -109,7 +109,7 @@ export const MobileMatchCallups: React.FC<{ match: Match; onClose: () => void }>
       {c.isLoading ? (
         <MobileLoader text="جاري تحميل قائمة اللاعبين..." />
       ) : groups.length === 0 ? (
-        <StateIcon icon={Users} />
+        <StateIcon />
       ) : groups.map(g => (
         <section key={g.key} className="mmc-group">
           <h3>

@@ -3,6 +3,7 @@ import { Crud } from '../../../core/class/Crud';
 import { FundsData } from './funds_data';
 import type { Fund, TransactionType, FundTransaction } from './fund_model';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 export const useFundsController = () => {
   const [funds, setFunds] = useState<Fund[]>([]);
@@ -40,11 +41,11 @@ export const useFundsController = () => {
     fetchFunds();
     fetchTransactions();
   }, []);
-  
+
   // Dialog States
   const [isFundDialogOpen, setIsFundDialogOpen] = useState(false);
   const [isOperationDialogOpen, setIsOperationDialogOpen] = useState(false);
-  
+
   // Selected Fund for operations
   const [selectedFundId, setSelectedFundId] = useState<string | null>(null);
   const [editingFund, setEditingFund] = useState<Fund | null>(null);
@@ -110,7 +111,7 @@ export const useFundsController = () => {
     const response = await fundsData.createTransaction(transaction);
     if (response) {
       if (response.error) {
-         alert(response.error);
+         showSnackbar('خطأ', response.error, '#ef4444');
          return;
       }
       fetchTransactions();
@@ -141,9 +142,9 @@ export const useFundsController = () => {
   });
 
   const formatCurrency = (amount: number) => {
-    const numStr = (amount || 0).toLocaleString('en-US', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
+    const numStr = (amount || 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
     const swapped = numStr.replace(/,/g, 'X').replace(/\./g, ',').replace(/X/g, '.');
     return `${swapped} د.ج`;

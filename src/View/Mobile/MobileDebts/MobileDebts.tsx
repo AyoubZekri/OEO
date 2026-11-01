@@ -1,59 +1,33 @@
 import React, { useState } from 'react';
-import { Plus, Landmark, Search, X, Filter, ChevronDown, Inbox, RefreshCw, AlertTriangle, HandCoins, Wallet } from 'lucide-react';
+import { Plus, Search, X, Filter, ChevronDown, RefreshCw } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileSelect } from '../widgets/MobileSelect';
-import { moneyText } from '../MobileContracts/contractUtils';
 import { PageLoader } from '../../shared/PageLoader';
 import type { DebtsController } from '../../Screen/Debts/useDebtsController';
 import { DebtOverlays } from '../../Screen/Debts/parts/DebtOverlays';
 import { DebtCard } from '../../Screen/Debts/parts/DebtCard';
-import { debtTotals, filterDebts, sortDebts, STATUS_FILTERS } from '../../Screen/Debts/debtUtils';
+import { filterDebts, sortDebts, STATUS_FILTERS } from '../../Screen/Debts/debtUtils';
 import '../../shared/kit.css';
 import '../../Screen/Travels/Travels.css';
 import '../../Screen/Debts/Debts.css';
+import { StateIcon } from '../../widget/StateIcon';
 
-// Phone version of the debts page (the funds' loans): what is left in the hero, search, status filter, the cards
+// Phone version of the debts page (the funds' loans): search, status filter, the cards
 export const MobileDebts: React.FC<{ c: DebtsController }> = ({ c }) => {
   // The status the address asks for (?status=unpaid, from the home page's unpaid debts card)
   const [status, setStatus] = useState(() => new URLSearchParams(window.location.search).get('status') || '');
   const [query, setQuery] = useState('');
 
-  const totals = debtTotals(c.debts);
-  const borrowed = c.debts.reduce((s, d) => s + d.amount, 0);
   const visible = sortDebts(filterDebts(c.debts, '', status, query));
 
   return (
     <div className="tk-mpage tk-scope">
       <MobileAppBar title="الديون" />
 
-      <section className="tk-hero">
-        <div className="tk-hero-top">
-          <span className="tk-hero-icon"><Landmark size={26} /></span>
-          <div>
-            <small>الباقي للتسديد</small>
-            <strong className="db-hero-money">{moneyText(totals.remaining)}</strong>
-          </div>
-        </div>
-        <div className="tk-hero-tiles db-hero-tiles">
-          {[
-            { label: 'المستلف', v: moneyText(borrowed), icon: Wallet, tone: 'blue' },
-            { label: 'المسدد', v: moneyText(totals.repaid), icon: HandCoins, tone: 'green' },
-            { label: 'غير مسددة', v: String(totals.open), icon: Landmark, tone: 'orange' },
-          ].map(t => (
-            <div key={t.label} className={`tone-${t.tone}`}>
-              <t.icon size={14} />
-              <strong>{t.v}</strong>
-              <small>{t.label}</small>
-            </div>
-          ))}
-        </div>
-        {totals.overdue > 0 && <p className="db-hero-late"><AlertTriangle size={14} />{totals.overdue} دين متأخر عن تاريخ استحقاقه</p>}
-      </section>
-
       <div className="tk-toolbar">
         <label className="tk-search">
           <Search size={17} />
-          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالدائن أو السبب..." />
+          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث بالدائن أو السبب" />
           {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
         </label>
         <MobileSelect
@@ -75,11 +49,11 @@ export const MobileDebts: React.FC<{ c: DebtsController }> = ({ c }) => {
       {c.loading && !c.debts.length ? <PageLoader mobile text="جاري تحميل الديون..." />
         : c.error ? (
           <div className="tk-state">
-            <Landmark size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={32} /><p>{c.debts.length ? 'لا توجد ديون بهذه التصفية' : 'لا توجد ديون بعد'}</p></div>
+          <StateIcon />
         ) : (
           <div className="tk-list">{visible.map(d => <DebtCard key={d.id} debt={d} onOpen={c.openDebt} actions={c.actionsFor(d)} compact />)}</div>
         )}

@@ -101,7 +101,7 @@ export const MobileMeetings: React.FC<MobileMeetingsProps> = ({ c, canAdd }) => 
           </div>
 
           {list.length === 0 ? (
-            <StateIcon icon={Briefcase} />
+            <StateIcon />
           ) : (
             <div className="mmg-list">
               {groups.map(g => (

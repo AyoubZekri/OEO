@@ -112,7 +112,7 @@ export const MobileMatches: React.FC<MobileMatchesProps> = ({ matches, isLoading
           </div>
 
           {list.length === 0 ? (
-            <StateIcon icon={Trophy} />
+            <StateIcon />
           ) : (
             <div className="mmt-list">
               {list.map(({ m, state }) => (

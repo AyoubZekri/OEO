@@ -9,6 +9,7 @@ import { isoDay } from '../MobileTrainingSessions/sessionUtils';
 import { OPERATIONS, fundIcon, balanceOf } from './fundUtils';
 import type { DebtPrefill } from '../../Screen/Debts/parts/DebtForm';
 import '../MobileEvaluations/MobileEvaluations.css';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 
 interface MobileFundOperationProps {
   fund: Fund;
@@ -43,12 +44,14 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
     to: type === 'تحويل' && !toFundId ? 'اختر الصندوق المحول إليه' : null,
     amount: !(value >= 1) ? 'أدخل المبلغ' : null,
     date: !date ? 'حدد التاريخ' : null,
-    description: !description.trim() ? 'اكتب التفاصيل / البيان' : null,
+    description: !description.trim() ? 'اكتب البيان' : null,
   };
   const show = (text: string | null) => (checked && text ? <p className="mfd-form-error"><AlertCircle size={14} /> {text}</p> : null);
 
   const save = async () => {
     setChecked(true);
+    // The fund to transfer to, a choice: a snackbar (the fields to type: their message under them)
+    if (errors.to) return showSnackbar('خطأ', errors.to, '#ef4444');
     if (Object.values(errors).some(Boolean)) return;
     // A loan: no deposit of its own, the debt form puts the money into the fund
     if (loan) {
@@ -75,7 +78,7 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mfd-spin" /> : <Save size={18} />}
-          {saving ? 'جاري الحفظ...' : loan ? 'متابعة لتسجيل الدين' : 'حفظ العملية'}
+          {saving ? 'جاري الحفظ...' : loan ? 'متابعة لتسجيل الدين' : 'تأكيد'}
         </button>
       )}
     >
@@ -101,7 +104,6 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
             >
               <span><op.icon size={19} /></span>
               <strong>{op.label}</strong>
-              <small>{op.hint}</small>
             </button>
           ))}
         </div>
@@ -129,13 +131,12 @@ export const MobileFundOperation: React.FC<MobileFundOperationProps> = ({ fund, 
                 onChange={setToFundId}
                 renderTrigger={open => (
                   <button type="button" className={`mfd-to ${target ? '' : 'empty'}`} onClick={open}>
-                    <span><small>إلى</small><strong>{target?.name || 'اختر الصندوق المحول إليه'}</strong></span>
+                    <span><small>إلى</small><strong>{target?.name || '—'}</strong></span>
                     <ChevronDown size={17} />
                   </button>
                 )}
               />
             </div>
-            {show(errors.to)}
           </>
         )}
       </section>

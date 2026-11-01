@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  ArrowRight, Save, Check, X, Clock, FileWarning,
-  Users, Search,
-  ClipboardCheck
+  ArrowRight, Save, Check, X, Clock, FileWarning, Search, ClipboardCheck,
 } from 'lucide-react';
 import { useTakeMeetingAttendanceController } from './TakeMeetingAttendanceController';
 import type { MeetingAttendeeFull } from './TakeMeetingAttendanceController';
@@ -132,7 +130,7 @@ export const TakeMeetingAttendance: React.FC = () => {
       {/* ═══ MEMBERS GRID ═══ */}
       <div className="ta-players-grid">
         {filtered.length === 0 ? (
-          <StateIcon icon={Users} />
+          <StateIcon />
         ) : (
           filtered.map(attendee => (
             <div

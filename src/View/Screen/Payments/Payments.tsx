@@ -31,13 +31,14 @@ import '../Debts/Debts.css';
 import './Payments.css';
 import { TopbarSearch } from '../../widget/TopbarSearch';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Payments: React.FC = () => {
   const { t } = useTranslation();
   const { permissions, isFullAccess } = useAuth();
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = usePaymentsController();
-  
+
   const [printData, setPrintData] = useState<any>(null);
   const [viewingReceiptUrl, setViewingReceiptUrl] = useState<string | null>(null);
 
@@ -59,10 +60,10 @@ export const Payments: React.FC = () => {
 
   const confirmPrint = (options: { includeRegulations: boolean, printReceipt: boolean }) => {
     if (!printOptionsDialog) return;
-    
+
     const { includeRegulations, printReceipt } = options;
     const { payment, member, contract } = printOptionsDialog;
-    
+
     // Calculate totals for this member based on all their payments of type 'دفع' AND nature 'رقم دفعة'
     const memberPayments = controller.payments.filter((p: any) => {
       const isMemberMatch = String(p.memberId) === String(payment.memberId) || String(p.member_id) === String(payment.memberId) || String(p.individuals_id) === String(payment.memberId);
@@ -71,7 +72,7 @@ export const Payments: React.FC = () => {
       const aNature = String(p.amountNature || p.amount_nature || '').trim();
       const instNumVal = p.installmentNumber || (p as any).Occasion_Reason_numper || (p as any).occasion_reason_numper || (p as any).Occasion_reason_numper;
       const isNatureMatch = aNature === 'رقم دفعة' || !!instNumVal;
-      
+
       return isMemberMatch && isTypeMatch && isNatureMatch;
     });
     // Ensure we sum up only installment payments
@@ -82,9 +83,9 @@ export const Payments: React.FC = () => {
 
     setPrintData({ payment, member, contract, totalPaid, deductions, remaining, includeRegulations, printReceipt });
     setPrintOptionsDialog(null);
-    
+
     const targetMemberId = payment.memberId || payment.member_id || payment.individuals_id;
-    
+
     setTimeout(() => {
       // Setup listener for when the print dialog closes
       if (includeRegulations && targetMemberId) {
@@ -97,7 +98,7 @@ export const Payments: React.FC = () => {
         };
         window.addEventListener('afterprint', handleAfterPrint);
       }
-      
+
       window.print();
     }, 200); // Wait for the component to render before printing
   };
@@ -193,7 +194,7 @@ export const Payments: React.FC = () => {
     <div className="payments-container">
       <div className="payments-header">
 
-        
+
         <div className="payments-actions">
           <TopbarSearch value={searchQuery} onChange={v => setSearchQuery(v)} placeholder={t('payments.search_placeholder', 'ابحث...')} />
           <CustomDropdown
@@ -278,8 +279,8 @@ export const Payments: React.FC = () => {
           <tbody>
             {rows.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-4 text-muted">
-                  {t('payments.no_data', 'لا توجد بيانات')}
+                <td colSpan={8}>
+                  <StateIcon />
                 </td>
               </tr>
             ) : (
@@ -372,12 +373,12 @@ export const Payments: React.FC = () => {
           </tbody>
         </table>
         </div>
-        <Pagination 
-          totalItems={rows.length} 
-          itemsPerPage={itemsPerPage} 
-          currentPage={currentPage} 
-          onPageChange={setCurrentPage} 
-          onItemsPerPageChange={setItemsPerPage} 
+        <Pagination
+          totalItems={rows.length}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
         />
       </div>
 
@@ -396,36 +397,36 @@ export const Payments: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="dialog-body">
-              <form onSubmit={handleSave}>
+              <form onSubmit={handleSave} noValidate>
                 {/* Transaction Type Selection */}
                 <div className="form-group mb-4">
                   <label>{t('payments.form_transaction_type', 'نوع العملية')}</label>
                   <div className="transaction-type-selector">
                     <label className="transaction-type-option">
-                      <input 
-                        type="radio" 
-                        name="transactionType" 
-                        value="دفع" 
-                        checked={transactionType === 'دفع'} 
-                        onChange={() => { setTransactionType('دفع'); setAmountNature('راتب شهري'); }} 
+                      <input
+                        type="radio"
+                        name="transactionType"
+                        value="دفع"
+                        checked={transactionType === 'دفع'}
+                        onChange={() => { setTransactionType('دفع'); setAmountNature('راتب شهري'); }}
                       />
                       <div className="transaction-type-card">
                         <div className="transaction-type-icon">
                           <Users size={24} />
                         </div>
-                        <span>دفع مستحقات (مرتبط بعضو)</span>
+                        <span>دفع مستحقات</span>
                       </div>
                     </label>
 
                     <label className="transaction-type-option">
-                      <input 
-                        type="radio" 
-                        name="transactionType" 
-                        value="مصروف" 
-                        checked={transactionType === 'مصروف'} 
-                        onChange={() => { setTransactionType('مصروف'); setAmountNature('تعويض مصاريف'); }} 
+                      <input
+                        type="radio"
+                        name="transactionType"
+                        value="مصروف"
+                        checked={transactionType === 'مصروف'}
+                        onChange={() => { setTransactionType('مصروف'); setAmountNature('تعويض مصاريف'); }}
                       />
                       <div className="transaction-type-card">
                         <div className="transaction-type-icon">
@@ -435,12 +436,12 @@ export const Payments: React.FC = () => {
                       </div>
                     </label>
                     <label className={`transaction-type-option ${transactionType === 'مصاريف استثنائية' ? 'active' : ''}`}>
-                      <input 
-                        type="radio" 
-                        name="transactionType" 
-                        value="مصاريف استثنائية" 
-                        checked={transactionType === 'مصاريف استثنائية'} 
-                        onChange={() => { setTransactionType('مصاريف استثنائية'); setAmountNature('اخرى'); }} 
+                      <input
+                        type="radio"
+                        name="transactionType"
+                        value="مصاريف استثنائية"
+                        checked={transactionType === 'مصاريف استثنائية'}
+                        onChange={() => { setTransactionType('مصاريف استثنائية'); setAmountNature('اخرى'); }}
                       />
                       <div className="transaction-type-card">
                         <div className="transaction-type-icon">
@@ -468,7 +469,7 @@ export const Payments: React.FC = () => {
                         <input type="radio" name="creditMode" checked={form.onCredit} onChange={() => form.setOnCredit(true)} />
                         <div className="transaction-type-card">
                           <div className="transaction-type-icon"><Clock size={24} /></div>
-                          <span className="transaction-type-label">بالدين (يُدفع لاحقاً)</span>
+                          <span className="transaction-type-label">بالدين</span>
                         </div>
                       </label>
                     </div>
@@ -478,11 +479,12 @@ export const Payments: React.FC = () => {
                 {form.creditMode && (
                   <div className="form-row">
                     <div className="form-group">
-                      <label>البائع / المحل <span style={{ color: '#ef4444', marginRight: '4px' }}>*</span></label>
-                      <input type="text" className="form-control" value={form.creditor} onChange={e => form.setCreditor(e.target.value)} placeholder="مثال: محل الرياضة" />
+                      <label>البائع</label>
+                      <input type="text" className={`form-control ${formSubmitted && form.fieldErrors.creditor ? 'is-missing' : ''}`} value={form.creditor} onChange={e => form.setCreditor(e.target.value)} />
+                      {formSubmitted && form.fieldErrors.creditor && <span className="pay-field-error">{form.fieldErrors.creditor}</span>}
                     </div>
                     <div className="form-group">
-                      <label>هاتف البائع (اختياري)</label>
+                      <label>هاتف البائع</label>
                       <input type="text" dir="ltr" className="form-control" value={form.creditorPhone} onChange={e => form.setCreditorPhone(e.target.value)} />
                     </div>
                   </div>
@@ -493,13 +495,12 @@ export const Payments: React.FC = () => {
                   <div className="form-group mb-3">
                     <label>
                       {transactionType === 'دفع' ? t('payments.form_select_member', 'تحديد العضو / المستفيد') : 'العضو'}
-                      {transactionType !== 'دفع' && <span className="optional-hint"> (اختياري)</span>}
                     </label>
                   <CustomDropdown
                     value={memberId}
                     onChange={setMemberId}
                     options={[
-                      { value: '', label: transactionType === 'دفع' ? t('payments.form_select_member_placeholder', '-- اختر العضو --') : '-- بدون عضو --' },
+                      { value: '', label: transactionType === 'دفع' ? '—' : 'بدون عضو' },
                       ...members.map(m => ({
                         value: m.id,
                         label: `${m.firstName} ${m.lastName} (${m.memberRole})`
@@ -514,54 +515,18 @@ export const Payments: React.FC = () => {
                   <div className="form-group mb-3">
                     <label>
                       {t('payments.form_select_fund', 'تحديد صندوق الدفع')}
-                      <span style={{ color: '#ef4444', marginRight: '4px' }}>*</span>
                     </label>
                     <CustomDropdown
                       value={fundId}
                       onChange={setFundId}
                       options={[
-                        { value: '', label: t('payments.form_select_fund_placeholder', '-- اختر الصندوق --') },
+                        { value: '', label: '—' },
                         ...funds.map(f => ({
                           value: f.id,
                           label: f.name
                         }))
                       ]}
                     />
-                    {formSubmitted && !fundId && <span style={{ color: '#ef4444', fontSize: '0.8rem', marginTop: '4px', display: 'block' }}>{t('payments.fund_required', 'اختيار الصندوق إجباري')}</span>}
-                  </div>
-                )}
-
-                {/* Auto Populated Member Details */}
-                {transactionType === 'دفع' && selectedMemberDetails && (
-                  <div className="member-details-card">
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_name', 'الاسم واللقب')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.firstName} {selectedMemberDetails.lastName}</span>
-                    </div>
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_role', 'صفة العضو')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.memberRole}</span>
-                    </div>
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_contract_type', 'نوع العقد')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.contractType}</span>
-                    </div>
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_contract_number', 'رقم العقد')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.contractNumber}</span>
-                    </div>
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_id', 'رقم الهوية')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.nationalId}</span>
-                    </div>
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_birth', 'تاريخ ومكان الميلاد')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.dateOfBirth} - {selectedMemberDetails.placeOfBirth}</span>
-                    </div>
-                    <div className="member-detail-item">
-                      <span className="member-detail-label">{t('payments.detail_phone', 'رقم الهاتف')}</span>
-                      <span className="member-detail-value">{selectedMemberDetails.phoneNumber}</span>
-                    </div>
                   </div>
                 )}
 
@@ -569,17 +534,20 @@ export const Payments: React.FC = () => {
                   <div className="form-row">
                     <div className="form-group">
                       <label>تاريخ الشراء</label>
-                      <input type="date" className="form-control" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required />
+                      <input type="date" className={`form-control ${formSubmitted && form.fieldErrors.date ? 'is-missing' : ''}`} value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
+                      {formSubmitted && form.fieldErrors.date && <span className="pay-field-error">{form.fieldErrors.date}</span>}
                     </div>
                     <div className="form-group">
-                      <label>آخر أجل للدفع (اختياري)</label>
-                      <input type="date" className="form-control" value={form.dueDate} min={paymentDate} onChange={e => form.setDueDate(e.target.value)} />
+                      <label>آخر أجل للدفع</label>
+                      <input type="date" className={`form-control ${formSubmitted && form.fieldErrors.due ? 'is-missing' : ''}`} value={form.dueDate} min={paymentDate} onChange={e => form.setDueDate(e.target.value)} />
+                      {formSubmitted && form.fieldErrors.due && <span className="pay-field-error">{form.fieldErrors.due}</span>}
                     </div>
                   </div>
                 ) : (
                 <div className="form-group">
                   <label>{t('payments.form_payment_date', 'تاريخ الدفع')}</label>
-                  <input type="date" className="form-control" value={paymentDate} onChange={e => setPaymentDate(e.target.value)} required />
+                  <input type="date" className={`form-control ${formSubmitted && form.fieldErrors.date ? 'is-missing' : ''}`} value={paymentDate} onChange={e => setPaymentDate(e.target.value)} />
+                  {formSubmitted && form.fieldErrors.date && <span className="pay-field-error">{form.fieldErrors.date}</span>}
                 </div>
                 )}
 
@@ -658,7 +626,7 @@ export const Payments: React.FC = () => {
                 {transactionType === 'دفع' && contracts.filter(c => String(c.individuals_id) === String(memberId)).length > 1 && (
                   <div className="form-row">
                     <div className="form-group" style={{ width: '100%' }}>
-                      <label>تحديد العقد (الموسم)</label>
+                      <label>العقد</label>
                       <CustomDropdown
                         value={selectedContractId}
                         onChange={selectContract}
@@ -677,7 +645,8 @@ export const Payments: React.FC = () => {
                   <div className="form-row">
                     <div className="form-group" style={{ width: '100%' }}>
                       <label>{t('payments.form_installment_number', 'رقم الدفعة')}</label>
-                      <input type="text" className="form-control" value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} required />
+                      <input type="text" className={`form-control ${formSubmitted && form.fieldErrors.installment ? 'is-missing' : ''}`} value={installmentNumber} onChange={e => setInstallmentNumber(e.target.value)} />
+                      {formSubmitted && form.fieldErrors.installment && <span className="pay-field-error">{form.fieldErrors.installment}</span>}
                     </div>
                   </div>
                 )}
@@ -718,13 +687,12 @@ export const Payments: React.FC = () => {
                     </div>
                     <div className="form-group">
                       <label>{t('payments.form_number_of_months', 'عدد الأشهر')}</label>
-                      <input 
-                        type="number" 
-                        className="form-control" 
-                        value={numberOfMonths} 
-                        onChange={e => setNumberOfMonths(parseInt(e.target.value) || 1)} 
-                        min="1" 
-                        required 
+                      <input
+                        type="number"
+                        className="form-control"
+                        value={numberOfMonths}
+                        onChange={e => setNumberOfMonths(parseInt(e.target.value) || 1)}
+                        min="1"
                       />
                     </div>
                   </div>
@@ -733,38 +701,39 @@ export const Payments: React.FC = () => {
                 {amountNature === 'تسجيل أهداف' && (
                   <div className="form-group">
                     <label>{t('payments.form_number_of_goals', 'عدد الأهداف')}</label>
-                    <input type="number" className="form-control" value={numberOfGoals} onChange={e => setNumberOfGoals(e.target.value)} required min="1" />
+                    <input type="number" className={`form-control ${formSubmitted && form.fieldErrors.goals ? 'is-missing' : ''}`} value={numberOfGoals} onChange={e => setNumberOfGoals(e.target.value)} min="1" />
+                    {formSubmitted && form.fieldErrors.goals && <span className="pay-field-error">{form.fieldErrors.goals}</span>}
                   </div>
                 )}
 
                 {!['رقم دفعة', 'راتب شهري', 'تسجيل أهداف', 'منحة مقابلات', 'مصاريف التنقل'].includes(amountNature) && (
                   <div className="form-group">
-                    <label>{form.creditMode ? 'البيان (تفاصيل المصروف)' : t('payments.form_occasion', 'المناسبة / السبب')}</label>
-                    <input type="text" className="form-control" value={occasion} onChange={e => setOccasion(e.target.value)} required={amountNature === 'اخرى'} />
+                    <label>{form.creditMode ? 'البيان' : t('payments.form_occasion', 'المناسبة / السبب')}</label>
+                    <input type="text" className={`form-control ${formSubmitted && form.fieldErrors.occasion ? 'is-missing' : ''}`} value={occasion} onChange={e => setOccasion(e.target.value)} />
+                    {formSubmitted && form.fieldErrors.occasion && <span className="pay-field-error">{form.fieldErrors.occasion}</span>}
                   </div>
                 )}
 
                 <div className="form-group">
                   <label>{t('payments.form_amount', 'المبلغ (د.ج)')}</label>
-                  <CurrencyInput 
-                    className="form-control amount-cell" 
-                    value={amount} 
-                    onChangeValue={setAmount} 
-                    required 
+                  <CurrencyInput
+                    className={`form-control amount-cell ${formSubmitted && form.fieldErrors.amount ? 'is-missing' : ''}`}
+                    value={amount}
+                    onChangeValue={setAmount}
                   />
+                  {formSubmitted && form.fieldErrors.amount && <span className="pay-field-error">{form.fieldErrors.amount}</span>}
                 </div>
-                
+
                 <div className="form-group">
                   <label>{t('payments.form_notes', 'ملاحظات')}</label>
                   <input type="text" className="form-control" value={notes} onChange={e => setNotes(e.target.value)} />
                 </div>
 
 
-                {form.creditMode && form.creditError && <p className="payment-credit-error"><AlertCircle size={15} />{form.creditError}</p>}
 
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
                   <button type="button" className="btn-cancel" onClick={closeDialog}>{t('payments.cancel', 'إلغاء')}</button>
-                  <button type="submit" className="btn-primary" disabled={form.creditSaving}>{form.creditMode ? 'تسجيل الشراء بالدين' : t('payments.save', 'حفظ الدفعة')}</button>
+                  <button type="submit" className="btn-primary" disabled={form.creditSaving}>{editingPayment ? 'حفظ التعديلات' : 'تأكيد'}</button>
                 </div>
               </form>
               {form.pendingPayment && (
@@ -780,14 +749,14 @@ export const Payments: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       {printData && (
         <div className="global-print-container">
           {printData.printReceipt && (
-            <PrintableReceipt 
-              payment={printData.payment} 
-              member={printData.member} 
-              contract={printData.contract} 
+            <PrintableReceipt
+              payment={printData.payment}
+              member={printData.member}
+              contract={printData.contract}
               totalPaid={printData.totalPaid}
               deductions={printData.deductions}
               remaining={printData.remaining}
@@ -807,9 +776,9 @@ export const Payments: React.FC = () => {
             <div className="dialog-body">
               <Printer size={48} style={{ margin: '0 auto 15px auto', color: '#ea580c' }} />
               <p style={{ marginBottom: '25px', fontWeight: 'bold', fontSize: '1.1rem' }}>ماذا تريد أن تطبع مع هذا الوصل؟</p>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <button 
+                <button
                   className="btn-primary"
                   style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
                   onClick={() => confirmPrint({ includeRegulations: true, printReceipt: true })}
@@ -817,8 +786,8 @@ export const Payments: React.FC = () => {
                   <BookOpen size={20} style={{ marginLeft: '8px' }} />
                   طباعة الوصل + النظام الداخلي
                 </button>
-                
-                <button 
+
+                <button
                   className="btn-cancel"
                   style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
                   onClick={() => confirmPrint({ includeRegulations: false, printReceipt: true })}
@@ -827,7 +796,7 @@ export const Payments: React.FC = () => {
                   طباعة الوصل فقط
                 </button>
 
-                <button 
+                <button
                   className="btn-cancel"
                   style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px', fontSize: '1rem' }}
                   onClick={() => confirmPrint({ includeRegulations: true, printReceipt: false })}
@@ -881,14 +850,14 @@ export const Payments: React.FC = () => {
         />
       )}
 
-      <UploadReceiptDialog 
+      <UploadReceiptDialog
         isOpen={controller.isUploadDialogOpen}
         onClose={controller.closeUploadDialog}
         payment={controller.paymentForUpload}
         onUpload={controller.uploadReceipt}
       />
 
-      <ViewReceiptDialog 
+      <ViewReceiptDialog
         isOpen={!!viewingReceiptUrl}
         onClose={() => setViewingReceiptUrl(null)}
         imageUrl={viewingReceiptUrl || ''}

@@ -10,6 +10,7 @@ import { MobileLoader } from '../widgets/MobileLoader';
 import { revealMenu, menuPositionUnder } from '../widgets/revealMenu';
 import { TYPE_LABELS, POSITION_LABELS } from './memberLabels';
 import './MobileMembers.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface MobileMembersProps {
   controller: ReturnType<typeof useMembersController>;
@@ -101,10 +102,7 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
       {controller.isLoading ? (
         <MobileLoader text="جاري تحميل الأعضاء..." />
       ) : filteredMembers.length === 0 ? (
-        <div className="mm-state">
-          <Users size={40} />
-          <p>لا يوجد أعضاء مطابقين للبحث</p>
-        </div>
+        <StateIcon />
       ) : (
         <div className="mm-list">
           {filteredMembers.map(member => (

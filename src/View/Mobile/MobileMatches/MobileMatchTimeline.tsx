@@ -144,7 +144,7 @@ export const MobileMatchTimeline: React.FC<{ match: Match; onClose: () => void }
         <MobileLoader text="جاري تحميل الأحداث..." />
       ) : tab === 'events' ? (
         events.length === 0 ? (
-          <StateIcon icon={Activity} />
+          <StateIcon />
         ) : (
           <ol className="mp-timeline">
             <li className="mp-divider"><span>انطلاق المباراة</span></li>
@@ -174,7 +174,7 @@ export const MobileMatchTimeline: React.FC<{ match: Match; onClose: () => void }
           </ol>
         )
       ) : callups.length === 0 ? (
-        <StateIcon icon={LayoutGrid} />
+        <StateIcon />
       ) : (
         <div className="mml-pitch">
           <FootballPitch

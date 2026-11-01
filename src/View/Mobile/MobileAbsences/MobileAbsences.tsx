@@ -151,7 +151,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
       {/* Pending justifications */}
       {c.activeTab === 'requests' && (
         pending.length === 0 ? (
-          <StateIcon icon={Inbox} />
+          <StateIcon />
         ) : (
           <div className="mab-list">{pending.map(a => <MobileAbsenceCard key={a.id} absence={a} {...cardProps} />)}</div>
         )
@@ -161,7 +161,7 @@ export const MobileAbsences: React.FC<{ c: ReturnType<typeof useAbsenceRequestsC
       {c.activeTab === 'registry' && (
         c.isLoading && !c.absences.length ? <MobileLoader text="جاري تحميل السجل..." /> :
           registry.length === 0 ? (
-            <StateIcon icon={ClipboardList} />
+            <StateIcon />
           ) : (
             <div className="mab-list">
               {registry.slice(0, limit).map(a => <MobileAbsenceCard key={a.id} absence={a} {...cardProps} />)}

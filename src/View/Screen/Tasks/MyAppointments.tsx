@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CalendarClock, Inbox, RefreshCw, Search, X } from 'lucide-react';
+import { RefreshCw, Search, X } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { TopbarSearch } from '../../widget/TopbarSearch';
 import { PageLoader } from '../../shared/PageLoader';
@@ -17,6 +17,7 @@ import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Tasks.css';
 import '../../Mobile/MobileTasks/MobileTasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /**
  * Personal space: my appointments — the appointments' tasks given to me that are not on my home page yet (their alert
@@ -40,11 +41,11 @@ export const MyAppointments: React.FC = () => {
   const list = c.loading && !c.tasks.length ? <PageLoader mobile={isMobile} text="جاري تحميل المواعيد..." />
     : c.error ? (
       <div className="tk-state">
-        <CalendarClock size={30} /><p>{c.error}</p>
+        <StateIcon failed />
         <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
       </div>
     ) : visible.length === 0 ? (
-      <div className="tk-state"><Inbox size={30} /><p>{upcoming.length ? 'لا توجد مواعيد بهذه التصفية' : 'لا توجد مواعيد قادمة'}</p></div>
+      <StateIcon />
     ) : isMobile ? (
       <div className="tsk-hcards tsk-ucards">{visible.map(t => <UpcomingTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} />)}</div>
     ) : (

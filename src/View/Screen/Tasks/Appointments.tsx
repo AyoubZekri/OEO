@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, CalendarClock, Inbox, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { TopbarSearch } from '../../widget/TopbarSearch';
@@ -13,6 +13,7 @@ import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Tasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 /**
  * The appointments page (the tasks themselves are on the home page): each one creates its task with every new match /
@@ -58,11 +59,11 @@ export const Appointments: React.FC<{ tabs?: React.ReactNode }> = ({ tabs }) => 
       {c.loading && !c.templates.length ? <PageLoader mobile={false} text="جاري تحميل المواعيد..." />
         : c.error ? (
           <div className="tk-state">
-            <CalendarClock size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <div className="tk-state"><Inbox size={32} /><p>{c.templates.length ? 'لا توجد مواعيد بهذه التصفية' : 'لا توجد مواعيد بعد'}</p></div>
+          <StateIcon />
         ) : (
           <AppointmentTable templates={visible} onView={view} onEdit={edit} onToggle={toggle} onDelete={remove} />
         )}

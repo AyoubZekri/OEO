@@ -129,9 +129,9 @@ export const MobileTeamDetails: React.FC<MobileTeamDetailsProps> = ({ team, rost
           )}
 
           {tabList.length === 0 ? (
-            <StateIcon icon={Users} />
+            <StateIcon />
           ) : shown.length === 0 ? (
-            <StateIcon icon={Search} />
+            <StateIcon />
           ) : shown.map(group => (
             <section key={group.key} className="mtd-group">
               <h3>{group.title} <span>{group.members.length}</span></h3>

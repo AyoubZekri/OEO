@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
-  ArrowRight, Save, Check, X, Clock, FileWarning,
-  Users, Search,
-  ClipboardCheck, Stethoscope
+  ArrowRight, Save, Check, X, Clock, FileWarning, Search, ClipboardCheck, Stethoscope,
 } from 'lucide-react';
 import { useTakeAttendanceController } from './TakeAttendanceController';
 import type { PlayerAttendance } from './TakeAttendanceController';
@@ -141,7 +139,7 @@ export const MatchAttendance: React.FC = () => {
       {/* ═══ PLAYERS GRID ═══ */}
       <div className="ta-players-grid">
         {filtered.length === 0 ? (
-          <StateIcon icon={Users} />
+          <StateIcon />
         ) : (
           filtered.map((player, idx) => (
             <div

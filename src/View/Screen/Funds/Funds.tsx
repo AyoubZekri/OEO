@@ -12,6 +12,8 @@ import { DebtForm } from '../Debts/parts/DebtForm';
 import { useFundLoan } from './useFundLoan';
 import '../Debts/Debts.css';
 import './Funds.css';
+import { showSnackbar } from '../../../core/functions/Snacpar';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Funds: React.FC = () => {
   const { t } = useTranslation();
@@ -55,6 +57,9 @@ export const Funds: React.FC = () => {
   });
   // A deposit: is the money a loan (a debt to pay back)?
   const [isLoan, setIsLoan] = useState(false);
+  // The fields to type left wrong: their message under them (the fund to transfer to, a choice: a snackbar)
+  const [fundTried, setFundTried] = useState(false);
+  const [opTried, setOpTried] = useState(false);
 
   // Effect to populate Fund Form when editing
   React.useEffect(() => {
@@ -99,9 +104,16 @@ export const Funds: React.FC = () => {
     );
   }
 
+  const fundErrors = { name: !fundFormData.name.trim(), balance: fundFormData.initialBalance === '' };
+  const opErrors = { amount: !(parseFloat(opFormData.amount) >= 1), date: !opFormData.date, description: !opFormData.description.trim() };
+  const closeFund = () => { setFundTried(false); closeFundDialog(); };
+  const closeOp = () => { setOpTried(false); closeOperationDialog(); };
+
   const handleFundSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fundFormData.name) return;
+    setFundTried(true);
+    if (fundErrors.name || fundErrors.balance) return;
+    setFundTried(false);
 
     if (editingFund) {
       editFund(editingFund.id, {
@@ -120,8 +132,11 @@ export const Funds: React.FC = () => {
 
   const handleOpSave = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!opFormData.amount || !selectedFundId) return;
-    if (opFormData.type === 'تحويل' && !opFormData.toFundId) return;
+    if (!selectedFundId) return;
+    setOpTried(true);
+    if (opFormData.type === 'تحويل' && !opFormData.toFundId) return showSnackbar('خطأ', 'اختر الصندوق المحول إليه', '#ef4444');
+    if (Object.values(opErrors).some(Boolean)) return;
+    setOpTried(false);
 
     // A loan: no deposit of its own, the debt form puts the money into the fund
     if (opFormData.type === 'إيداع' && isLoan && loan.allowed) {
@@ -175,6 +190,7 @@ export const Funds: React.FC = () => {
 
       {/* Funds Summary Cards */}
       <div className="funds-summary">
+        {funds.length === 0 && <StateIcon />}
         {funds.map(fund => (
           <div className="fund-card" key={fund.id}>
             <div className="fund-card-header">
@@ -186,7 +202,7 @@ export const Funds: React.FC = () => {
             <div className="fund-card-balance">
               {formatCurrency(getBalance(fund.id))}
             </div>
-            
+
             <div className="fund-card-actions">
               {hasAccess(permissions.funds.edit) && (
                 <button className="btn-action edit-btn" onClick={() => openFundDialog(fund)} title="تعديل">
@@ -211,25 +227,26 @@ export const Funds: React.FC = () => {
 
       {/* Fund Dialog (Add/Edit Fund) */}
       {isFundDialogOpen && (
-        <div className="dialog-overlay" onClick={closeFundDialog}>
+        <div className="dialog-overlay" onClick={closeFund}>
           <div className="dialog-content add-fund-dialog" onClick={e => e.stopPropagation()}>
             <div className="dialog-header">
               <div className="dialog-title">
                 <Wallet size={24} />
                 <h2>{editingFund ? 'تعديل الصندوق' : 'إضافة صندوق جديد'}</h2>
               </div>
-              <button className="close-btn" onClick={closeFundDialog}>
+              <button className="close-btn" onClick={closeFund}>
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="dialog-body">
-              <form onSubmit={handleFundSave}>
+              <form onSubmit={handleFundSave} noValidate>
                 <div className="form-group">
                   <label>اسم الصندوق</label>
-                  <input type="text" className="form-control" value={fundFormData.name} onChange={e => setFundFormData({...fundFormData, name: e.target.value})} required placeholder="مثال: البنك المركزي" />
+                  <input type="text" className={`form-control ${fundTried && fundErrors.name ? 'is-missing' : ''}`} value={fundFormData.name} onChange={e => setFundFormData({...fundFormData, name: e.target.value})} />
+                  {fundTried && fundErrors.name && <span className="fund-field-error">اكتب اسم الصندوق</span>}
                 </div>
-                
+
                 <div className="form-row">
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>الأيقونة</label>
@@ -246,17 +263,17 @@ export const Funds: React.FC = () => {
                   <div className="form-group mt-3" style={{ flex: 1 }}>
                     <label>الرصيد الابتدائي</label>
                     <CurrencyInput
-                      className="form-control"
+                      className={`form-control ${fundTried && fundErrors.balance ? 'is-missing' : ''}`}
                       value={fundFormData.initialBalance}
                       onChangeValue={(val) => setFundFormData({ ...fundFormData, initialBalance: val })}
-                      required
                     />
+                    {fundTried && fundErrors.balance && <span className="fund-field-error">اكتب الرصيد الابتدائي</span>}
                   </div>
                 </div>
 
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
-                  <button type="button" className="btn-cancel" onClick={closeFundDialog}>{t('common.cancel', 'إلغاء')}</button>
-                  <button type="submit" className="btn-primary">{t('common.save', 'حفظ')}</button>
+                  <button type="button" className="btn-cancel" onClick={closeFund}>{t('common.cancel', 'إلغاء')}</button>
+                  <button type="submit" className="btn-primary">{editingFund ? 'حفظ التعديلات' : 'تأكيد'}</button>
                 </div>
               </form>
             </div>
@@ -270,39 +287,39 @@ export const Funds: React.FC = () => {
 
       {/* Operation Dialog (Add Money / Transfer) */}
       {isOperationDialogOpen && selectedFundId && (
-        <div className="dialog-overlay" onClick={closeOperationDialog}>
+        <div className="dialog-overlay" onClick={closeOp}>
           <div className="dialog-content add-fund-dialog" onClick={e => e.stopPropagation()}>
             <div className="dialog-header">
               <div className="dialog-title">
                 <ArrowRightLeft size={24} />
                 <h2>عملية جديدة - {getFundName(selectedFundId)}</h2>
               </div>
-              <button className="close-btn" onClick={closeOperationDialog}>
+              <button className="close-btn" onClick={closeOp}>
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="dialog-body">
-              <form onSubmit={handleOpSave}>
+              <form onSubmit={handleOpSave} noValidate>
                 <div className="form-group">
                   <label>نوع العملية</label>
                   <CustomDropdown<TransactionType>
                     value={opFormData.type}
                     onChange={(val) => setOpFormData({...opFormData, type: val})}
                     options={[
-                      { value: 'إيداع', label: 'إضافة مال (إيداع)' },
-                      { value: 'سحب', label: 'سحب مال (مصروف)' },
-                      { value: 'تحويل', label: 'تحويل إلى صندوق آخر' }
+                      { value: 'إيداع', label: 'إيداع' },
+                      { value: 'سحب', label: 'سحب' },
+                      { value: 'تحويل', label: 'تحويل' }
                     ]}
                   />
                 </div>
 
                 {opFormData.type === 'إيداع' && loan.allowed && (
                   <div className="form-group">
-                    <label>هل هذا المال دين؟</label>
+                    <label>دين</label>
                     <div className="fund-loan-toggle" role="radiogroup">
-                      <button type="button" role="radio" aria-checked={!isLoan} className={!isLoan ? 'on' : ''} onClick={() => setIsLoan(false)}>لا، مال للنادي</button>
-                      <button type="button" role="radio" aria-checked={isLoan} className={isLoan ? 'on loan' : ''} onClick={() => setIsLoan(true)}>نعم، دين (استلاف)</button>
+                      <button type="button" role="radio" aria-checked={!isLoan} className={!isLoan ? 'on' : ''} onClick={() => setIsLoan(false)}>لا</button>
+                      <button type="button" role="radio" aria-checked={isLoan} className={isLoan ? 'on loan' : ''} onClick={() => setIsLoan(true)}>نعم</button>
                     </div>
                   </div>
                 )}
@@ -314,7 +331,7 @@ export const Funds: React.FC = () => {
                       value={opFormData.toFundId}
                       onChange={(val) => setOpFormData({...opFormData, toFundId: val})}
                       options={funds.filter(f => f.id !== selectedFundId).map(f => ({ value: f.id, label: f.name }))}
-                      placeholder="اختر الصندوق المحول إليه"
+                      placeholder=""
                     />
                   </div>
                 )}
@@ -322,22 +339,25 @@ export const Funds: React.FC = () => {
                 <div className="form-row">
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>{t('funds.form_amount', 'المبلغ (د.ج)')}</label>
-                    <CurrencyInput className="form-control" value={opFormData.amount} onChangeValue={val => setOpFormData({...opFormData, amount: val})} required min="1" />
+                    <CurrencyInput className={`form-control ${opTried && opErrors.amount ? 'is-missing' : ''}`} value={opFormData.amount} onChangeValue={val => setOpFormData({...opFormData, amount: val})} min="1" />
+                    {opTried && opErrors.amount && <span className="fund-field-error">اكتب المبلغ</span>}
                   </div>
                   <div className="form-group" style={{ flex: 1 }}>
                     <label>{t('funds.form_date', 'التاريخ')}</label>
-                    <input type="date" className="form-control" value={opFormData.date} onChange={e => setOpFormData({...opFormData, date: e.target.value})} required />
+                    <input type="date" className={`form-control ${opTried && opErrors.date ? 'is-missing' : ''}`} value={opFormData.date} onChange={e => setOpFormData({...opFormData, date: e.target.value})} />
+                    {opTried && opErrors.date && <span className="fund-field-error">حدد التاريخ</span>}
                   </div>
                 </div>
 
                 <div className="form-group">
-                  <label>{t('funds.form_description', 'التفاصيل / البيان')}</label>
-                  <input type="text" className="form-control" value={opFormData.description} onChange={e => setOpFormData({...opFormData, description: e.target.value})} required />
+                  <label>البيان</label>
+                  <input type="text" className={`form-control ${opTried && opErrors.description ? 'is-missing' : ''}`} value={opFormData.description} onChange={e => setOpFormData({...opFormData, description: e.target.value})} />
+                  {opTried && opErrors.description && <span className="fund-field-error">اكتب البيان</span>}
                 </div>
 
                 <div className="dialog-footer mt-4 px-0 pb-0 border-0 bg-transparent">
-                  <button type="button" className="btn-cancel" onClick={closeOperationDialog}>{t('common.cancel', 'إلغاء')}</button>
-                  <button type="submit" className="btn-primary">{opFormData.type === 'إيداع' && isLoan && loan.allowed ? 'متابعة لتسجيل الدين' : t('common.save', 'حفظ')}</button>
+                  <button type="button" className="btn-cancel" onClick={closeOp}>{t('common.cancel', 'إلغاء')}</button>
+                  <button type="submit" className="btn-primary">{opFormData.type === 'إيداع' && isLoan && loan.allowed ? 'متابعة لتسجيل الدين' : 'تأكيد'}</button>
                 </div>
               </form>
             </div>

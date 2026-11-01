@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, RefreshCw, Package, ChevronDown } from 'lucide-react';
 import './EquipmentOperations.css';
 import { useAuth } from '../../../core/context/AuthContext';
+import { StateIcon } from '../../widget/StateIcon';
 
 interface OperationDetailsDialogProps {
   isOpen: boolean;
@@ -11,9 +12,9 @@ interface OperationDetailsDialogProps {
   onUndoReturnEquipment?: (movementId: string) => void;
 }
 
-export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({ 
-  isOpen, 
-  onClose, 
+export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
+  isOpen,
+  onClose,
   operation,
   onReturnEquipment,
   onUndoReturnEquipment
@@ -31,7 +32,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
   return (
     <div className="eq-dialog-overlay" onClick={onClose}>
       <div className="eq-dialog-content form-dialog" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-        
+
         <div className="eq-dialog-header" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '16px', background: 'var(--card-bg)' }}>
           <div className="header-title">
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent-bg)', color: 'var(--accent)' }}>
@@ -48,7 +49,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
         </div>
 
         <div className="eq-dialog-body" style={{ padding: '16px', background: 'var(--card-bg)' }}>
-          
+
           <h3 style={{ fontSize: '1.1rem', color: 'var(--text-h)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ width: '4px', height: '16px', background: 'var(--accent, var(--accent, #3b82f6))', borderRadius: '4px' }}></span>
             العتاد المستلم
@@ -58,7 +59,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
             {operation.movements && operation.movements.length > 0 ? (
               operation.movements.map((mov: any) => (
                 <div key={mov.id} className={`epic-eq-card ${mov.return_date ? 'returned' : 'available'}`}>
-                  
+
                   <div className="epic-eq-header">
                     <div className="epic-header-info" style={{ width: '100%', justifyContent: 'flex-start' }}>
                       <div className="epic-icon-box">
@@ -75,7 +76,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                       <span className="epic-stat-label">الكمية</span>
                       <span className="epic-stat-value">{mov.quantity}</span>
                     </div>
-                    
+
                     <div className="epic-stat-box">
                       <span className="epic-stat-label">حالة الاستلام</span>
                       <span className="epic-stat-value green">
@@ -108,13 +109,13 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
 
                   {!mov.return_date ? (
                     hasAccess(permissions.equipmentOperations.return) && (
-                      <button 
+                      <button
                         className="epic-btn return"
                         onClick={() => {
                           setReturningMovId(mov.id);
                           setReturnDate(new Date().toISOString().split('T')[0]);
                           setReturnCondition('جيد');
-                        }} 
+                        }}
                       >
                         <RefreshCw size={18} />
                         إرجاع العتاد
@@ -122,13 +123,13 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                     )
                   ) : (
                     hasAccess(permissions.equipmentOperations.edit) && (
-                      <button 
+                      <button
                         className="epic-btn undo"
                         onClick={() => {
                           if (onUndoReturnEquipment && window.confirm('هل أنت متأكد من التراجع عن هذا الإرجاع؟')) {
                             onUndoReturnEquipment(mov.id);
                           }
-                        }} 
+                        }}
                       >
                         التراجع عن الإرجاع
                         <RefreshCw size={18} />
@@ -138,9 +139,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                 </div>
               ))
             ) : (
-              <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '40px', color: 'var(--text-muted)', background: 'var(--bg-hover)', borderRadius: '16px', border: '2px dashed var(--border)' }}>
-                لا يوجد عتاد مسجل في هذه العملية
-              </div>
+              <StateIcon small />
             )}
           </div>
         </div>
@@ -158,29 +157,29 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                 <X size={24} />
               </button>
             </div>
-            
+
             <div className="glass-dialog-body">
               <div className="glass-input-group">
                 <label>تاريخ الإرجاع</label>
-                <input 
-                  type="date" 
-                  className="glass-input" 
-                  value={returnDate} 
-                  onChange={(e) => setReturnDate(e.target.value)} 
+                <input
+                  type="date"
+                  className="glass-input"
+                  value={returnDate}
+                  onChange={(e) => setReturnDate(e.target.value)}
                 />
               </div>
 
               <div className="glass-input-group" style={{ position: 'relative' }}>
                 <label>حالة العتاد عند الإرجاع</label>
-                <div 
-                  className="glass-input" 
+                <div
+                  className="glass-input"
                   style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 >
                   <span>{returnCondition}</span>
                   <ChevronDown size={18} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
                 </div>
-                
+
                 {isDropdownOpen && (
                   <div style={{
                     position: 'absolute',
@@ -198,7 +197,7 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                     flexDirection: 'column'
                   }}>
                     {['ممتاز', 'جيد', 'مقبول', 'سيء', 'تالف'].map(cond => (
-                      <div 
+                      <div
                         key={cond}
                         style={{
                           padding: '12px 16px',

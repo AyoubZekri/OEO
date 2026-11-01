@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Wallet, Shirt, Scale, FileSignature, CheckCircle2, Landmark, Calendar, Package, AlertTriangle, FileWarning, MessageSquare, Gavel, ArrowDownLeft, ArrowUpRight, CalendarX, Clock, DoorOpen, Plane, TrendingUp } from 'lucide-react';
+import { Wallet, Shirt, Scale, FileSignature, Landmark, Calendar, Package, AlertTriangle, FileWarning, MessageSquare, Gavel, ArrowDownLeft, ArrowUpRight, CalendarX, Clock, DoorOpen, Plane, TrendingUp } from 'lucide-react';
 import type { EvaluationRecord } from '../../Screen/Members/Evaluation/evaluation_data';
 import { MemberEvaluationsPanel } from '../../Screen/Members/MemberEvaluationsPanel';
 import defaultAvatar from '../../../assets/AVETER.png';
@@ -298,7 +298,7 @@ export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ memb
       {tab === 'disciplinary' && (loadingExtra ? (
         <MobileLoader text="جاري تحميل السجل التأديبي..." />
       ) : disciplinary.length === 0 ? (
-        <StateIcon icon={CheckCircle2} />
+        <StateIcon />
       ) : (
         disciplinary.map(d => {
           const Icon = DISCIPLINARY_ICONS[d.actionType] || AlertTriangle;
@@ -320,7 +320,7 @@ export const MobileTrackingRecord: React.FC<MobileTrackingRecordProps> = ({ memb
       {tab === 'absences' && (loadingExtra ? (
         <MobileLoader text="جاري تحميل الغيابات..." />
       ) : absences.length === 0 ? (
-        <StateIcon icon={CheckCircle2} />
+        <StateIcon />
       ) : (
         <AbsenceList absences={absences} />
       ))}

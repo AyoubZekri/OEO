@@ -1274,3 +1274,6 @@ body.dark-mode .eq-item-row {
   border-color: var(--border) !important;
 }
 
+
+/* The equipment's forms: a required field left empty — a red edge (its message under it) */
+.eq-dialog-content .form-group input.is-missing { border-color: #ef4444 !important; }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import axios from 'axios';
-import { Plus, Calendar, FileSpreadsheet } from 'lucide-react';
+import { Plus, FileSpreadsheet } from 'lucide-react';
 import { ImportMatchesDialog } from './ImportMatchesDialog';
 import { useNavigate } from 'react-router-dom';
 import { Applink } from '../../../LinkApi';
@@ -348,7 +348,7 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
             />
           ))}
         {filteredMatches.length === 0 && (
-          <StateIcon icon={Calendar} />
+          <StateIcon />
         )}
       </div>
       )}

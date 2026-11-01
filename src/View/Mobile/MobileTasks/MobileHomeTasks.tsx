@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ClipboardList, Inbox, RefreshCw, Mic, Archive } from 'lucide-react';
+import { Plus, ClipboardList, RefreshCw, Mic, Archive } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { PageLoader } from '../../shared/PageLoader';
 import { useNow, type TasksAdmin } from '../../Screen/Tasks/useTasks';
@@ -15,6 +15,7 @@ import '../../Screen/Travels/Travels.css';
 import '../../Screen/Debts/Debts.css';
 import '../../Screen/Tasks/Tasks.css';
 import './MobileTasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 const ARCHIVE_PAGE = 10;
 
@@ -44,7 +45,7 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
       {c.loading && !c.tasks.length ? <PageLoader mobile text="جاري تحميل المهام..." />
         : c.error ? (
           <div className="tk-state">
-            <ClipboardList size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : (
@@ -55,7 +56,7 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
               </h3>
               {live.length
                 ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} select={select} onChat={chat} />)}</div>
-                : <div className="tk-state"><Inbox size={30} /><p>{filters.query || filters.status || filters.kind || filters.nature ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
+                : <StateIcon />}
             </section>
 
             {archive.length > 0 && (

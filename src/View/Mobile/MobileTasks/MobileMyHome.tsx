@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ClipboardList, Inbox, RefreshCw, Archive } from 'lucide-react';
+import { ClipboardList, RefreshCw, Archive } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { PageLoader } from '../../shared/PageLoader';
 import type { MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -12,6 +12,7 @@ import '../../Screen/Travels/Travels.css';
 import '../../Screen/Debts/Debts.css';
 import '../../Screen/Tasks/Tasks.css';
 import './MobileTasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 const ARCHIVE_PAGE = 10;
 
@@ -32,7 +33,6 @@ export const MobileMyHome: React.FC<{
   const shown = onHome(c.tasks, now);
   const { live, archive } = homeTasks(filterTasks(shown, filters.status, filters.query, filters.nature, filters.kind), now);
   const archiveShown = archive.slice(0, archiveShownCount);
-  const filtered = Boolean(filters.query || filters.status || filters.kind || filters.nature);
 
   return (
     <div className="tk-mpage tk-scope">
@@ -43,7 +43,7 @@ export const MobileMyHome: React.FC<{
       {c.loading && !c.tasks.length ? <PageLoader mobile text="جاري تحميل مهامي..." />
         : c.error ? (
           <div className="tk-state">
-            <ClipboardList size={30} /><p>{c.error}</p>
+            <StateIcon failed />
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : (
@@ -54,7 +54,7 @@ export const MobileMyHome: React.FC<{
               </h3>
               {live.length
                 ? <div className="tsk-hcards">{live.map(t => <MobileHomeTaskCard key={t.id} task={t} onOpen={c.openTask} menu={menu(t)} mine onChat={onChat} />)}</div>
-                : <div className="tk-state"><Inbox size={30} /><p>{filtered ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
+                : <StateIcon />}
             </section>
 
             {archive.length > 0 && (

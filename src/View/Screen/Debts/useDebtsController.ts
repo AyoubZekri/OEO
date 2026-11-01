@@ -121,10 +121,10 @@ export const useDebtsController = ({ kind, onChange, autoLoad = true, openAfterS
 
   /** A debt's actions, shown on its card (icons on desktop, the ⋮ menu on phones), not in its details */
   const actionsFor = (d: Debt): MobileRowMenuItem[] => [
+    { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => setDetailsId(d.id) },
     ...(can('repay') && d.status !== 'paid'
       ? [{ key: 'pay', label: kind === 'purchase' ? 'دفع' : 'تسديد', icon: HandCoins, color: '#10b981', onClick: () => setRepaying(d) }]
       : []),
-    { key: 'view', label: 'التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => setDetailsId(d.id) },
     ...(can('edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setForm({ debt: d, kind: d.kind }) }] : []),
     ...(can('delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, color: '#ef4444', danger: true, onClick: () => confirmRemove(d) }] : []),
   ];

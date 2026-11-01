@@ -55,7 +55,7 @@ export const AbsenceRequests: React.FC = () => {
     { value: 'registry', label: 'السجل العام', icon: ClipboardList, count: controller.absences.length },
   ] as const;
 
-  const empty = (icon: typeof FileWarning) => <StateIcon icon={icon} />;
+  const empty = () => <StateIcon />;
 
   return (
     <div className="ab-page">
@@ -143,7 +143,7 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Members */}
       {controller.activeTab === 'members' && (
-        members.length === 0 ? empty(Users) : (
+        members.length === 0 ? empty() : (
           <>
             <div className="ab-members">
               {members.slice(0, limit).map((m: any) => {
@@ -185,7 +185,7 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Pending justifications */}
       {controller.activeTab === 'requests' && (
-        pending.length === 0 ? empty(Inbox): (
+        pending.length === 0 ? empty(): (
           <div className="ab-grid">
             {pending.map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}
           </div>
@@ -194,8 +194,8 @@ export const AbsenceRequests: React.FC = () => {
 
       {/* Registry */}
       {controller.activeTab === 'registry' && (
-        controller.isLoading && !controller.absences.length ? empty(ClipboardList) :
-          registry.length === 0 ? empty(ClipboardList) : (
+        controller.isLoading && !controller.absences.length ? empty() :
+          registry.length === 0 ? empty() : (
             <>
               <div className="ab-grid">
                 {registry.slice(0, limit).map(a => <AbsenceCard key={a.id} absence={a} {...cardProps} />)}

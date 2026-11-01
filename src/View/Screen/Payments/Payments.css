@@ -547,3 +547,7 @@ body.dark-mode .transaction-type-option input[type="radio"]:checked + .transacti
 
 /* An expense's member: optional */
 .optional-hint { color: var(--text-muted); font-size: 0.8em; font-weight: 600; }
+
+/* The payment's form: a field left wrong — a red edge and its message under it */
+.form-control.is-missing { border-color: #ef4444 !important; }
+.pay-field-error { display: block; margin-top: 4px; color: #ef4444; font-size: 0.8rem; font-weight: 700; }

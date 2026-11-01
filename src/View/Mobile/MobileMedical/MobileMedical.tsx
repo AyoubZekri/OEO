@@ -26,8 +26,6 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
     : c.records
   ).slice().sort((a, b) => Number(recovered(a)) - Number(recovered(b)) || (b.injury_date || '').localeCompare(a.injury_date || ''));
 
-  const open = c.records.filter(r => !recovered(r)).length;
-  const done = c.records.length - open;
   const selected = c.members.find(m => String(m.id) === memberId);
   const details = detailsId ? c.records.find(r => String(r.id) === detailsId) : undefined;
 
@@ -45,22 +43,6 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
         <MobileLoader text="جاري تحميل السجلات الطبية..." />
       ) : (
         <>
-          <section className="mmd2-hero">
-            <div className="mmd2-hero-top">
-              <span className="mmd2-hero-icon"><HeartPulse size={26} /></span>
-              <div>
-                <small>الملفات الطبية</small>
-                <strong>{c.records.length}</strong>
-              </div>
-            </div>
-            <div className="mmd2-stats">
-              <div className="red"><strong>{open}</strong><small>إصابات مفتوحة</small></div>
-              <div className="green"><strong>{done}</strong><small>تعافوا</small></div>
-              <div><strong>{c.records.filter(r => stageOf(r) === 1).length}</strong><small>بانتظار الفحص</small></div>
-            </div>
-          </section>
-
-
           {c.members.length > 0 && (
             <MobileSelect
               label="تصفية حسب العضو"
@@ -83,7 +65,6 @@ export const MobileMedical: React.FC<{ c: ReturnType<typeof useMedicalController
             <div className="mmd2-empty">
               <span className="mmd2-empty-icon"><HeartPulse size={36} /></span>
               <strong>{c.records.length ? 'لا توجد ملفات لهذا العضو' : c.personal ? 'لا توجد ملفات طبية خاصة بك' : 'لا توجد سجلات طبية حالياً'}</strong>
-              {!c.records.length && !c.personal && <p>أضف ملف إصابة جديد بالزر +</p>}
             </div>
           ) : (
             <div className="mmd2-list">

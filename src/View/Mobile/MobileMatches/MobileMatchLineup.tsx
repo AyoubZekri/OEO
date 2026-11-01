@@ -1,5 +1,5 @@
 import React from 'react';
-import { Users, UserPlus } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
 import type { Match } from '../../Screen/Matches/match_model';
@@ -44,7 +44,7 @@ export const MobileMatchLineup: React.FC<MobileMatchLineupProps> = ({ match, onO
         <MobileLoader text="جاري تحميل التشكيلة..." />
       ) : l.calledUpPlayers.length === 0 ? (
         <div className="mml-empty">
-          <StateIcon icon={Users} />
+          <StateIcon />
           {onOpenCallups && (
             <button type="button" className="me-btn primary" onClick={onOpenCallups}>
               <UserPlus size={18} /> الذهاب إلى الاستدعاء

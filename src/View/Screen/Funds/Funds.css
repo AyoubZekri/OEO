@@ -420,3 +420,7 @@ body.dark-mode .btn-action.view-btn { box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 .add-fund-dialog form .form-row { margin: 0 !important; }
 .add-fund-dialog form .form-row .form-group { flex: 1; }
 .add-fund-dialog form .dialog-footer { margin-top: 4px !important; }
+
+/* The funds' forms: a field left wrong — a red edge and its message under it */
+.add-fund-dialog .form-control.is-missing { border-color: #ef4444 !important; }
+.fund-field-error { display: block; margin-top: 4px; color: #ef4444; font-size: 0.8rem; font-weight: 700; }

@@ -1030,3 +1030,9 @@ body.dark-mode .eq-item-row {
     overflow: visible;
   }
 }
+
+/* The handover's head: the member, the date beside it, then the season (one row; under each other on a narrow screen) */
+.eq-op-head { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; margin-bottom: 24px; padding: 16px; border-radius: 12px; background: var(--bg-body, #f8fafc); }
+.eq-op-head > * { min-width: 0; margin: 0; }
+@media (max-width: 720px) { .eq-op-head { grid-template-columns: minmax(0, 1fr); } }
+

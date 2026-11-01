@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useCan } from '../../../core/functions/useCan';
-import { Plus, HeartPulse, Activity, User, Calendar, Stethoscope, AlertCircle, Edit2, Trash2, CheckCircle, FileText, Clock, Check } from 'lucide-react';
+import { Plus, Activity, User, Calendar, Stethoscope, AlertCircle, Edit2, Trash2, CheckCircle, FileText, Clock, Check } from 'lucide-react';
 import { useMedicalController } from './MedicalController';
 import { AddMedicalRecordDialog } from './AddMedicalRecordDialog';
 import { ViewInitialExamDialog } from './ViewInitialExamDialog';
@@ -11,7 +11,7 @@ import { CustomDropdown } from '../../widget/CustomDropdown';
 import '../Members/Members.css';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileMedical } from '../../Mobile/MobileMedical/MobileMedical';
-import { initialDone, finalDone, recovered, stageOf, toneOf, personName, personPhoto, daysSince, daysText } from '../../Mobile/MobileMedical/medicalUtils';
+import { initialDone, finalDone, recovered, toneOf, personName, personPhoto, daysSince, daysText } from '../../Mobile/MobileMedical/medicalUtils';
 import './Medical.css';
 import { StateIcon } from '../../widget/StateIcon';
 
@@ -65,19 +65,9 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
 
   return (
     <div className="members-container" style={{ margin: '0', animation: 'fadeIn 0.4s ease-out' }}>
-      <div className="members-header" style={{ marginBottom: '24px', justifyContent: 'flex-end' }}>
+      {/* On the right (the page is right to left): the add button, then the member filter */}
+      <div className="members-header" style={{ marginBottom: '24px', justifyContent: 'flex-start' }}>
         <div className="header-actions" style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-          {!personal && <div style={{ minWidth: '200px' }}>
-            <CustomDropdown
-              options={[
-                { value: '', label: 'الكل (جميع الأعضاء)' },
-                ...members.map(m => ({ value: m.id.toString(), label: m.name || `${m.first_name} ${m.last_name}` }))
-              ]}
-              value={memberFilter}
-              onChange={setMemberFilter}
-              placeholder="تصفية حسب العضو"
-            />
-          </div>}
           {can('medical', 'add') && (
             <button className="add-btn" onClick={openAddDialog} style={{
               display: 'flex', alignItems: 'center', gap: '10px',
@@ -92,6 +82,17 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
               <Plus size={20} /> إضافة ملف إصابة
             </button>
           )}
+          {!personal && <div style={{ minWidth: '200px' }}>
+            <CustomDropdown
+              options={[
+                { value: '', label: 'كل الأعضاء' },
+                ...members.map(m => ({ value: m.id.toString(), label: m.name || `${m.first_name} ${m.last_name}` }))
+              ]}
+              value={memberFilter}
+              onChange={setMemberFilter}
+              placeholder="تصفية حسب العضو"
+            />
+          </div>}
         </div>
       </div>
 
@@ -106,15 +107,14 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
           </div>
           <p className="loading-text">جاري تحميل السجلات الطبية...</p>
         </div>
-      ) : records.length === 0 ? (
-        <StateIcon icon={HeartPulse} />
+      ) : filteredRecords.length === 0 ? (
+        <StateIcon />
       ) : (
         <div className="mc-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '24px', padding: '0 0 24px 0' }}>
           {filteredRecords.map((record) => {
             const tone = toneOf(record);
             const photo = personPhoto(record.player);
             const since = daysSince(record.injury_date);
-            const stage = stageOf(record);
             // Recovery path: view a completed stage, or fill the next one (same actions as before)
             const steps = [
               {
@@ -187,11 +187,6 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
 
                 {/* Recovery path */}
                 <div className="med-path">
-                  <div className="med-path-head">
-                    <span>مسار الخطة العلاجية والتعافي</span>
-                    <b>{stage - 1}/3</b>
-                  </div>
-                  <div className="med-path-track"><div style={{ width: `${((stage - 1) / 3) * 100}%` }} /></div>
                   <div className="med-steps">
                     {steps.map(st => (
                       <button key={st.key} type="button" className={`med-step ${st.done ? 'done' : ''}`} onClick={st.onClick} disabled={!st.done && !can('medical', 'edit')}>

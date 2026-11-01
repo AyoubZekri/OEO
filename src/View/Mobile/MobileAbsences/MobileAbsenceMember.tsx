@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, CalendarX2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { useCan } from '../../../core/functions/useCan';
 import type { AbsenceRecord } from '../../Screen/Absence/AbsenceRequestsController';
@@ -48,7 +48,7 @@ export const MobileAbsenceMember: React.FC<MobileAbsenceMemberProps> = ({ member
       )}
 
       {list.length === 0 ? (
-        <StateIcon icon={CalendarX2} />
+        <StateIcon />
       ) : (
         <div className="mab-list">
           {list.map(a => <MobileAbsenceCard key={a.id} absence={a} hideMember {...cardProps} />)}

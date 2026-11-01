@@ -1,5 +1,5 @@
 import React from 'react';
-import { Inbox, WifiOff, ServerCrash, type LucideIcon } from 'lucide-react';
+import { Inbox, WifiOff, ServerCrash } from 'lucide-react';
 import { useConnectionProblem } from '../../core/api/connectionState';
 import './StateIcon.css';
 
@@ -10,8 +10,6 @@ const KINDS = {
 } as const;
 
 interface StateIconProps {
-  /** The page's own picture when it is simply empty (the default: an empty box) */
-  icon?: LucideIcon;
   /** A smaller picture, inside a section or a dialog */
   small?: boolean;
   /** Draws this kind whatever the connection */
@@ -22,13 +20,13 @@ interface StateIconProps {
 }
 
 /**
- * An empty page, no internet or a server error: one picture in the middle, no text
+ * An empty page, no internet or a server error: one picture in the middle, the same on every page, no text
  * (the text is still there for screen readers). Which one comes from the last request.
  */
-export const StateIcon: React.FC<StateIconProps> = ({ icon, small, kind, failed, className = '' }) => {
+export const StateIcon: React.FC<StateIconProps> = ({ small, kind, failed, className = '' }) => {
   const problem = useConnectionProblem();
   const shown = kind ?? problem ?? (failed ? 'server' : 'empty');
-  const Icon = shown === 'empty' && icon ? icon : KINDS[shown].icon;
+  const Icon = KINDS[shown].icon;
   return (
     <div className={`state-icon is-${shown} ${small ? 'small' : ''} ${className}`} role="img" aria-label={KINDS[shown].label}>
       <span className="state-icon-core"><Icon size={small ? 30 : 42} strokeWidth={1.8} /></span>

@@ -284,7 +284,7 @@ const TrainingSessions: React.FC<{ personal?: boolean }> = ({ personal = false }
           })}
 
           {controller.sessions.length === 0 && (
-            <StateIcon icon={Calendar} />
+            <StateIcon />
           )}
         </div>
       )}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Activity, Save, Loader2, Star, Minus, Plus, AlertTriangle, Search } from 'lucide-react';
+import { Activity, Save, Loader2, Star, Minus, Plus, Search } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { Applink } from '../../../LinkApi';
@@ -142,7 +142,7 @@ export const MobileMatchPlayerStats: React.FC<{ match: Match; onClose: () => voi
       {loading ? (
         <MobileLoader text="جاري تحميل اللاعبين..." />
       ) : players.length === 0 ? (
-        <StateIcon icon={AlertTriangle} />
+        <StateIcon />
       ) : (
         <>
           <label className="mp-search">

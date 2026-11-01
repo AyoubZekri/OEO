@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Save, Loader2, Check, Clock, X, Search, MapPin, Users, Stethoscope, MessageSquarePlus,
-  ListChecks, AlertTriangle, Filter as FilterIcon, ChevronDown,
+  Save, Loader2, Check, Clock, X, Search, MapPin, Stethoscope, MessageSquarePlus, ListChecks, AlertTriangle, Filter as FilterIcon, ChevronDown,
 } from 'lucide-react';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { MobileLoader } from '../widgets/MobileLoader';
@@ -212,7 +211,7 @@ export const MobileTakeAttendance: React.FC<MobileTakeAttendanceProps> = ({ c, i
       </div>
 
       {visible.length === 0 ? (
-        <StateIcon icon={Users} />
+        <StateIcon />
       ) : (
         <div className="mta-list">
           {visible.map((p, idx) => {

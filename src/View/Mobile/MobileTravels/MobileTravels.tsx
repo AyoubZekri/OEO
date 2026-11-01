@@ -66,7 +66,7 @@ export const MobileTravels: React.FC<{ c: TravelsController }> = ({ c }) => {
             <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
           </div>
         ) : visible.length === 0 ? (
-          <StateIcon icon={MapPin} />
+          <StateIcon />
         ) : (
           <div className="tk-list">{visible.map(t => <TravelCard key={t.id} travel={t} onOpen={c.openTravel} compact menu={travelMenu(t, c)} />)}</div>
         )}

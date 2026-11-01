@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserRound, Sparkles, LayoutDashboard } from 'lucide-react';
+import { UserRound, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useSpace } from '../../../core/context/space';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
@@ -27,7 +27,7 @@ export const PersonalHome: React.FC<{ onSwitch?: () => void }> = ({ onSwitch }) 
       </section>
 
       <section className="ps-empty">
-        <StateIcon icon={Sparkles} />
+        <StateIcon />
         {canManage && onSwitch && (
           <button type="button" className="ps-switch" onClick={onSwitch}>
             <LayoutDashboard size={17} />التبديل إلى فضاء التسيير

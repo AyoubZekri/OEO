@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, ClipboardList, Inbox, RefreshCw, Mic, Archive } from 'lucide-react';
+import { Plus, ClipboardList, RefreshCw, Mic, Archive } from 'lucide-react';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { Pagination } from '../../widget/Pagination';
 import { CustomDropdown } from '../../widget/CustomDropdown';
@@ -17,6 +17,7 @@ import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
 import './Tasks.css';
+import { StateIcon } from '../../widget/StateIcon';
 
 const ARCHIVE_PAGE = 10;
 
@@ -43,7 +44,6 @@ export const HomeTasks: React.FC = () => {
   // Only what the home page shows (an appointment's task from its alert time on), counted and filtered
   const shown = onHome(c.tasks, now);
   const { live, archive } = homeTasks(filterTasks(shown, status, query, nature, kind), now);
-  const filtered = Boolean(status || query || kind || nature);
   const statusCount = (v: string) => shown.filter(STATUS_FILTERS.find(f => f.value === v)!.test).length;
   const kindCount = (v: string) => shown.filter(t => !v || t.kind === v).length;
   // A filter changed: the archive from its first page
@@ -53,7 +53,7 @@ export const HomeTasks: React.FC = () => {
   const content = c.loading && !c.tasks.length ? <PageLoader mobile={false} text="جاري تحميل المهام..." />
     : c.error ? (
       <div className="tk-state">
-        <ClipboardList size={30} /><p>{c.error}</p>
+        <StateIcon failed />
         <button type="button" className="tk-btn ghost sm" onClick={() => c.reload()}><RefreshCw size={15} />إعادة المحاولة</button>
       </div>
     ) : (
@@ -64,7 +64,7 @@ export const HomeTasks: React.FC = () => {
           </h3>
           {live.length
             ? <div className="table-pagination-wrapper"><TaskTable tasks={live} onOpen={c.openTask} menu={menu} tint select={select} onChat={chat} /></div>
-            : <div className="tk-state"><Inbox size={30} /><p>{filtered ? 'لا توجد مهام بهذه التصفية' : 'لا توجد مهام حالياً'}</p></div>}
+            : <StateIcon />}
         </section>
 
         {archive.length > 0 && (

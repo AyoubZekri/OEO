@@ -9,6 +9,7 @@ import { MobileEquipment } from '../../Mobile/MobileEquipment/MobileEquipment';
 import './Equipment.css';
 
 import { useEquipmentController } from './EquipmentController';
+import { StateIcon } from '../../widget/StateIcon';
 
 export const Equipment: React.FC = () => {
   const { permissions, isFullAccess } = useAuth();
@@ -81,10 +82,12 @@ export const Equipment: React.FC = () => {
             </div>
             <p className="loading-text">جاري تحضير العتاد...</p>
           </div>
+        ) : equipments.length === 0 ? (
+          <StateIcon />
         ) : (
           equipments.map((eq) => {
             const borrowed = eq.totalQuantity - eq.availableQuantity;
-            
+
 
           return (
             <div key={eq.id} className="premium-card">
@@ -98,7 +101,7 @@ export const Equipment: React.FC = () => {
                   </div>
                 )}
                 <div className="card-image-overlay"></div>
-                
+
                 {/* Floating Badges */}
                 <div className="card-badges">
                   {eq.availableQuantity > 0 && (
@@ -141,18 +144,18 @@ export const Equipment: React.FC = () => {
 
                 {/* Primary Actions */}
                 <div className="card-primary-actions">
-                  <button 
-                    className="action-pill primary" 
-                    onClick={() => openLocations(eq)} 
+                  <button
+                    className="action-pill primary"
+                    onClick={() => openLocations(eq)}
                     disabled={eq.holders.length === 0}
                   >
                     <MapPin size={16} />
                     <span>أماكن التواجد</span>
                   </button>
-                  
+
                   {hasAccess(permissions.equipmentOperations.view) && (
-                    <button 
-                      className="action-pill secondary" 
+                    <button
+                      className="action-pill secondary"
                       onClick={() => openMovement(eq)}
                       title="حركة العتاد"
                     >
@@ -169,23 +172,23 @@ export const Equipment: React.FC = () => {
 
       {/* Dialogs */}
       {isMovementOpen && (
-        <MovementDialog 
-          equipment={selectedEq} 
-          isOpen={isMovementOpen} 
-          onClose={() => setIsMovementOpen(false)} 
+        <MovementDialog
+          equipment={selectedEq}
+          isOpen={isMovementOpen}
+          onClose={() => setIsMovementOpen(false)}
         />
       )}
 
       {isLocationsOpen && (
-        <LocationsDialog 
-          equipment={selectedEq} 
-          isOpen={isLocationsOpen} 
-          onClose={() => setIsLocationsOpen(false)} 
+        <LocationsDialog
+          equipment={selectedEq}
+          isOpen={isLocationsOpen}
+          onClose={() => setIsLocationsOpen(false)}
         />
       )}
 
       {isEquipmentDialogOpen && (
-        <EquipmentDialog 
+        <EquipmentDialog
           isOpen={isEquipmentDialogOpen}
           onClose={closeDialog}
           equipmentToEdit={equipmentToEdit}

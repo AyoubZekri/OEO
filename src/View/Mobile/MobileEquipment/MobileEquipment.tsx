@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Eye, Pencil, Trash2, History, Package, Search, X, ImageIcon } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, History, Search, X, ImageIcon } from 'lucide-react';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu, type MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -7,7 +7,6 @@ import { useUrlDetails } from '../widgets/useUrlDetails';
 import type { useEquipmentController } from '../../Screen/Equipment/EquipmentController';
 import type { EquipmentModel } from '../../Screen/Equipment/equipment_model';
 import type { EquipmentPermissions } from './equipmentUtils';
-import { arCount } from '../MobileTeams/teamRoster';
 import { MobileEquipmentDetails, MobileEquipmentMovements } from './MobileEquipmentDetails';
 import { MobileEquipmentForm } from './MobileEquipmentForm';
 import './MobileEquipment.css';
@@ -26,9 +25,6 @@ export const MobileEquipment: React.FC<MobileEquipmentProps> = ({ c, can }) => {
 
   const list = c.equipments.filter(e => e.name.toLowerCase().includes(query.trim().toLowerCase()));
   const details = detailsId ? c.equipments.find(e => String(e.id) === detailsId) : undefined;
-  const total = c.equipments.reduce((s, e) => s + e.totalQuantity, 0);
-  const available = c.equipments.reduce((s, e) => s + e.availableQuantity, 0);
-  const pct = total > 0 ? Math.round((available / total) * 100) : 0;
 
   const menuItems = (e: EquipmentModel): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(e.id) },
@@ -41,33 +37,16 @@ export const MobileEquipment: React.FC<MobileEquipmentProps> = ({ c, can }) => {
     <div className="meq-page">
       <MobileAppBar title="العتاد" />
 
-      <section className="meq-hero">
-        <div className="meq-hero-top">
-          <span className="meq-hero-icon"><Package size={26} /></span>
-          <div>
-            <small>مخزن العتاد · {arCount(c.equipments.length, 'صنف واحد', 'صنفان', 'أصناف', 'صنفاً')}</small>
-            <strong>{total} <span>قطعة</span></strong>
-          </div>
-        </div>
-        <div className="meq-stock">
-          <div className="meq-stock-bar"><div style={{ width: `${pct}%` }} /></div>
-          <div className="meq-stock-legend">
-            <span className="in"><i /> متوفر بالمخزن <b>{available}</b></span>
-            <span className="out"><i /> معار للأعضاء <b>{total - available}</b></span>
-          </div>
-        </div>
-      </section>
-
       <label className="meq-search">
         <Search size={17} />
-        <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العتاد..." />
+        <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="ابحث باسم العتاد" />
         {query && <button type="button" onClick={() => setQuery('')} aria-label="مسح البحث"><X size={15} /></button>}
       </label>
 
       {c.isLoading && !c.equipments.length ? (
         <MobileLoader text="جاري تحضير العتاد..." />
       ) : list.length === 0 ? (
-        <StateIcon icon={Package} />
+        <StateIcon />
       ) : (
         <div className="meq-grid">
           {list.map(e => {

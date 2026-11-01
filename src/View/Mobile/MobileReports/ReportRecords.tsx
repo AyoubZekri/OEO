@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { paymentOccasionText } from '../../Screen/Payments/paymentText';
-import { List, SearchX, Calendar, Trash2, ChevronDown, ArrowLeft } from 'lucide-react';
+import { List, Calendar, Trash2, ChevronDown, ArrowLeft } from 'lucide-react';
 import type { useReportsController } from '../../Screen/Reports/ReportsController';
 import { moneyText } from '../MobileContracts/contractUtils';
 import { txFund, txTo, txAmount } from '../MobileFunds/fundUtils';
@@ -9,7 +9,7 @@ import { StateIcon } from '../../widget/StateIcon';
 const PAGE = 20;
 
 const Empty: React.FC = () => (
-  <StateIcon icon={SearchX} />
+  <StateIcon />
 );
 
 // Records of the active report as cards, shown 20 at a time

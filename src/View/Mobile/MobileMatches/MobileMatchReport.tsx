@@ -42,7 +42,7 @@ export const MobileMatchReport: React.FC<{ match: Match; onEdit: () => void; onC
       ) : url ? (
         <section className="mp-section"><ReportImageView url={url} /></section>
       ) : (
-        <StateIcon icon={FileText} failed={Boolean(error)} />
+        <StateIcon failed={Boolean(error)} />
       )}
     </MobileScreen>
   );

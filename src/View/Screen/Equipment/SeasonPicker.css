@@ -1,0 +1,7 @@
+/* The season, one step at a time: ‹ 2026/2027 › */
+.eq-season-field { display: flex; flex-direction: column; gap: 8px; }
+.eq-season-label { font-size: 0.9rem; font-weight: 600; color: var(--text-h); }
+.eq-season-pick { display: flex; align-items: center; gap: 6px; height: 48px; padding: 4px; box-sizing: border-box; border-radius: 12px; border: 1px solid var(--border); background: var(--card-bg); }
+.eq-season-pick b { flex: 1; text-align: center; font-size: 1rem; font-weight: 900; color: var(--accent, #f97316); }
+.eq-season-pick button { width: 38px; height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: rgba(249, 115, 22, 0.12); color: #f97316; cursor: pointer; }
+.eq-season-pick button:hover { background: rgba(249, 115, 22, 0.22); }
