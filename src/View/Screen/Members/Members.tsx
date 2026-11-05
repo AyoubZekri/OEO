@@ -33,6 +33,7 @@ import { useBackCloses } from '../../Mobile/widgets/useBackCloses';
 import { TopbarSearch } from '../../widget/TopbarSearch';
 import { openDocument } from '../../widget/openDocument';
 import { StateIcon } from '../../widget/StateIcon';
+import { MemberDetails } from './MemberDetails';
 
 export const Members: React.FC = () => {
   const { t } = useTranslation();
@@ -97,6 +98,8 @@ export const Members: React.FC = () => {
   const [evalMember, setEvalMember] = useState<MemberModel | null>(null);
   // The active players' group evaluation from Excel
   const [bulkOpen, setBulkOpen] = useState(false);
+  // The member whose details are open (a tap on their row or card)
+  const [viewingMember, setViewingMember] = useState<MemberModel | null>(null);
   const activePlayers = controller.members
     .filter(m => m.type === 'player' && m.status === 'active')
     .map(m => ({ id: String(m.id), name: `${m.first_name} ${m.last_name}`.trim(), team: m.team_name || '' }));
@@ -213,6 +216,7 @@ export const Members: React.FC = () => {
       {/* Phone layout */}
       <div className="members-mobile">
         <MobileMembers
+          onView={setViewingMember}
           onAddEvaluation={setEvalMember}
           onBulkEvaluate={hasAccess(permissions.members.evaluate) ? () => setBulkOpen(true) : undefined}
           controller={controller}
@@ -291,7 +295,13 @@ export const Members: React.FC = () => {
                   </td>
                 </tr>
               ) : paginatedMembers.map(member => (
-                <tr key={member.id} className="member-row">
+                <tr
+                  key={member.id}
+                  className="member-row member-row-open"
+                  tabIndex={0}
+                  onClick={() => setViewingMember(member)}
+                  onKeyDown={e => { if (e.key === 'Enter') setViewingMember(member); }}
+                >
                   <td data-label={t('members.photo', 'الصورة')} className="avatar-cell">
                     {member.photo && member.photo !== '' && !member.photo.includes('default') ? (
                       <img src={member.photo} alt={member.first_name} className="member-avatar" />
@@ -340,10 +350,11 @@ export const Members: React.FC = () => {
                       )}
                     </div>
                   </td>
-                  <td data-label={t('members.actions', 'إجراءات')} className="actions-cell">
+                  <td data-label={t('members.actions', 'إجراءات')} className="actions-cell" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
                     <ActionsMenu
                       label="إجراءات العضو"
                       items={[
+                        { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => setViewingMember(member) },
                         ...(member.type === 'player' && hasAccess(permissions.members.evaluate) ? [{ key: 'eval', label: 'إضافة تقييم', icon: TrendingUp, color: '#8b5cf6', onClick: () => setEvalMember(member) }] : []),
                         // The record holds the player's evaluations too: open to whoever can see the record or a player's evaluations
                         ...(hasAccess(permissions.members.viewFinancialRecord) || member.type === 'player' ? [
@@ -675,6 +686,17 @@ export const Members: React.FC = () => {
       )}
 
       {bulkOpen && <BulkEvaluationDialog players={activePlayers} onClose={() => setBulkOpen(false)} onDone={() => undefined} />}
+
+      {/* A member's details: a window on the computer, a page on phones */}
+      {viewingMember && (
+        <MemberDetails
+          member={viewingMember}
+          mobile={isMobile}
+          leaving={Boolean(controller.leavingOf(viewingMember.id))}
+          onEdit={hasAccess(permissions.members.edit) ? () => { const m = viewingMember; setViewingMember(null); openEditMemberDialog(m); } : undefined}
+          onClose={() => setViewingMember(null)}
+        />
+      )}
 
       {/* Tracking Record: full-screen page on phones */}
       {isDialogOpen && selectedMember && isMobile && (

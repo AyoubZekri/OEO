@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import type { MobileRowMenuItem } from '../../Mobile/widgets/MobileRowMenu';
 import { useCan } from '../../../core/functions/useCan';
 import { showSnackbar } from '../../../core/functions/Snacpar';
@@ -20,6 +20,8 @@ export const useGoals = () => {
   // The form: null closed, { goal: null } a new goal
   const [form, setForm] = useState<{ goal: Goal | null } | null>(null);
   const [deleting, setDeleting] = useState<Goal | null>(null);
+  // The goal whose details are open
+  const [viewing, setViewing] = useState<Goal | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,6 +65,7 @@ export const useGoals = () => {
 
   /** A goal's ⋮ menu */
   const actionsFor = (g: Goal): MobileRowMenuItem[] => [
+    { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#3b82f6', onClick: () => setViewing(g) },
     ...(can('edit') ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#f97316', onClick: () => setForm({ goal: g }) }] : []),
     ...(can('delete') ? [{ key: 'delete', label: 'حذف', icon: Trash2, color: '#ef4444', danger: true, onClick: () => setDeleting(g) }] : []),
   ];
@@ -71,6 +74,7 @@ export const useGoals = () => {
     can, goals, users, seasons, loading, error, reload: load, actionsFor,
     form, openForm: (goal: Goal | null = null) => setForm({ goal }), closeForm: () => setForm(null),
     deleting, closeDelete: () => setDeleting(null),
+    viewing, openGoal: (g: Goal) => setViewing(g), closeGoal: () => setViewing(null),
     save, remove,
   };
 };

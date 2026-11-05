@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, Users, ClipboardList, ChevronDown } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { TrainingSessionDialog } from './TrainingSessionDialog';
 import { CustomDropdown } from '../../widget/CustomDropdown';
 import { useTrainingSessionsController } from './TrainingSessionsController';
@@ -11,6 +11,7 @@ import { MyAttendanceBadge } from '../../Mobile/MobileTrainingSessions/MyAttenda
 import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import './TrainingSessions.css';
 import { StateIcon } from '../../widget/StateIcon';
+import { MobileSessionDetails } from '../../Mobile/MobileTrainingSessions/MobileSessionDetails';
 
 const STATUS_OPTIONS = [
   { value: 'مجدولة',  label: 'مجدولة' },
@@ -24,6 +25,9 @@ const TrainingSessions: React.FC<{ personal?: boolean }> = ({ personal = false }
   const controller = useTrainingSessionsController({ personal });
   const now = useNow();
   const [openStatusMenu, setOpenStatusMenu] = useState<number | null>(null);
+  // The session whose details are open (a click on its card): the phone's details page, in a window
+  const [detailsId, setDetailsId] = useState<number | null>(null);
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const can = useCan();
   // ?session=ID (from an alert): the session's card is brought into view and marked
@@ -143,7 +147,13 @@ const TrainingSessions: React.FC<{ personal?: boolean }> = ({ personal = false }
             const duration = calcDuration(session.start, session.end);
             const isMenuOpen = openStatusMenu === (session.id ?? idx);
             return (
-              <div key={session.id ?? idx} id={`session-card-${session.id}`} className={`sc-card ${focusId && String(session.id) === focusId ? 'focused' : ''}`}>
+              <div
+                key={session.id ?? idx}
+                id={`session-card-${session.id}`}
+                className={`sc-card card-opens ${focusId && String(session.id) === focusId ? 'focused' : ''}`}
+                // A click on the card opens its details, unless it was on one of its own buttons or links
+                onClick={e => { if (!(e.target as HTMLElement).closest('button, a, input, select, label, [role="menu"]')) setDetailsId(session.id ?? null); }}
+              >
 
                 {/* Top bar: session number + status with dropdown */}
                 <div className="sc-topbar">
@@ -293,6 +303,24 @@ const TrainingSessions: React.FC<{ personal?: boolean }> = ({ personal = false }
       {openStatusMenu !== null && (
         <div className="sc-backdrop" onClick={() => setOpenStatusMenu(null)} />
       )}
+
+      {/* A session's details: the phone's page, in a window in the middle */}
+      {detailsId !== null && controller.sessions.find(x => x.id === detailsId) && (() => {
+        const session = controller.sessions.find(x => x.id === detailsId)!;
+        return (
+          <div className="sc-desk-modal" onMouseDown={e => { if (e.target === e.currentTarget) setDetailsId(null); }}>
+            <MobileSessionDetails
+              session={session}
+              now={now}
+              personal={personal}
+              onChangeStatus={status => controller.handleChangeStatus(session.id, status)}
+              onAttendance={() => navigate(`/training-sessions/${session.id}/attendance`)}
+              onEdit={() => { setDetailsId(null); controller.openEditDialog(session); }}
+              onClose={() => setDetailsId(null)}
+            />
+          </div>
+        );
+      })()}
 
       {controller.isDialogOpen && (
         <TrainingSessionDialog

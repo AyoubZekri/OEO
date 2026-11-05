@@ -155,3 +155,15 @@
   font-size: 0.78rem;
   font-weight: 700;
 }
+
+/* A goal's card opens its details */
+.gl-card-open { cursor: pointer; }
+.gl-card-open:hover { border-color: color-mix(in srgb, var(--tk-accent, #f97316) 40%, var(--tk-border)); }
+
+/* A goal's details */
+.gl-details { display: flex; flex-direction: column; gap: 12px; }
+.gl-details-goal { margin: 0; font-size: 1rem; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--tk-text, var(--text-h)); }
+.gl-details-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.gl-details-season { margin: 0; font-size: 1.05rem; font-weight: 900; color: var(--tk-accent, #f97316); text-align: right; }
+.gl-details-date { display: flex; align-items: center; gap: 6px; margin: 0; }
+@media (max-width: 520px) { .gl-details-facts { grid-template-columns: minmax(0, 1fr); } }

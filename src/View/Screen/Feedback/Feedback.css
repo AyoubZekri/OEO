@@ -178,3 +178,8 @@
 /* A required field left empty: a red edge and its message under it */
 .fb-field input.is-missing, .fb-field textarea.is-missing { border-color: #ef4444; }
 .fb-field-error { display: block; margin-top: 6px; color: #ef4444; font-size: 0.8rem; font-weight: 700; }
+
+/* Tapping a card opens its details */
+.fb-card.card-opens { cursor: pointer; }
+.fb-reply.fb-reply-full { margin: 0; }
+.fb-btn.danger { color: #dc2626; }

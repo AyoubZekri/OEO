@@ -9,7 +9,7 @@ import { MobileSelect } from '../../Mobile/widgets/MobileSelect';
 import { PageLoader } from '../../shared/PageLoader';
 import { FEEDBACK_TYPES, STATUS_META, statusOf, type FeedbackStatus, type FeedbackType } from './feedbackUtils';
 import { useFeedbackAdmin, useFocusedFeedback } from './useFeedback';
-import { FeedbackCard, FeedbackForm, ReplyForm } from './FeedbackParts';
+import { FeedbackCard, FeedbackDetails, FeedbackForm, ReplyForm } from './FeedbackParts';
 import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
@@ -31,6 +31,7 @@ export const FeedbackAdmin: React.FC = () => {
   const [type, setType] = useState<FeedbackType | ''>('');
   const [status, setStatus] = useState<FeedbackStatus | ''>('');
   const [query, setQuery] = useState('');
+  const [viewingId, setViewingId] = useState<number | null>(null);
   const focusId = useFocusedFeedback(!c.isLoading);
   const focused = focusId ? c.items.find(f => f.id === focusId) : undefined;
   useEffect(() => {
@@ -51,8 +52,19 @@ export const FeedbackAdmin: React.FC = () => {
       focused={focusId === f.id}
       onReply={can('feedback', 'reply') ? () => c.openReply(f) : undefined}
       onDelete={can('feedback', 'delete') ? () => c.remove(f) : undefined}
+      onOpen={() => { setViewingId(f.id); if (!f.read) c.markRead(f); }}
     />
   ));
+  const viewing = viewingId != null ? c.items.find(f => f.id === viewingId) : undefined;
+  const details = viewing && (
+    <FeedbackDetails
+      feedback={viewing}
+      admin
+      onReply={can('feedback', 'reply') ? () => { setViewingId(null); c.openReply(viewing); } : undefined}
+      onDelete={can('feedback', 'delete') ? () => { setViewingId(null); c.remove(viewing); } : undefined}
+      onClose={() => setViewingId(null)}
+    />
+  );
   const body = c.isLoading && !c.items.length ? <PageLoader mobile={isMobile} text="جاري تحميل الآراء..." />
     : c.error ? (
       <div className="tk-state">
@@ -115,6 +127,7 @@ export const FeedbackAdmin: React.FC = () => {
         <button type="button" className="tk-fab" onClick={c.openForm} aria-label="رأي جديد">
           <Plus size={22} strokeWidth={2.5} />
         </button>
+        {details}
         {reply}
         {form}
       </div>
@@ -131,6 +144,7 @@ export const FeedbackAdmin: React.FC = () => {
       </div>
 
       {body}
+      {details}
       {reply}
       {form}
     </div>

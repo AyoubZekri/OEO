@@ -4,12 +4,16 @@ import { Capacitor } from '@capacitor/core';
 import { App } from '@capacitor/app';
 
 const OPEN = '[aria-modal="true"], [role="dialog"], [role="menu"]';
-const openCount = () => document.querySelectorAll(OPEN).length;
+const CLOSE = '[aria-label^="إغلاق"], [aria-label="رجوع"], [aria-label="Close"], [aria-label="close"], .close, .btn-close, .m-screen-icon';
+
+/** What is open on top and can be seen (one kept in the page but hidden does not count) */
+const openLayers = () => [...document.querySelectorAll<HTMLElement>(OPEN)].filter(el => el.getClientRects().length > 0);
 
 /**
- * The Android app's back button, like any app: it closes what is open on top (a dialog, a sheet, a menu — they all
- * close on Escape, or by their ✕), else goes back a page, and on the home page puts the app in the background
- * instead of closing it.
+ * The Android app's back button, like any app: it closes what is open on top, else goes back a page, and on the home
+ * page puts the app in the background instead of closing it.
+ * - A full-screen phone page (MobileScreen) has its own history entry: going back closes it, as its own back arrow does.
+ * - A dialog, a sheet, a menu: Escape, or else its close (or back) button.
  */
 export const useBackButton = () => {
   const navigate = useNavigate();
@@ -18,14 +22,17 @@ export const useBackButton = () => {
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
     const handle = App.addListener('backButton', ({ canGoBack }) => {
-      const before = openCount();
-      if (before > 0) {
+      const open = openLayers();
+      if (open.length > 0) {
+        const top = open[open.length - 1];
+        if (top.classList.contains('m-screen') && ((window.history.state?.mScreenDepth as number | undefined) ?? 0) > 0) {
+          window.history.back();
+          return;
+        }
         document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-        // One that does not listen to Escape: its close button
+        // One that does not listen to Escape: its close (or back) button
         window.setTimeout(() => {
-          if (openCount() < before) return;
-          const top = [...document.querySelectorAll<HTMLElement>(OPEN)].pop();
-          top?.querySelector<HTMLElement>('[aria-label^="إغلاق"], [aria-label="Close"], [aria-label="close"], .close, .btn-close')?.click();
+          if (top.isConnected && top.getClientRects().length > 0) top.querySelector<HTMLElement>(CLOSE)?.click();
         }, 60);
         return;
       }

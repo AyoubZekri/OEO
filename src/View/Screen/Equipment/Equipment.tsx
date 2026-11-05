@@ -6,6 +6,7 @@ import { EquipmentDialog } from './EquipmentDialog';
 import { useAuth } from '../../../core/context/AuthContext';
 import { useIsMobile } from '../../../core/functions/useIsMobile';
 import { MobileEquipment } from '../../Mobile/MobileEquipment/MobileEquipment';
+import { MobileEquipmentDetails } from '../../Mobile/MobileEquipment/MobileEquipmentDetails';
 import './Equipment.css';
 
 import { useEquipmentController } from './EquipmentController';
@@ -18,6 +19,7 @@ export const Equipment: React.FC = () => {
   const [selectedEq, setSelectedEq] = useState<any>(null);
   const [isMovementOpen, setIsMovementOpen] = useState(false);
   const [isLocationsOpen, setIsLocationsOpen] = useState(false);
+  const [detailsId, setDetailsId] = useState<string | null>(null);
 
   const {
     equipments,
@@ -90,7 +92,7 @@ export const Equipment: React.FC = () => {
 
 
           return (
-            <div key={eq.id} className="premium-card">
+            <div key={eq.id} className="premium-card card-opens" onClick={e => { if (!(e.target as HTMLElement).closest('button, a, input, select, textarea, label, [role="menu"]')) setDetailsId(eq.id); }}>
               {/* Image & Badges */}
               <div className="card-image-box">
                 {eq.image ? (
@@ -169,6 +171,23 @@ export const Equipment: React.FC = () => {
         }))}
       </div>
 
+
+      {(() => {
+        const details = detailsId != null ? equipments.find(x => x.id === detailsId) : null;
+        if (!details) return null;
+        return (
+          <div className="eq-desk-modal" onMouseDown={e => { if (e.target === e.currentTarget) setDetailsId(null); }}>
+            <MobileEquipmentDetails
+              equipment={details}
+              canEdit={hasAccess(permissions.equipment.edit)}
+              canViewMovements={hasAccess(permissions.equipmentOperations.view)}
+              onMovements={() => { setDetailsId(null); openMovement(details); }}
+              onEdit={() => { setDetailsId(null); openEditDialog(details); }}
+              onClose={() => setDetailsId(null)}
+            />
+          </div>
+        );
+      })()}
 
       {/* Dialogs */}
       {isMovementOpen && (

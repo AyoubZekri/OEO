@@ -1199,3 +1199,6 @@ body.dark-mode .epic-form-section {
 
 /* The member's photo on the card */
 img.dc-avatar { object-fit: cover; padding: 0; }
+
+/* A disciplinary action's card opens its details */
+.dc-card.card-opens { cursor: pointer; }

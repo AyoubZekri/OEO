@@ -7,7 +7,7 @@ import { MobileSelect } from '../../Mobile/widgets/MobileSelect';
 import { PageLoader } from '../../shared/PageLoader';
 import { FEEDBACK_TYPES, type FeedbackType } from './feedbackUtils';
 import { useMyFeedback, useFocusedFeedback } from './useFeedback';
-import { FeedbackCard, FeedbackForm } from './FeedbackParts';
+import { FeedbackCard, FeedbackDetails, FeedbackForm } from './FeedbackParts';
 import '../../shared/kit.css';
 import '../Travels/Travels.css';
 import '../Debts/Debts.css';
@@ -25,6 +25,7 @@ export const MyFeedback: React.FC = () => {
   const c = useMyFeedback();
   const isMobile = useIsMobile();
   const [type, setType] = useState<FeedbackType | ''>('');
+  const [viewingId, setViewingId] = useState<number | null>(null);
   const focusId = useFocusedFeedback(!c.isLoading);
   const list = c.items.filter(f => !type || f.type === type);
 
@@ -33,10 +34,18 @@ export const MyFeedback: React.FC = () => {
       <StateIcon />
     ) : (
       <div className={isMobile ? 'tk-list' : 'tk-grid'}>
-        {list.map(f => <FeedbackCard key={f.id} feedback={f} focused={focusId === f.id} onDelete={f.replied_at ? undefined : () => c.remove(f)} />)}
+        {list.map(f => <FeedbackCard key={f.id} feedback={f} focused={focusId === f.id} onDelete={f.replied_at ? undefined : () => c.remove(f)} onOpen={() => setViewingId(f.id)} />)}
       </div>
     );
   const form = c.formOpen && <FeedbackForm onSend={c.send} onClose={c.closeForm} />;
+  const viewing = viewingId != null ? c.items.find(f => f.id === viewingId) : undefined;
+  const details = viewing && (
+    <FeedbackDetails
+      feedback={viewing}
+      onDelete={viewing.replied_at ? undefined : () => { setViewingId(null); c.remove(viewing); }}
+      onClose={() => setViewingId(null)}
+    />
+  );
 
   if (isMobile) {
     return (
@@ -67,6 +76,7 @@ export const MyFeedback: React.FC = () => {
         <button type="button" className="tk-fab" onClick={c.openForm} aria-label="رأي جديد">
           <Plus size={22} strokeWidth={2.5} />
         </button>
+        {details}
         {form}
       </div>
     );
@@ -80,6 +90,7 @@ export const MyFeedback: React.FC = () => {
       </div>
 
       {body}
+      {details}
       {form}
     </div>
   );

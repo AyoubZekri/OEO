@@ -17,6 +17,9 @@ import { confirmDelete } from '../../shared/confirmDelete';
 import { StateIcon } from '../../widget/StateIcon';
 import { showSnackbar } from '../../../core/functions/Snacpar';
 
+/** A click on a card opens its details, unless it was on one of its own buttons or fields */
+const fromControl = (e: React.MouseEvent) => Boolean((e.target as HTMLElement).closest('button, a, input, select, textarea, label, [role="menu"]'));
+
 export const Decisions: React.FC = () => {
   const { t } = useTranslation();
   const {
@@ -220,7 +223,8 @@ export const Decisions: React.FC = () => {
           return (
             <div
               key={decision.id}
-              className={`decision-card-wow ${isCompleted ? 'completed' : ''}`}
+              className={`decision-card-wow card-opens ${isCompleted ? 'completed' : ''}`}
+              onClick={e => { if (!fromControl(e)) setDetailsDecision(decision); }}
             >
               <div className="decision-card-content">
                 <div className="decision-header">

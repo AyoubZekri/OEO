@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useCan } from '../../../core/functions/useCan';
-import { Search, Plus, Pencil, Trash2, Users, MoreVertical, TrendingUp, LogOut, FileText, Briefcase, ChevronDown, FileSpreadsheet } from 'lucide-react';
+import { Search, Plus, Pencil, Trash2, Users, MoreVertical, Eye, TrendingUp, LogOut, FileText, Briefcase, ChevronDown, FileSpreadsheet } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import type { useMembersController } from '../../Screen/Members/MembersController';
 import type { MemberModel } from '../../Screen/Members/member_model';
@@ -16,6 +16,8 @@ interface MobileMembersProps {
   controller: ReturnType<typeof useMembersController>;
   canAdd: boolean;
   canEdit: boolean;
+  /** A tap on a member's card: their details */
+  onView: (member: MemberModel) => void;
   canDelete: boolean;
   canViewRecord: boolean;
   onAddEvaluation: (member: MemberModel) => void;
@@ -27,7 +29,7 @@ interface MobileMembersProps {
 const getPhoto = (member: MemberModel) =>
   member.photo && !member.photo.includes('ui-avatars.com') ? member.photo : defaultAvatar;
 
-export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onAddEvaluation, onBulkEvaluate }) => {
+export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd, canEdit, canDelete, canViewRecord, onView, onAddEvaluation, onBulkEvaluate }) => {
   const can = useCan();
   const { filteredMembers, searchQuery, setSearchQuery, filterTeamId, setFilterTeamId, teams } = controller;
   // The filter's kind: chosen whole ('kind:…') or through one of its categories
@@ -106,7 +108,14 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
       ) : (
         <div className="mm-list">
           {filteredMembers.map(member => (
-            <article key={member.id} className="mm-card">
+            <article
+              key={member.id}
+              className="mm-card mm-card-open"
+              role="button"
+              tabIndex={0}
+              onClick={() => onView(member)}
+              onKeyDown={e => { if (e.key === 'Enter' && e.target === e.currentTarget) onView(member); }}
+            >
               <div className="mm-photo">
                 <img
                   src={getPhoto(member)}
@@ -134,6 +143,7 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
                 <button
                   className={`mm-more ${actionMember?.id === member.id ? 'open' : ''}`}
                   onClick={e => {
+                    e.stopPropagation();
                     if (actionMember?.id !== member.id) setMenuPos(menuPositionUnder(e.currentTarget, 170)); // .mm-menu width
                     openMenu(member);
                   }}
@@ -148,8 +158,12 @@ export const MobileMembers: React.FC<MobileMembersProps> = ({ controller, canAdd
 
               {actionMember?.id === member.id && (
                 <>
-                  <div className="mm-menu-backdrop" onClick={() => setActionMember(null)} />
-                  <div ref={revealMenu} className="mm-menu" style={menuPos} role="menu" aria-label="خيارات العضو">
+                  <div className="mm-menu-backdrop" onClick={e => { e.stopPropagation(); setActionMember(null); }} />
+                  <div ref={revealMenu} className="mm-menu" style={menuPos} role="menu" aria-label="خيارات العضو" onClick={e => e.stopPropagation()}>
+                    <button role="menuitem" className="mm-menu-item record" onClick={() => runAction(onView)}>
+                      <Eye size={17} />
+                      عرض التفاصيل
+                    </button>
                     {member.type === 'player' && can('members', 'evaluate') && (
                       <button role="menuitem" className="mm-menu-item eval" onClick={() => runAction(onAddEvaluation)}>
                         <TrendingUp size={17} />

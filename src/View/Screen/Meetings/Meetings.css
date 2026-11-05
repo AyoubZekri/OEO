@@ -774,3 +774,6 @@ body.dark-mode .companions-badge {
 }
 
 
+
+/* A meeting's card opens its details */
+.premium-card.card-opens { cursor: pointer; }

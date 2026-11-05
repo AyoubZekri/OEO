@@ -608,15 +608,15 @@ body.dark-mode .badge-return {
     border-top-left-radius: 16px !important;
     border-top-right-radius: 16px !important;
   }
-  
+
   .glass-dialog-title {
     font-size: 1.1rem !important;
   }
-  
+
   .glass-dialog-icon {
     padding: 6px !important;
   }
-  
+
   .glass-dialog-icon svg {
     width: 20px;
     height: 20px;
@@ -655,7 +655,7 @@ body.dark-mode .badge-return {
     gap: 16px !important;
     padding-top: 24px !important;
   }
-  
+
   .eq-item-row > div {
     width: 100% !important;
   }
@@ -665,20 +665,20 @@ body.dark-mode .badge-return {
     padding: 12px !important;
     gap: 8px !important;
   }
-  
+
   .print-option-icon {
     padding: 8px !important;
   }
-  
+
   .print-option-icon svg {
     width: 20px;
     height: 20px;
   }
-  
+
   .print-option-title {
     font-size: 0.95rem !important;
   }
-  
+
   .print-option-desc {
     font-size: 0.75rem !important;
   }
@@ -692,7 +692,7 @@ body.dark-mode .badge-return {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .info-divider {
     width: 100%;
     height: 1px;
@@ -747,11 +747,11 @@ body.dark-mode .badge-return {
     align-items: center;
     justify-content: space-between;
   }
-  
+
   .equipment-page-wrapper .custom-table td:last-child {
     border-bottom: none !important;
   }
-  
+
   .equipment-page-wrapper .custom-table td::before {
     content: attr(data-label);
     font-size: 0.75rem !important;
@@ -768,7 +768,7 @@ body.dark-mode .badge-return {
     padding-bottom: 0 !important;
     margin-bottom: 8px;
   }
-  
+
   .equipment-page-wrapper .custom-table td:nth-child(2)::before {
     display: none !important;
   }
@@ -808,7 +808,7 @@ body.dark-mode .badge-return {
     border-bottom: none !important;
     justify-content: center !important;
   }
-  
+
   .equipment-page-wrapper .custom-table td:nth-child(6)::before {
     display: none !important;
   }
@@ -1036,3 +1036,5 @@ body.dark-mode .eq-item-row {
 .eq-op-head > * { min-width: 0; margin: 0; }
 @media (max-width: 720px) { .eq-op-head { grid-template-columns: minmax(0, 1fr); } }
 
+/* Tapping a row opens the operation's details */
+.eqo-row { cursor: pointer; }

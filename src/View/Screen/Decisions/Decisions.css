@@ -534,3 +534,6 @@
   border-color: rgba(var(--accent-rgb), 0.3);
   transform: translateX(-4px);
 }
+
+/* A decision's card opens its details */
+.decision-card-wow.card-opens { cursor: pointer; }

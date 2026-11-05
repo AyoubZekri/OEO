@@ -13,7 +13,8 @@ import { appointmentKind } from './appointmentMeta';
 export const AppointmentDetails: React.FC<{ t: TaskTemplate; mobile: boolean; onClose: () => void }> = ({ t, mobile, onClose }) => {
   const on = t.status === 'active';
   const kind = appointmentKind(t);
-  const nature = NATURE_META[t.nature];
+  // An appointment saved without a known nature: that line is left out
+  const nature = NATURE_META[t.nature] as (typeof NATURE_META)[keyof typeof NATURE_META] | undefined;
   const times = templateTimesText(t);
   const people = [
     { label: 'المكلّف', name: t.assignee?.name || '—' },
@@ -41,7 +42,7 @@ export const AppointmentDetails: React.FC<{ t: TaskTemplate; mobile: boolean; on
           </div>
           <h2>{t.title}</h2>
           <div className="tsk-d-hero-foot">
-            <span><nature.icon size={14} />{nature.label}</span>
+            {nature && <span><nature.icon size={14} />{nature.label}</span>}
             {kind.when && <span><Repeat size={14} />{kind.when}</span>}
             <span><ListChecks size={14} />{t.tasks_count} مهمة</span>
           </div>

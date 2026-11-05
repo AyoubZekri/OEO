@@ -332,7 +332,7 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
         </div>
       ) : (
         <div className="matches-grid mmt-vars">
-          {/* The phone's match card; its details open from "عرض التفاصيل" (⋮), in a window */}
+          {/* The phone's match card; a click on it (or "عرض التفاصيل" in its ⋮) opens its details, in a window */}
           {filteredMatches.map(match => (
             <MatchCard
               key={match.id}
@@ -343,7 +343,6 @@ export const Matches = ({ personal = false }: { personal?: boolean }) => {
               actions={actions}
               allowed={action => can('matches', action)}
               onOpen={() => setDetailsId(match.id)}
-              tapToOpen={false}
               personal={personal}
             />
           ))}

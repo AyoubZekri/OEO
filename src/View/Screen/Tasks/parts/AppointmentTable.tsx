@@ -9,6 +9,7 @@ import { appointmentKind, appointmentMenu, type AppointmentActions } from './app
  * The appointments on a computer, in a table like the equipment movements': how many per page on top, the
  * appointment, its kind, who does it, its state, then its
  * ⋮ (its details, edit, stop / start, delete — those this role may do); the pages under it.
+ * A click on a row opens its details.
  */
 export const AppointmentTable: React.FC<{ templates: TaskTemplate[] } & AppointmentActions> = ({ templates, ...actions }) => {
   const [page, setPage] = useState(1);
@@ -36,8 +37,15 @@ export const AppointmentTable: React.FC<{ templates: TaskTemplate[] } & Appointm
             {shown.map(t => {
               const on = t.status === 'active';
               const kind = appointmentKind(t);
+              const open = () => actions.onView?.(t);
               return (
-                <tr key={t.id} className={on ? '' : 'off'}>
+                <tr
+                  key={t.id}
+                  className={`${on ? '' : 'off'} ${actions.onView ? 'tsk-arow' : ''}`}
+                  tabIndex={actions.onView ? 0 : undefined}
+                  onClick={open}
+                  onKeyDown={e => { if (e.key === 'Enter') open(); }}
+                >
                   <td data-label="الموعد" className="tsk-atitle">
                     {t.title}
                     {kind.when && <small>{kind.when}</small>}
@@ -45,7 +53,7 @@ export const AppointmentTable: React.FC<{ templates: TaskTemplate[] } & Appointm
                   <td data-label="النوع">{kind.label}</td>
                   <td data-label="المكلّف">{t.assignee?.name || '-'}</td>
                   <td data-label="الحالة"><span className={`tsk-astate ${on ? 'on' : ''}`}>{on ? 'مفعل' : 'متوقف'}</span></td>
-                  <td data-label="الإجراءات" className="actions-cell">
+                  <td data-label="الإجراءات" className="actions-cell" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
                     <ActionsMenu label="إجراءات الموعد" items={appointmentMenu(t, actions)} />
                   </td>
                 </tr>

@@ -193,7 +193,9 @@ export const FeedbackCard: React.FC<{
   onDelete?: () => void;
   /** Opened from an alert: marked */
   focused?: boolean;
-}> = ({ feedback: f, admin, onReply, onDelete, focused }) => {
+  /** Tapping the card opens its details */
+  onOpen?: () => void;
+}> = ({ feedback: f, admin, onReply, onDelete, focused, onOpen }) => {
   const meta = typeMeta(f.type);
   const status = statusOf(f);
   const newReply = !admin && f.replied_at && !f.reply_seen;
@@ -202,7 +204,9 @@ export const FeedbackCard: React.FC<{
     : newReply ? { label: 'رد جديد', tone: 'orange' } : f.replied_at ? { label: 'تم الرد', tone: 'green' } : { label: 'بانتظار الرد', tone: 'blue' };
 
   return (
-    <article className={`fb-card tone-${meta.tone} ${admin && status === 'new' ? 'is-new' : ''} ${focused ? 'is-focused' : ''}`} id={`feedback-card-${f.id}`}>
+    <article className={`fb-card tone-${meta.tone} ${admin && status === 'new' ? 'is-new' : ''} ${focused ? 'is-focused' : ''} ${onOpen ? 'card-opens' : ''}`} id={`feedback-card-${f.id}`}
+      onClick={onOpen ? e => { if (!(e.target as HTMLElement).closest('button, a, input, select, textarea, label, [role="menu"]')) onOpen(); } : undefined}
+    >
       {/* Who and when (or the type, in the personal space), and the status */}
       <header className="fb-card-top">
         {admin ? (
@@ -265,5 +269,58 @@ export const FeedbackCard: React.FC<{
         </footer>
       )}
     </article>
+  );
+};
+
+/** One opinion in full: its type, sender and date, subject and whole text, then the management's reply (computer window, phone page) */
+export const FeedbackDetails: React.FC<{
+  feedback: Feedback;
+  admin?: boolean;
+  onReply?: () => void;
+  onDelete?: () => void;
+  onClose: () => void;
+}> = ({ feedback: f, admin, onReply, onDelete, onClose }) => {
+  const meta = typeMeta(f.type);
+  const isMobile = useIsMobile();
+  return (
+    <FeedbackShell
+      title="تفاصيل الرأي"
+      onClose={onClose}
+      footer={(
+        <>
+          {!isMobile && <button type="button" className="fb-btn ghost" onClick={onClose}>إغلاق</button>}
+          {onDelete && <button type="button" className="fb-btn ghost danger" onClick={onDelete}><Trash2 size={16} /> حذف</button>}
+          {onReply && (
+            <button type="button" className="fb-btn primary" onClick={onReply}>
+              {f.type === 'suggestion' ? <Star size={16} /> : <Reply size={16} />}
+              {f.replied_at ? 'تعديل الرد' : f.type === 'suggestion' ? 'تقييم ورد' : 'رد'}
+            </button>
+          )}
+        </>
+      )}
+    >
+      <div className={`fb-quote tone-${meta.tone}`}>
+        <span className="fb-chip"><meta.icon size={14} /> {meta.label}</span>
+        <strong>{f.subject}</strong>
+        {f.body && <p>{f.body}</p>}
+        <small>
+          {admin && <><UserRound size={13} /> {f.member_name || 'عضو'}{f.member_role ? ` · ${f.member_role}` : ''} · </>}
+          {!admin && <CalendarClock size={13} />} {dateText(f.created_at)}
+        </small>
+      </div>
+      {f.replied_at && (
+        <div className="fb-reply fb-reply-full">
+          <div className="fb-reply-head">
+            <span className="fb-avatar sm reply"><MessageSquareReply size={14} /></span>
+            <span className="fb-who-text">
+              <strong>رد الإدارة</strong>
+              <small>{f.replied_by ? `${f.replied_by} · ` : ''}{dateText(f.replied_at)}</small>
+            </span>
+          </div>
+          {f.type === 'suggestion' && f.rating ? <div className="fb-rating-row"><StarRating value={f.rating} size={17} /></div> : null}
+          <p>{f.reply}</p>
+        </div>
+      )}
+    </FeedbackShell>
   );
 };

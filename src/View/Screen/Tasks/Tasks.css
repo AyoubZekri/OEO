@@ -1255,3 +1255,7 @@ body.dark-mode .tsk-chat-day span, body.dark-mode .tsk-chat-empty > span { backg
 /* A task form's field to type left empty: a red edge, and its message right under it */
 .tk-scope .tk-field.tk-missing .tk-input { border-color: #ef4444 !important; }
 .tk-field-error { display: flex; align-items: center; gap: 5px; margin-top: 6px; color: #ef4444; font-size: 0.78rem; font-weight: 700; }
+
+/* An appointment's row: a click opens its details */
+.tsk-atable tr.tsk-arow { cursor: pointer; }
+.tsk-atable tr.tsk-arow:hover td { background: var(--bg); }

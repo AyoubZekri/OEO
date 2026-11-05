@@ -289,7 +289,12 @@ export const Disciplinary: React.FC<{ personal?: boolean }> = ({ personal = fals
         ) : (
           <div className="disciplinary-grid">
             {controller.disciplinaryList.map(c => (
-            <article key={c.id} className="dc-card">
+            <article
+              key={c.id}
+              className={`dc-card ${canDo('view') ? 'card-opens' : ''}`}
+              // A click on the card opens its details, unless it was on one of its own buttons or fields
+              onClick={e => { if (canDo('view') && !(e.target as HTMLElement).closest('button, a, input, select, textarea, label, [role="menu"], .status-dropdown-container')) setViewingItem(c); }}
+            >
               <header className="dc-head">
                 <div className="status-control-modern dc-status" style={{ opacity: canDo('changeStatus') ? 1 : 0.85, pointerEvents: canDo('changeStatus') ? 'auto' : 'none' }}>
                   <StatusDropdown

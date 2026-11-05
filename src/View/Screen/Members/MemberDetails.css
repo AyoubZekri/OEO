@@ -1,0 +1,25 @@
+/* A member's details: photo and name on top, then their information, then their documents */
+.mdt { display: flex; flex-direction: column; gap: 12px; }
+
+.mdt-head { display: flex; align-items: center; gap: 14px; }
+.mdt-head img { width: 72px; height: 72px; flex-shrink: 0; border-radius: 20px; object-fit: cover; background: var(--bg); border: 1px solid var(--border); }
+.mdt-head > div { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.mdt-head h3 { margin: 0; font-size: 1.15rem; font-weight: 900; color: var(--text-h); overflow-wrap: anywhere; }
+.mdt-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.mdt-tags em { font-style: normal; font-size: 0.75rem; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: rgba(249, 115, 22, 0.1); color: #ea580c; }
+.mdt-tags em.tone-green { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.mdt-tags em.tone-red { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.mdt-tags em.tone-amber { background: rgba(245, 158, 11, 0.14); color: #b45309; }
+
+.mdt-box { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 12px; border-radius: 16px; border: 1px solid var(--border); background: var(--card-bg); }
+.mdt-fact { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.mdt-fact-icon { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(249, 115, 22, 0.1); color: #f97316; }
+.mdt-fact-text { min-width: 0; display: flex; flex-direction: column; }
+.mdt-fact-text small { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
+.mdt-fact-text b { font-size: 0.9rem; font-weight: 800; color: var(--text-h); overflow-wrap: anywhere; text-align: start; }
+
+.mdt-docs { display: flex; flex-wrap: wrap; gap: 8px; }
+.mdt-docs button { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text-h); font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; }
+.mdt-docs button svg { color: #f97316; }
+
+@media (max-width: 560px) { .mdt-box { grid-template-columns: minmax(0, 1fr); } }

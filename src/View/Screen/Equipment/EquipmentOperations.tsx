@@ -105,7 +105,7 @@ export const EquipmentOperations: React.FC = () => {
                 const itemCount = op.movements ? op.movements.length : 0;
 
                 return (
-                  <tr key={op.id}>
+                  <tr key={op.id} className="eqo-row" onClick={e => { if (!(e.target as HTMLElement).closest('button, a, input, select, textarea, label, [role="menu"]')) setSelectedOperationId(op.id); }}>
                     <td data-label="رقم العملية">#{op.id}</td>
                     <td data-label="اسم العضو" style={{ fontWeight: 700, color: 'var(--text-h, #1f2937)' }}>
                       {memberName}

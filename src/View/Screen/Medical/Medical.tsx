@@ -14,6 +14,7 @@ import { MobileMedical } from '../../Mobile/MobileMedical/MobileMedical';
 import { initialDone, finalDone, recovered, toneOf, personName, personPhoto, daysSince, daysText } from '../../Mobile/MobileMedical/medicalUtils';
 import './Medical.css';
 import { StateIcon } from '../../widget/StateIcon';
+import { MobileMedicalDetails } from '../../Mobile/MobileMedical/MobileMedicalDetails';
 
 /** personal: the personal space's page (my medical files, read only: wrapped in ReadOnlyContext by MyMedical) */
 export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) => {
@@ -42,6 +43,8 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
   } = controller;
 
   const [memberFilter, setMemberFilter] = useState<string>('');
+  // The file whose details are open (a click on its card): the phone's details page, in a window
+  const [detailsId, setDetailsId] = useState<string | number | null>(null);
   const isMobile = useIsMobile();
   const can = useCan();
   const [params, setParams] = useSearchParams();
@@ -134,7 +137,13 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
               },
             ];
             return (
-              <div className={`med-card tone-${tone}`} key={record.id} data-record-id={record.id}>
+              <div
+                className={`med-card tone-${tone} card-opens`}
+                key={record.id}
+                data-record-id={record.id}
+                // A click on the card opens its details, unless it was on one of its own buttons
+                onClick={e => { if (!(e.target as HTMLElement).closest('button, a, input, select, label, [role="menu"]')) setDetailsId(record.id); }}
+              >
                 <div className="med-card-glow" aria-hidden="true" />
 
                 {/* Status + actions */}
@@ -202,6 +211,23 @@ export const Medical: React.FC<{ personal?: boolean }> = ({ personal = false }) 
           })}
         </div>
       )}
+
+      {/* A file's details: the phone's page, in a window in the middle */}
+      {detailsId !== null && records.find(r => r.id === detailsId) && (() => {
+        const record = records.find(r => r.id === detailsId)!;
+        return (
+          <div className="med-desk-modal" onMouseDown={e => { if (e.target === e.currentTarget) setDetailsId(null); }}>
+            <MobileMedicalDetails
+              record={record}
+              onEdit={mode => { setDetailsId(null); openEditDialog(record, mode); }}
+              onDeleteInitial={() => handleDeleteInitialExam(record)}
+              onDeleteFinal={() => handleDeleteFinalDecision(record)}
+              onDeleteTreatment={() => handleDeleteTreatmentPhase(record)}
+              onClose={() => setDetailsId(null)}
+            />
+          </div>
+        );
+      })()}
 
       {isAddDialogOpen && (
         <AddMedicalRecordDialog

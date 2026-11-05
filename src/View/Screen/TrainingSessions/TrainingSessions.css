@@ -562,3 +562,9 @@ body.dark-mode .sc-status-menu-item.active {
 
 /* The session's form: a required field left empty — a red edge (its message under it) */
 .modern-dialog-body .form-group input.is-missing { border-color: #ef4444 !important; }
+
+/* A session's card opens its details: the phone's details page, in a window in the middle */
+.sc-card.card-opens { cursor: pointer; }
+.sc-desk-modal { position: fixed; inset: 0; z-index: 900; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(15, 23, 42, 0.55); }
+.sc-desk-modal .m-screen { position: relative; inset: auto; z-index: auto; width: min(620px, 100%); height: min(88vh, 900px); border-radius: 22px; overflow: hidden; box-shadow: 0 30px 70px -25px rgba(15, 23, 42, 0.6); }
+.sc-desk-modal .m-screen-bar { padding-top: 10px; }

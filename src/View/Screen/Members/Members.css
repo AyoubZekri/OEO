@@ -1649,3 +1649,6 @@ body.dark-mode .badge-amber {
   transition: background 0.15s ease;
 }
 .members-teams-btn:hover { background: color-mix(in srgb, var(--accent, #f97316) 8%, var(--card-bg, #fff)); }
+
+/* A member's row opens their details */
+.member-row-open { cursor: pointer; }

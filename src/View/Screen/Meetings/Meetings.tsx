@@ -18,6 +18,9 @@ import { meetingStart, agendaOf } from '../../Mobile/MobileMeetings/meetingUtils
 import { useNow } from '../../Mobile/MobileTrainingSessions/sessionUtils';
 import { StateIcon } from '../../widget/StateIcon';
 
+/** A click on a card opens its details, unless it was on one of its own buttons or fields */
+const fromControl = (e: React.MouseEvent) => Boolean((e.target as HTMLElement).closest('button, a, input, select, textarea, label, [role="menu"]'));
+
 export const Meetings: React.FC = () => {
   const { t } = useTranslation();
   const controller = useMeetingsController();
@@ -75,7 +78,8 @@ export const Meetings: React.FC = () => {
           meetings.map(meeting => (
             <div
               key={meeting.id}
-            className="premium-card fade-in"
+            onClick={e => { if (!fromControl(e)) setExpandedMeetingId(meeting.id); }}
+            className="premium-card fade-in card-opens"
             style={{
               position: 'relative',
               overflow: 'hidden',
