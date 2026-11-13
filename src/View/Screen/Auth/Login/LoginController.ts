@@ -3,6 +3,7 @@ import { LoginData } from './logen_data';
 import { Crud } from '../../../../core/class/Crud';
 
 import { useAuth } from '../../../../core/context/AuthContext';
+import { showAlert } from '../../../shared/appDialog';
 
 export const useLoginController = (onLoginSuccess: () => void) => {
   const [email, setEmail] = useState('');
@@ -28,11 +29,11 @@ export const useLoginController = (onLoginSuccess: () => void) => {
         }
         onLoginSuccess();
       } else {
-        alert(response?.message || 'فشل تسجيل الدخول. تأكد من صحة البيانات.');
+        showAlert(response?.message || 'فشل تسجيل الدخول. تأكد من صحة البيانات.');
       }
     } catch (error) {
       console.error("Login error", error);
-      alert('حدث خطأ أثناء الاتصال بالخادم.');
+      showAlert('حدث خطأ أثناء الاتصال بالخادم.');
     } finally {
       setIsLoading(false);
     }

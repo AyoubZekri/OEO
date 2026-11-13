@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import client from '../../../../core/api/client';
+import { showAlert } from '../../../shared/appDialog';
 
 export type MeetingAttendeeStatus = 'حاضر' | 'متأخر' | 'غائب مبرر' | 'غائب غير مبرر' | null;
 
@@ -81,7 +82,7 @@ export const useTakeMeetingAttendanceController = () => {
   const handleSave = async () => {
     const unrecorded = attendanceList.filter(a => !a.status);
     if (unrecorded.length > 0) {
-      alert(`يرجى تحديد حالة جميع الأعضاء. متبقي ${unrecorded.length} عضو.`);
+      showAlert(`يرجى تحديد حالة جميع الأعضاء. متبقي ${unrecorded.length} عضو.`, 'info');
       return;
     }
 
@@ -123,10 +124,10 @@ export const useTakeMeetingAttendanceController = () => {
         await Promise.all(absencePromises);
       }
 
-      alert('تم حفظ كشف الحضور بنجاح!');
+      showAlert('تم حفظ كشف الحضور بنجاح', 'success');
       navigate(-1);
     } catch (err) {
-      alert('حدث خطأ أثناء حفظ الكشف.');
+      showAlert('حدث خطأ أثناء حفظ الكشف.');
     } finally {
       setIsSaving(false);
     }

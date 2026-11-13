@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import client from '../../../core/api/client';
 import type { AbsenceRecord } from '../Absence/AbsenceRequestsController';
 import { countsOf, statusOf } from '../Absence/absenceUtils';
+import { showAlert } from '../../shared/appDialog';
 
 /**
  * What the member sends: a holiday request (dates, no event), or an absence / lateness announced in advance
@@ -61,7 +62,7 @@ export const useMyAbsences = () => {
       // The api client sends JSON by default, which would turn the form (and drop the file): send it as a form
       await client.post('/absences/mine/justify', form, { headers: { 'Content-Type': 'multipart/form-data' } });
     } catch (e) {
-      alert(errorText(e, 'تعذر إرسال التبرير'));
+      showAlert(errorText(e, 'تعذر إرسال التبرير'));
       return;
     }
     setJustifyId(null);

@@ -728,22 +728,29 @@ body.dark-mode .mus-access span { color: #34d399; }
 
 .mus-domain + .mus-domain { margin-top: 8px; }
 
+/* A group's title: in a container, as on the finance page */
 .mus-domain-title {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 4px 2px 0;
-  font-size: 0.8rem;
-  font-weight: 900;
-  color: var(--ms-accent);
+  gap: 8px;
+  margin: 4px 0 0;
+  padding: 9px 12px;
+  border: 1px solid #fed7aa;
+  border-radius: 14px;
+  background: #fff4ec;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #c2410c;
 }
-
-.mus-domain-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: color-mix(in srgb, var(--ms-accent) 25%, var(--ms-border));
+.mus-domain-title svg {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  padding: 6px;
+  border-radius: 9px;
+  background: #f97316;
+  color: #fff;
 }
+body.dark-mode .mus-domain-title { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }
 
 /* The linked member's photo, as on the members page: in an orange gradient ring */
 .mus-avatar.has-photo {

@@ -4,6 +4,7 @@ import { Crud } from '../../../core/class/Crud';
 
 import { TeamModel } from './team_model';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showAlert } from '../../shared/appDialog';
 
 export const useTeamsController = () => {
   const [teams, setTeams] = useState<TeamModel[]>([]);
@@ -57,7 +58,7 @@ export const useTeamsController = () => {
         fetchTeams();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء تعديل الفريق');
+        showAlert('حدث خطأ أثناء تعديل الفريق');
       }
     } else {
       const response = await teamsData.addTeam(payload);
@@ -65,7 +66,7 @@ export const useTeamsController = () => {
         fetchTeams();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء إضافة الفريق');
+        showAlert('حدث خطأ أثناء إضافة الفريق');
       }
     }
     setIsLoading(false);
@@ -78,7 +79,7 @@ export const useTeamsController = () => {
       if (response && !response.error) {
         fetchTeams();
       } else {
-        alert('حدث خطأ أثناء حذف الفريق');
+        showAlert('حدث خطأ أثناء حذف الفريق');
       }
       setIsLoading(false);
     }

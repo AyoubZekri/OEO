@@ -2,16 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, ShieldAlert, ShieldCheck, Shield, Edit2, Check, Save, AlertCircle, Type } from 'lucide-react';
 import { RoleModel, defaultPermissions, MODULE_ACTIONS, ALL_MODULES, PERMISSION_DOMAINS } from './role_model';
-import { MODULE_ICONS, actionIcon } from './permissionIcons';
+import { MODULE_ICONS, DOMAIN_ICONS, actionIcon } from './permissionIcons';
 import type { AppPermissions } from './role_model';
 import { validInput } from '../../../../core/functions/valiedinput';
+import { RoleUsersPicker } from './RoleUsersPicker';
 import './Roles.css';
 import './RoleDialog.css';
 
 interface RoleDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (role: Omit<RoleModel, 'id' | 'toJson'>) => void;
+  onSave: (role: Omit<RoleModel, 'id' | 'toJson'>, userIds: string[] | null) => void;
   roleToEdit?: RoleModel | null;
 }
 
@@ -21,6 +22,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
   const [appPerms, setAppPerms] = useState<AppPermissions>({ ...defaultPermissions });
   const isFull = accessLevel === 'full';
   const [errors, setErrors] = useState<{name?: string}>({});
+  const [userIds, setUserIds] = useState<string[] | null>(null);
   const { t } = useTranslation();
 
   // Every section of the app, from the shared permission model
@@ -38,6 +40,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
         setAppPerms(JSON.parse(JSON.stringify(defaultPermissions)));
       }
       setErrors({});
+      setUserIds(null);
     }
   }, [isOpen, roleToEdit]);
 
@@ -57,7 +60,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
         name,
         accessLevel,
         permissions: accessLevel === 'full' ? JSON.parse(JSON.stringify(defaultPermissions)) : appPerms
-      });
+      }, userIds);
     }
   };
 
@@ -85,11 +88,6 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
       }
       return { ...prev, [moduleKey]: newModulePerms };
     });
-  };
-
-  // Turn every section of the list on or off at once (same rule as one section's switch)
-  const handleAllToggle = (checked: boolean) => {
-    modulesConfig.forEach(module => handleModuleToggle(module.key, checked));
   };
 
   const permsShown = (key: keyof AppPermissions) => (isFull ? defaultPermissions[key] : appPerms[key]) as unknown as Record<string, boolean>;
@@ -144,12 +142,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                 </div>
               </div>
 
-              {!isFull && (
-                <div className="rd-bulk">
-                  <button type="button" onClick={() => handleAllToggle(true)}><Check size={15} /> تفعيل الكل</button>
-                  <button type="button" onClick={() => handleAllToggle(false)}><X size={15} /> إلغاء الكل</button>
-                </div>
-              )}
+              <RoleUsersPicker key={roleToEdit?.id || 'new'} roleId={roleToEdit?.id} value={userIds} onChange={setUserIds} />
             </aside>
 
             {/* Sections and their actions */}
@@ -159,6 +152,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                 return (
                   <div key={domain.key} className="rd-domain">
                     <h3 className="rd-domain-title">
+                      {DOMAIN_ICONS[domain.key] && React.createElement(DOMAIN_ICONS[domain.key], { size: 16 })}
                       <span>{t(`roles_permissions.domains.${domain.key}`)}</span>
                     </h3>
                     <div className={`rd-modules ${isFull ? 'locked' : ''}`}>

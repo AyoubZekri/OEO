@@ -1,3 +1,4 @@
+import { askConfirm } from '../../shared/appDialog';
 import React, { useState } from 'react';
 import { X, RefreshCw, Package, ChevronDown } from 'lucide-react';
 import './EquipmentOperations.css';
@@ -125,8 +126,8 @@ export const OperationDetailsDialog: React.FC<OperationDetailsDialogProps> = ({
                     hasAccess(permissions.equipmentOperations.edit) && (
                       <button
                         className="epic-btn undo"
-                        onClick={() => {
-                          if (onUndoReturnEquipment && window.confirm('هل أنت متأكد من التراجع عن هذا الإرجاع؟')) {
+                        onClick={async () => {
+                          if (onUndoReturnEquipment && await askConfirm('هل أنت متأكد من التراجع عن هذا الإرجاع؟', { confirmLabel: 'تراجع' })) {
                             onUndoReturnEquipment(mov.id);
                           }
                         }}

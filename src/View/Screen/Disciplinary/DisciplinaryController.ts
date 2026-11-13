@@ -7,6 +7,7 @@ import { MemberModel } from '../Members/member_model';
 import { Crud } from '../../../core/class/Crud';
 import { useAuth } from '../../../core/context/AuthContext';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showAlert, askConfirm } from '../../shared/appDialog';
 
 const DISCIPLINARY = Applink.disciplinary;
 
@@ -149,7 +150,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
       closeDialog();
     } catch (error) {
       console.error("Error saving disciplinary record:", error);
-      alert("حدث خطأ أثناء الحفظ");
+      showAlert("حدث خطأ أثناء الحفظ");
     } finally {
       setIsSubmitting(false);
     }
@@ -159,7 +160,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
   const handleMemberReply = async (item: DisciplinaryModel) => {
     if (isSubmitting) return;
     if (!item.player_statements?.trim()) {
-      alert('اكتب ردك قبل الإرسال');
+      showAlert('اكتب ردك قبل الإرسال');
       return;
     }
     setIsSubmitting(true);
@@ -171,7 +172,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
       closeDialog();
     } catch (error) {
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
-      alert(message || 'تعذر إرسال الرد');
+      showAlert(message || 'تعذر إرسال الرد');
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +189,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
         await fetchDisciplinary();
       } catch (error) {
         console.error("Error deleting disciplinary record:", error);
-        alert("حدث خطأ أثناء الحذف");
+        showAlert("حدث خطأ أثناء الحذف");
       } finally {
         setDeletingId(null);
       }
@@ -210,7 +211,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
   };
 
   const handleAcknowledge = async (item: DisciplinaryModel) => {
-    if (window.confirm('تأكيد توقيع العضو بالاستلام؟')) {
+    if (await askConfirm('تأكيد توقيع العضو بالاستلام؟', { confirmLabel: 'توقيع' })) {
       try {
         const now = new Date();
         const currentDate = now.getFullYear() + '-' + 
@@ -231,7 +232,7 @@ export const useDisciplinaryController = ({ personal = false }: { personal?: boo
         await fetchDisciplinary();
       } catch (error) {
         console.error("Error acknowledging disciplinary record:", error);
-        alert("حدث خطأ أثناء التوقيع");
+        showAlert("حدث خطأ أثناء التوقيع");
       }
     }
   };

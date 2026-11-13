@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
@@ -186,11 +187,11 @@ export const useMatchLineup = (isOpen: boolean, matchData: Match | null) => {
         // eslint-disable-next-line react-hooks/immutability
         matchData.formation = formation;
       }
-      alert('تم حفظ التشكيلة بنجاح');
+      showAlert('تم حفظ التشكيلة بنجاح', 'success');
       fetchCalledUpPlayers();
     } catch (err) {
       console.error(err);
-      alert('حدث خطأ أثناء حفظ التشكيلة');
+      showAlert('حدث خطأ أثناء حفظ التشكيلة');
     } finally {
       setIsLoading(false);
     }

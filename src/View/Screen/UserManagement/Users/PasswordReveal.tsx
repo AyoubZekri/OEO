@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Eye, EyeOff, Copy, Check, RefreshCw, Loader2, KeyRound, AlertCircle } from 'lucide-react';
 import client from '../../../../core/api/client';
 import './PasswordReveal.css';
+import { askConfirm } from '../../../shared/appDialog';
 
 const errorText = (e: unknown, fallback: string) =>
   (axios.isAxiosError(e) && typeof e.response?.data?.message === 'string' && e.response.data.message) || fallback;
@@ -35,7 +36,7 @@ export const PasswordReveal: React.FC<{ userId: string }> = ({ userId }) => {
   };
 
   const generate = async () => {
-    if (!window.confirm('توليد كلمة مرور جديدة؟ كلمة المرور الحالية لن تعمل بعد الآن.')) return;
+    if (!(await askConfirm('كلمة المرور الحالية لن تعمل بعد الآن.', { title: 'توليد كلمة مرور جديدة؟', confirmLabel: 'توليد' }))) return;
     setBusy(true);
     setError('');
     try {

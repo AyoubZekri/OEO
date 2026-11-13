@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import { type CorrespondenceModel } from './correspondence_model';
 import { MembersData } from '../Members/members_data';
@@ -71,7 +72,7 @@ export const useCorrespondencesController = () => {
       setIsAddDialogOpen(false);
     } catch (error) {
       console.error("Error adding correspondence:", error);
-      alert("حدث خطأ أثناء الإضافة");
+      showAlert("حدث خطأ أثناء الإضافة");
     }
   };
 
@@ -94,7 +95,7 @@ export const useCorrespondencesController = () => {
         await fetchCorrespondences();
       } catch (error) {
         console.error("Error deleting correspondence:", error);
-        alert("حدث خطأ أثناء الحذف");
+        showAlert("حدث خطأ أثناء الحذف");
       }
     }
   };

@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useCallback, useEffect, useState, useLayoutEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import client from '../../../core/api/client';
@@ -176,7 +177,7 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
       setTemplates(list => list.map(x => (x.id === t.id ? saved : x)));
       if (saved.status === 'active') load();
     } catch (e) {
-      window.alert(errorText(e, 'تعذر تغيير حالة الموعد'));
+      showAlert(errorText(e, 'تعذر تغيير حالة الموعد'));
     }
   };
 
@@ -189,7 +190,7 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
         details.close();
       }
     } catch (e) {
-      window.alert(errorText(e, 'تعذر الحذف'));
+      showAlert(errorText(e, 'تعذر الحذف'));
     }
   };
 
@@ -199,7 +200,7 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
       await client.post('/tasks/delete-many', { ids });
       setTasks(list => list.filter(x => !ids.includes(x.id)));
     } catch (e) {
-      window.alert(errorText(e, 'تعذر الحذف'));
+      showAlert(errorText(e, 'تعذر الحذف'));
     }
   };
 

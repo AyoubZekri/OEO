@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, Loader2, ShieldCheck, ShieldAlert, Type, AlertCircle } from 'lucide-react';
+import { DOMAIN_ICONS } from '../../Screen/UserManagement/Roles/permissionIcons';
+import { RoleUsersPicker } from '../../Screen/UserManagement/Roles/RoleUsersPicker';
 import { MobileScreen } from '../widgets/MobileScreen';
 import { RoleModel, defaultPermissions } from '../../Screen/UserManagement/Roles/role_model';
 import type { AppPermissions } from '../../Screen/UserManagement/Roles/role_model';
@@ -11,7 +13,7 @@ import '../MobileEvaluations/MobileEvaluations.css';
 interface MobileRoleFormProps {
   role: RoleModel | null;
   saving: boolean;
-  onSave: (role: Omit<RoleModel, 'id' | 'toJson'>) => void;
+  onSave: (role: Omit<RoleModel, 'id' | 'toJson'>, userIds: string[] | null) => void;
   onClose: () => void;
 }
 
@@ -38,6 +40,7 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
   const [accessLevel, setAccessLevel] = useState<'full' | 'partial'>(role?.accessLevel || 'full');
   const [perms, setPerms] = useState<AppPermissions>(() => copy(role ? role.permissions : defaultPermissions));
   const [error, setError] = useState<string | null>(null);
+  const [userIds, setUserIds] = useState<string[] | null>(null);
   const isFull = accessLevel === 'full';
 
   const setAction = (key: keyof AppPermissions, action: string, value: boolean) =>
@@ -55,7 +58,7 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
     const err = validInput(name, 3, 50, 'text');
     setError(err);
     if (err) return;
-    onSave({ name, accessLevel, permissions: isFull ? copy(defaultPermissions) : perms });
+    onSave({ name, accessLevel, permissions: isFull ? copy(defaultPermissions) : perms }, userIds);
   };
 
   return (
@@ -92,10 +95,14 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
         </div>
       </section>
 
+      <section className="me-card">
+        <RoleUsersPicker roleId={role?.id} value={userIds} onChange={setUserIds} />
+      </section>
+
       <div className={`mus-modules ${isFull ? 'locked' : ''}`}>
         {DOMAINS.map(d => (
           <div key={d.key} className="mus-domain">
-            <h4 className="mus-domain-title"><span>{t(`roles_permissions.domains.${d.key}`)}</span></h4>
+            <h4 className="mus-domain-title">{DOMAIN_ICONS[d.key] && React.createElement(DOMAIN_ICONS[d.key], { size: 15 })}<span>{t(`roles_permissions.domains.${d.key}`)}</span></h4>
             {d.items.map(m => {
               const mp = (isFull ? defaultPermissions[m.key] : perms[m.key]) as unknown as Record<string, boolean>;
               const active = mp.view === true;

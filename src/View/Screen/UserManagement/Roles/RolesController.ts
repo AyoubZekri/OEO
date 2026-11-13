@@ -1,3 +1,4 @@
+import { showAlert } from '../../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import { RolesData } from './roles_data';
 import { Crud } from '../../../../core/class/Crud';
@@ -54,21 +55,23 @@ export const useRolesController = () => {
     setRoleToView(null);
   };
 
-  const handleSaveRole = async (roleData: Omit<RoleModel, 'id' | 'toJson'>) => {
+  /** userIds: the role's users, when they were chosen in the window (null: left as they are) */
+  const handleSaveRole = async (roleData: Omit<RoleModel, 'id' | 'toJson'>, userIds: string[] | null = null) => {
     setIsLoading(true);
     // Create a temporary RoleModel object to use its toJson method
     const tempModel = new RoleModel({ id: roleToEdit?.id || '', ...roleData });
     const payload = tempModel.toJson();
     // Exclude id from payload since it's sometimes sent in the URL or body depending on API, but for add we just send payload
     delete payload.id;
-    
+    if (userIds) payload.user_ids = userIds.map(Number);
+
     if (roleToEdit) {
       const response = await rolesData.editRole({ id: roleToEdit.id, ...payload });
       if (response && !response.error) {
         fetchRoles();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء تعديل الدور');
+        showAlert('حدث خطأ أثناء تعديل الدور');
       }
     } else {
       const response = await rolesData.addRole(payload);
@@ -76,7 +79,7 @@ export const useRolesController = () => {
         fetchRoles();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء إضافة الدور');
+        showAlert('حدث خطأ أثناء إضافة الدور');
       }
     }
     setIsLoading(false);
@@ -89,7 +92,7 @@ export const useRolesController = () => {
       if (response && !response.error) {
         fetchRoles();
       } else {
-        alert('حدث خطأ أثناء حذف الدور');
+        showAlert('حدث خطأ أثناء حذف الدور');
       }
       setIsLoading(false);
     }

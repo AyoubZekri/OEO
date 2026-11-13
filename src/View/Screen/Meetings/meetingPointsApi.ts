@@ -1,6 +1,7 @@
 import client from '../../../core/api/client';
 import type { AgendaItem } from '../../Mobile/MobileMeetings/meetingUtils';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showAlert } from '../../shared/appDialog';
 
 /** Sending a point into a meeting's list, and removing a sent one (the server checks who may) */
 export const meetingPointsApi = {
@@ -14,7 +15,7 @@ export const meetingPointsApi = {
       return true;
     } catch (e) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any -- axios errors are untyped
-      alert((e as any)?.response?.data?.message || 'تعذر حذف النقطة');
+      showAlert((e as any)?.response?.data?.message || 'تعذر حذف النقطة');
       return false;
     }
   },

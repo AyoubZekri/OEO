@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
 import type { Club } from './club_model';
+import { showAlert } from '../../shared/appDialog';
 
 export function useClubsController() {
   const [clubs, setClubs] = useState<Club[]>([]);
@@ -46,7 +47,7 @@ export function useClubsController() {
       console.error('Error adding club:', error.response?.data || error);
       const msg = error.response?.data?.message || 'Error';
       const errors = error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : '';
-      alert(`فشل الإضافة: ${msg} ${errors}`);
+      showAlert(`فشل الإضافة: ${msg} ${errors}`);
     }
   };
 
@@ -70,7 +71,7 @@ export function useClubsController() {
       console.error('Error updating club:', error.response?.data || error);
       const msg = error.response?.data?.message || 'Error';
       const errors = error.response?.data?.errors ? JSON.stringify(error.response.data.errors) : '';
-      alert(`فشل التعديل: ${msg} ${errors}`);
+      showAlert(`فشل التعديل: ${msg} ${errors}`);
     }
   };
 
@@ -83,7 +84,7 @@ export function useClubsController() {
       await fetchClubs();
     } catch (error: any) {
       console.error('Error deleting club:', error.response?.data || error);
-      alert('فشل الحذف');
+      showAlert('فشل الحذف');
     }
   };
 

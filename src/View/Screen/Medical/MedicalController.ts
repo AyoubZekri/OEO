@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
@@ -129,7 +130,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
       fetchRecords();
     } catch (err) {
       console.error('Error deleting record:', err);
-      alert('حدث خطأ أثناء الحذف');
+      showAlert('حدث خطأ أثناء الحذف');
     }
   };
 
@@ -152,7 +153,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
       fetchRecords();
     } catch (err) {
       console.error('Error deleting initial exam:', err);
-      alert('حدث خطأ أثناء حذف الفحص الأولي');
+      showAlert('حدث خطأ أثناء حذف الفحص الأولي');
     }
   };
 
@@ -177,7 +178,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
       setIsViewFinalDecisionDialogOpen(false);
     } catch (err) {
       console.error('Error deleting final decision:', err);
-      alert('حدث خطأ أثناء حذف القرار النهائي');
+      showAlert('حدث خطأ أثناء حذف القرار النهائي');
     }
   };
 
@@ -201,7 +202,7 @@ export const useMedicalController = ({ personal = false }: { personal?: boolean 
       setIsViewTreatmentPhaseDialogOpen(false);
     } catch (err) {
       console.error('Error deleting treatment phase:', err);
-      alert('حدث خطأ أثناء حذف تفاصيل مرحلة العلاج');
+      showAlert('حدث خطأ أثناء حذف تفاصيل مرحلة العلاج');
     }
   };
 

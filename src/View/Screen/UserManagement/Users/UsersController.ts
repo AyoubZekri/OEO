@@ -4,6 +4,7 @@ import { Crud } from '../../../../core/class/Crud';
 
 import { UserModel } from './user_model';
 import { confirmDelete } from '../../../shared/confirmDelete';
+import { showAlert } from '../../../shared/appDialog';
 
 export const useUsersController = () => {
   const [users, setUsers] = useState<UserModel[]>([]);
@@ -57,7 +58,7 @@ export const useUsersController = () => {
         fetchUsers();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء تعديل المستخدم');
+        showAlert('حدث خطأ أثناء تعديل المستخدم');
       }
     } else {
       const response = await usersData.addUser(payload);
@@ -65,7 +66,7 @@ export const useUsersController = () => {
         fetchUsers();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء إضافة المستخدم');
+        showAlert('حدث خطأ أثناء إضافة المستخدم');
       }
     }
     setIsLoading(false);
@@ -78,7 +79,7 @@ export const useUsersController = () => {
       if (response && !response.error) {
         fetchUsers();
       } else {
-        alert('حدث خطأ أثناء حذف المستخدم');
+        showAlert('حدث خطأ أثناء حذف المستخدم');
       }
       setIsLoading(false);
     }

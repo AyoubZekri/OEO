@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pencil, ShieldCheck, ShieldAlert, Check, X } from 'lucide-react';
+import { DOMAIN_ICONS } from '../../Screen/UserManagement/Roles/permissionIcons';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { RoleModel } from '../../Screen/UserManagement/Roles/role_model';
 import { MODULES, DOMAINS, permsOf, enabledModules } from './roleUtils';
@@ -46,7 +47,7 @@ export const MobileRoleDetails: React.FC<MobileRoleDetailsProps> = ({ role, canE
       <div className="mus-modules">
         {DOMAINS.map(d => (
           <div key={d.key} className="mus-domain">
-            <h4 className="mus-domain-title"><span>{t(`roles_permissions.domains.${d.key}`)}</span></h4>
+            <h4 className="mus-domain-title">{DOMAIN_ICONS[d.key] && React.createElement(DOMAIN_ICONS[d.key], { size: 15 })}<span>{t(`roles_permissions.domains.${d.key}`)}</span></h4>
             {d.items.map(m => {
               const mp = perms[m.key] as unknown as Record<string, boolean>;
               const active = mp?.view === true;

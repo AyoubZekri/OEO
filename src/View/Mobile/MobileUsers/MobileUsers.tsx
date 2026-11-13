@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { useTranslation } from 'react-i18next';
-import { Plus, Eye, Pencil, Trash2, Search, X, Mail, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Search, X, Mail, ShieldCheck, ShieldAlert, Send } from 'lucide-react';
+import { sendLoginWhatsApp } from '../../Screen/UserManagement/Users/sendLoginWhatsApp';
 import { MobileAppBar } from '../widgets/MobileAppBar';
 import { MobileLoader } from '../widgets/MobileLoader';
 import { MobileRowMenu, type MobileRowMenuItem } from '../widgets/MobileRowMenu';
@@ -40,6 +41,7 @@ export const MobileUsers: React.FC<MobileUsersProps> = ({ c, roles, can }) => {
   const menuItems = (u: UserModel): MobileRowMenuItem[] => [
     { key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#f97316', onClick: () => setDetailsId(u.id) },
     ...(can.edit ? [{ key: 'edit', label: t('users.edit_user'), icon: Pencil, color: '#f97316', onClick: () => c.openEditDialog(u) }] : []),
+    ...(can.edit ? [{ key: 'whatsapp', label: 'إرسال الدخول في واتساب', icon: Send, color: '#16a34a', onClick: () => sendLoginWhatsApp(u) }] : []),
     ...(can.delete ? [{ key: 'delete', label: t('users.delete_user'), icon: Trash2, danger: true, onClick: () => c.handleDeleteUser(u.id) }] : []),
   ];
 

@@ -8,6 +8,7 @@ import {
 } from './equipmentUtils';
 import '../MobileEvaluations/MobileEvaluations.css';
 import { StateIcon } from '../../widget/StateIcon';
+import { askConfirm } from '../../shared/appDialog';
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- operations come untyped from the API */
 
@@ -47,8 +48,8 @@ export const MobileOperationDetails: React.FC<MobileOperationDetailsProps> = ({
     setReturning(null);
   };
 
-  const undo = (mov: any) => {
-    if (window.confirm('هل أنت متأكد من التراجع عن هذا الإرجاع؟')) onUndoReturn(mov.id);
+  const undo = async (mov: any) => {
+    if (await askConfirm('هل أنت متأكد من التراجع عن هذا الإرجاع؟', { confirmLabel: 'تراجع' })) onUndoReturn(mov.id);
   };
 
   return (

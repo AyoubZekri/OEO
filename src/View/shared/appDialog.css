@@ -1,0 +1,21 @@
+/* The app's message window (in place of the browser's alert / confirm): the delete dialog's card, in its tone */
+.app-dlg-overlay { z-index: 3100; }
+.app-dlg-text { margin: 4px 0 0; font-size: 0.98rem; font-weight: 700; line-height: 1.7; white-space: pre-line; overflow-wrap: anywhere; }
+.app-dlg h3 + .app-dlg-text { font-weight: 600; color: #475569; }
+.del-dlg-actions.one { grid-template-columns: minmax(0, 1fr); }
+
+.app-dlg-ok { color: #fff; }
+.app-dlg.tone-error .del-dlg-icon { background: #fee2e2; color: #dc2626; box-shadow: 0 0 0 8px #fef2f2; }
+.app-dlg.tone-error .app-dlg-ok { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.app-dlg.tone-success .del-dlg-icon { background: #d1fae5; color: #059669; box-shadow: 0 0 0 8px #ecfdf5; }
+.app-dlg.tone-success .app-dlg-ok { background: linear-gradient(135deg, #10b981, #059669); }
+.app-dlg.tone-info .del-dlg-icon,
+.app-dlg.tone-ask .del-dlg-icon { background: #ffedd5; color: #ea580c; box-shadow: 0 0 0 8px #fff7ed; }
+.app-dlg.tone-info .app-dlg-ok,
+.app-dlg.tone-ask .app-dlg-ok { background: linear-gradient(135deg, #fb923c, #ea580c); }
+
+body.dark-mode .app-dlg h3 + .app-dlg-text { color: #a1a1aa; }
+body.dark-mode .app-dlg.tone-error .del-dlg-icon { background: rgba(239, 68, 68, 0.18); color: #f87171; box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.08); }
+body.dark-mode .app-dlg.tone-success .del-dlg-icon { background: rgba(16, 185, 129, 0.18); color: #34d399; box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.08); }
+body.dark-mode .app-dlg.tone-info .del-dlg-icon,
+body.dark-mode .app-dlg.tone-ask .del-dlg-icon { background: rgba(249, 115, 22, 0.18); color: #fb923c; box-shadow: 0 0 0 8px rgba(249, 115, 22, 0.08); }

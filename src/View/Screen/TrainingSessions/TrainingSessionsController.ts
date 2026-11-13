@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import type { TrainingSessionModel } from './TrainingSessionDialog';
 import { TrainingSessionData } from './training_session_data';
@@ -101,7 +102,7 @@ export const useTrainingSessionsController = ({ personal = false }: { personal?:
       await fetchSessions();
       closeDialog();
     } catch (error) {
-      alert('حدث خطأ أثناء الحفظ');
+      showAlert('حدث خطأ أثناء الحفظ');
     }
   };
 
@@ -115,9 +116,9 @@ export const useTrainingSessionsController = ({ personal = false }: { personal?:
         const errorString = typeof msg === 'string' ? msg : JSON.stringify(msg);
         
         if (errorString.includes('foreign key constraint fails') || errorString.includes('Integrity constraint violation')) {
-          alert('لا يمكن حذف هذه الحصة التدريبية لأنها تحتوي على سجلات غياب/حضور مسجلة للفاعبين. يرجى حذف تلك السجلات أولاً أو تغيير حالة الحصة إلى "ملغاة".');
+          showAlert('لا يمكن حذف هذه الحصة التدريبية لأنها تحتوي على سجلات غياب/حضور مسجلة للفاعبين. يرجى حذف تلك السجلات أولاً أو تغيير حالة الحصة إلى "ملغاة".');
         } else {
-          alert(errorString);
+          showAlert(errorString);
         }
       }
     }
@@ -133,7 +134,7 @@ export const useTrainingSessionsController = ({ personal = false }: { personal?:
       await TrainingSessionData.updateStatus(id, newStatus);
       await fetchSessions();
     } catch (error) {
-      alert('حدث خطأ أثناء التحديث');
+      showAlert('حدث خطأ أثناء التحديث');
       await fetchSessions(); // Revert on failure
     }
   };

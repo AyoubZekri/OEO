@@ -268,31 +268,6 @@
 .rd-summary-text small { font-size: 0.78rem; color: #cbd5e1; }
 .rd-summary-text b { color: #6ee7b7; }
 
-.rd-bulk {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.rd-bulk button {
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--bg);
-  color: var(--text-h);
-  font: inherit;
-  font-size: 0.84rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.rd-bulk button:first-child:hover { border-color: #10b981; color: #10b981; }
-.rd-bulk button:last-child:hover { border-color: #ef4444; color: #ef4444; }
 
 /* ── Sections ── */
 .rd-locked {
@@ -512,30 +487,29 @@ body.dark-mode .rd-action.on { color: #34d399; }
 /* ── Domain groups ── */
 .rd-domain + .rd-domain { margin-top: 10px; }
 
+/* A group's title: in a container, as on the finance page */
 .rd-domain-title {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid #fed7aa;
+  border-radius: 16px;
+  background: #fff4ec;
   font-size: 0.95rem;
-  font-weight: 900;
-  color: var(--text-h);
+  font-weight: 800;
+  color: #c2410c;
 }
-
-.rd-domain-title::before {
-  content: '';
-  width: 5px;
-  height: 20px;
-  border-radius: 4px;
-  background: linear-gradient(#fb923c, #ea580c);
+.rd-domain-title svg {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  padding: 7px;
+  border-radius: 10px;
+  background: #f97316;
+  color: #fff;
 }
-
-.rd-domain-title::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
+body.dark-mode .rd-domain-title { background: rgba(249, 115, 22, 0.12); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }
 
 .rd-domain-title em {
   order: 3;

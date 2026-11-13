@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
@@ -196,7 +197,7 @@ export const useMatchCallups = (isOpen: boolean, matchData: Match | null, onClos
     } catch (error: any) {
       console.error('Error saving callups:', error);
       const serverMsg = error.response?.data?.message || error.response?.data?.error || error.message || '';
-      alert(`حدث خطأ أثناء حفظ الاستدعاءات\n${serverMsg}`);
+      showAlert(`حدث خطأ أثناء حفظ الاستدعاءات\n${serverMsg}`);
     } finally {
       setIsSubmitting(false);
     }

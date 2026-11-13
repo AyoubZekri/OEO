@@ -1,5 +1,5 @@
 import React from 'react';
-import { UserRound, Phone, Mail, CalendarDays, IdCard, ShieldAlert, Shirt, Users, FileText, Pencil, Landmark } from 'lucide-react';
+import { UserRound, Phone, Mail, CalendarDays, IdCard, Shirt, Users, FileText, Pencil, Landmark } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { SidePanel } from '../../shared/SidePanel';
 import { openDocument } from '../../widget/openDocument';
@@ -91,8 +91,8 @@ export const MemberDetails: React.FC<{
           <Fact icon={Mail} label="البريد الإلكتروني" value={m.email} ltr />
           <Fact icon={CalendarDays} label="تاريخ ومكان الميلاد" value={[m.birth_date, m.place_of_birth].filter(Boolean).join(' · ')} />
           <Fact icon={IdCard} label="رقم التعريف الوطني" value={m.national_id} ltr />
-          <Fact icon={Landmark} label="الحساب البنكي" value={m.bank_account_number} ltr />
-          <Fact icon={ShieldAlert} label="للطوارئ" value={[m.emergency_contact_name, m.emergency_contact_phone].filter(Boolean).join(' · ')} />
+          <Fact icon={Landmark} label="حساب مالي" value={m.bank_account_number} ltr />
+          <Fact icon={Phone} label="رقم ثاني" value={m.emergency_contact_phone} ltr />
         </section>
 
         {docs.length > 0 && (

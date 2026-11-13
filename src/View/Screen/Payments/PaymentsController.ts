@@ -1,3 +1,4 @@
+import { askConfirm } from '../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Applink } from '../../../LinkApi';
@@ -144,7 +145,7 @@ export const usePaymentsController = () => {
   };
 
   const returnPayment = async (id: string) => {
-    if (window.confirm('هل أنت متأكد من إرجاع هذه الدفعة وإلغائها؟ سيتم إرجاع المبلغ للصندوق.')) {
+    if (await askConfirm('هل أنت متأكد من إرجاع هذه الدفعة وإلغائها؟ سيتم إرجاع المبلغ للصندوق.', { confirmLabel: 'إرجاع' })) {
       setIsLoading(true);
       const response = await paymentsData.returnPayment({ id });
       if (response) {

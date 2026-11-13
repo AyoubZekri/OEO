@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import client from '../../../core/api/client';
 import { errorText, type Feedback, type FeedbackType } from './feedbackUtils';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showAlert } from '../../shared/appDialog';
 
 /** ?feedback=ID (from an alert): the card is brought into view once the list is there */
 export const useFocusedFeedback = (ready: boolean) => {
@@ -68,7 +69,7 @@ export const useMyFeedback = () => {
       await client.post('/feedback/mine/delete', { id: f.id });
       setItems(list => list.filter(x => x.id !== f.id));
     } catch (e) {
-      window.alert(errorText(e, 'تعذر الحذف'));
+      showAlert(errorText(e, 'تعذر الحذف'));
     }
   };
 
@@ -134,7 +135,7 @@ export const useFeedbackAdmin = () => {
       await client.post('/feedback/delete', { id: f.id });
       setItems(list => list.filter(x => x.id !== f.id));
     } catch (e) {
-      window.alert(errorText(e, 'تعذر الحذف'));
+      showAlert(errorText(e, 'تعذر الحذف'));
     }
   };
 

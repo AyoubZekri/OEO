@@ -89,6 +89,13 @@
   background-color: #eff6ff;
 }
 
+.btn-icon.whatsapp {
+  color: #16a34a;
+}
+.btn-icon.whatsapp:hover {
+  background-color: rgba(37, 211, 102, 0.12);
+}
+
 .btn-icon.delete {
   color: #EF4444;
 }
@@ -124,7 +131,7 @@
     width: 100%;
     justify-content: center;
   }
-  
+
   /* Reset container scroll and background */
   .users-table-container {
     overflow-x: visible;

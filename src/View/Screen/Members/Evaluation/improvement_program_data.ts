@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { Applink } from '../../../../LinkApi';
+import { showAlert } from '../../../shared/appDialog';
 
 export interface ImprovementProgramRecord {
   id: string;
@@ -64,7 +65,7 @@ export class ImprovementProgramData {
       return null;
     } catch (e: any) {
       console.error("[saveProgram] Failed to save program to API", e);
-      alert("Backend Error: " + (e.response?.data?.error || e.message));
+      showAlert("خطأ من الخادم: " + (e.response?.data?.error || e.message));
       throw e;
     }
   }
@@ -97,7 +98,7 @@ export class ImprovementProgramData {
       return program; // return original if no data returned but success
     } catch (e: any) {
       console.error("[updateProgram] Failed to update program", e);
-      alert("Backend Error: " + (e.response?.data?.error || e.message));
+      showAlert("خطأ من الخادم: " + (e.response?.data?.error || e.message));
       throw e;
     }
   }
@@ -114,7 +115,7 @@ export class ImprovementProgramData {
       return response.data?.status === 'success' || response.status === 200;
     } catch (e: any) {
       console.error("[deleteProgram] Failed to delete program", e);
-      alert("Backend Error: " + (e.response?.data?.error || e.message));
+      showAlert("خطأ من الخادم: " + (e.response?.data?.error || e.message));
       return false;
     }
   }

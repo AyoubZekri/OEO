@@ -280,11 +280,11 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
 
 /** The sections grouped by domain, in the order the role editors show them */
 export const PERMISSION_DOMAINS: { key: string; label: string; modules: PermissionModule[] }[] = [
-  { key: 'general', label: 'عام', modules: ['tasks', 'dashboard'] },
   { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'trainingSessions', 'matches', 'medical', 'travels'] },
-  { key: 'admin', label: 'الإدارة', modules: ['appointments', 'meetings', 'decisions', 'feedback', 'goals'] },
-  { key: 'finance', label: 'المالية', modules: ['contracts', 'payments', 'funds', 'debts', 'reports'] },
+  // The home page (the tasks) with the management; the finance page with the finance
+  { key: 'admin', label: 'الإدارة', modules: ['tasks', 'appointments', 'meetings', 'decisions', 'feedback', 'goals'] },
+  { key: 'finance', label: 'المالية', modules: ['dashboard', 'contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
 ];

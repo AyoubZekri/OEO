@@ -251,7 +251,7 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           </div>
         </Section>
 
-        <Section title="معلومات شخصية وطوارئ" icon={HeartHandshake}>
+        <Section title="معلومات شخصية" icon={HeartHandshake}>
           <Field label="تاريخ الميلاد" icon={CalendarDays}>
             <input type="date" name="birth_date" value={formData.birth_date || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
@@ -261,13 +261,10 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           <Field label="البريد الإلكتروني" icon={Mail}>
             <input type="email" name="email" value={formData.email || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
-          <Field label="شخص للاتصال عند الضرورة" icon={HeartHandshake}>
-            <input type="text" name="emergency_contact_name" value={formData.emergency_contact_name || ''} onChange={handleFormDataChange} />
-          </Field>
-          <Field label="هاتف حالة الطوارئ" icon={Phone}>
+          <Field label="رقم ثاني" icon={Phone}>
             <input type="tel" name="emergency_contact_phone" value={formData.emergency_contact_phone || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
-          <Field label="رقم الحساب الجاري (CCP)" icon={Landmark}>
+          <Field label="حساب مالي" icon={Landmark}>
             <input type="text" name="bank_account_number" value={formData.bank_account_number || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
         </Section>

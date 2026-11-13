@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Printer, Save } from 'lucide-react';
 import { CustomInput } from '../../widget/CustomInput';
@@ -67,7 +68,7 @@ export const CorrespondenceDialog: React.FC<CorrespondenceDialogProps> = ({
 
   const handlePrint = () => {
     if (!currentMember) {
-      alert("الرجاء اختيار العضو أولاً");
+      showAlert("الرجاء اختيار العضو أولاً");
       return;
     }
     window.print();
@@ -75,7 +76,7 @@ export const CorrespondenceDialog: React.FC<CorrespondenceDialogProps> = ({
 
   const handleSaveAndPrint = () => {
     if (!currentMember) {
-      alert("الرجاء اختيار العضو أولاً");
+      showAlert("الرجاء اختيار العضو أولاً");
       return;
     }
     if (onSave && !viewOnly && !existingData) {

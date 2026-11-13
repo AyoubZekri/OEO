@@ -3,6 +3,7 @@ import { EquipmentData } from './equipment_data';
 import { Crud } from '../../../core/class/Crud';
 import { EquipmentModel } from './equipment_model';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showAlert } from '../../shared/appDialog';
 
 export const useEquipmentController = () => {
   const [equipments, setEquipments] = useState<EquipmentModel[]>([]);
@@ -57,7 +58,7 @@ export const useEquipmentController = () => {
         fetchEquipments();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء تعديل العتاد');
+        showAlert('حدث خطأ أثناء تعديل العتاد');
       }
     } else {
       const response = await equipmentData.addEquipment(payload, imageFile);
@@ -65,7 +66,7 @@ export const useEquipmentController = () => {
         fetchEquipments();
         closeDialog();
       } else {
-        alert('حدث خطأ أثناء إضافة العتاد');
+        showAlert('حدث خطأ أثناء إضافة العتاد');
       }
     }
     setIsLoading(false);
@@ -78,7 +79,7 @@ export const useEquipmentController = () => {
       if (response && !response.error) {
         fetchEquipments();
       } else {
-        alert('حدث خطأ أثناء حذف العتاد');
+        showAlert('حدث خطأ أثناء حذف العتاد');
       }
       setIsLoading(false);
     }

@@ -82,3 +82,13 @@ const ACTION_ICONS: Record<string, PermissionIcon> = {
 };
 
 export const actionIcon = (action: string): PermissionIcon => ACTION_ICONS[action] || Search;
+
+/** Each group of sections in the role editors: its title's icon */
+export const DOMAIN_ICONS: Record<string, PermissionIcon> = {
+  members: Users,
+  sport: Trophy,
+  admin: Briefcase,
+  finance: Wallet,
+  equipment: Package,
+  system: Shield,
+};

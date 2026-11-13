@@ -4,6 +4,7 @@ import { Applink } from '../../../LinkApi';
 import { countsOf, statusOf } from './absenceUtils';
 import { errorText } from '../Personal/useMyAbsences';
 import { confirmDelete } from '../../shared/confirmDelete';
+import { showAlert } from '../../shared/appDialog';
 
 export interface AbsenceRecord {
   id: number;
@@ -148,7 +149,7 @@ export const useAbsenceRequestsController = () => {
       });
       await fetchAbsences();
     } catch (err) {
-      alert(errorText(err, 'حدث خطأ أثناء التحديث'));
+      showAlert(errorText(err, 'حدث خطأ أثناء التحديث'));
     }
   };
 
@@ -160,7 +161,7 @@ export const useAbsenceRequestsController = () => {
       });
       await fetchAbsences();
     } catch (err) {
-      alert('حدث خطأ أثناء الحذف');
+      showAlert('حدث خطأ أثناء الحذف');
     }
   };
 
@@ -186,7 +187,7 @@ export const useAbsenceRequestsController = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}`, 'Content-Type': 'multipart/form-data' },
       });
     } catch (err) {
-      alert(errorText(err, 'تعذر حفظ التبرير'));
+      showAlert(errorText(err, 'تعذر حفظ التبرير'));
       return;
     }
     closeJustificationDialog();
@@ -235,9 +236,9 @@ export const useAbsenceRequestsController = () => {
         });
       }
       await fetchAbsences();
-      alert('تم التسجيل بنجاح');
+      showAlert('تم التسجيل بنجاح', 'success');
     } catch (err) {
-      alert('حدث خطأ أثناء التسجيل');
+      showAlert('حدث خطأ أثناء التسجيل');
       console.error(err);
     }
   };

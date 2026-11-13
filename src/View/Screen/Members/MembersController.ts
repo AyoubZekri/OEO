@@ -1,3 +1,4 @@
+import { showAlert } from '../../shared/appDialog';
 import { useState, useEffect } from 'react';
 import { MembersData } from './members_data';
 import { MemberModel } from './member_model';
@@ -236,9 +237,9 @@ export const useMembersController = () => {
       if (response && !response.error) {
         fetchMembers();
         // The member's account is deleted with it, unless that would lose history: say why it was kept
-        if (response.account_kept) alert(`حُذف العضو. ${response.account_kept}`);
+        if (response.account_kept) showAlert(`حُذف العضو. ${response.account_kept}`, 'info');
       } else {
-        alert('حدث خطأ أثناء الحذف');
+        showAlert('حدث خطأ أثناء الحذف');
       }
       setIsLoading(false);
     }
@@ -250,7 +251,7 @@ export const useMembersController = () => {
     if (response && !response.error) {
       fetchMembers();
     } else {
-      alert('حدث خطأ أثناء طباعة النظام الداخلي');
+      showAlert('حدث خطأ أثناء طباعة النظام الداخلي');
     }
     setIsLoading(false);
   };

@@ -1,3 +1,4 @@
+import { showAlert } from '../../../shared/appDialog';
 import axios from 'axios';
 import { Applink } from '../../../../LinkApi';
 
@@ -171,7 +172,7 @@ export class EvaluationsData {
       return null;
     } catch (e: any) {
       console.error("Failed to save evaluation to API", e);
-      alert("Backend Error: " + (e.response?.data?.error || e.message));
+      showAlert("خطأ من الخادم: " + (e.response?.data?.error || e.message));
       throw e;
     }
   }
@@ -211,7 +212,7 @@ export class EvaluationsData {
       return null;
     } catch (e: any) {
       console.error("Failed to update evaluation", e);
-      alert("Backend Error: " + (e.response?.data?.error || e.message));
+      showAlert("خطأ من الخادم: " + (e.response?.data?.error || e.message));
       throw e;
     }
   }

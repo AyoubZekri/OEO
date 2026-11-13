@@ -66,22 +66,22 @@ export const Roles: React.FC = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="role-card-body">
               <div className="access-level-badge">
                 {role.accessLevel === 'full' ? t('roles_permissions.full_access') : t('roles_permissions.partial_access')}
               </div>
-              
+
               {/* Permissions are now shown in the view dialog */}
             </div>
           </div>
         ))}
       </div>
 
-      <RoleDialog 
-        isOpen={controller.isDialogOpen} 
-        onClose={controller.closeDialog} 
-        onSave={controller.handleSaveRole} 
+      <RoleDialog
+        isOpen={controller.isDialogOpen}
+        onClose={controller.closeDialog}
+        onSave={controller.handleSaveRole}
         roleToEdit={controller.roleToEdit}
       />
 
@@ -94,7 +94,7 @@ export const Roles: React.FC = () => {
                 <X size={24} />
               </button>
             </div>
-            
+
             <div style={{ padding: '18px 28px', background: 'var(--card-bg)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--text-h)' }}>
@@ -106,15 +106,15 @@ export const Roles: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="view-permissions-grid" style={{ flex: 1, overflowY: 'auto' }}>
               {Object.entries(defaultPermissions).map(([moduleKey, defaultActions]) => {
-                const modulePerms = controller.roleToView!.accessLevel === 'full' 
-                  ? defaultPermissions[moduleKey as keyof typeof defaultPermissions] 
+                const modulePerms = controller.roleToView!.accessLevel === 'full'
+                  ? defaultPermissions[moduleKey as keyof typeof defaultPermissions]
                   : controller.roleToView!.permissions[moduleKey as keyof typeof defaultPermissions];
-                  
+
                 const isModuleActive = modulePerms.view === true;
-                
+
                 // Get the actions for this module based on default permissions keys (excluding 'view')
                 const actionKeys = Object.keys(defaultActions).filter(k => k !== 'view');
 
@@ -151,9 +151,9 @@ export const Roles: React.FC = () => {
             </div>
 
             <div style={{ padding: '14px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', background: 'var(--card-bg)' }}>
-              <button 
-                type="button" 
-                onClick={controller.closeViewDialog} 
+              <button
+                type="button"
+                onClick={controller.closeViewDialog}
                 style={{ padding: '8px 24px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-hover)', color: 'var(--text-h)', cursor: 'pointer', fontWeight: 600, fontFamily: 'inherit' }}
               >
                 {t('roles_permissions.cancel', 'إغلاق')}

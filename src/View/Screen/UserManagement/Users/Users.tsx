@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import defaultAvatar from '../../../../assets/AVETER.png';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Send } from 'lucide-react';
+import { sendLoginWhatsApp } from './sendLoginWhatsApp';
 import { useUsersController } from './UsersController';
 import { UserDialog } from './UserDialog';
 import { useRolesController } from '../Roles/RolesController';
@@ -112,6 +113,15 @@ export const Users: React.FC = () => {
                 </td>
                 <td data-label={t('users.actions_col', 'إجراءات')} className="actions-cell">
                   <div className="user-actions">
+                    {hasAccess(permissions.usersAndRoles.editUsers) && (
+                      <button
+                        className="btn-icon whatsapp"
+                        onClick={() => sendLoginWhatsApp(user)}
+                        title="إرسال البريد وكلمة المرور في واتساب"
+                      >
+                        <Send size={18} />
+                      </button>
+                    )}
                     {hasAccess(permissions.usersAndRoles.editUsers) && (
                       <button
                         className="btn-icon edit"

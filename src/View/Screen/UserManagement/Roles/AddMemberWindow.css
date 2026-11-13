@@ -1,0 +1,4 @@
+/* «إضافة عضو» from the role's window, above it: a window on a computer, a page on a phone */
+.amw-desk-modal { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(15, 23, 42, 0.55); }
+.amw-desk-modal .mf-screen { position: relative; inset: auto; z-index: auto; width: min(620px, 100%); height: min(88vh, 900px); border-radius: 22px; overflow: hidden; box-shadow: 0 30px 70px -25px rgba(15, 23, 42, 0.6); }
+.amw-phone { position: fixed; inset: 0; z-index: 1300; }
