@@ -9,10 +9,12 @@ import { taskMenu } from './taskMenu';
 import { DeleteConfirm } from '../../../shared/DeleteConfirm';
 
 /**
- * A task's ⋮ menu and what it opens (computer and phone pages alike): the details, its event's page, the conversation,
- * the status, the new / edit form (or the voice note's) and the delete prompt.
+ * A task's ⋮ menu and what it opens (computer and phone pages alike): the details, its event's page, the status,
+ * the new / edit form (or the voice note's) and the delete prompt. The conversation has its own button on the row,
+ * so it is not in the menu. withSelection: the page edits and deletes through its selection bar (hold a row), so
+ * «تعديل» and «حذف» leave the menu too.
  */
-export const useTaskActions = (c: TasksAdmin, mobile: boolean) => {
+export const useTaskActions = (c: TasksAdmin, mobile: boolean, withSelection = false) => {
   const navigate = useNavigate();
   const [toDelete, setToDelete] = useState<Task | null>(null);
   const [chatId, setChatId] = useState<number | null>(null);
@@ -23,10 +25,9 @@ export const useTaskActions = (c: TasksAdmin, mobile: boolean) => {
   const menu = (t: Task) => taskMenu(t, {
     open: c.openTask,
     event: x => { if (x.event) navigate(eventLink(x.event)); },
-    chat: c.can('chat') ? x => setChatId(x.id) : undefined,
     status: c.can('changeStatus') ? x => setStatusId(x.id) : undefined,
-    edit: c.can('edit') ? x => c.openForm({ task: x }) : undefined,
-    remove: c.can('delete') ? setToDelete : undefined,
+    edit: !withSelection && c.can('edit') ? x => c.openForm({ task: x }) : undefined,
+    remove: !withSelection && c.can('delete') ? setToDelete : undefined,
   });
 
   const overlays = (

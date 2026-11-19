@@ -23,3 +23,7 @@
 .mdt-docs button svg { color: #f97316; }
 
 @media (max-width: 560px) { .mdt-box { grid-template-columns: minmax(0, 1fr); } }
+
+/* The photo opens big on a tap */
+.mdt-photo { flex-shrink: 0; padding: 0; border: none; background: none; border-radius: 20px; cursor: zoom-in; }
+.mdt-photo:focus-visible { outline: 2px solid #f97316; outline-offset: 2px; }

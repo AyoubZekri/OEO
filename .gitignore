@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# The web upload made by «npm run build:web»
+OlympicOEO-web.zip

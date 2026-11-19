@@ -24,7 +24,7 @@ const ARCHIVE_PAGE = 10;
 // archive's own list under it, and the two floating buttons (voice note, new task)
 export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
   const [archiveShownCount, setArchiveShownCount] = useState(ARCHIVE_PAGE);
-  const { menu, overlays, chat } = useTaskActions(c, true);
+  const { menu, overlays, chat } = useTaskActions(c, true, true);
 
   const [filters, setFilters] = useState<TaskFilterState>({ query: '', status: '', kind: '', nature: '' });
 
@@ -34,7 +34,8 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
   const { live, archive } = homeTasks(filterTasks(shown, filters.status, filters.query, filters.nature, filters.kind), now);
   const archiveShown = archive.slice(0, archiveShownCount);
   // Hold a card to select it, then tap the others: deleted together
-  const select = useTaskSelection(c.can('delete'));
+  // Edit (one selected) and delete are in the selection bar, not in ⋮
+  const select = useTaskSelection(c.can('delete') || c.can('edit'));
 
   return (
     <div className="tk-mpage tk-scope">
@@ -73,7 +74,7 @@ export const MobileHomeTasks: React.FC<{ c: TasksAdmin }> = ({ c }) => {
           </div>
         )}
 
-      <TaskSelectionBar s={select} tasks={[...live, ...archiveShown]} mobile onDelete={c.removeMany} />
+      <TaskSelectionBar s={select} tasks={[...live, ...archiveShown]} mobile onEdit={c.can('edit') ? id => { const t = c.tasks.find(x => x.id === id); if (t) c.openForm({ task: t }); } : undefined} onDelete={c.can('delete') ? c.removeMany : undefined} />
 
       {!select.active && c.can('voice') && VOICE_NOTES && (
         <button type="button" className={`tk-fab ${c.can('add') || c.canAppointments('add') ? 'tsk-fab-voice' : ''}`} onClick={() => c.openForm({ voice: true })} aria-label="تنبيه صوتي">

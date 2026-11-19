@@ -440,3 +440,17 @@ body.dark-mode .mf-screen {
   opacity: 0.6;
   cursor: default;
 }
+
+/* Player or staff, on top of the form: two big choices */
+.mf-group { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 5px; border-radius: 16px; background: var(--mf-card); border: 1px solid var(--mf-border, rgba(148, 163, 184, 0.25)); }
+.mf-group button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border: none; border-radius: 12px; background: transparent; color: var(--mf-muted, #64748b); font: inherit; font-size: 0.98rem; font-weight: 800; cursor: pointer; }
+.mf-group button.active { background: var(--mf-accent); color: #fff; box-shadow: 0 6px 14px -6px rgba(249, 115, 22, 0.7); }
+
+/* Other documents: take one off; a new one is a document row like the others, its name typed in its place */
+.mf-doc-remove { width: 34px; height: 34px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: rgba(239, 68, 68, 0.1); color: #dc2626; cursor: pointer; }
+.mf-doc-new .mf-doc-text { gap: 2px; }
+.mf-doc-name { width: 100%; min-width: 0; height: 26px; padding: 0 2px; border: none; border-radius: 0; background: transparent; color: var(--mf-text); font: inherit; font-size: 0.88rem; font-weight: 700; outline: none; }
+.mf-doc-new.has-error { border-color: #ef4444; border-style: solid; }
+.mf-doc-new.has-error .mf-doc-name::placeholder { color: #ef4444; }
+.mf-doc-new.has-error .mf-doc-text small { color: #dc2626; font-weight: 700; }
+.mf-adddoc { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 14px; border: 1.5px dashed var(--mf-accent); background: rgba(249, 115, 22, 0.06); color: var(--mf-accent); font: inherit; font-size: 0.95rem; font-weight: 800; cursor: pointer; }

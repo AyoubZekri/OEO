@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, Loader2, User, Mail, Lock, Eye, EyeOff, AlertCircle, ShieldCheck, ShieldAlert, Check } from 'lucide-react';
+import { Save, Loader2, User, Mail, Lock, Eye, EyeOff, AlertCircle, ShieldCheck, BadgeCheck } from 'lucide-react';
+import { MobileSelect } from '../widgets/MobileSelect';
+import { PostField } from '../../Screen/UserManagement/Users/PostField';
+import { showSnackbar } from '../../../core/functions/Snacpar';
 import { MobileScreen } from '../widgets/MobileScreen';
 import type { UserModel } from '../../Screen/UserManagement/Users/user_model';
 import type { RoleModel } from '../../Screen/UserManagement/Roles/role_model';
@@ -25,7 +28,9 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
   const can = useCan();
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [password, setPassword] = useState(user?.password || '');
+  const [password, setPassword] = useState('');
+  // The post: every user is a member too («لاعب» or a staff post)
+  const [post, setPost] = useState(user?.memberType || '');
   // The role is optional: a new account starts without one (personal space only), like the desktop dialog
   const [roleId, setRoleId] = useState(user?.roleId || '');
   const [showPass, setShowPass] = useState(false);
@@ -40,7 +45,12 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
     const passErr = validInput(password, 6, 50, 'text', !!user);
     if (passErr && (!user || password.length > 0)) next.password = passErr;
     setErrors(next);
-    if (Object.keys(next).length === 0) onSave({ name, email, password, roleId });
+    if (Object.keys(next).length) return;
+    if (!user && !post) {
+      showSnackbar('خطأ', 'اختر المنصب', '#ef4444');
+      return;
+    }
+    onSave({ name, email, password, roleId, memberType: post });
   };
 
   const err = (text?: string) => (text ? <p className="mus-form-error"><AlertCircle size={14} /> {text}</p> : null);
@@ -85,34 +95,23 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
       </section>
 
       <section className="me-card">
-        <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')}</h3>
-        {roles.length === 0 ? (
-          <p className="mus-none">لا توجد أدوار</p>
-        ) : (
-          <div className="mus-role-pick">
-            {/* Member accounts have no role */}
-            <button type="button" className={`partial ${roleId === '' ? 'on' : ''}`} onClick={() => setRoleId('')}>
-              <span className="mus-role-icon"><ShieldAlert size={18} /></span>
-              <span className="mus-card-text"><strong>بدون دور</strong></span>
-              <span className="mus-radio">{roleId === '' && <Check size={14} strokeWidth={3} />}</span>
-            </button>
-            {roles.map(r => {
-              const isFull = r.accessLevel === 'full';
-              const on = roleId === r.id;
-              return (
-                <button key={r.id} type="button" className={`${isFull ? 'full' : 'partial'} ${on ? 'on' : ''}`} onClick={() => { setRoleId(r.id); setErrors(p => ({ ...p, roleId: undefined })); }}>
-                  <span className="mus-role-icon">{isFull ? <ShieldCheck size={18} /> : <ShieldAlert size={18} />}</span>
-                  <span className="mus-card-text">
-                    <strong>{r.name}</strong>
-                  </span>
-                  <span className="mus-radio">{on && <Check size={14} strokeWidth={3} />}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-        {err(errors.roleId)}
+        <h3 className="me-section-title"><span><BadgeCheck size={16} /></span>المنصب</h3>
+        <PostField value={post} onChange={setPost} mobile />
       </section>
+
+      {/* The role — the app's dropdown */}
+        <section className="me-card">
+          <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')}</h3>
+          <MobileSelect
+            label={t('users.role')}
+            icon={ShieldCheck}
+            value={roleId}
+            options={[{ value: '', label: 'بدون دور' }, ...roles.map(r => ({ value: r.id, label: r.name }))]}
+            onChange={v => { setRoleId(v); setErrors(p => ({ ...p, roleId: undefined })); }}
+            placeholder="بدون دور"
+          />
+          {err(errors.roleId)}
+        </section>
     </MobileScreen>
   );
 };

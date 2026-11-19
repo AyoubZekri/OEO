@@ -532,3 +532,79 @@ body:not(.dark-mode) .rd-header {
 body:not(.dark-mode) .rd-header-text h2 { color: var(--text-h); }
 body:not(.dark-mode) .rd-close { border-color: var(--border); background: transparent; color: var(--text-h); }
 body:not(.dark-mode) .rd-close:hover { background: var(--bg); }
+
+/* «إضافة عضو», under the access levels: the same card, in orange */
+.rd-levels button.member { --rd-t: #f97316; border-style: dashed; }
+.rd-levels button.member .rd-level-icon { background: rgba(249, 115, 22, 0.12); color: #f97316; }
+
+/* «تحديد الكل» / «إلغاء الكل», on top of the permissions */
+.rd-all { display: flex; justify-content: flex-start; margin-bottom: 12px; }
+.rd-all button { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 14px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--text-h); font: inherit; font-size: 0.86rem; font-weight: 800; cursor: pointer; }
+.rd-all button .rd-action-check { width: 18px; height: 18px; border-radius: 6px; border: 1.5px solid var(--border); display: inline-flex; align-items: center; justify-content: center; }
+.rd-all button.on { border-color: #10b981; color: #059669; }
+.rd-all button.on .rd-action-check { background: #10b981; border-color: #10b981; color: #fff; }
+
+/* A group's title: at its end, the same switch as a page's, for the whole group */
+.rd-domain-title .rd-domain-switch { margin-inline-start: auto; }
+.mus-domain-title .mus-domain-switch { margin-inline-start: auto; display: inline-flex; }
+/* The group's switch, in the title's orange (a page's stays green) */
+.rd-domain-title .rd-domain-switch { background: #fed7aa; }
+.rd-domain-title .rd-domain-switch.on,
+body.dark-mode .rd-domain-title .rd-domain-switch.on { background: #f97316; }
+.mus-domain-title .mus-domain-switch .mus-switch { background: #fed7aa; }
+.mus-domain-title .mus-domain-switch .mus-switch.on,
+body.dark-mode .mus-domain-title .mus-domain-switch .mus-switch.on { background: #f97316; }
+body.dark-mode .rd-domain-title .rd-domain-switch:not(.on),
+body.dark-mode .mus-domain-title .mus-domain-switch .mus-switch:not(.on) { background: rgba(249, 115, 22, 0.3); }
+
+/* A group folded: a round chevron (up open, down shut), how many pages are on, and its pages sliding shut and open */
+.rd-domain-title .rd-domain-count,
+.rd-domain-count { order: 0; margin-inline-start: auto; flex-shrink: 0; min-width: 34px; padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.75); border: 1px solid #fed7aa; color: #9a3412; font-style: normal; font-size: 0.74rem; font-weight: 900; text-align: center; direction: ltr; }
+.rd-domain-count.some { background: #10b981; border-color: #10b981; color: #fff; }
+.rd-domain-fold {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #fed7aa;
+  border-radius: 50%;
+  background: #fff;
+  color: #ea580c;
+  box-shadow: 0 6px 14px -10px rgba(234, 88, 12, 0.9);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.rd-domain-fold:hover { background: #f97316; border-color: #f97316; color: #fff; }
+.rd-domain-fold:active { transform: scale(0.92); }
+.rd-domain-fold svg { transform: rotate(180deg); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+.rd-domain-fold.closed svg { transform: rotate(0deg); }
+.rd-domain-title .rd-domain-fold,
+.mus-domain-title .rd-domain-fold { margin-inline-start: auto; }
+.rd-domain-title .rd-domain-fold + .rd-domain-switch,
+.mus-domain-title .rd-domain-fold + .mus-domain-switch { margin-inline-start: 0; }
+.mus-domain-title .rd-domain-count { margin-inline-start: auto; }
+
+.rd-fold { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1); }
+.rd-fold.closed { grid-template-rows: 0fr; }
+.rd-fold-in { min-height: 0; overflow: hidden; }
+.rd-fold-in > .rd-fold-pad,
+.rd-fold-in.mus-fold-in { transition: opacity 0.3s ease, transform 0.38s cubic-bezier(0.4, 0, 0.2, 1); }
+.rd-fold.closed .rd-fold-in > .rd-fold-pad,
+.rd-fold.closed .rd-fold-in.mus-fold-in { opacity: 0; transform: translateY(-8px); }
+.mus-fold-in { display: flex; flex-direction: column; gap: 10px; }
+/* A folded group: its title alone, a little quieter */
+.rd-domain-title { margin-bottom: 12px; transition: margin 0.3s ease, opacity 0.2s ease; }
+.rd-domain:has(.rd-fold.closed) .rd-domain-title { margin-bottom: 0; }
+.rd-domain:has(.rd-fold.closed) .rd-domain-title > span,
+.mus-domain:has(.rd-fold.closed) .mus-domain-title > span { opacity: 0.8; }
+@media (prefers-reduced-motion: reduce) { .rd-fold, .rd-fold-in > .rd-fold-pad, .rd-fold-in.mus-fold-in, .rd-domain-fold svg { transition: none; } }
+body.dark-mode .rd-domain-fold { background: rgba(255, 255, 255, 0.06); border-color: rgba(249, 115, 22, 0.4); color: #fdba74; }
+body.dark-mode .rd-domain-fold:hover { background: #f97316; color: #fff; }
+body.dark-mode .rd-domain-count { background: rgba(255, 255, 255, 0.06); border-color: rgba(249, 115, 22, 0.35); color: #fdba74; }
+body.dark-mode .rd-domain-count.some { background: #10b981; border-color: #10b981; color: #fff; }
+
+/* No member in the role yet: no permissions to show */
+.rd-no-member { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-height: 220px; color: var(--text-muted, #94a3b8); font-size: 0.9rem; font-weight: 700; }
+.rd-no-member svg { color: #fdba74; }

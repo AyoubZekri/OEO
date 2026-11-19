@@ -1259,3 +1259,83 @@ body.dark-mode .tsk-chat-day span, body.dark-mode .tsk-chat-empty > span { backg
 /* An appointment's row: a click opens its details */
 .tsk-atable tr.tsk-arow { cursor: pointer; }
 .tsk-atable tr.tsk-arow:hover td { background: var(--bg); }
+
+/* Appointments selected to be deleted together (hold one, then tap the others) */
+.tsk-atable tr.tsk-picked > td { background: var(--accent-bg) !important; }
+.tsk-atable tr.tsk-picked > td:first-child { box-shadow: inset -3px 0 0 var(--accent); }
+.tsk-acard.tsk-picked { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--accent-bg); }
+
+/* «تعديل» in the selection bar: only while one is selected */
+.tsk-selbar .tsk-selbar-edit { background: rgba(16, 185, 129, 0.12); color: #059669; }
+@media (max-width: 380px) {
+  .tsk-selbar.mobile .tsk-selbar-edit { width: 38px; padding: 0; justify-content: center; }
+  .tsk-selbar.mobile .tsk-selbar-edit > span { display: none; }
+}
+
+/* Phones: «تحديد الكل» and «تعديل» as their icons (square), so the bar never overlaps, even with a large font;
+   the count and «حذف» keep their words */
+.tsk-selbar.mobile .tsk-selbar-all,
+.tsk-selbar.mobile .tsk-selbar-edit { width: 38px; padding: 0; justify-content: center; }
+.tsk-selbar.mobile .tsk-selbar-all > span,
+.tsk-selbar.mobile .tsk-selbar-edit > span { display: none; }
+.tsk-selbar.mobile .tsk-selbar-del { margin-inline-start: 0; }
+.tsk-selbar.mobile .tsk-selbar-count > span { white-space: nowrap; }
+@media (max-width: 340px) {
+  .tsk-selbar.mobile .tsk-selbar-count > span { display: none; }
+}
+
+/* Phones: the count as a square like the icon buttons (the number alone), then the actions at the end */
+.tsk-selbar.mobile .tsk-selbar-count {
+  flex: 0 0 auto;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--accent-bg);
+  overflow: visible;
+}
+.tsk-selbar.mobile .tsk-selbar-count > span { display: none; }
+.tsk-selbar.mobile .tsk-selbar-count b { min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; color: var(--accent); font-size: 0.95rem; font-weight: 800; }
+.tsk-selbar.mobile .tsk-selbar-all { margin-inline-start: auto; }
+
+/* The computer: the same bar as the phones — ✕ and the count as squares, «تحديد الكل» and «تعديل» as their icons */
+.tsk-selbar:not(.mobile) .tsk-selbar-count {
+  min-width: 40px;
+  height: 40px;
+  padding: 0 8px;
+  box-sizing: border-box;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--accent-bg);
+}
+.tsk-selbar:not(.mobile) .tsk-selbar-count > span { display: none; }
+.tsk-selbar:not(.mobile) .tsk-selbar-count b { min-width: 0; height: auto; padding: 0; border-radius: 0; background: none; color: var(--accent); font-size: 1rem; font-weight: 800; }
+.tsk-selbar:not(.mobile) .tsk-selbar-all,
+.tsk-selbar:not(.mobile) .tsk-selbar-edit { width: 40px; padding: 0; justify-content: center; }
+.tsk-selbar:not(.mobile) .tsk-selbar-all > span,
+.tsk-selbar:not(.mobile) .tsk-selbar-edit > span { display: none; }
+
+/* A task's details: one block — the deadline (and its date) beside the assignee, who gave it, the recording, the details */
+.tsk-d-block { display: flex; flex-direction: column; border-radius: 18px; border: 1px solid var(--tk-border); background: var(--tk-card); overflow: hidden; }
+.tsk-d-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tsk-d-cell { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 14px; }
+.tsk-d-cell + .tsk-d-cell { border-inline-start: 1px solid var(--tk-border); }
+.tsk-d-cell > span:last-child { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.tsk-d-cell small, .tsk-d-row small { color: var(--tk-muted); font-size: 0.74rem; font-weight: 700; }
+.tsk-d-cell strong, .tsk-d-row strong { color: var(--tk-text); font-size: 0.9rem; font-weight: 800; overflow-wrap: anywhere; }
+.tsk-d-cell em { font-style: normal; color: var(--tk-muted); font-size: 0.78rem; font-weight: 700; text-align: start; }
+.tsk-d-cell-icon { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.tsk-d-cell.late .tsk-d-cell-icon { background: rgba(239, 68, 68, 0.12); color: #dc2626; }
+.tsk-d-cell.late strong { color: #dc2626; }
+.tsk-d-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--tk-border); }
+.tsk-d-part { display: flex; flex-direction: column; gap: 10px; padding: 14px; border-top: 1px solid var(--tk-border); }
+.tsk-d-part h4 { display: flex; align-items: center; gap: 7px; margin: 0; color: var(--tk-text); font-size: 0.88rem; font-weight: 800; }
+.tsk-d-part h4 svg { color: var(--tk-accent, #f97316); }
+@media (max-width: 420px) {
+  .tsk-d-pair { grid-template-columns: 1fr; }
+  .tsk-d-cell + .tsk-d-cell { border-inline-start: none; border-top: 1px solid var(--tk-border); }
+}
+.tsk-d-block > .tsk-d-pair + .tsk-d-pair { border-top: 1px solid var(--tk-border); }
+.tsk-d-cell-icon.alert { background: rgba(249, 115, 22, 0.12); color: #ea580c; }

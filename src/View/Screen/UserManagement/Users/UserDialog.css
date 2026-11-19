@@ -1,0 +1,49 @@
+/* Adding / editing a user (computer): a card in the middle — the account, the post, the role */
+.ud-overlay { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgba(15, 23, 42, 0.55); }
+.ud {
+  width: min(560px, 100%);
+  max-height: min(90vh, 860px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 24px;
+  background: var(--card-bg, #fff);
+  color: var(--text-h, #0f172a);
+  direction: rtl;
+  overflow: hidden;
+  box-shadow: 0 30px 70px -25px rgba(15, 23, 42, 0.6);
+}
+.ud-head { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.ud-head-icon { width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; box-shadow: 0 10px 20px -10px rgba(234, 88, 12, 0.8); }
+.ud-head h2 { flex: 1; margin: 0; font-size: 1.15rem; font-weight: 900; }
+.ud-close { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--text-h); cursor: pointer; }
+.ud-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; background: var(--bg); }
+
+.ud-card { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 18px; border: 1px solid var(--border); background: var(--card-bg, #fff); }
+.ud-card-title { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 0.95rem; font-weight: 900; }
+.ud-card-title span { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 9px; background: rgba(249, 115, 22, 0.12); color: #f97316; }
+
+.ud-field { display: flex; flex-direction: column; gap: 6px; }
+.ud-label { display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted, #64748b); font-size: 0.82rem; font-weight: 800; }
+.ud-label svg { color: #f97316; }
+.ud-field input { width: 100%; box-sizing: border-box; height: 46px; padding: 0 14px; border-radius: 13px; border: 1.5px solid var(--border); background: var(--bg); color: var(--text-h); font: inherit; font-size: 0.95rem; outline: none; }
+.ud-field input:focus { border-color: #f97316; background: var(--card-bg, #fff); }
+.ud-field input.is-missing { border-color: #ef4444; }
+.ud-error { display: inline-flex; align-items: center; gap: 5px; color: #dc2626; font-size: 0.78rem; font-weight: 700; }
+.ud-pass { position: relative; display: block; }
+.ud-pass input { padding-left: 48px; padding-right: 14px; }
+.ud-pass button { position: absolute; left: 6px; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 10px; background: transparent; color: var(--text-muted, #64748b); cursor: pointer; }
+
+.ud-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--border); }
+.ud-btn { min-width: 120px; min-height: 46px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--border); background: transparent; color: var(--text-h); font: inherit; font-size: 0.95rem; font-weight: 800; cursor: pointer; }
+.ud-btn.primary { border: none; background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; box-shadow: 0 10px 20px -12px rgba(234, 88, 12, 0.9); }
+
+/* The post: «لاعب» or «إداري», then the staff's post (the app's dropdown) */
+.upf { display: flex; flex-direction: column; gap: 10px; }
+.upf-group { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 5px; border-radius: 15px; background: var(--bg); border: 1px solid var(--border); }
+.upf-group button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 42px; border: none; border-radius: 11px; background: transparent; color: var(--text-muted, #64748b); font: inherit; font-size: 0.92rem; font-weight: 800; cursor: pointer; }
+.upf-group button.on { background: #f97316; color: #fff; box-shadow: 0 6px 14px -6px rgba(249, 115, 22, 0.7); }
+
+@media (max-width: 560px) {
+  .ud-overlay { padding: 0; }
+  .ud { width: 100%; height: 100%; max-height: none; border-radius: 0; }
+}

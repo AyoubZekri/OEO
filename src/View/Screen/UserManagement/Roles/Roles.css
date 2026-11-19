@@ -1328,3 +1328,10 @@ body.dark-mode .classic-checkbox-label input:disabled ~ .classic-checkmark {
   background-color: var(--bg-hover);
   border-color: var(--border);
 }
+
+/* A long role name (up to 50 letters) wraps inside its card */
+.role-title { min-width: 0; }
+.role-title h2 { min-width: 0; overflow-wrap: anywhere; }
+
+/* «قسم جديد», next to «إضافة دور» */
+.add-role-btn.secondary { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }

@@ -8,6 +8,8 @@ import { MobileAppointments } from '../../Mobile/MobileTasks/MobileAppointments'
 import { useTasksAdmin } from './useTasks';
 import { AppointmentTable } from './parts/AppointmentTable';
 import { TemplateOverlays } from './parts/TemplateOverlays';
+import { TaskSelectionBar } from './parts/TaskSelection';
+import { useTaskSelection } from './parts/useTaskSelection';
 import { APPOINTMENT_FILTERS, filterAppointments, NO_APPOINTMENT_FILTER, type AppointmentFilter, type TaskTemplate } from './taskUtils';
 import '../../shared/kit.css';
 import '../Travels/Travels.css';
@@ -26,13 +28,14 @@ export const Appointments: React.FC<{ tabs?: React.ReactNode }> = ({ tabs }) => 
   const [filters, setFilters] = useState<AppointmentFilter>(NO_APPOINTMENT_FILTER);
   const [toDelete, setToDelete] = useState<TaskTemplate | null>(null);
   const [viewingId, setViewingId] = useState<number | null>(null);
+  // Hold a row to select it, then click the others: deleted together (as on the home page)
+  // Edit (one selected) and delete are in the selection bar, not in ⋮
+  const select = useTaskSelection(c.can('delete') || c.can('edit'));
 
   if (isMobile) return <MobileAppointments c={c} tabs={tabs} />;
 
   const visible = filterAppointments(c.templates, filters);
-  const edit = c.can('edit') ? (t: TaskTemplate) => c.openForm({ template: t }) : undefined;
   const toggle = c.can('toggle') ? c.toggleTemplate : undefined;
-  const remove = c.can('delete') ? setToDelete : undefined;
   // Its details: the current one from the list (a change made meanwhile shows)
   const viewing = c.templates.find(t => t.id === viewingId) ?? null;
   const view = (t: TaskTemplate) => setViewingId(t.id);
@@ -65,9 +68,10 @@ export const Appointments: React.FC<{ tabs?: React.ReactNode }> = ({ tabs }) => 
         ) : visible.length === 0 ? (
           <StateIcon />
         ) : (
-          <AppointmentTable templates={visible} onView={view} onEdit={edit} onToggle={toggle} onDelete={remove} />
+          <AppointmentTable templates={visible} select={select} onView={view} onToggle={toggle} />
         )}
 
+      <TaskSelectionBar s={select} tasks={visible} mobile={false} of="appointments" onEdit={c.can('edit') ? id => { const t = c.templates.find(x => x.id === id); if (t) c.openForm({ template: t }); } : undefined} onDelete={c.can('delete') ? c.removeTemplates : undefined} />
       <TemplateOverlays c={c} mobile={false} viewing={viewing} onViewClose={() => setViewingId(null)} toDelete={toDelete} onDeleteClose={() => setToDelete(null)} />
     </div>
   );

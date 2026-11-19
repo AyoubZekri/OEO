@@ -1,0 +1,37 @@
+/* A member's photo, big: the photo alone on a dark, blurred screen */
+.mph-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.mph-img {
+  display: block;
+  max-width: min(560px, 100%);
+  max-height: 85vh;
+  object-fit: contain;
+  border-radius: 20px;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.7);
+}
+.mph-close {
+  position: absolute;
+  top: calc(16px + env(safe-area-inset-top));
+  inset-inline-end: 16px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  cursor: pointer;
+}
+.mph-close:hover { background: rgba(255, 255, 255, 0.24); }

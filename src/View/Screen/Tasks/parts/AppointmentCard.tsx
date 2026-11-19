@@ -2,6 +2,7 @@ import React from 'react';
 import { UserRound } from 'lucide-react';
 import { MobileRowMenu } from '../../../Mobile/widgets/MobileRowMenu';
 import { templateTimesText, type TaskTemplate } from '../taskUtils';
+import type { TaskSelection } from './useTaskSelection';
 import { appointmentKind, appointmentMenu, type AppointmentActions } from './appointmentMeta';
 
 /**
@@ -9,19 +10,20 @@ import { appointmentKind, appointmentMenu, type AppointmentActions } from './app
  * size) — a tile with its kind, the title, when it comes (an event: its alert), who does it; its state and ⋮ on the
  * side. A tap opens its details; a stopped one is dimmed; a long title or name is cut, shown whole on hover.
  */
-export const AppointmentCard: React.FC<{ t: TaskTemplate } & AppointmentActions> = ({ t, ...actions }) => {
+export const AppointmentCard: React.FC<{ t: TaskTemplate; select?: TaskSelection } & AppointmentActions> = ({ t, select, ...actions }) => {
   const on = t.status === 'active';
   const kind = appointmentKind(t);
   const who = t.assignee?.name || 'بلا مكلّف';
   const items = appointmentMenu(t, actions);
   const open = () => actions.onView?.(t);
+  const picked = select?.picked(t);
 
   return (
     <article
-      className={`tsk-acard compact ${on ? '' : 'off'}`}
+      className={`tsk-acard compact ${on ? '' : 'off'} ${select?.enabled ? 'tsk-selectable' : ''} ${picked ? 'tsk-picked' : ''}`}
       role={actions.onView ? 'button' : undefined}
       tabIndex={actions.onView ? 0 : undefined}
-      onClick={open}
+      {...(select ? select.rowProps(t, open) : { onClick: open })}
       onKeyDown={e => { if (e.key === 'Enter') open(); }}
     >
       <span className="tsk-acard-tile" aria-hidden="true">

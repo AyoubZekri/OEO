@@ -1,5 +1,8 @@
 import { Applink } from '../../../LinkApi';
 
+/** One of a member's other documents: its name and its file (in storage) */
+export interface MemberDocument { id: number; name: string; file: string }
+
 export class MemberModel {
   id: string;
   type: string;
@@ -19,6 +22,8 @@ export class MemberModel {
   medical_certificate: string | File | null;
   insurance_document: string | File | null;
   bank_account_number: string;
+  /** Its other documents (beside the three fixed ones) */
+  documents: MemberDocument[];
   status: string;
   is_internal_system_printed: boolean;
   team_id: string;
@@ -46,6 +51,7 @@ export class MemberModel {
     this.medical_certificate = data.medical_certificate || null;
     this.insurance_document = data.insurance_document || null;
     this.bank_account_number = data.bank_account_number || '';
+    this.documents = Array.isArray(data.documents) ? data.documents.map((d: any) => ({ id: Number(d.id), name: String(d.name || ''), file: String(d.file || '') })) : [];
     this.status = data.status || 'active';
     this.is_internal_system_printed = data.is_internal_system_printed === true || data.is_internal_system_printed === 1;
     this.team_id = data.team_id?.toString() || '';

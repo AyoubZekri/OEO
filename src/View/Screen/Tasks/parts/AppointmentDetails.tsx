@@ -1,14 +1,14 @@
 import React from 'react';
-import { CalendarClock, UserRound, BellRing, CalendarPlus, FileText, Power, PowerOff, ListChecks, Repeat } from 'lucide-react';
+import { CalendarClock, UserRound, BellRing, Clock, FileText, Power, PowerOff, ListChecks, Repeat } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { initials } from '../../../shared/dates';
-import { dateText, NATURE_META, templateTimesText, type TaskTemplate } from '../taskUtils';
+import { NATURE_META, templateTimesText, type TaskTemplate } from '../taskUtils';
 import { appointmentKind } from './appointmentMeta';
 
 /**
  * An appointment, to read only (its actions are in its ⋮), like a task's details: an orange head with its kind,
- * state, title, nature, when it comes and the tasks it made; who does it and who made it; its alert, deadline and
- * creation date; then its details.
+ * state, title, nature, when it comes and the tasks it made; then one block — its timing (alert, deadline), who does
+ * it and who made it, its details.
  */
 export const AppointmentDetails: React.FC<{ t: TaskTemplate; mobile: boolean; onClose: () => void }> = ({ t, mobile, onClose }) => {
   const on = t.status === 'active';
@@ -19,11 +19,6 @@ export const AppointmentDetails: React.FC<{ t: TaskTemplate; mobile: boolean; on
   const people = [
     { label: 'المكلّف', name: t.assignee?.name || '—' },
     { label: 'أنشأه', name: t.created_by || '—' },
-  ];
-  const timeline: { icon: typeof UserRound; label: string; value: string; tone: string; date?: boolean }[] = [
-    { icon: BellRing, label: 'التنبيه', value: times.alert, tone: 'orange' },
-    { icon: CalendarClock, label: 'آخر أجل', value: times.due, tone: 'blue' },
-    { icon: CalendarPlus, label: 'تاريخ الإنشاء', value: dateText(t.created_at), tone: 'slate', date: true },
   ];
 
   return (
@@ -49,37 +44,33 @@ export const AppointmentDetails: React.FC<{ t: TaskTemplate; mobile: boolean; on
           <span className="tsk-d-hero-mark" aria-hidden="true"><kind.icon size={88} strokeWidth={1.4} /></span>
         </section>
 
-        <section className="tsk-d-people">
-          {people.map(p => (
-            <div key={p.label}>
-              <span className="tsk-d-avatar">{p.name === '—' ? <UserRound size={18} /> : initials(p.name)}</span>
-              <span>
-                <small>{p.label}</small>
-                <strong>{p.name}</strong>
-              </span>
+        {/* One block: its timing (the alert beside the deadline), who does it beside who made it, then its details */}
+        <section className="tsk-d-block">
+          <div className="tsk-d-pair">
+            <div className="tsk-d-cell">
+              <span className="tsk-d-cell-icon alert"><BellRing size={18} /></span>
+              <span><small>التنبيه</small><strong>{times.alert}</strong></span>
             </div>
-          ))}
-        </section>
-
-        <section className="tsk-d-card">
-          <h4><CalendarClock size={15} />التوقيت</h4>
-          <ol className="tsk-d-timeline">
-            {timeline.map(x => (
-              <li key={x.label} className={`tone-${x.tone}`}>
-                <span className="tsk-d-dot"><x.icon size={13} /></span>
-                <small>{x.label}</small>
-                <strong dir={x.date ? 'ltr' : undefined}>{x.value}</strong>
-              </li>
+            <div className="tsk-d-cell">
+              <span className="tsk-d-cell-icon"><Clock size={18} /></span>
+              <span><small>آخر أجل</small><strong>{times.due}</strong></span>
+            </div>
+          </div>
+          <div className="tsk-d-pair">
+            {people.map(p => (
+              <div key={p.label} className="tsk-d-cell">
+                <span className="tsk-d-avatar">{p.name === '—' ? <UserRound size={18} /> : initials(p.name)}</span>
+                <span><small>{p.label}</small><strong>{p.name}</strong></span>
+              </div>
             ))}
-          </ol>
+          </div>
+          {t.details && (
+            <div className="tsk-d-part">
+              <h4><FileText size={15} />التفاصيل</h4>
+              <p className="tsk-d-text">{t.details}</p>
+            </div>
+          )}
         </section>
-
-        {t.details && (
-          <section className="tsk-d-card">
-            <h4><FileText size={15} />التفاصيل</h4>
-            <p className="tsk-d-text">{t.details}</p>
-          </section>
-        )}
       </div>
     </SidePanel>
   );

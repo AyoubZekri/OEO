@@ -36,7 +36,7 @@ export const MyHome: React.FC = () => {
   const [chatId, setChatId] = useState<number | null>(null);
   const chatTask = chatId ? c.tasks.find(t => t.id === chatId) : undefined;
   // Mine: the details and the conversation only
-  const menu = (t: Task) => taskMenu(t, { open: c.openTask, chat: x => setChatId(x.id) });
+  const menu = (t: Task) => taskMenu(t, { open: c.openTask });
 
   const overlays = (
     <>

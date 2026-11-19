@@ -124,12 +124,27 @@ export const useSaidparController = (onLogout?: () => void) => {
     {
      title: "",
       items: [
-        // Home, for everyone: the tasks whose time came (all of them with the tasks permission, mine only without);
-        // the appointments page; the general goals; the finance (the former home page)
+        // The order: home, users management, goals, appointments, members, meetings, absences, disciplinary,
+        // finance, then the rest; the opinions last
         { name: 'Home', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
-        // The appointments, for everyone too: all of them with the appointments permission, mine only without
-        { name: 'Tasks', icon: CalendarClock, isDropdown: false, label: 'المواعيد', route: Approutes.Tasks },
-        // The general goals, after the appointments and before the finance
+        ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
+          name: 'UsersManagement',
+          icon: Users,
+          isDropdown: true,
+          label: 'sidebar.users_management',
+          subItems: [
+            ...(hasAccess(permissions.usersAndRoles.viewRoles) ? [{
+              name: 'Roles',
+              label: 'sidebar.roles',
+              route: Approutes.Roles,
+            }] : []),
+            ...(hasAccess(permissions.usersAndRoles.viewUsers) ? [{
+              name: 'Users',
+              label: 'sidebar.users',
+              route: Approutes.Users,
+            }] : [])
+          ]
+        }] : []),
         ...(hasAccess(permissions.goals?.view ?? false) ? [{
           name: 'Goals',
           icon: Target,
@@ -137,13 +152,8 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'الأهداف العامة',
           route: Approutes.Goals,
         }] : []),
-        ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
-          name: 'Finance',
-          icon: PieChart,
-          isDropdown: false,
-          label: 'المالية',
-          route: Approutes.Finance,
-        }] : []),
+        // The appointments, for everyone too: all of them with the appointments permission, mine only without
+        { name: 'Tasks', icon: CalendarClock, isDropdown: false, label: 'المواعيد', route: Approutes.Tasks },
         ...(hasAccess(permissions.members.view) ? [{
           name: 'Members',
           icon: Users,
@@ -179,12 +189,6 @@ export const useSaidparController = (onLogout?: () => void) => {
             }] : []),
           ]
         },
-        // The training sessions, for everyone too: all of them with their permission, mine only without
-        { name: 'TrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.TrainingSessions },
-        // The trips, for everyone too: all of them with their permission, mine only without
-        { name: 'Travels', icon: Bus, isDropdown: false, label: 'التنقلات', route: Approutes.Travels },
-        // The matches, for everyone too: all of them with their permission, mine only without
-        { name: 'Matches', icon: Calendar, isDropdown: false, label: 'المباريات', route: Approutes.Matches },
         // The absences, like the equipment: the absences page (with its permission: the others', the decisions), and
         // «غياباتي» for everyone (the personal space's page, as it is)
         {
@@ -209,6 +213,19 @@ export const useSaidparController = (onLogout?: () => void) => {
             { name: 'MyDisciplinaryPage', label: 'إجراءاتي', route: Approutes.MyDisciplinary },
           ],
         },
+        ...(hasAccess(permissions.dashboard?.view ?? true) ? [{
+          name: 'Finance',
+          icon: PieChart,
+          isDropdown: false,
+          label: 'المالية',
+          route: Approutes.Finance,
+        }] : []),
+        // The training sessions, for everyone too: all of them with their permission, mine only without
+        { name: 'TrainingSessions', icon: Calendar, isDropdown: false, label: 'حصص التدريب', route: Approutes.TrainingSessions },
+        // The trips, for everyone too: all of them with their permission, mine only without
+        { name: 'Travels', icon: Bus, isDropdown: false, label: 'التنقلات', route: Approutes.Travels },
+        // The matches, for everyone too: all of them with their permission, mine only without
+        { name: 'Matches', icon: Calendar, isDropdown: false, label: 'المباريات', route: Approutes.Matches },
         // The medical reports, like the equipment: the medical page (with its permission), and «تقاريري الطبية» for
         // everyone (the personal space's page, as it is)
         {
@@ -239,8 +256,6 @@ export const useSaidparController = (onLogout?: () => void) => {
             }] : [])
           ]
         }] : []),
-        // The opinions, one page for everyone: everyone's with their permission (mine sent from it), mine only without
-        { name: 'Feedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.Feedback },
         ...(hasAccess(permissions.contracts.view) ? [{
           name: 'Contracts',
           icon: FileText,
@@ -276,24 +291,8 @@ export const useSaidparController = (onLogout?: () => void) => {
           label: 'sidebar.reports',
           route: Approutes.Reports,
         }] : []),
-        ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
-          name: 'UsersManagement',
-          icon: Users,
-          isDropdown: true,
-          label: 'sidebar.users_management',
-          subItems: [
-            ...(hasAccess(permissions.usersAndRoles.viewRoles) ? [{
-              name: 'Roles',
-              label: 'sidebar.roles',
-              route: Approutes.Roles,
-            }] : []),
-            ...(hasAccess(permissions.usersAndRoles.viewUsers) ? [{
-              name: 'Users',
-              label: 'sidebar.users',
-              route: Approutes.Users,
-            }] : [])
-          ]
-        }] : []),
+        // The opinions, last: everyone's with their permission (mine sent from it), mine only without
+        { name: 'Feedback', icon: MessageSquare, isDropdown: false, label: 'آراء واقتراحات', route: Approutes.Feedback },
       ]
     },
   ];

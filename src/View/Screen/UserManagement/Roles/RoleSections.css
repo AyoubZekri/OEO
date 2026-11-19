@@ -1,0 +1,58 @@
+/* The roles page's sections, on top: chips (a drop target each for a dragged role), then «قسم جديد» */
+.rsec { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; direction: rtl; }
+.rsec.mobile { flex-wrap: nowrap; overflow-x: auto; padding: 2px 16px 6px; margin: 0 -16px 12px; scrollbar-width: none; }
+.rsec.mobile::-webkit-scrollbar { display: none; }
+.rsec-chip,
+.rsec-add {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.rsec-chip svg { color: #f97316; flex-shrink: 0; }
+.rsec-chip b { min-width: 22px; padding: 1px 7px; border-radius: 999px; background: var(--bg); color: var(--text-muted, #64748b); font-size: 0.75rem; text-align: center; }
+.rsec-chip.on { border-color: #f97316; background: #f97316; color: #fff; }
+.rsec-chip.on svg { color: #fff; }
+.rsec-chip.on b { background: rgba(255, 255, 255, 0.25); color: #fff; }
+.rsec-chip.muted { color: var(--text-muted, #64748b); }
+/* A role dragged over it */
+.rsec-chip.drop { border-color: #f97316; border-style: dashed; background: rgba(249, 115, 22, 0.12); color: #ea580c; }
+/* Selected (hold) to rename or delete */
+.rsec-chip.picked { border-color: #f97316; background: rgba(249, 115, 22, 0.14); color: #c2410c; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18); }
+.rsec-chip.picked svg { color: #ea580c; }
+.rsec-add { border-style: dashed; border-color: #f97316; background: rgba(249, 115, 22, 0.06); color: #ea580c; }
+
+/* A role being dragged */
+.role-card[draggable='true'] { cursor: grab; }
+.role-card.dragging { opacity: 0.45; }
+
+/* The section's name, and moving a role (phones) */
+.rsec-dlg { gap: 10px; }
+.rsec-input { width: 100%; box-sizing: border-box; height: 48px; margin-top: 6px; padding: 0 14px; border-radius: 14px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: inherit; font: inherit; font-size: 0.98rem; outline: none; text-align: start; }
+.rsec-input:focus { border-color: #f97316; background: #fff; }
+.rsec-input.is-missing { border-color: #ef4444; }
+.rsec-error { align-self: stretch; color: #dc2626; font-size: 0.8rem; font-weight: 700; text-align: start; }
+.rsec-save { background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; }
+.rsec-dlg .del-dlg-icon { background: #ffedd5; color: #ea580c; box-shadow: 0 0 0 8px #fff7ed; }
+.rsec-pick { width: 100%; display: flex; flex-direction: column; gap: 6px; margin-top: 6px; max-height: 50vh; overflow-y: auto; }
+.rsec-pick button { display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 14px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fff; color: inherit; font: inherit; font-size: 0.95rem; font-weight: 700; text-align: start; cursor: pointer; }
+.rsec-pick button span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.rsec-pick button svg { color: #f97316; flex-shrink: 0; }
+.rsec-pick button.on { border-color: #f97316; background: rgba(249, 115, 22, 0.08); }
+.del-dlg-actions.one { grid-template-columns: minmax(0, 1fr); }
+
+body.dark-mode .rsec-input { border-color: rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); }
+body.dark-mode .rsec-input:focus { background: rgba(255, 255, 255, 0.06); }
+body.dark-mode .rsec-dlg .del-dlg-icon { background: rgba(249, 115, 22, 0.18); color: #fb923c; box-shadow: 0 0 0 8px rgba(249, 115, 22, 0.08); }
+body.dark-mode .rsec-pick button { border-color: rgba(255, 255, 255, 0.1); background: transparent; }

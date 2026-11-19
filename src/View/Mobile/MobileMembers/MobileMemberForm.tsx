@@ -1,8 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  ArrowRight, Camera, RefreshCw, User, IdCard, Phone, Shirt, Users, MapPin, CalendarDays,
-  Mail, HeartHandshake, Landmark, UploadCloud, CheckCircle2, Eye, Trophy, FileText, Save,
-} from 'lucide-react';
+import { ArrowRight, Camera, RefreshCw, User, IdCard, Phone, Shirt, Users, MapPin, CalendarDays, Mail, HeartHandshake, Landmark, UploadCloud, CheckCircle2, Eye, Trophy, FileText, Save, X, Plus } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { Applink } from '../../../LinkApi';
 import { processImage } from '../../../core/functions/processImage';
@@ -17,17 +14,24 @@ interface MobileMemberFormProps {
   controller: ReturnType<typeof useMembersController>;
 }
 
+// The posts from the most to the least important
 const TYPE_OPTIONS = [
   { value: 'player', label: 'لاعب' },
+  { value: 'supervisor', label: 'المشرف' },
+  { value: 'general_coordinator', label: 'المنسق العام' },
+  { value: 'admin', label: 'إداري' },
+  { value: 'accountant', label: 'محاسب' },
   { value: 'coach', label: 'مدرب' },
   { value: 'assistant_coach', label: 'مساعد مدرب' },
   { value: 'goalkeeper_coach', label: 'مدرب حراس' },
   { value: 'physical_trainer', label: 'محضر بدني' },
+  { value: 'doctor', label: 'طبيب' },
   { value: 'equipment_manager', label: 'مسؤول العتاد' },
   { value: 'employee', label: 'موظف' },
-  { value: 'admin', label: 'إداري' },
-  { value: 'doctor', label: 'طبيب' },
 ];
+
+/** The staff's posts (every type but «لاعب»): a player or staff member is told by the type, no column of its own */
+const STAFF_OPTIONS = TYPE_OPTIONS.filter(o => o.value !== 'player');
 
 const POSITION_OPTIONS: MobileSelectOption[] = [
   { value: '', label: 'بدون مركز' },
@@ -128,6 +132,16 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
     ...teams.map(team => ({ value: team.id.toString(), label: team.name })),
   ];
 
+  // A player, or a staff member (any other type): chosen first, on top
+  const isPlayer = (formData.type || 'player') === 'player';
+  const setGroup = (player: boolean) => {
+    if (player === isPlayer) return;
+    // A player: «لاعب»; staff: its first post. What only a player has is emptied on the way out
+    setFormData((prev: Record<string, unknown>) => (player
+      ? { ...prev, type: 'player' }
+      : { ...prev, type: STAFF_OPTIONS[0].value, position: '', Shirt_number: '', preferred_foot: '', emergency_contact_phone: '' }));
+  };
+
   const fullName = `${formData.first_name || ''} ${formData.last_name || ''}`.trim();
   const typeLabel = TYPE_OPTIONS.find(o => o.value === formData.type)?.label;
 
@@ -173,6 +187,16 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           )}
         </div>
 
+        {/* Player or staff, first: the form shows what each one has */}
+        <div className="mf-group" role="radiogroup" aria-label="نوع العضو">
+          <button type="button" role="radio" aria-checked={isPlayer} className={isPlayer ? 'active' : ''} onClick={() => setGroup(true)}>
+            <Trophy size={18} />لاعب
+          </button>
+          <button type="button" role="radio" aria-checked={!isPlayer} className={!isPlayer ? 'active' : ''} onClick={() => setGroup(false)}>
+            <Users size={18} />إداري
+          </button>
+        </div>
+
         <Section title="المعلومات الأساسية" icon={User}>
           <div className="mf-row">
             <Field label="الاسم" icon={User} required error={controller.missing.first_name ? 'اكتب الاسم' : undefined}>
@@ -182,7 +206,7 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
               <input type="text" name="last_name" value={formData.last_name || ''} onChange={handleFormDataChange} />
             </Field>
           </div>
-          <Field label="رقم الهوية الوطنية" icon={IdCard}>
+          <Field label="رقم التعريف الوطني" icon={IdCard}>
             <input type="text" name="national_id" inputMode="numeric" value={formData.national_id || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
           <Field label="رقم الهاتف" icon={Phone}>
@@ -190,24 +214,31 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           </Field>
         </Section>
 
-        <Section title="المعلومات الرياضية" icon={Trophy}>
-          <Field label="المنصب" icon={Users} required>
-            <select name="type" value={formData.type || 'player'} onChange={handleFormDataChange}>
-              {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-          </Field>
-          <MobileSelect
-            label="المركز"
-            icon={MapPin}
-            value={formData.position || ''}
-            options={POSITION_OPTIONS}
-            onChange={v => setField('position', v)}
-            placeholder="بدون مركز"
-            searchable
-          />
-          <Field label="رقم القميص" icon={Shirt}>
-            <input type="number" name="Shirt_number" inputMode="numeric" min={0} value={formData.Shirt_number || ''} onChange={handleFormDataChange} />
-          </Field>
+        <Section title={isPlayer ? 'المعلومات الرياضية' : 'المنصب والفريق'} icon={isPlayer ? Trophy : Users}>
+          {/* A player is «لاعب»: no post to choose; staff choose theirs */}
+          {!isPlayer && (
+            <Field label="المنصب" icon={Users} required>
+              <select name="type" value={formData.type} onChange={handleFormDataChange}>
+                {STAFF_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </Field>
+          )}
+          {isPlayer && (
+            <>
+              <MobileSelect
+                label="المركز"
+                icon={MapPin}
+                value={formData.position || ''}
+                options={POSITION_OPTIONS}
+                onChange={v => setField('position', v)}
+                placeholder="بدون مركز"
+                searchable
+              />
+              <Field label="رقم القميص" icon={Shirt}>
+                <input type="number" name="Shirt_number" inputMode="numeric" min={0} value={formData.Shirt_number || ''} onChange={handleFormDataChange} />
+              </Field>
+            </>
+          )}
           <MobileSelect
             label="الفريق"
             icon={Users}
@@ -218,7 +249,7 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
             searchable={teams.length > 6}
           />
 
-          <div className="mf-field">
+          {isPlayer && <div className="mf-field">
             <span className="mf-label">القدم المفضلة</span>
             <div className="mf-segment">
               {FOOT_OPTIONS.map(foot => (
@@ -232,7 +263,7 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
           <div className="mf-field">
             <span className="mf-label">الحالة<em> *</em></span>
@@ -261,9 +292,11 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           <Field label="البريد الإلكتروني" icon={Mail}>
             <input type="email" name="email" value={formData.email || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
-          <Field label="رقم ثاني" icon={Phone}>
-            <input type="tel" name="emergency_contact_phone" value={formData.emergency_contact_phone || ''} onChange={handleFormDataChange} dir="ltr" />
-          </Field>
+          {isPlayer && (
+            <Field label="رقم ثاني" icon={Phone}>
+              <input type="tel" name="emergency_contact_phone" value={formData.emergency_contact_phone || ''} onChange={handleFormDataChange} dir="ltr" />
+            </Field>
+          )}
           <Field label="حساب مالي" icon={Landmark}>
             <input type="text" name="bank_account_number" value={formData.bank_account_number || ''} onChange={handleFormDataChange} dir="ltr" />
           </Field>
@@ -293,6 +326,53 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
               </div>
             );
           })}
+
+          {/* Other documents: the member's (view, take off), then the ones being added (a name and a file each) */}
+          {(memberToEdit?.documents || []).filter(d => !controller.removedDocs.includes(d.id)).map(d => (
+            <div key={`old-${d.id}`} className="mf-doc done">
+              <span className="mf-doc-icon"><CheckCircle2 size={20} /></span>
+              <span className="mf-doc-text">
+                <strong>{d.name}</strong>
+                <small>ملف مرفق مسبقاً</small>
+              </span>
+              <button type="button" className="mf-doc-view" onClick={() => openDocument(`${Applink.image}/${d.file}`, d.name)} aria-label="عرض الملف">
+                <Eye size={16} />
+              </button>
+              <button type="button" className="mf-doc-remove" onClick={() => controller.removeExistingDoc(d.id)} aria-label="إزالة الوثيقة" title="إزالة الوثيقة">
+                <X size={16} />
+              </button>
+            </div>
+          ))}
+          {controller.newDocs.map(d => {
+            const noName = controller.missing[`doc-${d.key}`];
+            return (
+              <div key={d.key} className={`mf-doc mf-doc-new ${d.file ? 'done' : ''} ${noName ? 'has-error' : ''}`}>
+                <span className="mf-doc-icon">{d.file ? <CheckCircle2 size={20} /> : <UploadCloud size={20} />}</span>
+                <span className="mf-doc-text">
+                  <input
+                    type="text"
+                    className="mf-doc-name"
+                    value={d.name}
+                    onChange={e => controller.updateDocRow(d.key, { name: e.target.value })}
+                    placeholder="اسم الوثيقة"
+                    maxLength={255}
+                    aria-invalid={noName || undefined}
+                  />
+                  <small>{noName ? 'اكتب اسم الوثيقة' : d.file ? d.file.name : 'PDF أو صورة'}</small>
+                </span>
+                <label className="mf-doc-pick">
+                  {d.file ? 'تغيير' : 'رفع'}
+                  <input type="file" accept="image/*,.pdf" hidden onChange={e => controller.updateDocRow(d.key, { file: e.target.files?.[0] || null })} />
+                </label>
+                <button type="button" className="mf-doc-remove" onClick={() => controller.removeDocRow(d.key)} aria-label="حذف الوثيقة" title="حذف">
+                  <X size={16} />
+                </button>
+              </div>
+            );
+          })}
+          <button type="button" className="mf-adddoc" onClick={controller.addDocRow}>
+            <Plus size={18} />إضافة وثيقة
+          </button>
         </Section>
       </form>
 

@@ -1,11 +1,10 @@
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-import type { Task } from '../taskUtils';
 
 const HOLD_MS = 500;
 
 /**
- * Deleting several tasks: a long press on the first selects it, then a tap (a click) on the others adds or removes
+ * Deleting several tasks (or appointments): a long press on the first selects it, then a tap (a click) on the others adds or removes
  * them; the bar at the bottom deletes them all. Without the right to delete, a row only opens.
  */
 export const useTaskSelection = (enabled: boolean) => {
@@ -33,7 +32,7 @@ export const useTaskSelection = (enabled: boolean) => {
   useEffect(() => () => window.clearTimeout(timer.current), []);
 
   /** A row's (or card's) handlers: hold to select, then a tap selects; otherwise a tap opens */
-  const rowProps = (t: Task, open: () => void) => {
+  const rowProps = (t: { id: number }, open: () => void) => {
     if (!enabled) return { onClick: open };
     return {
       onPointerDown: (e: React.PointerEvent) => {
@@ -58,6 +57,6 @@ export const useTaskSelection = (enabled: boolean) => {
     };
   };
 
-  return { enabled, ids, active, picked: (t: Task) => ids.has(t.id), rowProps, clear, set: setIds };
+  return { enabled, ids, active, picked: (t: { id: number }) => ids.has(t.id), rowProps, clear, set: setIds };
 };
 export type TaskSelection = ReturnType<typeof useTaskSelection>;

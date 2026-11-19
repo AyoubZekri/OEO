@@ -789,3 +789,25 @@ body:not(.dark-mode) .mus-hero-top small { color: #ea580c; }
 body:not(.dark-mode) .mus-stats div { background: var(--ms-field, #f8fafc); border-color: var(--ms-border, #e2e8f0); }
 body:not(.dark-mode) .mus-stats .green svg, body:not(.dark-mode) .mus-stats .green strong { color: #059669; }
 body:not(.dark-mode) .mus-stats .amber svg, body:not(.dark-mode) .mus-stats .amber strong { color: #d97706; }
+
+/* A long role name (up to 50 letters) wraps inside its card */
+.mus-card-text strong { overflow-wrap: anywhere; }
+
+/* Roles page (phones): the section filter (a dropdown) with the shown section's rename / delete; «قسم جديد» above «+» */
+.rsec-mrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.rsec-mrow > .ms-custom, .rsec-mrow > div:first-child { flex: 1; min-width: 0; }
+.rsec-mtrigger { width: 100%; display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 6px 14px; border-radius: 14px; border: 1px solid var(--ms-border, var(--border)); background: var(--ms-card, var(--card-bg)); color: var(--ms-muted, #64748b); font: inherit; text-align: start; cursor: pointer; }
+.rsec-mtrigger svg:first-child { color: #f97316; flex-shrink: 0; }
+.rsec-mtrigger > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rsec-mtrigger small { font-size: 0.68rem; font-weight: 700; }
+.rsec-mtrigger strong { color: var(--ms-text, var(--text-h)); font-size: 0.92rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rsec-mtrigger.active { border-color: rgba(249, 115, 22, 0.55); }
+/* The sections sheet: an icon, the name, how many roles; a section held (selected) to rename or delete */
+.rsec-opt-icon { width: 16px; flex-shrink: 0; color: #f97316; }
+.rsec-opt-count { margin-inline-start: auto; min-width: 22px; padding: 1px 8px; border-radius: 999px; background: rgba(148, 163, 184, 0.16); color: var(--ms-muted, #64748b); font-size: 0.75rem; text-align: center; }
+.ms-option.rsec-opt-picked { background: rgba(249, 115, 22, 0.12); box-shadow: inset 0 0 0 1.5px #f97316; }
+.mus-fab.second { bottom: calc(148px + env(safe-area-inset-bottom)); background: var(--ms-card, #fff); color: #f97316; border: 1.5px solid #f97316; }
+
+/* «إضافة عضو», with the access levels: a whole row under them, in orange */
+.mus-levels button.member { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 8px; padding: 12px 8px; border-style: dashed; border-color: #f97316; color: #f97316; }
+.mus-levels button.member strong { color: #ea580c; }

@@ -35,9 +35,10 @@ export const HomeTasks: React.FC = () => {
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState('');
   const [nature, setNature] = useState('');
-  const { menu, overlays, chat } = useTaskActions(c, isMobile);
+  const { menu, overlays, chat } = useTaskActions(c, isMobile, true);
   // Hold a row to select it, then click the others: deleted together
-  const select = useTaskSelection(c.can('delete'));
+  // Edit (one selected) and delete are in the selection bar, not in ⋮
+  const select = useTaskSelection(c.can('delete') || c.can('edit'));
 
   if (isMobile) return <MobileHomeTasks c={c} />;
 
@@ -108,7 +109,7 @@ export const HomeTasks: React.FC = () => {
       </div>
 
       {content}
-      <TaskSelectionBar s={select} tasks={[...live, ...archiveShown]} mobile={false} onDelete={c.removeMany} />
+      <TaskSelectionBar s={select} tasks={[...live, ...archiveShown]} mobile={false} onEdit={c.can('edit') ? id => { const t = c.tasks.find(x => x.id === id); if (t) c.openForm({ task: t }); } : undefined} onDelete={c.can('delete') ? c.removeMany : undefined} />
       {overlays}
     </div>
   );

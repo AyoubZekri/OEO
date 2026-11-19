@@ -280,16 +280,56 @@ export const MODULE_ACTIONS: Record<PermissionModule, string[]> = {
 
 /** The sections grouped by domain, in the order the role editors show them */
 export const PERMISSION_DOMAINS: { key: string; label: string; modules: PermissionModule[] }[] = [
-  { key: 'members', label: 'الأعضاء والانضباط', modules: ['members', 'absences', 'disciplinary'] },
   { key: 'sport', label: 'الرياضي', modules: ['teams', 'trainingSessions', 'matches', 'medical', 'travels'] },
   // The home page (the tasks) with the management; the finance page with the finance
-  { key: 'admin', label: 'الإدارة', modules: ['tasks', 'appointments', 'meetings', 'decisions', 'feedback', 'goals'] },
+  // The members and their discipline are part of the management: one group
+  { key: 'admin', label: 'الإدارة', modules: ['tasks', 'appointments', 'members', 'absences', 'disciplinary', 'meetings', 'decisions', 'feedback', 'goals'] },
   { key: 'finance', label: 'المالية', modules: ['dashboard', 'contracts', 'payments', 'funds', 'debts', 'reports'] },
   { key: 'equipment', label: 'العتاد', modules: ['equipment', 'equipmentOperations'] },
   { key: 'system', label: 'إدارة النظام', modules: ['usersAndRoles'] },
 ];
 
 export const ALL_MODULES = PERMISSION_DOMAINS.flatMap(d => d.modules);
+
+/** A member's post → the permission groups of theirs (the staff: the sport; the equipment manager: the equipment…) */
+const POST_DOMAINS: Record<string, string[]> = {
+  coach: ['sport'],
+  assistant_coach: ['sport'],
+  goalkeeper_coach: ['sport'],
+  physical_trainer: ['sport'],
+  doctor: ['sport'],
+  equipment_manager: ['equipment'],
+  employee: ['admin'],
+  accountant: ['finance'],
+  admin: ['admin'],
+};
+
+/** At the bottom for everyone, off until turned on: «الإدارة» (with the members and their discipline) */
+const BOTTOM_DOMAINS = ['admin'];
+
+/**
+ * The groups shown for a member in the role's window, in order: their post's, then «الإدارة» at the bottom — for
+ * everyone, off until turned on. Another post (a player…): every group, «الإدارة» last.
+ */
+export const domainsForPost = (type?: string | null) => {
+  const own = (type ? POST_DOMAINS[type] : undefined) ?? PERMISSION_DOMAINS.map(d => d.key);
+  // «إدارة النظام» (when shown) is always the very last, after «الإدارة»
+  const keys = [...own.filter(k => !BOTTOM_DOMAINS.includes(k) && k !== 'system'), ...BOTTOM_DOMAINS, ...(own.includes('system') ? ['system'] : [])];
+  return keys.map(k => PERMISSION_DOMAINS.find(d => d.key === k)!).filter(Boolean);
+};
+
+/**
+ * A member's permissions, kept to the groups shown for them: the others off; the bottom ones off to start with — unless
+ * they are the post's own (the employee's «الإدارة»), or keepBottom (a member's own, when editing)
+ */
+export const permissionsForPost = (base: AppPermissions, type?: string | null, keepBottom = false): AppPermissions => {
+  const keep = new Set(domainsForPost(type).filter(d => keepBottom || !BOTTOM_DOMAINS.includes(d.key) || (POST_DOMAINS[type || ''] || []).includes(d.key)).flatMap(d => d.modules));
+  const result = JSON.parse(JSON.stringify(base)) as Record<string, Record<string, boolean>>;
+  ALL_MODULES.forEach(m => {
+    if (!keep.has(m)) Object.keys(result[m] || {}).forEach(a => { result[m][a] = false; });
+  });
+  return result as unknown as AppPermissions;
+};
 
 const buildPermissions = (value: boolean): AppPermissions => {
   const result: Record<string, Record<string, boolean>> = {};
@@ -306,6 +346,9 @@ export const emptyPermissions: AppPermissions = buildPermissions(false);
 
 /** Version written with every saved role; roles saved before it get the migration below */
 const PERMISSIONS_VERSION = 2;
+
+/** Permissions as stored (a role's, or a member's own): with the version, so they are read back as they are */
+export const serializePermissions = (p: AppPermissions) => JSON.stringify({ ...p, _v: PERMISSIONS_VERSION });
 
 /** Pages that had no permission check before version 2: everyone could open and use them */
 const OPEN_BEFORE_V2: PermissionModule[] = ['absences', 'clubs', 'trainingSessions', 'matches', 'medical', 'meetings', 'decisions', 'correspondences'];
@@ -397,12 +440,15 @@ export class RoleModel {
   name: string;
   accessLevel: 'full' | 'partial';
   permissions: AppPermissions;
+  /** The roles page's section it is in ('' : none) */
+  sectionId: string;
 
-  constructor({ id, name, accessLevel, permissions }: { id: string, name: string, accessLevel: 'full' | 'partial', permissions: AppPermissions }) {
+  constructor({ id, name, accessLevel, permissions, sectionId = '' }: { id: string, name: string, accessLevel: 'full' | 'partial', permissions: AppPermissions, sectionId?: string }) {
     this.id = id;
     this.name = name;
     this.accessLevel = accessLevel;
     this.permissions = permissions;
+    this.sectionId = sectionId;
   }
 
   static fromJson(json: any): RoleModel {
@@ -417,7 +463,8 @@ export class RoleModel {
         id: json.id?.toString() || '',
         name: json.name || '',
         accessLevel: 'full',
-        permissions: defaultPermissions
+        permissions: defaultPermissions,
+        sectionId: json.section_id ? String(json.section_id) : '',
       });
     }
 
@@ -436,7 +483,8 @@ export class RoleModel {
       id: json.id?.toString() || '',
       name: json.name || '',
       accessLevel: 'partial',
-      permissions: parsedPermissions
+      permissions: parsedPermissions,
+      sectionId: json.section_id ? String(json.section_id) : '',
     });
   }
 

@@ -205,8 +205,11 @@ export const sourceMeta = (t: Pick<Task, 'source' | 'kind'>) => {
   if (t.source === 'periodic') return { label: 'دورية', icon: Repeat };
   if (t.source === 'once') return { label: ONCE_LABEL, icon: ONCE_ICON };
   if (t.source === 'single') return { label: SINGLE_LABEL, icon: SINGLE_ICON };
-  if (t.source) return { label: EVENT_META[t.source].label, icon: EVENT_META[t.source].icon };
-  return { label: KIND_META[t.kind].label, icon: KIND_META[t.kind].icon };
+  // An event's; an unknown one (e.g. its appointment was deleted) falls back to the task's kind
+  const event = t.source ? EVENT_META[t.source as EventType] : undefined;
+  if (event) return { label: event.label, icon: event.icon };
+  const kind = KIND_META[t.kind] || KIND_META.normal;
+  return { label: kind.label, icon: kind.icon };
 };
 
 /** "2026/10/25 15:00" */

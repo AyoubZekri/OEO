@@ -52,6 +52,16 @@ export const useMembersController = () => {
   const [nationalIdFile, setNationalIdFile] = useState<File | null>(null);
   const [medicalFile, setMedicalFile] = useState<File | null>(null);
   const [insuranceFile, setInsuranceFile] = useState<File | null>(null);
+  /** Other documents being added (a name and a file each), and the member's ones being taken off */
+  const [newDocs, setNewDocs] = useState<{ key: number; name: string; file: File | null }[]>([]);
+  const [removedDocs, setRemovedDocs] = useState<number[]>([]);
+  const addDocRow = () => setNewDocs(list => [...list, { key: Date.now() + list.length, name: '', file: null }]);
+  const updateDocRow = (key: number, change: Partial<{ name: string; file: File | null }>) => {
+    setNewDocs(list => list.map(d => (d.key === key ? { ...d, ...change } : d)));
+    if (change.name !== undefined) setMissing(m => ({ ...m, [`doc-${key}`]: false }));
+  };
+  const removeDocRow = (key: number) => setNewDocs(list => list.filter(d => d.key !== key));
+  const removeExistingDoc = (id: number) => setRemovedDocs(list => [...list, id]);
 
   const crud = new Crud();
   const membersData = new MembersData(crud);
@@ -123,6 +133,8 @@ export const useMembersController = () => {
 
   const openAddMemberDialog = () => {
     setMemberToEdit(null);
+    setNewDocs([]);
+    setRemovedDocs([]);
     setPhotoFile(null);
     setNationalIdFile(null);
     setMedicalFile(null);
@@ -144,6 +156,8 @@ export const useMembersController = () => {
 
   const openEditMemberDialog = (member: MemberModel) => {
     setMemberToEdit(member);
+    setNewDocs([]);
+    setRemovedDocs([]);
     setPhotoFile(null);
     setNationalIdFile(null);
     setMedicalFile(null);
@@ -186,9 +200,16 @@ export const useMembersController = () => {
 
   const handleSaveMember = async (e: React.FormEvent) => {
     e.preventDefault();
-    const empty = { first_name: !String(formData.first_name || '').trim(), last_name: !String(formData.last_name || '').trim() };
+    const empty: Record<string, boolean> = { first_name: !String(formData.first_name || '').trim(), last_name: !String(formData.last_name || '').trim() };
+    // An added document: its name (under it) and its file (a snackbar); a row left fully empty is skipped
+    const docs = newDocs.filter(d => d.name.trim() || d.file);
+    docs.forEach(d => { if (!d.name.trim()) empty[`doc-${d.key}`] = true; });
     setMissing(empty);
-    if (empty.first_name || empty.last_name) return;
+    if (Object.values(empty).some(Boolean)) return;
+    if (docs.some(d => !d.file)) {
+      showSnackbar('خطأ', 'اختر ملف كل وثيقة مضافة', '#ef4444');
+      return;
+    }
     setIsLoading(true);
     
     // Convert empty strings to null where appropriate
@@ -208,6 +229,11 @@ export const useMembersController = () => {
     if (nationalIdFile) fd.append('national_id_document', nationalIdFile);
     if (medicalFile) fd.append('medical_certificate', medicalFile);
     if (insuranceFile) fd.append('insurance_document', insuranceFile);
+    docs.forEach((d, i) => {
+      fd.append(`extra_documents[${i}][name]`, d.name.trim());
+      fd.append(`extra_documents[${i}][file]`, d.file as File);
+    });
+    if (memberToEdit) removedDocs.forEach(id => fd.append('remove_documents[]', String(id)));
 
     if (memberToEdit) {
       fd.append('id', memberToEdit.id);
@@ -353,7 +379,7 @@ export const useMembersController = () => {
 
   const filteredMembers = members.filter(member => {
     const searchLower = searchQuery.toLowerCase();
-    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'equipment_manager' ? 'مسؤول العتاد' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : 'موظف';
+    const typeArabic = member.type === 'player' ? 'لاعب' : member.type === 'coach' ? 'مدرب' : member.type === 'assistant_coach' ? 'مساعد مدرب' : member.type === 'goalkeeper_coach' ? 'مدرب حراس' : member.type === 'equipment_manager' ? 'مسؤول العتاد' : member.type === 'admin' ? 'إداري' : member.type === 'doctor' ? 'طبيب' : member.type === 'employee' ? 'موظف' : member.type === 'general_coordinator' ? 'المنسق العام' : member.type === 'supervisor' ? 'المشرف' : member.type === 'accountant' ? 'محاسب' : 'موظف';
     
     const matchesSearch = 
       member.first_name.toLowerCase().includes(searchLower) ||
@@ -449,6 +475,7 @@ export const useMembersController = () => {
     handleSaveMember,
     openAddMemberDialog,
     openEditMemberDialog,
+    newDocs, addDocRow, updateDocRow, removeDocRow, removedDocs, removeExistingDoc,
     closeAddMemberDialog,
     handleDeleteMember,
     handlePrintMember,

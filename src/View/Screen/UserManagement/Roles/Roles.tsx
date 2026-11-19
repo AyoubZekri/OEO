@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Shield, X, CheckCircle2, ShieldCheck, ShieldAlert } from 'lucide-react';
+import { Plus, Edit2, Trash2, Shield, X, CheckCircle2, ShieldCheck, ShieldAlert, FolderPlus } from 'lucide-react';
 import { useRolesController } from './RolesController';
 import { RoleDialog } from './RoleDialog';
 import { useAuth } from '../../../../core/context/AuthContext';
@@ -8,6 +8,7 @@ import { defaultPermissions, type PermissionModule } from './role_model';
 import { MODULE_ICONS } from './permissionIcons';
 import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { MobileRoles } from '../../../Mobile/MobileUsers/MobileRoles';
+import { RoleSections, SectionDialog, ROLE_DRAG_TYPE, type SectionFilter } from './RoleSections';
 import './Roles.css';
 
 // Section icons come from the shared permission icons
@@ -18,6 +19,15 @@ export const Roles: React.FC = () => {
   const hasAccess = (check: boolean) => isFullAccess || check;
   const controller = useRolesController();
   const { t } = useTranslation();
+  // The section shown (on top), and the role being dragged onto one
+  const [filter, setFilter] = useState<SectionFilter>('all');
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [addingSection, setAddingSection] = useState(false);
+  const sectionCan = {
+    add: hasAccess(permissions.usersAndRoles.addRoles),
+    edit: hasAccess(permissions.usersAndRoles.editRoles),
+    delete: hasAccess(permissions.usersAndRoles.deleteRoles),
+  };
 
   const isMobile = useIsMobile();
   if (isMobile) {
@@ -29,25 +39,56 @@ export const Roles: React.FC = () => {
           edit: hasAccess(permissions.usersAndRoles.editRoles),
           delete: hasAccess(permissions.usersAndRoles.deleteRoles),
         }}
+        filter={filter}
+        onFilter={setFilter}
       />
     );
   }
 
+  const shown = controller.roles.filter(r => filter === 'all' || (filter === 'none' ? !r.sectionId : r.sectionId === filter));
+
 
   return (
     <div className="roles-container">
-      <div className="roles-header" style={{ justifyContent: 'flex-end' }}>
+      <div className="roles-header" style={{ justifyContent: 'flex-end', gap: 10 }}>
         {hasAccess(permissions.usersAndRoles.addRoles) && (
           <button className="add-role-btn" onClick={controller.openAddDialog}>
             <Plus size={20} />
             {t('roles_permissions.add_role')}
           </button>
         )}
+        {sectionCan.add && (
+          <button className="add-role-btn secondary" onClick={() => setAddingSection(true)}>
+            <FolderPlus size={20} />
+            قسم جديد
+          </button>
+        )}
       </div>
 
+      <RoleSections
+        sections={controller.sections}
+        roles={controller.roles}
+        value={filter}
+        onChange={setFilter}
+        mobile={false}
+        can={sectionCan}
+        onSave={controller.saveSection}
+        onDelete={controller.deleteSections}
+        onMove={controller.moveRole}
+        hideAdd
+      />
+      {addingSection && <SectionDialog section={null} onSave={name => controller.saveSection(name)} onClose={() => setAddingSection(false)} />}
+
       <div className="roles-grid">
-        {controller.roles.map(role => (
-          <div key={role.id} className="role-card">
+        {shown.map(role => (
+          <div
+            key={role.id}
+            className={`role-card ${dragging === role.id ? 'dragging' : ''}`}
+            // Dragged onto a section on top: moved into it
+            draggable={sectionCan.edit && controller.sections.length > 0}
+            onDragStart={e => { e.dataTransfer.setData(ROLE_DRAG_TYPE, role.id); e.dataTransfer.effectAllowed = 'move'; setDragging(role.id); }}
+            onDragEnd={() => setDragging(null)}
+          >
             <div className="role-card-header">
               <div className="role-title">
                 <Shield size={24} className={role.accessLevel === 'full' ? 'icon-full' : 'icon-partial'} />

@@ -1,8 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ClipboardList, MessagesSquare, Send, Loader2, AlertCircle, CheckCircle2, UserRound, CalendarPlus, CalendarClock,
-  BellRing, CalendarCheck, FileText, ArrowLeftRight, Clock, ExternalLink, Mic, ChevronLeft, Check, CheckCheck, RotateCcw,
+  ClipboardList, MessagesSquare, Send, Loader2, AlertCircle, CheckCircle2, UserRound, FileText, ArrowLeftRight, Clock, ExternalLink, Mic, Check, CheckCheck, RotateCcw,
 } from 'lucide-react';
 import { SidePanel } from '../../../shared/SidePanel';
 import { VoicePlayer } from './VoicePlayer';
@@ -15,12 +14,12 @@ import {
 /**
  * A task, to read only (its actions are in the ⋮ menu of its row): a head in its kind's colour (urgent red, appointment
  * orange, voice note blue, normal white) with its kind, title, status and nature; the deadline and what is left (only
- * when it has one); who does it and who gave it; its other dates on a timeline; then its details.
+ * when it has one); who does it and who gave it; then its recording and details — one block.
  * withEvent (management): an appointment's task opens its event («عرض المباراة»…).
  * onChat: its conversation in a box of its own (the last message; new ones glow and say how many), opened from it.
  */
-export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () => void; withEvent?: boolean; onChat?: () => void }> = ({
-  task: t, mobile, onClose, withEvent, onChat,
+export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () => void; withEvent?: boolean; /** No longer shown inside (the chat has its own button on the row) */ onChat?: () => void }> = ({
+  task: t, mobile, onClose, withEvent,
 }) => {
   const navigate = useNavigate();
   // Its status: none for a new one (on time)
@@ -33,14 +32,6 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
   const people = [
     { label: 'المكلّف', name: t.assignee?.name || '—' },
     { label: 'أسندها', name: t.created_by || 'النظام' },
-  ];
-  // The conversation's last word: a message, or a status change
-  const last = t.last_message;
-  const lastText = last ? (last.body || (last.status ? `تحولت الحالة إلى «${STATUS_META[last.status].label}»` : '')) : '';
-  const timeline: { icon: typeof UserRound; label: string; value: string; tone: string }[] = [
-    { icon: CalendarPlus, label: 'تاريخ الإسناد', value: dateText(t.created_at), tone: 'slate' },
-    ...(t.alert_at ? [{ icon: BellRing, label: 'التنبيه', value: dateText(t.alert_at), tone: 'orange' }] : []),
-    ...(t.done_at ? [{ icon: CalendarCheck, label: 'تاريخ الإنجاز', value: dateText(t.done_at), tone: 'green' }] : []),
   ];
 
   return (
@@ -70,68 +61,43 @@ export const TaskDetails: React.FC<{ task: Task; mobile: boolean; onClose: () =>
           <span className="tsk-d-hero-mark" aria-hidden="true"><src.icon size={88} strokeWidth={1.4} /></span>
         </section>
 
-        {t.due_at && (
-          <section className={`tsk-d-due ${late ? 'late' : ''}`}>
-            <span className="tsk-d-due-icon">{late ? <AlertCircle size={20} /> : <Clock size={20} />}</span>
-            <div>
-              <small>آخر أجل</small>
-              <strong>{dueText(t)}</strong>
-            </div>
-            <b dir="ltr">{dateText(t.due_at)}</b>
-          </section>
-        )}
-
-        <section className="tsk-d-people">
-          {people.map(p => (
-            <div key={p.label}>
-              <span className="tsk-d-avatar">{p.name === '—' ? <UserRound size={18} /> : initials(p.name)}</span>
+        {/* One block: the deadline with its date beside the assignee, who gave it, then the recording and the details */}
+        <section className="tsk-d-block">
+          <div className="tsk-d-pair">
+            <div className={`tsk-d-cell ${late ? 'late' : ''}`}>
+              <span className="tsk-d-cell-icon">{late ? <AlertCircle size={18} /> : <Clock size={18} />}</span>
               <span>
-                <small>{p.label}</small>
-                <strong>{p.name}</strong>
+                <small>آخر أجل</small>
+                <strong>{t.due_at ? dueText(t) : 'بلا أجل'}</strong>
+                {t.due_at && <em dir="ltr">{dateText(t.due_at)}</em>}
               </span>
             </div>
-          ))}
+            <div className="tsk-d-cell">
+              <span className="tsk-d-avatar">{people[0].name === '—' ? <UserRound size={18} /> : initials(people[0].name)}</span>
+              <span>
+                <small>{people[0].label}</small>
+                <strong>{people[0].name}</strong>
+              </span>
+            </div>
+          </div>
+          <div className="tsk-d-row">
+            <small>{people[1].label}</small>
+            <strong>{people[1].name}</strong>
+          </div>
+          {t.audio_url && (
+            <div className="tsk-d-part">
+              <h4><Mic size={15} />التسجيل</h4>
+              <VoicePlayer src={t.audio_url} />
+            </div>
+          )}
+          {t.details && (
+            <div className="tsk-d-part">
+              <h4><FileText size={15} />التفاصيل</h4>
+              <p className="tsk-d-text">{t.details}</p>
+            </div>
+          )}
         </section>
 
-        {onChat && (
-          <button type="button" className={`tsk-d-chat ${t.unread > 0 ? 'has-new' : ''}`} onClick={onChat}>
-            <span className="tsk-d-chat-icon"><MessagesSquare size={20} />{t.unread > 0 && <i aria-hidden="true" />}</span>
-            <span className="tsk-d-chat-text">
-              <strong>المحادثة</strong>
-              <small>{lastText ? `${last?.by ? `${last.by}: ` : ''}${lastText}` : 'لا توجد رسائل بعد · ابدأ المحادثة'}</small>
-            </span>
-            {t.unread > 0
-              ? <b className="tsk-d-chat-new">{t.unread === 1 ? 'رسالة جديدة' : `${t.unread} جديدة`}</b>
-              : <ChevronLeft size={18} className="tsk-d-chat-go" />}
-          </button>
-        )}
-
-        <section className="tsk-d-card">
-          <h4><CalendarClock size={15} />التواريخ</h4>
-          <ol className="tsk-d-timeline">
-            {timeline.map(x => (
-              <li key={x.label} className={`tone-${x.tone}`}>
-                <span className="tsk-d-dot"><x.icon size={13} /></span>
-                <small>{x.label}</small>
-                <strong dir="ltr">{x.value}</strong>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        {t.audio_url && (
-          <section className="tsk-d-card">
-            <h4><Mic size={15} />التسجيل</h4>
-            <VoicePlayer src={t.audio_url} />
-          </section>
-        )}
-
-        {t.details && (
-          <section className="tsk-d-card">
-            <h4><FileText size={15} />التفاصيل</h4>
-            <p className="tsk-d-text">{t.details}</p>
-          </section>
-        )}
       </div>
     </SidePanel>
   );

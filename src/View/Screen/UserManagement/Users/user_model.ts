@@ -42,7 +42,9 @@ export class UserModel {
       name: this.name,
       email: this.email,
       role_id: this.roleId,
-      password: this.password
+      password: this.password,
+      // The member's post (every user is a member too)
+      ...(this.memberType ? { type: this.memberType } : {}),
     };
   }
 }

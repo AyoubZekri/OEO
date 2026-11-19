@@ -34,7 +34,7 @@ export const appointmentMenu = (
 ): ActionsMenuItem[] => {
   const on = t.status === 'active';
   return [
-    ...(onView ? [{ key: 'view', label: 'عرض التفاصيل', icon: Eye, color: '#10b981', onClick: () => onView(t) }] : []),
+    ...(onView ? [{ key: 'view', label: 'تفاصيل', icon: Eye, color: '#10b981', onClick: () => onView(t) }] : []),
     ...(onEdit ? [{ key: 'edit', label: 'تعديل', icon: Pencil, color: '#3b82f6', onClick: () => onEdit(t) }] : []),
     ...(onToggle ? [{ key: 'toggle', label: on ? 'إيقاف' : 'تشغيل', icon: on ? PowerOff : Power, color: on ? '#f59e0b' : '#10b981', onClick: () => onToggle(t) }] : []),
     ...(onDelete ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => onDelete(t) }] : []),

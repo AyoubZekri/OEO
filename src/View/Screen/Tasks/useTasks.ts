@@ -204,6 +204,16 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
     }
   };
 
+  /** Several appointments at once (the appointments page's selection) */
+  const removeTemplates = async (ids: number[]) => {
+    try {
+      await client.post('/tasks/delete-many', { ids, templates: true });
+      setTemplates(list => list.filter(x => !ids.includes(x.id)));
+    } catch (e) {
+      showAlert(errorText(e, 'تعذر الحذف'));
+    }
+  };
+
   return {
     tasks, templates, users, loading, error, reload: load,
     // The home page's actions (tasks.*), or the appointments page's (appointments.*)
@@ -212,7 +222,7 @@ export const useTasksAdmin = (list: 'tasks' | 'templates' | 'upcoming') => {
     canAppointments: (action: string) => can('appointments', action),
     form, openForm, closeForm: () => setForm(null), save,
     opened: details.opened, openTask: details.open, closeTask: details.close,
-    replace, setStatus, toggleTemplate, remove, removeMany,
+    replace, setStatus, toggleTemplate, remove, removeMany, removeTemplates,
   };
 };
 export type TasksAdmin = ReturnType<typeof useTasksAdmin>;

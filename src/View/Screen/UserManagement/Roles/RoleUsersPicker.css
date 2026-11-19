@@ -21,3 +21,16 @@
 .rup-add { flex-shrink: 0; white-space: nowrap; line-height: 1.2; display: inline-flex; align-items: center; gap: 5px; min-height: 32px; padding: 4px 10px; border-radius: 10px; border: 1.5px solid #f97316; background: transparent; color: #ea580c; font: inherit; font-size: 0.8rem; font-weight: 800; cursor: pointer; }
 .rup-add:hover { background: rgba(249, 115, 22, 0.08); }
 .rup-add svg { flex-shrink: 0; }
+
+/* The members linked to the role, on top: the same rows as the list, kept apart from «إضافة» under them */
+.rup-linked { max-height: none; margin-bottom: 10px; }
+.rup > .rd-levels,
+.rup > .mus-levels { margin-bottom: 6px; }
+
+/* A linked member: a tap shows their permissions (focused), only the tick takes them off the role */
+.rup-item.focusable { cursor: pointer; }
+.rup-item.focused { background: #f97316; border-color: #f97316; color: #fff; box-shadow: 0 10px 22px -14px rgba(234, 88, 12, 0.9); }
+.rup-item.focused .rup-text small { color: rgba(255, 255, 255, 0.85); }
+.rup-item.focused .rup-check { background: #fff; border-color: #fff; color: #ea580c; }
+button.rup-check { padding: 0; font: inherit; cursor: pointer; }
+.rup-item.on button.rup-check:hover { background: #dc2626; border-color: #dc2626; }

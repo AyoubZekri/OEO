@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { UserRound, Phone, Mail, CalendarDays, IdCard, Shirt, Users, FileText, Pencil, Landmark } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { SidePanel } from '../../shared/SidePanel';
@@ -6,6 +6,7 @@ import { openDocument } from '../../widget/openDocument';
 import { Applink } from '../../../LinkApi';
 import { TYPE_LABELS, POSITION_LABELS } from '../../Mobile/MobileMembers/memberLabels';
 import type { MemberModel } from './member_model';
+import { MemberPhoto } from './MemberPhoto';
 import '../../shared/kit.css';
 import './MemberDetails.css';
 
@@ -44,8 +45,12 @@ export const MemberDetails: React.FC<{
     { label: 'بطاقة التعريف', file: m.national_id_document },
     { label: 'الشهادة الطبية', file: m.medical_certificate },
     { label: 'التأمين', file: m.insurance_document },
+    // Its other documents
+    ...(m.documents || []).map(d => ({ label: d.name, file: d.file })),
   ].filter(d => typeof d.file === 'string' && d.file) as { label: string; file: string }[];
   const player = m.type === 'player';
+  // The photo, big (a tap on it)
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   return (
     <SidePanel
@@ -67,7 +72,14 @@ export const MemberDetails: React.FC<{
     >
       <div className="mdt">
         <section className="mdt-head">
-          <img src={photoOf(m)} alt="" onError={e => { if (e.currentTarget.src !== defaultAvatar) e.currentTarget.src = defaultAvatar; }} />
+          {/* A real photo: a tap shows it big (the app's viewer) */}
+          {photoOf(m) !== defaultAvatar ? (
+            <button type="button" className="mdt-photo" onClick={() => setPhotoOpen(true)} aria-label="تكبير الصورة" title="تكبير الصورة">
+              <img src={photoOf(m)} alt="" onError={e => { if (e.currentTarget.src !== defaultAvatar) e.currentTarget.src = defaultAvatar; }} />
+            </button>
+          ) : (
+            <img src={defaultAvatar} alt="" />
+          )}
           <div>
             <h3>{m.first_name} {m.last_name}</h3>
             <span className="mdt-tags">
@@ -98,13 +110,20 @@ export const MemberDetails: React.FC<{
         {docs.length > 0 && (
           <section className="mdt-docs">
             {docs.map(d => (
-              <button key={d.label} type="button" onClick={() => openDocument(`${Applink.image}/${d.file}`, d.label)}>
+              <button key={`${d.label}-${d.file}`} type="button" onClick={() => openDocument(`${Applink.image}/${d.file}`, d.label)}>
                 <FileText size={16} />{d.label}
               </button>
             ))}
           </section>
         )}
       </div>
+      {photoOpen && (
+        <MemberPhoto
+          src={photoOf(m)}
+          name={`${m.first_name} ${m.last_name}`}
+          onClose={() => setPhotoOpen(false)}
+        />
+      )}
     </SidePanel>
   );
 };

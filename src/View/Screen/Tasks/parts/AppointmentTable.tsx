@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { ActionsMenu } from '../../../widget/ActionsMenu';
 import { Pagination } from '../../../widget/Pagination';
 import { ItemsPerPageSelector } from '../../../widget/ItemsPerPageSelector';
+import { Check } from 'lucide-react';
 import type { TaskTemplate } from '../taskUtils';
+import type { TaskSelection } from './useTaskSelection';
 import { appointmentKind, appointmentMenu, type AppointmentActions } from './appointmentMeta';
 
 /**
  * The appointments on a computer, in a table like the equipment movements': how many per page on top, the
  * appointment, its kind, who does it, its state, then its
  * ⋮ (its details, edit, stop / start, delete — those this role may do); the pages under it.
- * A click on a row opens its details.
+ * A click on a row opens its details; with the right to delete, holding a row selects it (then a click adds others).
  */
-export const AppointmentTable: React.FC<{ templates: TaskTemplate[] } & AppointmentActions> = ({ templates, ...actions }) => {
+export const AppointmentTable: React.FC<{ templates: TaskTemplate[]; select?: TaskSelection } & AppointmentActions> = ({ templates, select, ...actions }) => {
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
   // A filter that leaves fewer pages: back to the last one
@@ -38,15 +40,17 @@ export const AppointmentTable: React.FC<{ templates: TaskTemplate[] } & Appointm
               const on = t.status === 'active';
               const kind = appointmentKind(t);
               const open = () => actions.onView?.(t);
+              const picked = select?.picked(t);
               return (
                 <tr
                   key={t.id}
-                  className={`${on ? '' : 'off'} ${actions.onView ? 'tsk-arow' : ''}`}
+                  className={`${on ? '' : 'off'} ${actions.onView ? 'tsk-arow' : ''} ${select?.enabled ? 'tsk-selectable' : ''} ${picked ? 'tsk-picked' : ''}`}
                   tabIndex={actions.onView ? 0 : undefined}
-                  onClick={open}
+                  {...(select ? select.rowProps(t, open) : { onClick: open })}
                   onKeyDown={e => { if (e.key === 'Enter') open(); }}
                 >
                   <td data-label="الموعد" className="tsk-atitle">
+                    {picked && <span className="tsk-pick" aria-label="محدد"><Check size={12} strokeWidth={3} /></span>}
                     {t.title}
                     {kind.when && <small>{kind.when}</small>}
                   </td>
