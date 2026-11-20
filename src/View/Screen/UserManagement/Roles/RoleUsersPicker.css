@@ -61,3 +61,78 @@ button.rup-check { padding: 0; font: inherit; cursor: pointer; }
 body.dark-mode .rup-meta em.post { background: rgba(249, 115, 22, 0.18); color: #fdba74; }
 body.dark-mode .rup-meta em.role { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; }
 .rup-item.focused .rup-menu button { background: rgba(255, 255, 255, 0.2); border-color: transparent; color: #fff; }
+
+/* Name and post only, bold: a bigger name, solid chips */
+.rup-item { align-items: center; padding: 12px 14px; }
+.rup-item .rup-check { margin-top: 0; }
+.rup-av { width: 44px; height: 44px; border-radius: 14px; font-size: 1.1rem; box-shadow: 0 8px 16px -10px rgba(234, 88, 12, 0.9); }
+.rup-text strong { font-size: 1rem; font-weight: 900; letter-spacing: -0.01em; }
+.rup-meta { margin-top: 6px; }
+.rup-meta em { font-size: 0.74rem; font-weight: 900; padding: 3px 11px; }
+.rup-meta em.post { background: #f97316; color: #fff; }
+.rup-meta em.role { background: #334155; color: #fff; }
+.rup-item.focused .rup-meta em.post { background: #fff; color: #ea580c; }
+.rup-item.focused .rup-meta em.role { background: rgba(15, 23, 42, 0.35); color: #fff; }
+.rup-item .rup-menu { margin-top: 0; }
+body.dark-mode .rup-meta em.post { background: #f97316; color: #fff; }
+body.dark-mode .rup-meta em.role { background: #475569; color: #fff; }
+
+/* ── The rows, final: light and clear — [tick] [name, its chips under] [⋮]; the selected one light orange with a side bar ── */
+.rup-list .rup-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg, #fff);
+  color: var(--text-h, #0f172a);
+  box-shadow: none;
+}
+.rup-list .rup-item.on { border-color: #fed7aa; background: var(--card-bg, #fff); }
+.rup-list .rup-item.focused {
+  border-color: #f97316;
+  background: #fff7ed;
+  color: var(--text-h, #0f172a);
+  box-shadow: inset -4px 0 0 #f97316, 0 8px 18px -14px rgba(234, 88, 12, 0.9);
+}
+.rup-list .rup-item .rup-text { gap: 4px; }
+.rup-list .rup-item .rup-text strong { color: var(--text-h, #0f172a); font-size: 0.95rem; font-weight: 800; line-height: 1.4; }
+.rup-list .rup-item.focused .rup-text strong { color: #c2410c; }
+.rup-list .rup-meta { margin-top: 0; gap: 6px; }
+.rup-list .rup-meta em { font-size: 0.72rem; font-weight: 800; padding: 2px 10px; border-radius: 999px; }
+.rup-list .rup-meta em.post,
+.rup-list .rup-item.focused .rup-meta em.post { background: rgba(249, 115, 22, 0.12); color: #c2410c; }
+.rup-list .rup-meta em.role,
+.rup-list .rup-item.focused .rup-meta em.role { background: rgba(100, 116, 139, 0.12); color: #475569; }
+.rup-list .rup-item .rup-check { margin: 0; }
+.rup-list .rup-item.focused .rup-check { background: #f97316; border-color: #f97316; color: #fff; }
+.rup-list .rup-menu { margin: 0; }
+.rup-list .rup-item .rup-menu button,
+.rup-list .rup-item.focused .rup-menu button { background: transparent; border-color: transparent; color: var(--text-muted, #64748b); }
+.rup-list .rup-item .rup-menu button:hover { background: rgba(249, 115, 22, 0.1); color: #ea580c; }
+body.dark-mode .rup-list .rup-item.focused { background: rgba(249, 115, 22, 0.12); }
+body.dark-mode .rup-list .rup-item.focused .rup-text strong { color: #fdba74; }
+body.dark-mode .rup-list .rup-meta em.post { background: rgba(249, 115, 22, 0.18); color: #fdba74; }
+body.dark-mode .rup-list .rup-meta em.role { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; }
+
+/* Squarer: a small radius on the rows and their chips */
+.rup-list .rup-item { border-radius: 6px; }
+.rup-list .rup-meta em { border-radius: 4px; }
+.rup-list .rup-item .rup-check { border-radius: 4px; }
+.rup-list .rup-item .rup-menu button { border-radius: 4px; }
+
+/* A long role name: its chip on one line, cut with «…» (the whole name on hover) — the row stays neat */
+.rup-list .rup-meta { flex-wrap: wrap; min-width: 0; }
+.rup-list .rup-meta em.role { flex: 0 1 auto; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rup-list .rup-meta em.post { flex-shrink: 0; white-space: nowrap; }
+
+/* A little rounder */
+.rup-list .rup-item { border-radius: 10px; }
+.rup-list .rup-meta em { border-radius: 6px; }
+.rup-list .rup-item .rup-check { border-radius: 5px; }
+.rup-list .rup-item .rup-menu button { border-radius: 6px; }
+
+/* The selected member: no side bar (its orange border and background are enough) */
+.rup-list .rup-item.focused { box-shadow: 0 8px 18px -14px rgba(234, 88, 12, 0.9); }

@@ -130,19 +130,17 @@ export const RoleUsersPicker: React.FC<{
   };
 
   /**
-   * A user, all shown (nothing cut, nothing over the rest): their initial, the whole name, the whole email, then their
-   * post and (another role's) where they come from
+   * A user, shown plainly (nothing cut, nothing over the rest): the whole name, then their post and
+   * (another role's) where they come from
    */
   const info = (u: PickUser, roleMark: string) => (
     <>
-      <span className="rup-av" aria-hidden="true">{u.name.trim().charAt(0) || '؟'}</span>
       <span className="rup-text">
         <strong>{u.name}</strong>
-        <small dir="ltr">{u.email}</small>
         {(u.type || roleMark) && (
           <span className="rup-meta">
             {u.type && <em className="post">{TYPE_LABELS[u.type] || u.type}</em>}
-            {roleMark && <em className="role">{roleMark}</em>}
+            {roleMark && <em className="role" title={roleMark}>{roleMark}</em>}
           </span>
         )}
       </span>
