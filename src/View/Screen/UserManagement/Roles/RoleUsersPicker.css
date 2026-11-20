@@ -40,3 +40,24 @@ button.rup-check { padding: 0; font: inherit; cursor: pointer; }
 .rup-item em { flex-shrink: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rup-menu { flex-shrink: 0; display: inline-flex; }
 .rup-item.focused .rup-menu button { color: #fff; }
+
+/* A user's row, everything shown: tick, initial, the name and email in full (they wrap), their post and role under,
+   ⋮ at the top of its end — nothing cut, nothing over another */
+.rup-item { align-items: flex-start; gap: 10px; padding: 11px 12px; border-radius: 14px; transition: border-color 0.15s ease, background 0.15s ease; }
+.rup-item:hover { border-color: #fdba74; }
+.rup-item .rup-check { margin-top: 10px; }
+.rup-av { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: linear-gradient(135deg, #fb923c, #ea580c); color: #fff; font-size: 1rem; font-weight: 900; }
+.rup-item:not(.on) .rup-av { background: linear-gradient(135deg, #cbd5e1, #94a3b8); }
+.rup-item.focused .rup-av { background: rgba(255, 255, 255, 0.22); }
+.rup-text { flex: 1; min-width: 0; gap: 2px; }
+.rup-text strong { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.45; font-size: 0.9rem; }
+.rup-text small { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.4; }
+.rup-meta { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+.rup-meta em { max-width: 100%; font-style: normal; font-size: 0.7rem; font-weight: 800; padding: 2px 9px; border-radius: 999px; white-space: normal; overflow-wrap: anywhere; }
+.rup-meta em.post { background: rgba(249, 115, 22, 0.1); color: #c2410c; border: none; }
+.rup-meta em.role { background: rgba(100, 116, 139, 0.12); color: #475569; border: none; }
+.rup-item.focused .rup-meta em { background: rgba(255, 255, 255, 0.2); color: #fff; }
+.rup-item .rup-menu { margin-top: 4px; }
+body.dark-mode .rup-meta em.post { background: rgba(249, 115, 22, 0.18); color: #fdba74; }
+body.dark-mode .rup-meta em.role { background: rgba(148, 163, 184, 0.16); color: #cbd5e1; }
+.rup-item.focused .rup-menu button { background: rgba(255, 255, 255, 0.2); border-color: transparent; color: #fff; }

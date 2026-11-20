@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Search, Check, Loader2, Pencil, Send } from 'lucide-react';
+import { Search, Check, Loader2, Pencil, Send, Trash2 } from 'lucide-react';
+import { confirmDelete } from '../../../shared/confirmDelete';
+import { showAlert } from '../../../shared/appDialog';
 import { ActionsMenu } from '../../../widget/ActionsMenu';
 import { MobileRowMenu } from '../../../Mobile/widgets/MobileRowMenu';
 import { sendLoginWhatsApp } from '../Users/sendLoginWhatsApp';
@@ -11,6 +13,7 @@ import type { FocusedMember } from './useMemberPerms';
 import client from '../../../../core/api/client';
 import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { AddMemberWindow } from './AddMemberWindow';
+import { TYPE_LABELS } from '../../../Mobile/MobileMembers/memberLabels';
 import './RoleUsersPicker.css';
 
 /** own: the member's own permissions (stored), null: the role's */
@@ -42,7 +45,10 @@ export const RoleUsersPicker: React.FC<{
   focusId?: string;
   onFocus?: (m: FocusedMember | null) => void;
 }> = ({ roleId, value, onChange, addOpen, onAddClose, addButton, focusId, onFocus }) => {
-  const { user: me } = useAuth();
+  const { user: me, permissions, isFullAccess } = useAuth();
+  // The users page lives here now: its actions by the same rights
+  const canEditUsers = isFullAccess || permissions.usersAndRoles.editUsers;
+  const canDeleteUsers = isFullAccess || permissions.usersAndRoles.deleteUsers;
   const isMobile = useIsMobile();
   const [users, setUsers] = useState<PickUser[] | null>(null);
   const [query, setQuery] = useState('');
@@ -109,23 +115,64 @@ export const RoleUsersPicker: React.FC<{
       if (other) showSnackbar('تنبيه', `سيُنقل ${u.name} من دور «${u.roleName || 'آخر'}» إلى هذا الدور عند الحفظ`, '#f59e0b');
       toggle(u.id);
     };
+    const items = menuOf(u);
     return (
-      <button key={u.id} type="button" className="rup-item" aria-pressed={false} onClick={link}>
+      <div key={u.id} className="rup-item" role="button" tabIndex={0} aria-pressed={false} onClick={link} onKeyDown={e => { if (e.key === 'Enter') link(); }}>
         <span className="rup-check" />
-        <span className="rup-text">
-          <strong>{u.name}</strong>
-          <small dir="ltr">{u.email}</small>
-        </span>
-        {other && <em>{u.roleName ? `«${u.roleName}»` : 'دور آخر'}</em>}
-      </button>
+        {info(u, other ? (u.roleName ? `«${u.roleName}»` : 'دور آخر') : '')}
+        {items.length > 0 && (
+          <span className="rup-menu" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+            {isMobile ? <MobileRowMenu label="إجراءات المستخدم" items={items} /> : <ActionsMenu label="إجراءات المستخدم" items={items} />}
+          </span>
+        )}
+      </div>
     );
   };
 
-  /** A member's ⋮: their account — edit it, send its login */
-  const menuOf = (u: PickUser) => [
-    { key: 'edit', label: 'تعديل المستخدم', icon: Pencil, color: '#f97316', onClick: () => setEditingId(u.id) },
-    { key: 'whatsapp', label: 'إرسال البريد وكلمة المرور', icon: Send, color: '#16a34a', onClick: () => sendLoginWhatsApp({ id: u.id, email: u.email }) },
-  ];
+  /**
+   * A user, all shown (nothing cut, nothing over the rest): their initial, the whole name, the whole email, then their
+   * post and (another role's) where they come from
+   */
+  const info = (u: PickUser, roleMark: string) => (
+    <>
+      <span className="rup-av" aria-hidden="true">{u.name.trim().charAt(0) || '؟'}</span>
+      <span className="rup-text">
+        <strong>{u.name}</strong>
+        <small dir="ltr">{u.email}</small>
+        {(u.type || roleMark) && (
+          <span className="rup-meta">
+            {u.type && <em className="post">{TYPE_LABELS[u.type] || u.type}</em>}
+            {roleMark && <em className="role">{roleMark}</em>}
+          </span>
+        )}
+      </span>
+    </>
+  );
+
+  /** A user's account deleted (asked first): gone from the list and from the role */
+  const removeUser = async (u: PickUser) => {
+    if (!(await confirmDelete('حذف المستخدم؟', u.name))) return;
+    try {
+      await client.post('/users/delete', { id: Number(u.id) });
+      if (focusId === u.id) onFocus?.(null);
+      if (chosen.has(u.id)) onChange([...chosen].filter(x => x !== u.id));
+      setUsers(list => (list || []).filter(x => x.id !== u.id));
+    } catch {
+      showAlert('حدث خطأ أثناء حذف المستخدم');
+    }
+  };
+
+  /** A user's ⋮ (the users page's actions, here): edit the account, send its login, delete it — by one's rights */
+  const menuOf = (u: PickUser) => {
+    const self = String(me?.id ?? '') === u.id;
+    return [
+      ...(canEditUsers ? [
+        { key: 'edit', label: 'تعديل المستخدم', icon: Pencil, color: '#f97316', onClick: () => setEditingId(u.id) },
+        { key: 'whatsapp', label: 'إرسال البريد وكلمة المرور', icon: Send, color: '#16a34a', onClick: () => sendLoginWhatsApp({ id: u.id, email: u.email }) },
+      ] : []),
+      ...(canDeleteUsers && !self ? [{ key: 'delete', label: 'حذف المستخدم', icon: Trash2, danger: true, onClick: () => removeUser(u) }] : []),
+    ];
+  };
 
   /** A member in the role: a tap shows their permissions; only the tick takes them off */
   const linkedRow = (u: PickUser) => {
@@ -151,18 +198,16 @@ export const RoleUsersPicker: React.FC<{
         >
           <Check size={13} strokeWidth={3} />
         </button>
-        <span className="rup-text">
-          <strong>{u.name}</strong>
-          <small dir="ltr">{u.email}</small>
-        </span>
         {/* Coming from another role: taken off it when saved (a member has one role) */}
-        {u.roleId && u.roleId !== roleId && <em>من «{u.roleName || 'دور آخر'}»</em>}
+        {info(u, u.roleId && u.roleId !== roleId ? `من «${u.roleName || 'دور آخر'}»` : '')}
         {/* Their account's actions in one ⋮: edit it, send its login in WhatsApp */}
-        <span className="rup-menu" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
-          {isMobile
-            ? <MobileRowMenu label="إجراءات المستخدم" items={menuOf(u)} />
-            : <ActionsMenu label="إجراءات المستخدم" items={menuOf(u)} />}
-        </span>
+        {menuOf(u).length > 0 && (
+          <span className="rup-menu" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+            {isMobile
+              ? <MobileRowMenu label="إجراءات المستخدم" items={menuOf(u)} />
+              : <ActionsMenu label="إجراءات المستخدم" items={menuOf(u)} />}
+          </span>
+        )}
       </div>
     );
   };

@@ -127,23 +127,13 @@ export const useSaidparController = (onLogout?: () => void) => {
         // The order: home, users management, goals, appointments, members, meetings, absences, disciplinary,
         // finance, then the rest; the opinions last
         { name: 'Home', icon: Home, isDropdown: false, label: 'sidebar.home', route: '/' },
+        // «إدارة المستخدمين»: the roles page — the users are managed in each role's window (the users page is gone)
         ...((hasAccess(permissions.usersAndRoles.viewRoles) || hasAccess(permissions.usersAndRoles.viewUsers)) ? [{
-          name: 'UsersManagement',
+          name: 'Roles',
           icon: Users,
-          isDropdown: true,
+          isDropdown: false,
           label: 'sidebar.users_management',
-          subItems: [
-            ...(hasAccess(permissions.usersAndRoles.viewRoles) ? [{
-              name: 'Roles',
-              label: 'sidebar.roles',
-              route: Approutes.Roles,
-            }] : []),
-            ...(hasAccess(permissions.usersAndRoles.viewUsers) ? [{
-              name: 'Users',
-              label: 'sidebar.users',
-              route: Approutes.Users,
-            }] : [])
-          ]
+          route: Approutes.Roles,
         }] : []),
         ...(hasAccess(permissions.goals?.view ?? false) ? [{
           name: 'Goals',

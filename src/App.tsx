@@ -6,7 +6,6 @@ import { Saidpar } from './View/Screen/Saidpar/Saidpar';
 import { MobileBottomNav } from './View/Mobile/MobileBottomNav/MobileBottomNav';
 import { useSaidparController } from './View/Screen/Saidpar/SaidparController';
 import { Roles } from './View/Screen/UserManagement/Roles/Roles';
-import { Users } from './View/Screen/UserManagement/Users/Users';
 import { Topbar } from './View/Screen/Topbar/Topbar';
 import { Home } from './View/Screen/Home/Home';
 import { Members } from './View/Screen/Members/Members';
@@ -159,7 +158,8 @@ const AppLayout: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Route path={Approutes.Tasks} element={<AppointmentsRoute />} />
             <Route path="/appointments" element={<Navigate to={Approutes.Tasks} replace />} />
             <Route path={Approutes.Roles} element={<RequirePermission module="usersAndRoles" action="viewRoles"><Roles /></RequirePermission>} />
-            <Route path={Approutes.Users} element={<RequirePermission module="usersAndRoles" action="viewUsers"><Users /></RequirePermission>} />
+            {/* The users page is gone: its address opens the roles (the users are managed in each role's window) */}
+            <Route path={Approutes.Users} element={<Navigate to={Approutes.Roles} replace />} />
             <Route path={Approutes.Members} element={<RequirePermission module="members"><Members /></RequirePermission>} />
             <Route path={Approutes.Contracts} element={<RequirePermission module="contracts"><Contracts /></RequirePermission>} />
             <Route path={Approutes.Payments} element={<RequirePermission module="payments"><Payments /></RequirePermission>} />
