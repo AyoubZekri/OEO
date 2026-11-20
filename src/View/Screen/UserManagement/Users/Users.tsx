@@ -12,6 +12,7 @@ import { ItemsPerPageSelector } from '../../../widget/ItemsPerPageSelector';
 import { useIsMobile } from '../../../../core/functions/useIsMobile';
 import { MobileUsers } from '../../../Mobile/MobileUsers/MobileUsers';
 import './Users.css';
+import { ActionsMenu } from '../../../widget/ActionsMenu';
 import { TopbarSearch } from '../../../widget/TopbarSearch';
 
 /** A photo that does not load: the app's default picture (as on the members page) */
@@ -112,35 +113,19 @@ export const Users: React.FC = () => {
                   <span className="access-level-badge">{getRoleName(user.roleId)}</span>
                 </td>
                 <td data-label={t('users.actions_col', 'إجراءات')} className="actions-cell">
-                  <div className="user-actions">
-                    {hasAccess(permissions.usersAndRoles.editUsers) && (
-                      <button
-                        className="btn-icon whatsapp"
-                        onClick={() => sendLoginWhatsApp(user)}
-                        title="إرسال البريد وكلمة المرور في واتساب"
-                      >
-                        <Send size={18} />
-                      </button>
-                    )}
-                    {hasAccess(permissions.usersAndRoles.editUsers) && (
-                      <button
-                        className="btn-icon edit"
-                        onClick={() => openEditDialog(user)}
-                        title={t('users.edit_user')}
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                    )}
-                    {hasAccess(permissions.usersAndRoles.deleteUsers) && (
-                      <button
-                        className="btn-icon delete"
-                        onClick={() => handleDeleteUser(user.id)}
-                        title={t('users.delete_user')}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    )}
-                  </div>
+                  {/* Its actions in one ⋮: edit, send its login in WhatsApp, delete (those this role may do) */}
+                  <ActionsMenu
+                    label="إجراءات المستخدم"
+                    items={[
+                      ...(hasAccess(permissions.usersAndRoles.editUsers) ? [
+                        { key: 'edit', label: t('users.edit_user'), icon: Edit2, color: '#f97316', onClick: () => openEditDialog(user) },
+                        { key: 'whatsapp', label: 'إرسال البريد وكلمة المرور', icon: Send, color: '#16a34a', onClick: () => sendLoginWhatsApp(user) },
+                      ] : []),
+                      ...(hasAccess(permissions.usersAndRoles.deleteUsers) ? [
+                        { key: 'delete', label: t('users.delete_user'), icon: Trash2, danger: true, onClick: () => handleDeleteUser(user.id) },
+                      ] : []),
+                    ]}
+                  />
                 </td>
               </tr>
             ))}

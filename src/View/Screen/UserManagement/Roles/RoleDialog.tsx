@@ -66,7 +66,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
     e.preventDefault();
 
     const newErrors: {name?: string} = {};
-    const nameErr = validInput(name, 3, 50, 'text');
+    const nameErr = validInput(name, 3, 255, 'text');
     if (nameErr) newErrors.name = nameErr;
 
     setErrors(newErrors);
@@ -154,7 +154,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ isOpen, onClose, onSave,
                   type="text"
                   className={errors.name ? 'has-error' : ''}
                   value={name}
-                  maxLength={50}
+                  maxLength={255}
                   onChange={(e) => { setName(e.target.value); setErrors({}); }}
                   autoFocus
                 />

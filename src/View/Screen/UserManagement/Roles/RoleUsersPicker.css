@@ -34,3 +34,9 @@
 .rup-item.focused .rup-check { background: #fff; border-color: #fff; color: #ea580c; }
 button.rup-check { padding: 0; font: inherit; cursor: pointer; }
 .rup-item.on button.rup-check:hover { background: #dc2626; border-color: #dc2626; }
+
+/* A linked member's row: the tick, the name and email (cut, never over the rest), the marks, then ⋮ at the end */
+.rup-item .rup-text { flex: 1; min-width: 0; }
+.rup-item em { flex-shrink: 0; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rup-menu { flex-shrink: 0; display: inline-flex; }
+.rup-item.focused .rup-menu button { color: #fff; }

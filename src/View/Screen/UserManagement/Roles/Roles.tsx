@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Edit2, Trash2, Shield, X, CheckCircle2, ShieldCheck, ShieldAlert, FolderPlus } from 'lucide-react';
+import { Plus, Edit2, Trash2, Shield, X, CheckCircle2, ShieldCheck, ShieldAlert, FolderPlus, FolderOpen, Layers } from 'lucide-react';
 import { useRolesController } from './RolesController';
+import { ActionsMenu } from '../../../widget/ActionsMenu';
 import { RoleDialog } from './RoleDialog';
 import { useAuth } from '../../../../core/context/AuthContext';
 import { defaultPermissions, type PermissionModule } from './role_model';
@@ -22,6 +23,8 @@ export const Roles: React.FC = () => {
   // The section shown (on top), and the role being dragged onto one
   const [filter, setFilter] = useState<SectionFilter>('all');
   const [dragging, setDragging] = useState<string | null>(null);
+  // A section's side card a role is dragged over (the grouped view)
+  const [overSide, setOverSide] = useState<string | null>(null);
   const [addingSection, setAddingSection] = useState(false);
   const sectionCan = {
     add: hasAccess(permissions.usersAndRoles.addRoles),
@@ -47,6 +50,43 @@ export const Roles: React.FC = () => {
 
   const shown = controller.roles.filter(r => filter === 'all' || (filter === 'none' ? !r.sectionId : r.sectionId === filter));
 
+
+  /** A role's card (dragged onto a section: moved into it) */
+  const roleCard = (role: (typeof controller.roles)[number]) => (
+    <div
+      key={role.id}
+      className={`role-card ${dragging === role.id ? 'dragging' : ''}`}
+      // Dragged onto a section on top: moved into it
+      draggable={sectionCan.edit && controller.sections.length > 0}
+      onDragStart={e => { e.dataTransfer.setData(ROLE_DRAG_TYPE, role.id); e.dataTransfer.effectAllowed = 'move'; setDragging(role.id); }}
+      onDragEnd={() => setDragging(null)}
+    >
+      <div className="role-card-header">
+        <div className="role-title">
+          <Shield size={24} className={role.accessLevel === 'full' ? 'icon-full' : 'icon-partial'} />
+          <h2>{role.name}</h2>
+        </div>
+        {/* Its actions in one ⋮ (those this role may do) */}
+        <div className="role-actions" onMouseDown={e => e.stopPropagation()} draggable={false} onDragStart={e => e.preventDefault()}>
+          <ActionsMenu
+            label="إجراءات الدور"
+            items={[
+              ...(hasAccess(permissions.usersAndRoles.editRoles) ? [{ key: 'edit', label: t('roles_permissions.edit_permissions'), icon: Edit2, color: '#f97316', onClick: () => controller.openEditDialog(role) }] : []),
+              ...(hasAccess(permissions.usersAndRoles.deleteRoles) ? [{ key: 'delete', label: 'حذف', icon: Trash2, danger: true, onClick: () => controller.handleDeleteRole(role.id) }] : []),
+            ]}
+          />
+        </div>
+      </div>
+
+      <div className="role-card-body">
+        <div className="access-level-badge">
+          {role.accessLevel === 'full' ? t('roles_permissions.full_access') : t('roles_permissions.partial_access')}
+        </div>
+
+        {/* Permissions are now shown in the view dialog */}
+      </div>
+    </div>
+  );
 
   return (
     <div className="roles-container">
@@ -79,45 +119,55 @@ export const Roles: React.FC = () => {
       />
       {addingSection && <SectionDialog section={null} onSave={name => controller.saveSection(name)} onClose={() => setAddingSection(false)} />}
 
-      <div className="roles-grid">
-        {shown.map(role => (
-          <div
-            key={role.id}
-            className={`role-card ${dragging === role.id ? 'dragging' : ''}`}
-            // Dragged onto a section on top: moved into it
-            draggable={sectionCan.edit && controller.sections.length > 0}
-            onDragStart={e => { e.dataTransfer.setData(ROLE_DRAG_TYPE, role.id); e.dataTransfer.effectAllowed = 'move'; setDragging(role.id); }}
-            onDragEnd={() => setDragging(null)}
-          >
-            <div className="role-card-header">
-              <div className="role-title">
-                <Shield size={24} className={role.accessLevel === 'full' ? 'icon-full' : 'icon-partial'} />
-                <h2>{role.name}</h2>
+      {/* All the roles: each section on the side, its roles beside it (the section as tall as its rows); then the roles
+          in no section. One section chosen on top: its roles alone */}
+      {filter === 'all' && controller.sections.length > 0 ? (
+        <div className="rsec-groups">
+          {controller.sections.map(sec => {
+            const its = controller.roles.filter(r => r.sectionId === sec.id);
+            return (
+              <div key={sec.id} className="rsec-group">
+                <aside
+                  className={`rsec-side ${overSide === sec.id ? 'drop' : ''}`}
+                  onDragOver={e => { if (e.dataTransfer.types.includes(ROLE_DRAG_TYPE)) { e.preventDefault(); setOverSide(sec.id); } }}
+                  onDragLeave={() => setOverSide(o => (o === sec.id ? null : o))}
+                  onDrop={e => { const id = e.dataTransfer.getData(ROLE_DRAG_TYPE); setOverSide(null); if (id) { e.preventDefault(); controller.moveRole(id, sec.id); } }}
+                >
+                  <span className="rsec-side-icon"><FolderOpen size={22} /></span>
+                  <strong>{sec.name}</strong>
+                  <small>{its.length} {its.length === 1 ? 'دور' : 'أدوار'}</small>
+                </aside>
+                <div className="roles-grid rsec-group-roles">
+                  {its.length ? its.map(roleCard) : <div className="rsec-group-empty">اسحب دوراً إلى هنا</div>}
+                </div>
               </div>
-              <div className="role-actions">
-                {hasAccess(permissions.usersAndRoles.editRoles) && (
-                  <button className="btn-icon edit" onClick={() => controller.openEditDialog(role)}>
-                    <Edit2 size={18} />
-                  </button>
-                )}
-                {hasAccess(permissions.usersAndRoles.deleteRoles) && (
-                  <button className="btn-icon delete" onClick={() => controller.handleDeleteRole(role.id)}>
-                    <Trash2 size={18} />
-                  </button>
-                )}
+            );
+          })}
+          {/* The roles in no section, last: the same, under «بلا قسم» (a role dropped there leaves its section) */}
+          {controller.roles.some(r => !r.sectionId) && (() => {
+            const none = controller.roles.filter(r => !r.sectionId);
+            return (
+              <div className="rsec-group none">
+                <aside
+                  className={`rsec-side none ${overSide === '' ? 'drop' : ''}`}
+                  onDragOver={e => { if (e.dataTransfer.types.includes(ROLE_DRAG_TYPE)) { e.preventDefault(); setOverSide(''); } }}
+                  onDragLeave={() => setOverSide(o => (o === '' ? null : o))}
+                  onDrop={e => { const id = e.dataTransfer.getData(ROLE_DRAG_TYPE); setOverSide(null); if (id) { e.preventDefault(); controller.moveRole(id, ''); } }}
+                >
+                  <span className="rsec-side-icon"><Layers size={22} /></span>
+                  <strong>بلا قسم</strong>
+                  <small>{none.length} {none.length === 1 ? 'دور' : 'أدوار'}</small>
+                </aside>
+                <div className="roles-grid rsec-group-roles">{none.map(roleCard)}</div>
               </div>
-            </div>
-
-            <div className="role-card-body">
-              <div className="access-level-badge">
-                {role.accessLevel === 'full' ? t('roles_permissions.full_access') : t('roles_permissions.partial_access')}
-              </div>
-
-              {/* Permissions are now shown in the view dialog */}
-            </div>
-          </div>
-        ))}
-      </div>
+            );
+          })()}
+        </div>
+      ) : (
+        <div className="roles-grid">
+          {shown.map(roleCard)}
+        </div>
+      )}
 
       <RoleDialog
         isOpen={controller.isDialogOpen}

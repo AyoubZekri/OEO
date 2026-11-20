@@ -18,12 +18,14 @@ interface MobileUserFormProps {
   saving: boolean;
   onSave: (user: Omit<UserModel, 'id' | 'toJson'>) => void;
   onClose: () => void;
+  /** From a role's window: no role to choose (the new account takes that role) */
+  hideRole?: boolean;
 }
 
 type Errors = { name?: string; email?: string; password?: string; roleId?: string };
 
 // Phone version of the user dialog: same fields, checks and payload
-export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, saving, onSave, onClose }) => {
+export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, saving, onSave, onClose, hideRole }) => {
   const { t } = useTranslation();
   const can = useCan();
   const [name, setName] = useState(user?.name || '');
@@ -59,7 +61,7 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
     <MobileScreen
       title={user ? t('users.edit_user') : t('users.add_new_user')}
       onBack={onClose}
-      layer={2}
+      layer={hideRole ? 3 : 2}
       footer={(
         <button type="button" className="me-btn primary" onClick={save} disabled={saving}>
           {saving ? <Loader2 size={18} className="mus-spin" /> : <Save size={18} />}
@@ -100,6 +102,7 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
       </section>
 
       {/* The role — the app's dropdown */}
+      {!hideRole && (
         <section className="me-card">
           <h3 className="me-section-title"><span><ShieldCheck size={16} /></span>{t('users.role')}</h3>
           <MobileSelect
@@ -112,6 +115,7 @@ export const MobileUserForm: React.FC<MobileUserFormProps> = ({ user, roles, sav
           />
           {err(errors.roleId)}
         </section>
+      )}
     </MobileScreen>
   );
 };

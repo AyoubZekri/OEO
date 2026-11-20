@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Search, Check, Loader2 } from 'lucide-react';
+import { Search, Check, Loader2, Pencil, Send } from 'lucide-react';
+import { ActionsMenu } from '../../../widget/ActionsMenu';
+import { MobileRowMenu } from '../../../Mobile/widgets/MobileRowMenu';
+import { sendLoginWhatsApp } from '../Users/sendLoginWhatsApp';
+import { EditUserWindow } from './EditUserWindow';
 import { showSnackbar } from '../../../../core/functions/Snacpar';
 import { useAuth } from '../../../../core/context/AuthContext';
 import { parsePermissions, type AppPermissions } from './role_model';
@@ -42,6 +46,8 @@ export const RoleUsersPicker: React.FC<{
   const isMobile = useIsMobile();
   const [users, setUsers] = useState<PickUser[] | null>(null);
   const [query, setQuery] = useState('');
+  // A member's account being edited (their ⋮)
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // The latest choice, for answers that arrive later
   const valueRef = useRef(value);
@@ -115,10 +121,14 @@ export const RoleUsersPicker: React.FC<{
     );
   };
 
+  /** A member's ⋮: their account — edit it, send its login */
+  const menuOf = (u: PickUser) => [
+    { key: 'edit', label: 'تعديل المستخدم', icon: Pencil, color: '#f97316', onClick: () => setEditingId(u.id) },
+    { key: 'whatsapp', label: 'إرسال البريد وكلمة المرور', icon: Send, color: '#16a34a', onClick: () => sendLoginWhatsApp({ id: u.id, email: u.email }) },
+  ];
+
   /** A member in the role: a tap shows their permissions; only the tick takes them off */
   const linkedRow = (u: PickUser) => {
-    // Oneself: selected too, to see one's permissions, but never to change them
-    const self = String(me?.id ?? '') === u.id;
     const focused = focusId === u.id;
     // One member is always selected: a tap selects another (the selected one stays)
     const open = () => { if (onFocus && !focused) onFocus(focusOf(u)); };
@@ -147,6 +157,12 @@ export const RoleUsersPicker: React.FC<{
         </span>
         {/* Coming from another role: taken off it when saved (a member has one role) */}
         {u.roleId && u.roleId !== roleId && <em>من «{u.roleName || 'دور آخر'}»</em>}
+        {/* Their account's actions in one ⋮: edit it, send its login in WhatsApp */}
+        <span className="rup-menu" onClick={e => e.stopPropagation()} onKeyDown={e => e.stopPropagation()}>
+          {isMobile
+            ? <MobileRowMenu label="إجراءات المستخدم" items={menuOf(u)} />
+            : <ActionsMenu label="إجراءات المستخدم" items={menuOf(u)} />}
+        </span>
       </div>
     );
   };
@@ -165,6 +181,7 @@ export const RoleUsersPicker: React.FC<{
         ) : others.map(otherRow)}
       </div>
 
+      {editingId && <EditUserWindow userId={editingId} mobile={isMobile} onClose={() => { setEditingId(null); load(false); }} />}
       {addOpen && <AddMemberWindow mobile={isMobile} onClose={() => { onAddClose?.(); load(true); }} />}
     </div>
   );

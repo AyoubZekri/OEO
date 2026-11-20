@@ -185,6 +185,8 @@ export const useMembersController = () => {
 
   // The member form's required fields to type (name, surname) left empty: their message under them
   const [missing, setMissing] = useState<Record<string, boolean>>({});
+  /** Added from a role's window: the account's email and password are asked too (as on the users page) */
+  const [accountMode, setAccountMode] = useState(false);
 
   const closeAddMemberDialog = () => {
     setIsAddMemberOpen(false);
@@ -201,6 +203,10 @@ export const useMembersController = () => {
   const handleSaveMember = async (e: React.FormEvent) => {
     e.preventDefault();
     const empty: Record<string, boolean> = { first_name: !String(formData.first_name || '').trim(), last_name: !String(formData.last_name || '').trim() };
+    if (accountMode && !memberToEdit) {
+      empty.email = !/^\S+@\S+\.\S+$/.test(String(formData.email || '').trim());
+      empty.password = String(formData.password || '').length < 6;
+    }
     // An added document: its name (under it) and its file (a snackbar); a row left fully empty is skipped
     const docs = newDocs.filter(d => d.name.trim() || d.file);
     docs.forEach(d => { if (!d.name.trim()) empty[`doc-${d.key}`] = true; });
@@ -448,6 +454,7 @@ export const useMembersController = () => {
   };
 
   return {
+    accountMode, setAccountMode,
     members,
     filteredMembers,
     searchQuery,

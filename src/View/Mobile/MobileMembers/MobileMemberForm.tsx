@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowRight, Camera, RefreshCw, User, IdCard, Phone, Shirt, Users, MapPin, CalendarDays, Mail, HeartHandshake, Landmark, UploadCloud, CheckCircle2, Eye, Trophy, FileText, Save, X, Plus } from 'lucide-react';
+import { ArrowRight, Camera, RefreshCw, User, IdCard, Phone, Shirt, Users, MapPin, CalendarDays, Mail, HeartHandshake, Landmark, UploadCloud, CheckCircle2, Eye, Trophy, FileText, Save, X, Plus, Lock } from 'lucide-react';
 import defaultAvatar from '../../../assets/AVETER.png';
 import { Applink } from '../../../LinkApi';
 import { processImage } from '../../../core/functions/processImage';
@@ -197,6 +197,18 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           </button>
         </div>
 
+        {/* From a role's window: the account too, as on the users page (its email is the member's) */}
+        {controller.accountMode && !memberToEdit && (
+          <Section title="الحساب" icon={Lock}>
+            <Field label="البريد الإلكتروني" icon={Mail} required error={controller.missing.email ? 'اكتب بريداً إلكترونياً صحيحاً' : undefined}>
+              <input type="email" name="email" value={formData.email || ''} onChange={handleFormDataChange} dir="ltr" autoComplete="off" />
+            </Field>
+            <Field label="كلمة المرور" icon={Lock} required error={controller.missing.password ? 'ستة أحرف على الأقل' : undefined}>
+              <input type="password" name="password" value={formData.password || ''} onChange={handleFormDataChange} dir="ltr" autoComplete="new-password" />
+            </Field>
+          </Section>
+        )}
+
         <Section title="المعلومات الأساسية" icon={User}>
           <div className="mf-row">
             <Field label="الاسم" icon={User} required error={controller.missing.first_name ? 'اكتب الاسم' : undefined}>
@@ -289,9 +301,11 @@ export const MobileMemberForm: React.FC<MobileMemberFormProps> = ({ controller }
           <Field label="مكان الميلاد" icon={MapPin}>
             <input type="text" name="place_of_birth" value={formData.place_of_birth || ''} onChange={handleFormDataChange} />
           </Field>
-          <Field label="البريد الإلكتروني" icon={Mail}>
-            <input type="email" name="email" value={formData.email || ''} onChange={handleFormDataChange} dir="ltr" />
-          </Field>
+          {!controller.accountMode && (
+            <Field label="البريد الإلكتروني" icon={Mail}>
+              <input type="email" name="email" value={formData.email || ''} onChange={handleFormDataChange} dir="ltr" />
+            </Field>
+          )}
           {isPlayer && (
             <Field label="رقم ثاني" icon={Phone}>
               <input type="tel" name="emergency_contact_phone" value={formData.emergency_contact_phone || ''} onChange={handleFormDataChange} dir="ltr" />

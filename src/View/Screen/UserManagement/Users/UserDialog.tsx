@@ -17,6 +17,8 @@ interface UserDialogProps {
   onClose: () => void;
   onSave: (user: Omit<UserModel, 'id' | 'toJson'>) => void;
   userToEdit?: UserModel | null;
+  /** From a role's window: no role to choose (the new account takes that role) */
+  hideRole?: boolean;
 }
 
 type Errors = { name?: string; email?: string; password?: string };
@@ -26,7 +28,7 @@ type Errors = { name?: string; email?: string; password?: string };
  * on the staff (the players are added on the members page) — then the role. The app's dropdowns; a field's message
  * under it, a choice's in a snackbar.
  */
-export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave, userToEdit }) => {
+export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave, userToEdit, hideRole }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,7 +86,7 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
   const clear = (k: keyof Errors) => setErrors(p => ({ ...p, [k]: undefined }));
 
   return createPortal(
-    <div className="ud-overlay" onMouseDown={onClose}>
+    <div className={`ud-overlay ${hideRole ? 'over' : ''}`} onMouseDown={onClose}>
       <form className="ud" role="dialog" aria-modal="true" aria-label={userToEdit ? t('users.edit_user') : t('users.add_new_user')} onMouseDown={e => e.stopPropagation()} onSubmit={handleSubmit} noValidate>
         <header className="ud-head">
           <span className="ud-head-icon">{userToEdit ? <UserCog size={22} /> : <UserPlus size={22} />}</span>
@@ -125,10 +127,10 @@ export const UserDialog: React.FC<UserDialogProps> = ({ isOpen, onClose, onSave,
             <PostField value={post} onChange={setPost} mobile={false} />
           </section>
 
-          <section className="ud-card">
+          {!hideRole && <section className="ud-card">
             <h3 className="ud-card-title"><span><ShieldCheck size={15} /></span>{t('users.role')}</h3>
             <CustomDropdown<string> value={roleId} options={roleOptions} onChange={setRoleId} placeholder="بدون دور" />
-          </section>
+          </section>}
         </div>
 
         <footer className="ud-foot">

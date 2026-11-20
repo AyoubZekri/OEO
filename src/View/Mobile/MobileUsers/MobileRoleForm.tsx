@@ -99,7 +99,7 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
   const setAll = (value: boolean) => domains.forEach(d => d.items.forEach(m => setModule(m.key, value)));
 
   const save = () => {
-    const err = validInput(name, 3, 50, 'text');
+    const err = validInput(name, 3, 255, 'text');
     setError(err);
     if (err) return;
     onSave({ name, accessLevel, permissions: accessLevel === 'full' ? copy(defaultPermissions) : perms }, userIds, Object.fromEntries(Object.entries(member.changes).filter(([id]) => !userIds || userIds.includes(id))));
@@ -120,7 +120,7 @@ export const MobileRoleForm: React.FC<MobileRoleFormProps> = ({ role, saving, on
       <section className="me-card">
         <label className="me-field">
           <span className="me-label"><Type size={14} /> {t('roles_permissions.role_name')}</span>
-          <input className={`me-input ${error ? 'is-missing' : ''}`} type="text" maxLength={50} value={name} onChange={e => { setName(e.target.value); setError(null); }} />
+          <input className={`me-input ${error ? 'is-missing' : ''}`} type="text" maxLength={255} value={name} onChange={e => { setName(e.target.value); setError(null); }} />
         </label>
         {error && <p className="mus-form-error"><AlertCircle size={14} /> {error}</p>}
 
